@@ -1,0 +1,193 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String        @id
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @default(now()) @updatedAt
+  email            String        @unique
+  emailVerified    Boolean       @default(false)
+  name             String?
+  image            String?
+  collage          String?
+  collageId        String?
+  branch           String?
+  transactionId    String?
+  paymentProof     String?
+  year             Int?
+  isApproved       Boolean       @default(false)
+  paymentStatus    PaymentStatus @default(PENDING)
+  phone            String?
+  password         String?
+  role             Role          @default(USER)
+  accounts              Account[]
+  sessions              Session[]
+  registeredEvents      Event[]                  @relation("EventToUser")
+  accommodationBookings AccommodationBooking[]
+  eventSubmissions      EventSubmission[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+  identifier String
+  value      String
+  expiresAt  DateTime
+
+  @@map("verifications")
+}
+
+model Category {
+  id        String   @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  name      String
+  image     String?
+  Event     Event[]
+}
+
+model Event {
+  id                 String   @id
+  categoryId         String
+  name               String
+  description        String
+  date               DateTime
+  image              String
+  venue              String
+  startTime          String
+  endTime            String
+  participantLimit   Int
+  termsandconditions String
+  registrationLink   String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime
+  Category           Category @relation(fields: [categoryId], references: [id])
+  registeredStudents User[]   @relation("EventToUser")
+  submissions        EventSubmission[]
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum BookingType {
+  INDIVIDUAL
+  GROUP
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model AccommodationBooking {
+  id           String        @id @default(cuid())
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // User reference
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Booking details
+  gender       Gender
+  bookingType  BookingType
+
+  // Primary contact (stored for record keeping)
+  primaryName  String
+  primaryEmail String
+  primaryPhone String
+
+  // Group members (stored as JSON array)
+  groupMembers Json?
+
+  // Total members count
+  totalMembers Int
+
+  // Payment
+  paymentStatus PaymentStatus @default(PENDING)
+  paymentId     String?
+  amount        Decimal?      @db.Decimal(10, 2)
+
+  // Booking status
+  status       BookingStatus @default(PENDING)
+
+  // Ensure one booking per user
+  @@unique([userId])
+  @@map("accommodation_bookings")
+}
+
+model EventSubmission {
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  userId         String
+  eventId        String
+
+  submissionLink String
+  notes          String?
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@map("event_submissions")
+}
+
