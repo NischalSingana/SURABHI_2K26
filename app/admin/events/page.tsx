@@ -267,7 +267,7 @@ export default function EventsManagement() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowCategoryModal(true)}
-          className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg shadow-orange-500/20"
+          className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg shadow-red-600/20"
         >
           <svg
             className="w-5 h-5"
@@ -293,7 +293,7 @@ export default function EventsManagement() {
             key={category.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden hover:border-orange-500/30 transition-all"
+            className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden hover:border-red-600/30 transition-all"
           >
             {/* Category Header */}
             <div className="flex items-center justify-between p-4 bg-zinc-800/50">
@@ -302,7 +302,7 @@ export default function EventsManagement() {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => toggleCategory(category.id)}
-                  className="text-zinc-400 hover:text-orange-500 transition-colors"
+                  className="text-zinc-400 hover:text-red-500 transition-colors"
                 >
                   <svg
                     className={`w-5 h-5 transition-transform ${expandedCategories.has(category.id) ? "rotate-90" : ""
@@ -344,7 +344,7 @@ export default function EventsManagement() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => openEventForm(category.id)}
-                  className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm transition-colors flex items-center gap-1 shadow-lg shadow-orange-500/20"
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-colors flex items-center gap-1 shadow-lg shadow-red-600/20"
                 >
                   <svg
                     className="w-4 h-4"
@@ -406,7 +406,7 @@ export default function EventsManagement() {
                       key={event.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="p-4 bg-zinc-800 rounded-lg border-l-4 border-orange-500 hover:bg-zinc-700/50 transition-all"
+                      className="p-4 bg-zinc-800 rounded-lg border-l-4 border-red-600 hover:bg-zinc-700/50 transition-all"
                     >
                       <div className="flex items-start gap-4">
                         {/* Event Image */}
@@ -486,7 +486,7 @@ export default function EventsManagement() {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => startEditingEvent(event)}
-                            className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm transition-colors whitespace-nowrap"
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-colors whitespace-nowrap"
                           >
                             Edit
                           </motion.button>
@@ -538,7 +538,7 @@ export default function EventsManagement() {
                   value={categoryName}
                   onChange={(e) => setCategoryName(e.target.value)}
                   placeholder="Enter category name"
-                  className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
                   required
                   autoFocus
                 />
@@ -552,7 +552,7 @@ export default function EventsManagement() {
                   value={categoryVideo}
                   onChange={(e) => setCategoryVideo(e.target.value)}
                   placeholder="e.g., https://youtube.com/..."
-                  className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
                 />
               </div>
               <div className="mb-4">
@@ -563,7 +563,7 @@ export default function EventsManagement() {
                   type="file"
                   accept="image/*"
                   onChange={handleCategoryImageSelect}
-                  className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-orange-500 file:text-white hover:file:bg-orange-600 file:cursor-pointer"
+                  className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-red-600 file:text-white hover:file:bg-red-700 file:cursor-pointer"
                 />
                 {categoryImagePreview && (
                   <div className="mt-3 relative w-full h-32 bg-zinc-950 rounded-lg overflow-hidden border border-zinc-700">
@@ -606,7 +606,7 @@ export default function EventsManagement() {
                 <button
                   type="submit"
                   disabled={uploadingCategory}
-                  className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
                   {uploadingCategory ? (
                     <>
@@ -780,10 +780,10 @@ export default function EventsManagement() {
                       (student: any, index: number) => (
                         <div
                           key={student.id}
-                          className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-orange-500/50 transition-all"
+                          className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-red-600/50 transition-all"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 font-bold">
+                            <div className="w-10 h-10 rounded-full bg-red-600/20 flex items-center justify-center text-red-500 font-bold">
                               {index + 1}
                             </div>
                             <div className="flex-1 min-w-0">
