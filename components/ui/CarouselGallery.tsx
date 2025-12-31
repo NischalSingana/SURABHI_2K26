@@ -29,21 +29,21 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
   // Initialize selected year (use defaultYear or the most recent year)
   const initialYear = defaultYear || years[0] || "";
   const [selectedYear, setSelectedYear] = useState<string>(initialYear);
-  
+
   // Filter items by selected year
   const filteredItems = useMemo(
     () => items.filter((item) => item.year === selectedYear),
     [items, selectedYear]
   );
-  
+
   // Current items displayed in carousel (initialized with filtered items)
-  const [currentItems, setCurrentItems] = useState<CarouselItem[]>(() => 
+  const [currentItems, setCurrentItems] = useState<CarouselItem[]>(() =>
     items.filter((item) => item.year === initialYear)
   );
-  
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  
+
   // Active preview index (index 2 always shows the current displayed image)
   const activePreviewIndex = 2;
 
@@ -132,7 +132,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
       {/* Animated Background Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <motion.div
-          className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl"
+          className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-600/5 rounded-full blur-3xl"
           animate={{
             x: [0, 100, 0],
             y: [0, 50, 0],
@@ -173,7 +173,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-white via-orange-500 to-white bg-clip-text text-transparent leading-tight"
+                className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-white via-red-500 to-white bg-clip-text text-transparent leading-tight"
               >
                 Gallery
               </motion.h1>
@@ -193,9 +193,9 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="flex items-center gap-3 px-6 py-3.5 bg-zinc-900/50 hover:bg-zinc-800/80 border border-zinc-800/50 rounded-xl transition-all backdrop-blur-md shadow-lg hover:shadow-xl hover:border-orange-500/50"
+                className="flex items-center gap-3 px-6 py-3.5 bg-zinc-900/50 hover:bg-zinc-800/80 border border-zinc-800/50 rounded-xl transition-all backdrop-blur-md shadow-lg hover:shadow-xl hover:border-red-600/50"
               >
-                <FiFilter className="text-orange-500" size={20} />
+                <FiFilter className="text-red-500" size={20} />
                 <span className="font-semibold">{selectedYear}</span>
                 <motion.svg
                   width="12"
@@ -232,11 +232,10 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                         transition={{ delay: idx * 0.03, duration: 0.2 }}
                         whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}
                         onClick={() => handleYearChange(year)}
-                        className={`w-full px-6 py-3.5 text-left transition-colors flex items-center gap-3 border-t border-zinc-800/50 ${
-                          selectedYear === year
-                            ? "bg-orange-500/20 text-orange-500 font-semibold"
+                        className={`w-full px-6 py-3.5 text-left transition-colors flex items-center gap-3 border-t border-zinc-800/50 ${selectedYear === year
+                            ? "bg-red-600/20 text-red-500 font-semibold"
                             : "text-white hover:bg-white/5"
-                        }`}
+                          }`}
                       >
                         <FiCalendar size={16} />
                         {year}
@@ -267,11 +266,10 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                   e.stopPropagation();
                   handleYearChange(year);
                 }}
-                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all backdrop-blur-sm flex items-center gap-2 ${
-                  selectedYear === year
-                    ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/50"
+                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all backdrop-blur-sm flex items-center gap-2 ${selectedYear === year
+                    ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-600/50"
                     : "bg-zinc-900/50 text-zinc-400 hover:bg-zinc-800 hover:text-white border border-zinc-800/50"
-                }`}
+                  }`}
               >
                 <FiCalendar size={14} />
                 {year}
@@ -326,7 +324,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                       } else if (index === 4 && currentItems[3]) {
                         displayItem = currentItems[3]; // Show next+1 image
                       }
-                      
+
                       return (
                         <motion.div
                           key={`${displayItem.name}-${displayItem.year}-${selectedYear}-${index}`}
@@ -339,9 +337,8 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                             ease: [0.4, 0, 0.2, 1],
                           }}
                           whileHover={index === 1 ? { scale: 1.02 } : index >= 2 ? { scale: 1.05, y: -5 } : {}}
-                          className={`${styles.carouselItem} ${index >= 2 ? styles.previewItem : ""} ${
-                            index === activePreviewIndex ? styles.activePreview : ""
-                          }`}
+                          className={`${styles.carouselItem} ${index >= 2 ? styles.previewItem : ""} ${index === activePreviewIndex ? styles.activePreview : ""
+                            }`}
                           style={{ backgroundImage: `url(${displayItem.image})` }}
                           onClick={index >= 2 ? () => {
                             // Handle preview item clicks

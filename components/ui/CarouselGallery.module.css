@@ -228,11 +228,11 @@
 
 /* Active Preview - Highlighted with orange border */
 .activePreview {
-  border: 3px solid rgba(255, 165, 0, 1) !important;
-  box-shadow: 
-    0 0 0 3px rgba(255, 165, 0, 0.4),
-    0 0 25px rgba(255, 165, 0, 0.6),
-    0 0 50px rgba(255, 165, 0, 0.3),
+  border: 3px solid rgba(220, 38, 38, 1) !important;
+  box-shadow:
+    0 0 0 3px rgba(220, 38, 38, 0.4),
+    0 0 25px rgba(220, 38, 38, 0.6),
+    0 0 50px rgba(220, 38, 38, 0.3),
     0 40px 60px rgba(0, 0, 0, 0.9) !important;
   transform: translate(0, 0) !important;
   top: auto !important;
@@ -244,10 +244,10 @@
 
 .activePreview:hover {
   transform: translate(0, 0) !important;
-  box-shadow: 
-    0 0 0 3px rgba(255, 165, 0, 0.4),
-    0 0 25px rgba(255, 165, 0, 0.6),
-    0 0 50px rgba(255, 165, 0, 0.3),
+  box-shadow:
+    0 0 0 3px rgba(220, 38, 38, 0.4),
+    0 0 25px rgba(220, 38, 38, 0.6),
+    0 0 50px rgba(220, 38, 38, 0.3),
     0 40px 60px rgba(0, 0, 0, 0.9) !important;
 }
 
@@ -257,10 +257,10 @@
   position: absolute;
   inset: -6px;
   border-radius: 24px;
-  background: linear-gradient(135deg, rgba(255, 165, 0, 0.3), rgba(255, 140, 0, 0.15));
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.3), rgba(185, 28, 28, 0.15));
   z-index: -1;
   animation: pulseBorder 2s ease-in-out infinite;
-  border: 2px solid rgba(255, 165, 0, 0.5);
+  border: 2px solid rgba(220, 38, 38, 0.5);
 }
 
 .activePreview::after {
@@ -268,15 +268,18 @@
   position: absolute;
   inset: -3px;
   border-radius: 22px;
-  border: 1px solid rgba(255, 165, 0, 0.8);
+  border: 1px solid rgba(220, 38, 38, 0.8);
   z-index: -1;
   animation: pulseBorder 2s ease-in-out infinite 0.5s;
 }
 
 @keyframes pulseBorder {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.7;
   }
+
   50% {
     opacity: 1;
   }
