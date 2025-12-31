@@ -198,7 +198,7 @@ function EventDetailPageContent() {
           <p className="text-white text-xl mb-4">Event not found</p>
           <button
             onClick={() => router.push("/events")}
-            className="text-orange-500 hover:text-orange-400"
+            className="text-red-500 hover:text-red-400"
           >
             Back to Events
           </button>
@@ -257,7 +257,7 @@ function EventDetailPageContent() {
             e.stopPropagation();
             router.push(`/events/${categoryName}`);
           }}
-          className="absolute top-28 left-8 flex items-center gap-2 text-white hover:text-orange-500 transition-colors bg-black/50 backdrop-blur-sm px-4 py-2 rounded-lg z-10"
+          className="absolute top-28 left-8 flex items-center gap-2 text-white hover:text-red-500 transition-colors bg-black/50 backdrop-blur-sm px-4 py-2 rounded-lg z-10"
         >
           <FiArrowLeft size={20} />
           Back
@@ -265,7 +265,7 @@ function EventDetailPageContent() {
 
         {/* Category Badge */}
         <div className="absolute top-28 right-8 z-10">
-          <div className="bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
+          <div className="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
             {event.Category.name}
           </div>
         </div>
@@ -369,7 +369,7 @@ function EventDetailPageContent() {
 
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <FiCalendar className="text-orange-500 mt-1" size={20} />
+                  <FiCalendar className="text-red-500 mt-1" size={20} />
                   <div>
                     <p className="text-zinc-400 text-sm">Date</p>
                     <p className="text-white font-medium">
@@ -384,7 +384,7 @@ function EventDetailPageContent() {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <FiClock className="text-orange-500 mt-1" size={20} />
+                  <FiClock className="text-red-500 mt-1" size={20} />
                   <div>
                     <p className="text-zinc-400 text-sm">Time</p>
                     <p className="text-white font-medium">
@@ -394,7 +394,7 @@ function EventDetailPageContent() {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <FiMapPin className="text-orange-500 mt-1" size={20} />
+                  <FiMapPin className="text-red-500 mt-1" size={20} />
                   <div>
                     <p className="text-zinc-400 text-sm">Venue</p>
                     <p className="text-white font-medium">{event.venue}</p>
@@ -402,7 +402,7 @@ function EventDetailPageContent() {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <FiUsers className="text-orange-500 mt-1" size={20} />
+                  <FiUsers className="text-red-500 mt-1" size={20} />
                   <div>
                     <p className="text-zinc-400 text-sm">Participants</p>
                     <p className="text-white font-medium">
@@ -411,7 +411,7 @@ function EventDetailPageContent() {
                     </p>
                     <div className="mt-2 w-full bg-zinc-800 rounded-full h-2">
                       <div
-                        className="bg-orange-500 h-2 rounded-full transition-all"
+                        className="bg-red-600 h-2 rounded-full transition-all"
                         style={{
                           width: `${Math.min(100, (event._count.registeredStudents / event.participantLimit) * 100)}%`,
                         }}
@@ -460,7 +460,7 @@ function EventDetailPageContent() {
                     event._count.registeredStudents >= event.participantLimit ||
                     checkingRegistration
                   }
-                  className="w-full mt-6 px-6 py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg transition-all shadow-lg shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full mt-6 px-6 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-red-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {checkingRegistration
                     ? "Loading..."
@@ -563,7 +563,7 @@ function EventDetailPageContent() {
                       type="checkbox"
                       checked={acceptedTerms}
                       onChange={(e) => setAcceptedTerms(e.target.checked)}
-                      className="w-5 h-5 rounded border-2 border-zinc-700 bg-zinc-800 checked:bg-orange-500 checked:border-orange-500 cursor-pointer transition-all"
+                      className="w-5 h-5 rounded border-2 border-zinc-700 bg-zinc-800 checked:bg-red-600 checked:border-red-600 cursor-pointer transition-all"
                     />
                     {acceptedTerms && (
                       <FiCheck
@@ -593,7 +593,7 @@ function EventDetailPageContent() {
                 <button
                   onClick={handleRegister}
                   disabled={!acceptedTerms || registering}
-                  className="flex-1 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {registering ? "Registering..." : "Register for Event"}
                 </button>
@@ -633,7 +633,7 @@ function EventDetailPageContent() {
                     type="text"
                     value={groupName}
                     onChange={(e) => setGroupName(e.target.value)}
-                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-orange-500 transition-all"
+                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 transition-all"
                     placeholder="Enter unique team name"
                   />
                 </div>
@@ -663,7 +663,7 @@ function EventDetailPageContent() {
                         setTeamMembers(teamMembers.slice(0, needed));
                       }
                     }}
-                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-orange-500 transition-all"
+                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 transition-all"
                   />
                   <p className="text-zinc-500 text-sm mt-1">Min: {event?.minTeamSize} - Max: {event?.maxTeamSize}</p>
                 </div>
@@ -674,7 +674,7 @@ function EventDetailPageContent() {
                   {/* Team Lead (User) Card */}
                   <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700 mb-4">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="bg-orange-500/20 text-orange-500 px-2 py-1 rounded text-xs font-bold uppercase">Team Lead</div>
+                      <div className="bg-red-600/20 text-red-500 px-2 py-1 rounded text-xs font-bold uppercase">Team Lead</div>
                       <span className="text-zinc-400 text-sm">(You)</span>
                     </div>
                     <p className="text-zinc-500 text-sm italic">Your details will be automatically included in the registration.</p>
@@ -770,7 +770,7 @@ function EventDetailPageContent() {
                 <button
                   onClick={handleGroupRegister}
                   disabled={registering || !groupName || teamSize < (event?.minTeamSize || 2) || teamSize > (event?.maxTeamSize || 5)}
-                  className="flex-1 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                  className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                 >
                   {registering ? "Registering..." : "Confirm Team Registration"}
                 </button>
