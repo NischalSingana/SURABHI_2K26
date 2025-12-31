@@ -70,10 +70,10 @@ const HomePage = () => {
                     <motion.div
                         animate={{
                             background: [
-                                "radial-gradient(circle at 20% 50%, rgba(255, 69, 0, 0.3) 0%, transparent 50%)",
-                                "radial-gradient(circle at 80% 50%, rgba(255, 140, 0, 0.3) 0%, transparent 50%)",
-                                "radial-gradient(circle at 50% 20%, rgba(255, 69, 0, 0.3) 0%, transparent 50%)",
-                                "radial-gradient(circle at 20% 50%, rgba(255, 69, 0, 0.3) 0%, transparent 50%)",
+                                "radial-gradient(circle at 20% 50%, rgba(220, 38, 38, 0.3) 0%, transparent 50%)",
+                                "radial-gradient(circle at 80% 50%, rgba(185, 28, 28, 0.3) 0%, transparent 50%)",
+                                "radial-gradient(circle at 50% 20%, rgba(220, 38, 38, 0.3) 0%, transparent 50%)",
+                                "radial-gradient(circle at 20% 50%, rgba(220, 38, 38, 0.3) 0%, transparent 50%)",
                             ],
                         }}
                         transition={{
