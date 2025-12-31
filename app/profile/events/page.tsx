@@ -106,7 +106,7 @@ export default function MyEventsPage() {
                     <motion.h1
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-5xl font-bold text-orange-500 mb-4"
+                        className="text-5xl font-bold text-red-500 mb-4"
                     >
                         My Events
                     </motion.h1>
@@ -134,7 +134,7 @@ export default function MyEventsPage() {
                         <p className="text-zinc-400 mb-6">You haven't registered for any events</p>
                         <button
                             onClick={() => router.push("/events")}
-                            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
+                            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
                         >
                             Browse Events
                         </button>
@@ -151,7 +151,7 @@ export default function MyEventsPage() {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
-                                    className="bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 hover:border-orange-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/20"
+                                    className="bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 hover:border-red-600/50 transition-all duration-300 hover:shadow-xl hover:shadow-red-600/20"
                                 >
                                     {/* Event Image */}
                                     <div className="relative h-48 bg-zinc-800 overflow-hidden">
@@ -167,7 +167,7 @@ export default function MyEventsPage() {
 
                                         {/* Category Badge */}
                                         <div className="absolute top-3 left-3">
-                                            <span className="bg-orange-500/90 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                                            <span className="bg-red-600/90 text-white text-xs font-semibold px-3 py-1 rounded-full">
                                                 {event.Category.name}
                                             </span>
                                         </div>
@@ -194,11 +194,11 @@ export default function MyEventsPage() {
 
                                         <div className="space-y-2 mb-4">
                                             <div className="flex items-center text-zinc-300 text-sm">
-                                                <FiMapPin className="text-orange-500 mr-2 flex-shrink-0" size={16} />
+                                                <FiMapPin className="text-red-500 mr-2 flex-shrink-0" size={16} />
                                                 <span className="truncate">{event.venue}</span>
                                             </div>
                                             <div className="flex items-center text-zinc-300 text-sm">
-                                                <FiCalendar className="text-orange-500 mr-2 flex-shrink-0" size={16} />
+                                                <FiCalendar className="text-red-500 mr-2 flex-shrink-0" size={16} />
                                                 <span>
                                                     {new Date(event.date).toLocaleDateString("en-US", {
                                                         month: "short",
@@ -208,7 +208,7 @@ export default function MyEventsPage() {
                                                 </span>
                                             </div>
                                             <div className="flex items-center text-zinc-300 text-sm">
-                                                <FiClock className="text-orange-500 mr-2 flex-shrink-0" size={16} />
+                                                <FiClock className="text-red-500 mr-2 flex-shrink-0" size={16} />
                                                 <span>{event.startTime} - {event.endTime}</span>
                                             </div>
                                         </div>
@@ -218,8 +218,8 @@ export default function MyEventsPage() {
                                             <button
                                                 onClick={() => handleSubmitClick(event)}
                                                 className={`w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${hasSubmission
-                                                    ? "bg-zinc-800 text-orange-400 border border-orange-500/30 hover:bg-zinc-700"
-                                                    : "bg-orange-500 text-white hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/50"
+                                                    ? "bg-zinc-800 text-red-400 border border-red-500/30 hover:bg-zinc-700"
+                                                    : "bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/50"
                                                     }`}
                                             >
                                                 <FiUpload size={16} />
