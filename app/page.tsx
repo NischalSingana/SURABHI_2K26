@@ -290,8 +290,8 @@ const HomePage = () => {
                             transition={{ duration: 0.8 }}
                             className="text-center mb-8 z-10"
                         >
-                            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-red-500 via-rose-500 to-red-600 bg-clip-text text-transparent">
-                                Events Gallery
+                            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-red-500 via-rose-500 to-red-600 bg-clip-text text-transparent font-sans uppercase tracking-wider">
+                                Events
                             </h2>
                             <div className="w-32 h-1 bg-gradient-to-r from-red-600 via-rose-500 to-red-600 mx-auto rounded-full" />
                         </motion.div>
