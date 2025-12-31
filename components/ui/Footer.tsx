@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { FaInstagram, FaEnvelope, FaMapMarkerAlt, FaYoutube, FaFacebook } from 'react-icons/fa';
 
 const Footer = () => {
-    const currentYear = new Date().getFullYear();
+    const currentYear = 2026;
 
     const socialLinks = [
         { icon: FaInstagram, href: "https://instagram.com/klsurabhi", label: "Instagram" },
@@ -148,15 +148,10 @@ const Footer = () => {
                     </p>
 
                     <div className="flex items-center gap-2 text-sm font-medium text-zinc-600">
-                        <span>Made with</span>
-                        <motion.span
-                            animate={{ scale: [1, 1.2, 1] }}
-                            transition={{ repeat: Infinity, duration: 1.5 }}
-                            className="text-red-500"
-                        >
-                            ❤️
-                        </motion.span>
-                        <span>at KL University</span>
+                        <span>Developed by</span>
+                        <span className="text-red-500 font-semibold hover:text-red-400 transition-colors">
+                            ZeroOne Code Club
+                        </span>
                     </div>
                 </motion.div>
             </div>
