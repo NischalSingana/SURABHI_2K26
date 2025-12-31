@@ -63,7 +63,7 @@ export default function AnalyticsPage() {
                 <button
                     onClick={loadStats}
                     disabled={loading}
-                    className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                     <svg
                         className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`}
@@ -92,7 +92,7 @@ export default function AnalyticsPage() {
                                 <p className="text-gray-400 text-sm">Total Users</p>
                                 <p className="text-3xl font-bold text-white mt-2">{userStats?.total || 0}</p>
                             </div>
-                            <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                            <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
                                 <svg
                                     className="w-6 h-6 text-white"
                                     fill="none"
@@ -138,9 +138,9 @@ export default function AnalyticsPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-400 text-sm">Pending Approval</p>
-                                <p className="text-3xl font-bold text-yellow-400 mt-2">{userStats?.pending || 0}</p>
+                                <p className="text-3xl font-bold text-orange-400 mt-2">{userStats?.pending || 0}</p>
                             </div>
-                            <div className="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center">
+                            <div className="w-12 h-12 bg-orange-600 rounded-full flex items-center justify-center shadow-lg shadow-orange-600/20">
                                 <svg
                                     className="w-6 h-6 text-white"
                                     fill="none"
@@ -167,7 +167,7 @@ export default function AnalyticsPage() {
                     </div>
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                         <p className="text-gray-400 text-sm">Payment Pending</p>
-                        <p className="text-2xl font-bold text-yellow-400 mt-2">{userStats?.paymentPending || 0}</p>
+                        <p className="text-2xl font-bold text-orange-400 mt-2">{userStats?.paymentPending || 0}</p>
                     </div>
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                         <p className="text-gray-400 text-sm">Payment Rejected</p>
@@ -186,7 +186,7 @@ export default function AnalyticsPage() {
                                 <p className="text-gray-400 text-sm">Total Events</p>
                                 <p className="text-3xl font-bold text-white mt-2">{eventStats?.totalEvents || 0}</p>
                             </div>
-                            <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
+                            <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
                                 <svg
                                     className="w-6 h-6 text-white"
                                     fill="none"
@@ -247,15 +247,15 @@ export default function AnalyticsPage() {
                     </div>
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                         <p className="text-gray-400 text-sm">Individual</p>
-                        <p className="text-3xl font-bold text-blue-400 mt-2">{accommodationStats?.individualBookings || 0}</p>
+                        <p className="text-3xl font-bold text-red-500 mt-2">{accommodationStats?.individualBookings || 0}</p>
                     </div>
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                         <p className="text-gray-400 text-sm">Group</p>
-                        <p className="text-3xl font-bold text-purple-400 mt-2">{accommodationStats?.groupBookings || 0}</p>
+                        <p className="text-3xl font-bold text-red-400 mt-2">{accommodationStats?.groupBookings || 0}</p>
                     </div>
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                         <p className="text-gray-400 text-sm">Total Members</p>
-                        <p className="text-3xl font-bold text-orange-400 mt-2">{accommodationStats?.totalMembers || 0}</p>
+                        <p className="text-3xl font-bold text-red-400 mt-2">{accommodationStats?.totalMembers || 0}</p>
                     </div>
                 </div>
 
@@ -266,7 +266,7 @@ export default function AnalyticsPage() {
                     </div>
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                         <p className="text-gray-400 text-sm">Pending</p>
-                        <p className="text-2xl font-bold text-yellow-400 mt-2">{accommodationStats?.pendingBookings || 0}</p>
+                        <p className="text-2xl font-bold text-orange-400 mt-2">{accommodationStats?.pendingBookings || 0}</p>
                     </div>
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                         <p className="text-gray-400 text-sm">Cancelled</p>
@@ -277,11 +277,11 @@ export default function AnalyticsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                         <p className="text-gray-400 text-sm">Male Bookings</p>
-                        <p className="text-2xl font-bold text-blue-400 mt-2">{accommodationStats?.maleBookings || 0}</p>
+                        <p className="text-2xl font-bold text-red-500 mt-2">{accommodationStats?.maleBookings || 0}</p>
                     </div>
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                         <p className="text-gray-400 text-sm">Female Bookings</p>
-                        <p className="text-2xl font-bold text-pink-400 mt-2">{accommodationStats?.femaleBookings || 0}</p>
+                        <p className="text-2xl font-bold text-rose-400 mt-2">{accommodationStats?.femaleBookings || 0}</p>
                     </div>
                 </div>
             </div>
