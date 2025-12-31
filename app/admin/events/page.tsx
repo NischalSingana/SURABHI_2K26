@@ -7,6 +7,7 @@ import Image from "next/image";
 import {
   getCategories,
   createCategory,
+  updateCategory,
   deleteCategory,
   deleteEvent,
 } from "@/actions/events.action";
@@ -26,6 +27,9 @@ interface Event {
   participantLimit: number;
   termsandconditions: string;
   registrationLink: string;
+  isGroupEvent: boolean;
+  minTeamSize: number;
+  maxTeamSize: number;
   createdAt?: Date;
   updatedAt?: Date;
   registeredStudents?: Array<{
@@ -40,6 +44,8 @@ interface Event {
 interface Category {
   id: string;
   name: string;
+  image?: string | null;
+  video?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
   Event: Event[];
@@ -56,6 +62,7 @@ export default function EventsManagement() {
     null
   );
   const [categoryName, setCategoryName] = useState("");
+  const [categoryVideo, setCategoryVideo] = useState("");
   const [categoryImage, setCategoryImage] = useState<File | null>(null);
   const [categoryImagePreview, setCategoryImagePreview] = useState("");
   const [uploadingCategory, setUploadingCategory] = useState(false);
@@ -118,12 +125,16 @@ export default function EventsManagement() {
     }
   };
 
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+
+  // ... (existing helper functions)
+
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!categoryName.trim()) return;
 
     try {
-      let imageUrl: string | undefined;
+      let imageUrl: string | undefined = editingCategory?.image || undefined;
 
       // Upload image if selected
       if (categoryImage) {
@@ -140,21 +151,37 @@ export default function EventsManagement() {
         imageUrl = uploadResult.url;
       }
 
-      const result = await createCategory(categoryName, imageUrl);
+      let result;
+      if (editingCategory) {
+        result = await updateCategory(editingCategory.id, categoryName, imageUrl, categoryVideo);
+      } else {
+        result = await createCategory(categoryName, imageUrl, categoryVideo);
+      }
+
       if (result.success) {
-        toast.success("Category created successfully");
+        toast.success(editingCategory ? "Category updated successfully" : "Category created successfully");
         setCategoryName("");
+        setCategoryVideo("");
         setCategoryImage(null);
         setCategoryImagePreview("");
+        setEditingCategory(null);
         setShowCategoryModal(false);
         fetchCategoriesWithEvents();
       } else {
-        toast.error(result.error || "Failed to create category");
+        toast.error(result.error || `Failed to ${editingCategory ? "update" : "create"} category`);
       }
     } catch (error) {
-      toast.error("An error occurred while creating category");
+      toast.error(`An error occurred while ${editingCategory ? "updating" : "creating"} category`);
       setUploadingCategory(false);
     }
+  };
+
+  const startEditingCategory = (category: Category) => {
+    setEditingCategory(category);
+    setCategoryName(category.name);
+    setCategoryVideo(category.video || "");
+    setCategoryImagePreview(category.image || "");
+    setShowCategoryModal(true);
   };
 
   const handleEventFormSuccess = () => {
@@ -292,10 +319,10 @@ export default function EventsManagement() {
                     />
                   </svg>
                 </motion.button>
-                {category.image && (
+                {(category.image || category.Event[0]?.image) && (
                   <div className="w-12 h-12 rounded-lg overflow-hidden bg-zinc-900 border border-zinc-700 shrink-0 relative">
                     <Image
-                      src={category.image}
+                      src={category.image || category.Event[0]?.image || ""}
                       alt={category.name}
                       fill
                       className="object-cover"
@@ -333,6 +360,27 @@ export default function EventsManagement() {
                     />
                   </svg>
                   Add Event
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => startEditingCategory(category)}
+                  className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg text-sm transition-colors flex items-center gap-1 shadow-lg shadow-black/20"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                    />
+                  </svg>
+                  Edit Category
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -478,7 +526,7 @@ export default function EventsManagement() {
             className="bg-zinc-900 rounded-xl p-6 w-full max-w-md border border-zinc-800 shadow-2xl"
           >
             <h2 className="text-2xl font-bold text-white mb-4">
-              Create Category
+              {editingCategory ? "Edit Category" : "Create Category"}
             </h2>
             <form onSubmit={handleCreateCategory}>
               <div className="mb-4">
@@ -493,6 +541,18 @@ export default function EventsManagement() {
                   className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                   required
                   autoFocus
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-zinc-300 mb-2">
+                  Category Video Link (YouTube)
+                </label>
+                <input
+                  type="text"
+                  value={categoryVideo}
+                  onChange={(e) => setCategoryVideo(e.target.value)}
+                  placeholder="e.g., https://youtube.com/..."
+                  className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                 />
               </div>
               <div className="mb-4">
@@ -533,8 +593,10 @@ export default function EventsManagement() {
                   onClick={() => {
                     setShowCategoryModal(false);
                     setCategoryName("");
+                    setCategoryVideo("");
                     setCategoryImage(null);
                     setCategoryImagePreview("");
+                    setEditingCategory(null);
                   }}
                   disabled={uploadingCategory}
                   className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
@@ -555,7 +617,7 @@ export default function EventsManagement() {
                       Uploading...
                     </>
                   ) : (
-                    "Create"
+                    editingCategory ? "Update" : "Create"
                   )}
                 </button>
               </div>

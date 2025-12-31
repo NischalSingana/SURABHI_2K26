@@ -43,7 +43,7 @@ export async function getCategories() {
 }
 
 
-export async function createCategory(name: string, image?: string) {
+export async function createCategory(name: string, image?: string, video?: string) {
   try {
     const headersList = await headers();
     const session = await auth.api.getSession({
@@ -63,6 +63,7 @@ export async function createCategory(name: string, image?: string) {
         id: crypto.randomUUID(),
         name: name.trim(),
         image: image || null,
+        video: video || null,
         updatedAt: new Date(),
       },
     });
@@ -72,6 +73,40 @@ export async function createCategory(name: string, image?: string) {
   } catch (error) {
     console.error("Error creating category:", error);
     return { success: false, error: "Failed to create category" };
+  }
+}
+
+
+export async function updateCategory(id: string, name: string, image?: string, video?: string) {
+  try {
+    const headersList = await headers();
+    const session = await auth.api.getSession({
+      headers: headersList,
+    });
+
+    if (!session || session.user.role !== Role.ADMIN) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    if (!name || !name.trim()) {
+      return { success: false, error: "Category name is required" };
+    }
+
+    const category = await prisma.category.update({
+      where: { id },
+      data: {
+        name: name.trim(),
+        image: image || null,
+        video: video || null,
+        updatedAt: new Date(),
+      },
+    });
+
+    revalidatePath("/admin/events");
+    return { success: true, data: category };
+  } catch (error) {
+    console.error("Error updating category:", error);
+    return { success: false, error: "Failed to update category" };
   }
 }
 
@@ -130,6 +165,9 @@ interface EventData {
   date: string;
   image: string;
   venue: string;
+  isGroupEvent: boolean;
+  minTeamSize: number;
+  maxTeamSize: number;
   startTime: string;
   endTime: string;
   participantLimit: string;
@@ -151,12 +189,17 @@ export async function createEvent(eventData: EventData) {
     const event = await prisma.event.create({
       data: {
         id: crypto.randomUUID(),
-        categoryId: eventData.categoryId,
+        Category: {
+          connect: { id: eventData.categoryId },
+        },
         name: eventData.name,
         description: eventData.description,
         date: new Date(eventData.date),
         image: eventData.image,
         venue: eventData.venue,
+        isGroupEvent: eventData.isGroupEvent,
+        minTeamSize: eventData.minTeamSize,
+        maxTeamSize: eventData.maxTeamSize,
         startTime: eventData.startTime,
         endTime: eventData.endTime,
         participantLimit: parseInt(eventData.participantLimit),
@@ -185,6 +228,9 @@ interface EventUpdateData {
     date: string;
     image: string;
     venue: string;
+    isGroupEvent: boolean;
+    minTeamSize: number;
+    maxTeamSize: number;
     startTime: string;
     endTime: string;
     participantLimit: string;
@@ -210,12 +256,17 @@ export async function updateEvent({ id, eventData }: EventUpdateData) {
     const event = await prisma.event.update({
       where: { id },
       data: {
-        categoryId: eventData.categoryId,
+        Category: {
+          connect: { id: eventData.categoryId },
+        },
         name: eventData.name,
         description: eventData.description,
         date: new Date(eventData.date),
         image: eventData.image,
         venue: eventData.venue,
+        isGroupEvent: eventData.isGroupEvent,
+        minTeamSize: eventData.minTeamSize,
+        maxTeamSize: eventData.maxTeamSize,
         startTime: eventData.startTime,
         endTime: eventData.endTime,
         participantLimit: parseInt(eventData.participantLimit),
@@ -259,6 +310,119 @@ export async function deleteEvent(id: string) {
   }
 }
 
+
+
+interface GroupMember {
+  name: string;
+  college: string;
+  collegeId: string;
+  phone: string;
+  email: string;
+}
+
+export async function registerGroupEvent(eventId: string, groupName: string, members: GroupMember[]) {
+  try {
+    const headersList = await headers();
+    const session = await auth.api.getSession({
+      headers: headersList,
+    });
+
+    if (!session || !session.user) {
+      return { success: false, error: "Please login to register for events" };
+    }
+
+    const registrationResult = await prisma.$transaction(
+      async (tx) => {
+        const event = await tx.event.findUnique({
+          where: { id: eventId },
+          include: {
+            _count: {
+              select: {
+                registeredStudents: true,
+              },
+            },
+          },
+        });
+
+        if (!event) {
+          throw new Error("Event not found");
+        }
+
+        if (event._count.registeredStudents >= event.participantLimit) {
+          throw new Error(EVENT_FULL_ERROR);
+        }
+
+        const existingRegistration = await tx.user.findFirst({
+          where: {
+            id: session.user.id,
+            registeredEvents: {
+              some: {
+                id: eventId,
+              },
+            },
+          },
+        });
+
+        if (existingRegistration) {
+          throw new Error("You are already registered for this event");
+        }
+
+        // Register the user (Team Lead) to the event
+        await tx.user.update({
+          where: { id: session.user.id },
+          data: {
+            registeredEvents: {
+              connect: { id: eventId },
+            },
+          },
+        });
+
+        // Create Group Registration details
+        await tx.groupRegistration.create({
+          data: {
+            eventId,
+            userId: session.user.id,
+            groupName: groupName || "Team",
+            members: members as any,
+          },
+        });
+
+        // Re-check count after insert
+        const updated = await tx.event.findUnique({
+          where: { id: eventId },
+          select: {
+            participantLimit: true,
+            _count: {
+              select: {
+                registeredStudents: true,
+              },
+            },
+          },
+        });
+
+        if (!updated || updated._count.registeredStudents > updated.participantLimit) {
+          throw new Error(EVENT_FULL_ERROR);
+        }
+
+        return { success: true };
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    );
+
+    revalidatePath("/events");
+    revalidatePath("/profile");
+    return { success: true, message: "Successfully registered team for event" };
+
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === EVENT_FULL_ERROR) return { success: false, error: "Event is full" };
+      if (error.message === "Event not found") return { success: false, error: "Event not found" };
+      if (error.message === "You are already registered for this event") return { success: false, error: "You are already registered" };
+    }
+    console.error("Error registering group for event:", error);
+    return { success: false, error: "Failed to register group" };
+  }
+}
 
 export async function getPublicEvents() {
   try {
