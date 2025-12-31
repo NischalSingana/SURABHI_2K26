@@ -149,9 +149,14 @@ const Footer = () => {
 
                     <div className="flex items-center gap-2 text-sm font-medium text-zinc-600">
                         <span>Developed by</span>
-                        <span className="text-red-500 font-semibold hover:text-red-400 transition-colors">
+                        <a
+                            href="https://instagram.com/zeroonedevs"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-zinc-400 font-semibold hover:text-white transition-colors"
+                        >
                             ZeroOne Code Club
-                        </span>
+                        </a>
                     </div>
                 </motion.div>
             </div>
