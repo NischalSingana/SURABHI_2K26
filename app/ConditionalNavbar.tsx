@@ -24,7 +24,7 @@ export default function ConditionalNavbar() {
             logoAlt="Surabhi Logo"
             items={navItems}
             baseColor="#ffffff"
-            pillColor="#ff6b35"
+            pillColor="#dc2626"
             hoveredPillTextColor="#ffffff"
             pillTextColor="#ffffff"
             ease="power3.easeOut"
