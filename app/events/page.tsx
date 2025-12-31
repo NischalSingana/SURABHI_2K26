@@ -31,7 +31,7 @@ const Events = () => {
         count: cat.Event.length,
         // Use category image if available, otherwise fallback to first event image (if any), otherwise placeholder
         image: cat.image || (cat.Event.length > 0 ? cat.Event[0].image : "/placeholder.png"),
-      }));
+      })).sort((a, b) => a.name.localeCompare(b.name));
       setCategories(categoriesData);
     }
     setLoading(false);
