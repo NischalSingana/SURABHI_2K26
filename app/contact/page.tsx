@@ -138,7 +138,7 @@ const Contact = () => {
       {/* Fiery Red Ambient Background */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-96 h-96 bg-red-600/10 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute top-40 right-20 w-80 h-80 bg-orange-600/10 rounded-full blur-[100px] animate-pulse delay-700" />
+        <div className="absolute top-40 right-20 w-80 h-80 bg-red-600/10 rounded-full blur-[100px] animate-pulse delay-700" />
         <div className="absolute bottom-20 left-1/3 w-[500px] h-[500px] bg-red-800/5 rounded-full blur-[120px]" />
       </div>
 
@@ -155,7 +155,7 @@ const Contact = () => {
           </div>
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
             Get In{" "}
-            <span className="bg-gradient-to-r from-red-500 via-red-400 to-orange-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-red-500 via-red-400 to-red-600 bg-clip-text text-transparent">
               Touch
             </span>
           </h1>
@@ -184,7 +184,7 @@ const Contact = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-red-500/0 via-red-500/5 to-red-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
               <div className="relative z-10">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg shadow-red-500/20">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg shadow-red-500/20">
                   <info.icon className="text-white" size={28} />
                 </div>
                 <h3 className="text-white font-semibold text-xl mb-3">
@@ -322,7 +322,7 @@ const Contact = () => {
                     whileTap={{
                       scale: canSubmit() && !isSubmitting ? 0.98 : 1,
                     }}
-                    className="group w-full px-8 py-4 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-xl hover:from-red-700 hover:to-orange-700 transition-all font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 relative overflow-hidden shadow-lg shadow-red-600/25 hover:shadow-red-600/40"
+                    className="group w-full px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 transition-all font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 relative overflow-hidden shadow-lg shadow-red-600/25 hover:shadow-red-600/40"
                   >
                     <span className="relative z-10 flex items-center gap-3">
                       {isSubmitting ? (
@@ -428,7 +428,7 @@ const Contact = () => {
                     rel="noopener noreferrer"
                     whileHover={{ scale: 1.1, y: -4 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-600 to-orange-600 flex items-center justify-center text-white hover:shadow-lg hover:shadow-red-600/30 transition-all duration-300"
+                    className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center text-white hover:shadow-lg hover:shadow-red-600/30 transition-all duration-300"
                     aria-label={social.label}
                   >
                     <social.icon size={20} />
@@ -454,7 +454,7 @@ const Contact = () => {
                 {/* Text Info - Adjusted width and spacing */}
                 <div className="lg:w-1/3 space-y-8">
                   <div className="flex items-center gap-5">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-600 to-orange-600 flex items-center justify-center shadow-lg shadow-red-600/20 shrink-0">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center shadow-lg shadow-red-600/20 shrink-0">
                       <FiMapPin className="text-white" size={28} />
                     </div>
                     <div>
