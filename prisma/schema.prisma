@@ -128,6 +128,8 @@ model GroupRegistration {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   groupName String?
+  mentorName String?
+  mentorPhone String?
   members   Json
 
   @@unique([userId, eventId])

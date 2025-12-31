@@ -9,6 +9,7 @@ import {
   checkEventRegistration,
   registerGroupEvent,
   unregisterFromEvent,
+  getUserByEmail,
 } from "@/actions/events.action";
 import {
   FiArrowLeft,
@@ -68,6 +69,12 @@ function EventDetailPageContent() {
   const [teamSize, setTeamSize] = useState(0);
   const [groupName, setGroupName] = useState("");
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
+
+  // New Group Fields
+  const [mentorName, setMentorName] = useState("");
+  const [mentorPhone, setMentorPhone] = useState("");
+  const [memberEmailInput, setMemberEmailInput] = useState("");
+  const [lookingUpMember, setLookingUpMember] = useState(false);
 
   useEffect(() => {
     if (event && event.isGroupEvent) {
@@ -139,21 +146,14 @@ function EventDetailPageContent() {
     console.log("Required members:", requiredMembers, "Current members:", teamMembers.length);
     if (teamMembers.length < requiredMembers) {
       toast.error(`Please add details for all ${requiredMembers} additional members`);
-      console.log("Validation failed: Not enough members");
       return;
     }
-    for (const member of teamMembers) {
-      if (!member.name || !member.email || !member.phone || !member.college || !member.collegeId) {
-        toast.error("Please fill in all details for all team members");
-        console.log("Validation failed: Missing member details", member);
-        return;
-      }
-    }
+    // (removed loop, handled by state)
 
     setRegistering(true);
     try {
       console.log("Calling registerGroupEvent action...");
-      const result = await registerGroupEvent(eventId, groupName, teamMembers);
+      const result = await registerGroupEvent(eventId, groupName, teamMembers, mentorName, mentorPhone);
       console.log("Action result:", result);
 
       if (result.success) {
@@ -171,6 +171,55 @@ function EventDetailPageContent() {
     } finally {
       setRegistering(false);
     }
+  };
+
+  const verifyAndAddMember = async () => {
+    if (!memberEmailInput.trim()) {
+      toast.error("Please enter an email address");
+      return;
+    }
+
+    // Check if already in list
+    if (teamMembers.some(m => m.email === memberEmailInput.trim())) {
+      toast.error("This user is already in your team list");
+      return;
+    }
+
+    // Check max size (teamSize is total including lead, so max teammates is teamSize - 1)
+    if (teamMembers.length >= (teamSize - 1)) {
+      toast.error(`You have reached the team size limit of ${teamSize} (including you).`);
+      return;
+    }
+
+    setLookingUpMember(true);
+    try {
+      const res = await getUserByEmail(memberEmailInput.trim());
+      if (res.success && res.user) {
+        setTeamMembers([...teamMembers, {
+          id: res.user.id,
+          name: res.user.name,
+          email: res.user.email,
+          college: "",
+          collegeId: "",
+          phone: ""
+        }]);
+        setMemberEmailInput("");
+        toast.success(`Added ${res.user.name} to the team!`);
+      } else {
+        toast.error("User not found. Check email or ensure they are registered.");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Error looking up user");
+    } finally {
+      setLookingUpMember(false);
+    }
+  };
+
+  const removeMember = (index: number) => {
+    const newMembers = [...teamMembers];
+    newMembers.splice(index, 1);
+    setTeamMembers(newMembers);
   };
 
   const handleShare = () => {
@@ -669,19 +718,8 @@ function EventDetailPageContent() {
                         return;
                       }
                       const size = parseInt(val);
-                      if (isNaN(size)) return;
-                      setTeamSize(size);
-
-                      const needed = Math.max(0, size - 1);
-                      const current = teamMembers.length;
-                      if (needed > current) {
-                        const newMembers = [...teamMembers];
-                        for (let i = 0; i < needed - current; i++) {
-                          newMembers.push({ name: '', college: '', collegeId: '', phone: '', email: '' });
-                        }
-                        setTeamMembers(newMembers);
-                      } else if (needed < current) {
-                        setTeamMembers(teamMembers.slice(0, needed));
+                      if (!isNaN(size)) {
+                        setTeamSize(size);
                       }
                     }}
                     className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 transition-all"
@@ -689,92 +727,100 @@ function EventDetailPageContent() {
                   <p className="text-zinc-500 text-sm mt-1">Min: {event?.minTeamSize} - Max: {event?.maxTeamSize}</p>
                 </div>
 
+                {/* Mentor Details (Optional) */}
+                <div className="border-t border-zinc-800 pt-4">
+                  <h3 className="text-lg font-semibold text-white mb-4">Mentor / Coordinator (Optional)</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-zinc-300 mb-2">Name</label>
+                      <input
+                        type="text"
+                        value={mentorName}
+                        onChange={(e) => setMentorName(e.target.value)}
+                        className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 transition-all"
+                        placeholder="Mentor Name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-zinc-300 mb-2">Phone</label>
+                      <input
+                        type="text"
+                        value={mentorPhone}
+                        onChange={(e) => setMentorPhone(e.target.value)}
+                        className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 transition-all"
+                        placeholder="Mentor Phone"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="border-t border-zinc-800 pt-4">
                   <h3 className="text-lg font-semibold text-white mb-4">Team Members</h3>
 
-                  {/* Team Lead (User) Card */}
-                  <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700 mb-4">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="bg-red-600/20 text-red-500 px-2 py-1 rounded text-xs font-bold uppercase">Team Lead</div>
-                      <span className="text-zinc-400 text-sm">(You)</span>
+                  {/* Lead Info */}
+                  <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700 mb-4 flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-white font-medium">You</span>
+                        <span className="bg-red-600/20 text-red-500 text-xs px-2 py-0.5 rounded font-bold uppercase">Team Lead</span>
+                      </div>
+                      <p className="text-xs text-zinc-500">Your registered account</p>
                     </div>
-                    <p className="text-zinc-500 text-sm italic">Your details will be automatically included in the registration.</p>
+                    <div className="text-zinc-400 text-sm">Included</div>
                   </div>
 
-                  {/* Member Inputs */}
-                  <div className="space-y-6">
+                  {/* Add Member Input */}
+                  <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-lg mb-4">
+                    <label className="block text-sm font-medium text-zinc-300 mb-2">Add Member by Email</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        value={memberEmailInput}
+                        onChange={(e) => setMemberEmailInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && verifyAndAddMember()}
+                        placeholder="Enter registered email address"
+                        className="flex-1 px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600"
+                      />
+                      <button
+                        onClick={verifyAndAddMember}
+                        disabled={lookingUpMember}
+                        className="px-4 py-2 bg-white text-black font-semibold rounded-lg hover:bg-gray-200 disabled:opacity-50"
+                      >
+                        {lookingUpMember ? 'Checking...' : 'Add'}
+                      </button>
+                    </div>
+                    <p className="text-xs text-zinc-500 mt-2">
+                      Enter the full email address registered on this website. Members must be registered to be added.
+                    </p>
+                  </div>
+
+                  {/* Member List */}
+                  <div className="space-y-3">
                     {teamMembers.map((member, idx) => (
-                      <div key={idx} className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
-                        <div className="mb-3 text-white font-medium">Member {idx + 2}</div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-xs text-zinc-400 mb-1">Name *</label>
-                            <input
-                              type="text"
-                              value={member.name}
-                              onChange={(e) => {
-                                const newMembers = [...teamMembers];
-                                newMembers[idx].name = e.target.value;
-                                setTeamMembers(newMembers);
-                              }}
-                              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-600 rounded text-white text-sm"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-zinc-400 mb-1">College *</label>
-                            <input
-                              type="text"
-                              value={member.college}
-                              onChange={(e) => {
-                                const newMembers = [...teamMembers];
-                                newMembers[idx].college = e.target.value;
-                                setTeamMembers(newMembers);
-                              }}
-                              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-600 rounded text-white text-sm"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-zinc-400 mb-1">College ID *</label>
-                            <input
-                              type="text"
-                              value={member.collegeId}
-                              onChange={(e) => {
-                                const newMembers = [...teamMembers];
-                                newMembers[idx].collegeId = e.target.value;
-                                setTeamMembers(newMembers);
-                              }}
-                              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-600 rounded text-white text-sm"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-zinc-400 mb-1">Phone *</label>
-                            <input
-                              type="text"
-                              value={member.phone}
-                              onChange={(e) => {
-                                const newMembers = [...teamMembers];
-                                newMembers[idx].phone = e.target.value;
-                                setTeamMembers(newMembers);
-                              }}
-                              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-600 rounded text-white text-sm"
-                            />
-                          </div>
-                          <div className="md:col-span-2">
-                            <label className="block text-xs text-zinc-400 mb-1">Email *</label>
-                            <input
-                              type="email"
-                              value={member.email}
-                              onChange={(e) => {
-                                const newMembers = [...teamMembers];
-                                newMembers[idx].email = e.target.value;
-                                setTeamMembers(newMembers);
-                              }}
-                              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-600 rounded text-white text-sm"
-                            />
-                          </div>
+                      <div key={member.id || idx} className="bg-zinc-800 p-3 rounded-lg border border-zinc-700 flex items-center justify-between">
+                        <div>
+                          <p className="text-white font-medium">{member.name}</p>
+                          <p className="text-xs text-zinc-400">{member.email}</p>
                         </div>
+                        <button
+                          onClick={() => removeMember(idx)}
+                          className="text-red-400 hover:text-red-300 p-2"
+                          title="Remove member"
+                        >
+                          <FiX size={18} />
+                        </button>
                       </div>
                     ))}
+                    {teamMembers.length === 0 && (
+                      <div className="text-center py-4 text-zinc-500 text-sm border-2 border-dashed border-zinc-800 rounded-lg">
+                        No additional members added yet.
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between text-sm text-zinc-400">
+                    <span>Current Size: <strong className="text-white">{1 + teamMembers.length}</strong> (Including You)</span>
+                    <span>Limit: {teamSize}</span>
                   </div>
                 </div>
 

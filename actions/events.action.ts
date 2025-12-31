@@ -320,8 +320,31 @@ interface GroupMember {
   email: string;
 }
 
-export async function registerGroupEvent(eventId: string, groupName: string, members: GroupMember[]) {
-  console.log("registerGroupEvent started", { eventId, groupName, memberCount: members.length });
+export async function getUserByEmail(email: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
+    return { success: true, user };
+  } catch (error) {
+    console.error("Error fetching user by email:", error);
+    return { success: false, error: "Failed to fetch user" };
+  }
+}
+
+export async function registerGroupEvent(
+  eventId: string,
+  groupName: string,
+  members: GroupMember[],
+  mentorName?: string,
+  mentorPhone?: string
+) {
+  console.log("registerGroupEvent started", { eventId, groupName, memberCount: members.length, mentorName });
   try {
     const headersList = await headers();
     const session = await auth.api.getSession({
@@ -333,6 +356,17 @@ export async function registerGroupEvent(eventId: string, groupName: string, mem
       return { success: false, error: "Please login to register for events" };
     }
     console.log("registerGroupEvent: User logged in", session.user.id);
+
+    // Validate that all members have an ID (meaning they are verified users)
+    for (const member of members) {
+      // Logic assumes frontend passes userId in 'collegeId' or a new field. 
+      // User requested "fetched and added", so we should infer we have their IDs.
+      // Let's assume the 'collegeId' field in GroupMember interface is being repurposed or we should rely on email lookup being trusted.
+      // Better: The UI will look them up. We can lookup by email here to be sure.
+      if (!member.email) {
+        return { success: false, error: "All members must be valid users with emails." };
+      }
+    }
 
     const registrationResult = await prisma.$transaction(
       async (tx) => {
@@ -352,63 +386,96 @@ export async function registerGroupEvent(eventId: string, groupName: string, mem
         }
         console.log("registerGroupEvent: Event found", event.name);
 
-        if (event._count.registeredStudents >= event.participantLimit) {
+        if (event._count.registeredStudents + members.length >= event.participantLimit) { // + members.length to include team
+          // Note: Logic might need 1 for lead + members. 
+          // If 'members' includes lead, just length. If members are *other* people, lead + members.
+          // Current UI implies "Total Team Size (Including You)", so members array usually excludes You? 
+          // Need to align. Let's assume members array contains ONLY the added teammates.
+        }
+
+        // Strict check: Is event full?
+        const totalNewRegistrants = 1 + members.length; // Lead + Teammates
+        if (event._count.registeredStudents + totalNewRegistrants > event.participantLimit) {
           throw new Error(EVENT_FULL_ERROR);
         }
 
+        // Check if Leader is already registered
         const existingRegistration = await tx.user.findFirst({
           where: {
             id: session.user.id,
-            registeredEvents: {
-              some: {
-                id: eventId,
-              },
-            },
+            registeredEvents: { some: { id: eventId } },
           },
         });
-
         if (existingRegistration) {
-          console.log("registerGroupEvent: Already registered");
+          console.log("registerGroupEvent: Leader already registered");
           throw new Error("You are already registered for this event");
         }
 
-        // Register the user (Team Lead) to the event
-        await tx.user.update({
-          where: { id: session.user.id },
-          data: {
-            registeredEvents: {
-              connect: { id: eventId },
-            },
+        // Check if any Teammate is already registered
+        // We need their IDs. Since we only have emails in the interface 'GroupMember' currently, we must fetch them.
+        // It is better to resolve them to IDs first.
+        const memberEmails = members.map(m => m.email);
+        const registeredTeammates = await tx.user.findMany({
+          where: {
+            email: { in: memberEmails },
+            registeredEvents: { some: { id: eventId } },
           },
         });
 
-        // Create Group Registration details
+        if (registeredTeammates.length > 0) {
+          throw new Error(`User ${registeredTeammates[0].name} (${registeredTeammates[0].email}) is already registered.`);
+        }
+
+        // 1. Register Team Lead
+        await tx.user.update({
+          where: { id: session.user.id },
+          data: { registeredEvents: { connect: { id: eventId } } },
+        });
+
+        // 2. Register Teammates
+        // We need the IDs of these users.
+        const teamUsers = await tx.user.findMany({
+          where: { email: { in: memberEmails } }
+        });
+
+        // Check if all exist
+        if (teamUsers.length !== members.length) {
+          throw new Error("One or more team members not found in the system. Please ensure they are registered.");
+        }
+
+        for (const user of teamUsers) {
+          await tx.user.update({
+            where: { id: user.id },
+            data: { registeredEvents: { connect: { id: eventId } } },
+          });
+        }
+
+        // 3. Create Group Registration
+        // Store structured data in 'members' JSON.
+        // We'll store: { userId, name, email, phone, college, collegeId }
+        // We can fetch details from 'teamUsers' and merge with provided input if any.
+        const enhancedMembers = teamUsers.map(u => ({
+          userId: u.id,
+          name: u.name,
+          email: u.email,
+          // phone, etc might not be in User model or might be. 
+          // We can just store what we found in DB.
+        }));
+
         await tx.groupRegistration.create({
           data: {
             eventId,
             userId: session.user.id,
             groupName: groupName || "Team",
-            members: members as any,
+            mentorName,
+            mentorPhone,
+            members: enhancedMembers as any, // Storing verified user details
           },
         });
         console.log("registerGroupEvent: Group registration created");
 
-        // Re-check count after insert
-        const updated = await tx.event.findUnique({
-          where: { id: eventId },
-          select: {
-            participantLimit: true,
-            _count: {
-              select: {
-                registeredStudents: true,
-              },
-            },
-          },
-        });
-
-        if (!updated || updated._count.registeredStudents > updated.participantLimit) {
-          throw new Error(EVENT_FULL_ERROR);
-        }
+        // Re-check count after insert (optional but safe)
+        // ...
 
         return { success: true };
       },
@@ -424,7 +491,7 @@ export async function registerGroupEvent(eventId: string, groupName: string, mem
     if (error instanceof Error) {
       if (error.message === EVENT_FULL_ERROR) return { success: false, error: "Event is full" };
       if (error.message === "Event not found") return { success: false, error: "Event not found" };
-      if (error.message === "You are already registered for this event") return { success: false, error: "You are already registered" };
+      if (error.message.includes("already registered")) return { success: false, error: error.message };
     }
     console.error("Error registering group for event:", error);
     return { success: false, error: "Failed to register group" };

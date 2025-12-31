@@ -9024,6 +9024,8 @@ export namespace Prisma {
     eventId: string | null
     userId: string | null
     groupName: string | null
+    mentorName: string | null
+    mentorPhone: string | null
   }
 
   export type GroupRegistrationMaxAggregateOutputType = {
@@ -9033,6 +9035,8 @@ export namespace Prisma {
     eventId: string | null
     userId: string | null
     groupName: string | null
+    mentorName: string | null
+    mentorPhone: string | null
   }
 
   export type GroupRegistrationCountAggregateOutputType = {
@@ -9042,6 +9046,8 @@ export namespace Prisma {
     eventId: number
     userId: number
     groupName: number
+    mentorName: number
+    mentorPhone: number
     members: number
     _all: number
   }
@@ -9054,6 +9060,8 @@ export namespace Prisma {
     eventId?: true
     userId?: true
     groupName?: true
+    mentorName?: true
+    mentorPhone?: true
   }
 
   export type GroupRegistrationMaxAggregateInputType = {
@@ -9063,6 +9071,8 @@ export namespace Prisma {
     eventId?: true
     userId?: true
     groupName?: true
+    mentorName?: true
+    mentorPhone?: true
   }
 
   export type GroupRegistrationCountAggregateInputType = {
@@ -9072,6 +9082,8 @@ export namespace Prisma {
     eventId?: true
     userId?: true
     groupName?: true
+    mentorName?: true
+    mentorPhone?: true
     members?: true
     _all?: true
   }
@@ -9155,6 +9167,8 @@ export namespace Prisma {
     eventId: string
     userId: string
     groupName: string | null
+    mentorName: string | null
+    mentorPhone: string | null
     members: JsonValue
     _count: GroupRegistrationCountAggregateOutputType | null
     _min: GroupRegistrationMinAggregateOutputType | null
@@ -9182,6 +9196,8 @@ export namespace Prisma {
     eventId?: boolean
     userId?: boolean
     groupName?: boolean
+    mentorName?: boolean
+    mentorPhone?: boolean
     members?: boolean
     event?: boolean | EventDefaultArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -9194,6 +9210,8 @@ export namespace Prisma {
     eventId?: boolean
     userId?: boolean
     groupName?: boolean
+    mentorName?: boolean
+    mentorPhone?: boolean
     members?: boolean
     event?: boolean | EventDefaultArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -9206,6 +9224,8 @@ export namespace Prisma {
     eventId?: boolean
     userId?: boolean
     groupName?: boolean
+    mentorName?: boolean
+    mentorPhone?: boolean
     members?: boolean
     event?: boolean | EventDefaultArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -9218,10 +9238,12 @@ export namespace Prisma {
     eventId?: boolean
     userId?: boolean
     groupName?: boolean
+    mentorName?: boolean
+    mentorPhone?: boolean
     members?: boolean
   }
 
-  export type GroupRegistrationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "eventId" | "userId" | "groupName" | "members", ExtArgs["result"]["groupRegistration"]>
+  export type GroupRegistrationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "eventId" | "userId" | "groupName" | "mentorName" | "mentorPhone" | "members", ExtArgs["result"]["groupRegistration"]>
   export type GroupRegistrationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     event?: boolean | EventDefaultArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -9248,6 +9270,8 @@ export namespace Prisma {
       eventId: string
       userId: string
       groupName: string | null
+      mentorName: string | null
+      mentorPhone: string | null
       members: Prisma.JsonValue
     }, ExtArgs["result"]["groupRegistration"]>
     composites: {}
@@ -9680,6 +9704,8 @@ export namespace Prisma {
     readonly eventId: FieldRef<"GroupRegistration", 'String'>
     readonly userId: FieldRef<"GroupRegistration", 'String'>
     readonly groupName: FieldRef<"GroupRegistration", 'String'>
+    readonly mentorName: FieldRef<"GroupRegistration", 'String'>
+    readonly mentorPhone: FieldRef<"GroupRegistration", 'String'>
     readonly members: FieldRef<"GroupRegistration", 'Json'>
   }
     
@@ -13589,6 +13615,8 @@ export namespace Prisma {
     eventId: 'eventId',
     userId: 'userId',
     groupName: 'groupName',
+    mentorName: 'mentorName',
+    mentorPhone: 'mentorPhone',
     members: 'members'
   };
 
@@ -14414,6 +14442,8 @@ export namespace Prisma {
     eventId?: StringFilter<"GroupRegistration"> | string
     userId?: StringFilter<"GroupRegistration"> | string
     groupName?: StringNullableFilter<"GroupRegistration"> | string | null
+    mentorName?: StringNullableFilter<"GroupRegistration"> | string | null
+    mentorPhone?: StringNullableFilter<"GroupRegistration"> | string | null
     members?: JsonFilter<"GroupRegistration">
     event?: XOR<EventScalarRelationFilter, EventWhereInput>
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -14426,6 +14456,8 @@ export namespace Prisma {
     eventId?: SortOrder
     userId?: SortOrder
     groupName?: SortOrderInput | SortOrder
+    mentorName?: SortOrderInput | SortOrder
+    mentorPhone?: SortOrderInput | SortOrder
     members?: SortOrder
     event?: EventOrderByWithRelationInput
     user?: UserOrderByWithRelationInput
@@ -14442,6 +14474,8 @@ export namespace Prisma {
     eventId?: StringFilter<"GroupRegistration"> | string
     userId?: StringFilter<"GroupRegistration"> | string
     groupName?: StringNullableFilter<"GroupRegistration"> | string | null
+    mentorName?: StringNullableFilter<"GroupRegistration"> | string | null
+    mentorPhone?: StringNullableFilter<"GroupRegistration"> | string | null
     members?: JsonFilter<"GroupRegistration">
     event?: XOR<EventScalarRelationFilter, EventWhereInput>
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -14454,6 +14488,8 @@ export namespace Prisma {
     eventId?: SortOrder
     userId?: SortOrder
     groupName?: SortOrderInput | SortOrder
+    mentorName?: SortOrderInput | SortOrder
+    mentorPhone?: SortOrderInput | SortOrder
     members?: SortOrder
     _count?: GroupRegistrationCountOrderByAggregateInput
     _max?: GroupRegistrationMaxOrderByAggregateInput
@@ -14470,6 +14506,8 @@ export namespace Prisma {
     eventId?: StringWithAggregatesFilter<"GroupRegistration"> | string
     userId?: StringWithAggregatesFilter<"GroupRegistration"> | string
     groupName?: StringNullableWithAggregatesFilter<"GroupRegistration"> | string | null
+    mentorName?: StringNullableWithAggregatesFilter<"GroupRegistration"> | string | null
+    mentorPhone?: StringNullableWithAggregatesFilter<"GroupRegistration"> | string | null
     members?: JsonWithAggregatesFilter<"GroupRegistration">
   }
 
@@ -15357,6 +15395,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     groupName?: string | null
+    mentorName?: string | null
+    mentorPhone?: string | null
     members: JsonNullValueInput | InputJsonValue
     event: EventCreateNestedOneWithoutGroupRegistrationsInput
     user: UserCreateNestedOneWithoutGroupRegistrationsInput
@@ -15369,6 +15409,8 @@ export namespace Prisma {
     eventId: string
     userId: string
     groupName?: string | null
+    mentorName?: string | null
+    mentorPhone?: string | null
     members: JsonNullValueInput | InputJsonValue
   }
 
@@ -15377,6 +15419,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorPhone?: NullableStringFieldUpdateOperationsInput | string | null
     members?: JsonNullValueInput | InputJsonValue
     event?: EventUpdateOneRequiredWithoutGroupRegistrationsNestedInput
     user?: UserUpdateOneRequiredWithoutGroupRegistrationsNestedInput
@@ -15389,6 +15433,8 @@ export namespace Prisma {
     eventId?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorPhone?: NullableStringFieldUpdateOperationsInput | string | null
     members?: JsonNullValueInput | InputJsonValue
   }
 
@@ -15399,6 +15445,8 @@ export namespace Prisma {
     eventId: string
     userId: string
     groupName?: string | null
+    mentorName?: string | null
+    mentorPhone?: string | null
     members: JsonNullValueInput | InputJsonValue
   }
 
@@ -15407,6 +15455,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorPhone?: NullableStringFieldUpdateOperationsInput | string | null
     members?: JsonNullValueInput | InputJsonValue
   }
 
@@ -15417,6 +15467,8 @@ export namespace Prisma {
     eventId?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorPhone?: NullableStringFieldUpdateOperationsInput | string | null
     members?: JsonNullValueInput | InputJsonValue
   }
 
@@ -16303,6 +16355,8 @@ export namespace Prisma {
     eventId?: SortOrder
     userId?: SortOrder
     groupName?: SortOrder
+    mentorName?: SortOrder
+    mentorPhone?: SortOrder
     members?: SortOrder
   }
 
@@ -16313,6 +16367,8 @@ export namespace Prisma {
     eventId?: SortOrder
     userId?: SortOrder
     groupName?: SortOrder
+    mentorName?: SortOrder
+    mentorPhone?: SortOrder
   }
 
   export type GroupRegistrationMinOrderByAggregateInput = {
@@ -16322,6 +16378,8 @@ export namespace Prisma {
     eventId?: SortOrder
     userId?: SortOrder
     groupName?: SortOrder
+    mentorName?: SortOrder
+    mentorPhone?: SortOrder
   }
   export type JsonWithAggregatesFilter<$PrismaModel = never> =
     | PatchUndefined<
@@ -17755,6 +17813,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     groupName?: string | null
+    mentorName?: string | null
+    mentorPhone?: string | null
     members: JsonNullValueInput | InputJsonValue
     event: EventCreateNestedOneWithoutGroupRegistrationsInput
   }
@@ -17765,6 +17825,8 @@ export namespace Prisma {
     updatedAt?: Date | string
     eventId: string
     groupName?: string | null
+    mentorName?: string | null
+    mentorPhone?: string | null
     members: JsonNullValueInput | InputJsonValue
   }
 
@@ -17974,6 +18036,8 @@ export namespace Prisma {
     eventId?: StringFilter<"GroupRegistration"> | string
     userId?: StringFilter<"GroupRegistration"> | string
     groupName?: StringNullableFilter<"GroupRegistration"> | string | null
+    mentorName?: StringNullableFilter<"GroupRegistration"> | string | null
+    mentorPhone?: StringNullableFilter<"GroupRegistration"> | string | null
     members?: JsonFilter<"GroupRegistration">
   }
 
@@ -18400,6 +18464,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     groupName?: string | null
+    mentorName?: string | null
+    mentorPhone?: string | null
     members: JsonNullValueInput | InputJsonValue
     user: UserCreateNestedOneWithoutGroupRegistrationsInput
   }
@@ -18410,6 +18476,8 @@ export namespace Prisma {
     updatedAt?: Date | string
     userId: string
     groupName?: string | null
+    mentorName?: string | null
+    mentorPhone?: string | null
     members: JsonNullValueInput | InputJsonValue
   }
 
@@ -19149,6 +19217,8 @@ export namespace Prisma {
     updatedAt?: Date | string
     eventId: string
     groupName?: string | null
+    mentorName?: string | null
+    mentorPhone?: string | null
     members: JsonNullValueInput | InputJsonValue
   }
 
@@ -19374,6 +19444,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorPhone?: NullableStringFieldUpdateOperationsInput | string | null
     members?: JsonNullValueInput | InputJsonValue
     event?: EventUpdateOneRequiredWithoutGroupRegistrationsNestedInput
   }
@@ -19384,6 +19456,8 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     eventId?: StringFieldUpdateOperationsInput | string
     groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorPhone?: NullableStringFieldUpdateOperationsInput | string | null
     members?: JsonNullValueInput | InputJsonValue
   }
 
@@ -19393,6 +19467,8 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     eventId?: StringFieldUpdateOperationsInput | string
     groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorPhone?: NullableStringFieldUpdateOperationsInput | string | null
     members?: JsonNullValueInput | InputJsonValue
   }
 
@@ -19493,6 +19569,8 @@ export namespace Prisma {
     updatedAt?: Date | string
     userId: string
     groupName?: string | null
+    mentorName?: string | null
+    mentorPhone?: string | null
     members: JsonNullValueInput | InputJsonValue
   }
 
@@ -19601,6 +19679,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorPhone?: NullableStringFieldUpdateOperationsInput | string | null
     members?: JsonNullValueInput | InputJsonValue
     user?: UserUpdateOneRequiredWithoutGroupRegistrationsNestedInput
   }
@@ -19611,6 +19691,8 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
     groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorPhone?: NullableStringFieldUpdateOperationsInput | string | null
     members?: JsonNullValueInput | InputJsonValue
   }
 
@@ -19620,6 +19702,8 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
     groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorName?: NullableStringFieldUpdateOperationsInput | string | null
+    mentorPhone?: NullableStringFieldUpdateOperationsInput | string | null
     members?: JsonNullValueInput | InputJsonValue
   }
 
