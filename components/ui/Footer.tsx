@@ -8,7 +8,7 @@ const Footer = () => {
     const currentYear = 2026;
 
     const socialLinks = [
-        { icon: FaInstagram, href: "https://instagram.com/klsurabhi", label: "Instagram" },
+        { icon: FaInstagram, href: "https://instagram.com/klsurabhi", label: "Instagram", text: "@klsurabhi" },
         { icon: FaYoutube, href: "https://www.youtube.com/@KLUSurabhiFest", label: "Youtube" },
         { icon: FaFacebook, href: "#", label: "Facebook" },
     ];
@@ -68,10 +68,12 @@ const Footer = () => {
                                     href={social.href}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    whileHover={{ y: -4, scale: 1.1 }}
-                                    className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:border-red-500/50 hover:bg-red-500/10 transition-all duration-300"
+                                    whileHover={{ y: -4, scale: 1.05 }}
+                                    className={`h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:border-red-500/50 hover:bg-red-500/10 transition-all duration-300 ${social.text ? 'px-4 gap-2 w-auto' : 'w-10'
+                                        }`}
                                 >
                                     <social.icon size={18} />
+                                    {social.text && <span className="font-medium text-sm">{social.text}</span>}
                                 </motion.a>
                             ))}
                         </div>
