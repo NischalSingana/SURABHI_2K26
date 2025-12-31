@@ -321,6 +321,7 @@ interface GroupMember {
 }
 
 export async function registerGroupEvent(eventId: string, groupName: string, members: GroupMember[]) {
+  console.log("registerGroupEvent started", { eventId, groupName, memberCount: members.length });
   try {
     const headersList = await headers();
     const session = await auth.api.getSession({
@@ -328,8 +329,10 @@ export async function registerGroupEvent(eventId: string, groupName: string, mem
     });
 
     if (!session || !session.user) {
+      console.log("registerGroupEvent: No session");
       return { success: false, error: "Please login to register for events" };
     }
+    console.log("registerGroupEvent: User logged in", session.user.id);
 
     const registrationResult = await prisma.$transaction(
       async (tx) => {
@@ -347,6 +350,7 @@ export async function registerGroupEvent(eventId: string, groupName: string, mem
         if (!event) {
           throw new Error("Event not found");
         }
+        console.log("registerGroupEvent: Event found", event.name);
 
         if (event._count.registeredStudents >= event.participantLimit) {
           throw new Error(EVENT_FULL_ERROR);
@@ -364,6 +368,7 @@ export async function registerGroupEvent(eventId: string, groupName: string, mem
         });
 
         if (existingRegistration) {
+          console.log("registerGroupEvent: Already registered");
           throw new Error("You are already registered for this event");
         }
 
@@ -386,6 +391,7 @@ export async function registerGroupEvent(eventId: string, groupName: string, mem
             members: members as any,
           },
         });
+        console.log("registerGroupEvent: Group registration created");
 
         // Re-check count after insert
         const updated = await tx.event.findUnique({
@@ -411,6 +417,7 @@ export async function registerGroupEvent(eventId: string, groupName: string, mem
 
     revalidatePath("/events");
     revalidatePath("/profile");
+    console.log("registerGroupEvent: Success");
     return { success: true, message: "Successfully registered team for event" };
 
   } catch (error) {

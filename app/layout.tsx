@@ -6,6 +6,7 @@ import { Suspense } from "react";
 
 import LenisProvider from "@/components/providers/LenisProvider";
 import ConditionalNavbar from "./ConditionalNavbar";
+import ClickSpark from "@/components/ui/ClickSpark";
 
 const schibstedGrotesk = Schibsted_Grotesk({
   variable: "--font-Schibsted_Grotesk",
@@ -36,10 +37,18 @@ export default function RootLayout({
       >
         <Toaster position="top-right" richColors />
         <LenisProvider>
-          <Suspense fallback={<div className="h-20 bg-transparent" />}>
-            <ConditionalNavbar />
-          </Suspense>
-          {children}
+          <ClickSpark
+            sparkColor='#ff8c42'
+            sparkSize={12}
+            sparkRadius={20}
+            sparkCount={12}
+            duration={500}
+          >
+            <Suspense fallback={<div className="h-20 bg-transparent" />}>
+              <ConditionalNavbar />
+            </Suspense>
+            {children}
+          </ClickSpark>
         </LenisProvider>
       </body>
     </html>

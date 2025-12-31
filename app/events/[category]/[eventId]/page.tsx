@@ -127,36 +127,50 @@ function EventDetailPageContent() {
   };
 
   const handleGroupRegister = async () => {
+    console.log("handleGroupRegister started", { groupName, teamSize, teamMembers, event });
+
     // Basic validation
     if (!groupName.trim()) {
       toast.error("Please enter a group name");
+      console.log("Validation failed: No group name");
       return;
     }
     const requiredMembers = Math.max(0, teamSize - 1);
+    console.log("Required members:", requiredMembers, "Current members:", teamMembers.length);
     if (teamMembers.length < requiredMembers) {
       toast.error(`Please add details for all ${requiredMembers} additional members`);
+      console.log("Validation failed: Not enough members");
       return;
     }
     for (const member of teamMembers) {
       if (!member.name || !member.email || !member.phone || !member.college || !member.collegeId) {
         toast.error("Please fill in all details for all team members");
+        console.log("Validation failed: Missing member details", member);
         return;
       }
     }
 
     setRegistering(true);
-    const result = await registerGroupEvent(eventId, groupName, teamMembers);
+    try {
+      console.log("Calling registerGroupEvent action...");
+      const result = await registerGroupEvent(eventId, groupName, teamMembers);
+      console.log("Action result:", result);
 
-    if (result.success) {
-      toast.success("Team registered successfully!");
-      setIsRegistered(true);
-      setShowGroupModal(false);
-      setAcceptedTerms(false);
-      fetchEvent();
-    } else {
-      toast.error(result.error || "Failed to register team");
+      if (result.success) {
+        toast.success("Team registered successfully!");
+        setIsRegistered(true);
+        setShowGroupModal(false);
+        setAcceptedTerms(false);
+        fetchEvent();
+      } else {
+        toast.error(result.error || "Failed to register team");
+      }
+    } catch (err) {
+      console.error("Error in handleGroupRegister:", err);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setRegistering(false);
     }
-    setRegistering(false);
   };
 
   const handleShare = () => {
@@ -647,10 +661,17 @@ function EventDetailPageContent() {
                     type="number"
                     min={event?.minTeamSize || 2}
                     max={event?.maxTeamSize || 5}
-                    value={teamSize}
+                    value={teamSize || ""}
                     onChange={(e) => {
-                      const size = parseInt(e.target.value);
+                      const val = e.target.value;
+                      if (val === "") {
+                        setTeamSize(0);
+                        return;
+                      }
+                      const size = parseInt(val);
+                      if (isNaN(size)) return;
                       setTeamSize(size);
+
                       const needed = Math.max(0, size - 1);
                       const current = teamMembers.length;
                       if (needed > current) {
