@@ -17,6 +17,7 @@ import {
   FiPlus,
   FiMinus,
 } from "react-icons/fi";
+import { getFaqs } from "@/actions/faq.action";
 
 interface ContactFormData {
   name: string;
@@ -49,10 +50,14 @@ const Contact = () => {
   useEffect(() => {
     const fetchFaqs = async () => {
       try {
-        const res = await fetch("/api/faqs");
-        if (res.ok) {
-          const data = await res.json();
-          setFaqs(data);
+        const { success, data } = await getFaqs();
+        if (success && data) {
+          // Transform dates to strings if necessary or just use the data if compatible
+          // The data from server action has Date objects, but for display we just need strings for text
+          // However, JSON serialization might happen if passed to props, but here we set state directly.
+          // State expects FAQ interface which matches except date types if defined.
+          // Let's ensure the local FAQ interface matches or casts.
+          setFaqs(data as unknown as FAQ[]);
         }
       } catch (error) {
         console.error("Failed to fetch FAQs", error);
@@ -396,7 +401,7 @@ const Contact = () => {
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.3 }}
                           >
-                            <div className="px-4 pb-4 pt-0 text-zinc-400 text-sm leading-relaxed border-t border-zinc-800/50 mt-2">
+                            <div className="px-4 pb-4 pt-0 text-zinc-400 text-sm leading-relaxed border-t border-zinc-800/50 mt-2 whitespace-pre-line">
                               {faq.answer}
                             </div>
                           </motion.div>

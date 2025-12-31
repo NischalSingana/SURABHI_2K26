@@ -15,6 +15,8 @@ import {
   FiChevronLeft,
   FiCheck,
   FiX,
+  FiMinus,
+  FiPlus,
 } from "react-icons/fi";
 import { createEvent, updateEvent } from "@/actions/events.action";
 import { uploadEventImage } from "@/actions/upload.action";
@@ -64,8 +66,8 @@ export default function MultiStepEventForm({
     image: editingEvent?.image || "",
     venue: editingEvent?.venue || "",
     isGroupEvent: editingEvent?.isGroupEvent || false,
-    minTeamSize: editingEvent?.minTeamSize || 2,
-    maxTeamSize: editingEvent?.maxTeamSize || 5,
+    minTeamSize: editingEvent?.minTeamSize?.toString() || "2",
+    maxTeamSize: editingEvent?.maxTeamSize?.toString() || "5",
     startTime: editingEvent?.startTime || "",
     endTime: editingEvent?.endTime || "",
     participantLimit: editingEvent?.participantLimit.toString() || "",
@@ -129,7 +131,6 @@ export default function MultiStepEventForm({
   const canSubmit = () => {
     return (
       formData.termsandconditions &&
-      formData.registrationLink &&
       (imagePreview || editingEvent)
     );
   };
@@ -167,7 +168,13 @@ export default function MultiStepEventForm({
         return;
       }
 
-      const eventData = { ...formData, image: imageUrl };
+      const eventData = {
+        ...formData,
+        image: imageUrl,
+        minTeamSize: parseInt(formData.minTeamSize as unknown as string) || 1,
+        maxTeamSize: parseInt(formData.maxTeamSize as unknown as string) || 1,
+        participantLimit: formData.participantLimit,
+      };
 
       const result = editingEvent
         ? await updateEvent({ id: editingEvent.id, eventData })
@@ -445,40 +452,84 @@ export default function MultiStepEventForm({
                         <label className="block text-sm font-medium text-zinc-300 mb-2">
                           Min Team Size
                         </label>
-                        <div className="relative">
-                          <FiUsers className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 z-10" />
-                          <input
-                            type="number"
-                            min="2"
-                            value={formData.minTeamSize}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                minTeamSize: e.target.value ? parseInt(e.target.value) : 0,
-                              })
-                            }
-                            className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                          />
+                        <div className="relative flex items-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const val = parseInt(formData.minTeamSize as unknown as string) || 0;
+                              setFormData({ ...formData, minTeamSize: Math.max(0, val - 1).toString() });
+                            }}
+                            className="bg-zinc-700 hover:bg-zinc-600 text-white p-3 rounded-l-lg border-y border-l border-zinc-600 transition-colors"
+                          >
+                            <FiMinus size={16} />
+                          </button>
+                          <div className="relative flex-1">
+                            <FiUsers className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 z-10" />
+                            <input
+                              type="number"
+                              min="2"
+                              value={formData.minTeamSize}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  minTeamSize: e.target.value,
+                                })
+                              }
+                              className="w-full pl-10 pr-4 py-3 bg-zinc-800 border-y border-zinc-700 text-white focus:outline-none focus:ring-0 text-center"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const val = parseInt(formData.minTeamSize as unknown as string) || 0;
+                              setFormData({ ...formData, minTeamSize: (val + 1).toString() });
+                            }}
+                            className="bg-zinc-700 hover:bg-zinc-600 text-white p-3 rounded-r-lg border-y border-r border-zinc-600 transition-colors"
+                          >
+                            <FiPlus size={16} />
+                          </button>
                         </div>
                       </div>
                       <div className="col-span-2">
                         <label className="block text-sm font-medium text-zinc-300 mb-2">
                           Max Team Size
                         </label>
-                        <div className="relative">
-                          <FiUsers className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 z-10" />
-                          <input
-                            type="number"
-                            min={formData.minTeamSize}
-                            value={formData.maxTeamSize}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                maxTeamSize: e.target.value ? parseInt(e.target.value) : 0,
-                              })
-                            }
-                            className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                          />
+                        <div className="relative flex items-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const val = parseInt(formData.maxTeamSize as unknown as string) || 0;
+                              setFormData({ ...formData, maxTeamSize: Math.max(0, val - 1).toString() });
+                            }}
+                            className="bg-zinc-700 hover:bg-zinc-600 text-white p-3 rounded-l-lg border-y border-l border-zinc-600 transition-colors"
+                          >
+                            <FiMinus size={16} />
+                          </button>
+                          <div className="relative flex-1">
+                            <FiUsers className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 z-10" />
+                            <input
+                              type="number"
+                              min={formData.minTeamSize}
+                              value={formData.maxTeamSize}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  maxTeamSize: e.target.value,
+                                })
+                              }
+                              className="w-full pl-10 pr-4 py-3 bg-zinc-800 border-y border-zinc-700 text-white focus:outline-none focus:ring-0 text-center"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const val = parseInt(formData.maxTeamSize as unknown as string) || 0;
+                              setFormData({ ...formData, maxTeamSize: (val + 1).toString() });
+                            }}
+                            className="bg-zinc-700 hover:bg-zinc-600 text-white p-3 rounded-r-lg border-y border-r border-zinc-600 transition-colors"
+                          >
+                            <FiPlus size={16} />
+                          </button>
                         </div>
                       </div>
                     </>
@@ -525,18 +576,40 @@ export default function MultiStepEventForm({
                   <label className="block text-sm font-medium text-zinc-300 mb-2">
                     Participant Limit *
                   </label>
-                  <div className="relative">
-                    <FiUsers className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-                    <input
-                      type="number"
-                      name="participantLimit"
-                      value={formData.participantLimit}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      placeholder="Maximum participants"
-                      min="1"
-                      required
-                    />
+                  <div className="relative flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = parseInt(formData.participantLimit) || 0;
+                        setFormData({ ...formData, participantLimit: Math.max(0, val - 1).toString() });
+                      }}
+                      className="bg-zinc-700 hover:bg-zinc-600 text-white p-3 rounded-l-lg border-y border-l border-zinc-600 transition-colors"
+                    >
+                      <FiMinus size={16} />
+                    </button>
+                    <div className="relative flex-1">
+                      <FiUsers className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 z-10" />
+                      <input
+                        type="number"
+                        name="participantLimit"
+                        value={formData.participantLimit}
+                        onChange={handleInputChange}
+                        className="w-full pl-10 pr-4 py-3 bg-zinc-800 border-y border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-0 text-center"
+                        placeholder="Maximum participants"
+                        min="1"
+                        required
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = parseInt(formData.participantLimit) || 0;
+                        setFormData({ ...formData, participantLimit: (val + 1).toString() });
+                      }}
+                      className="bg-zinc-700 hover:bg-zinc-600 text-white p-3 rounded-r-lg border-y border-r border-zinc-600 transition-colors"
+                    >
+                      <FiPlus size={16} />
+                    </button>
                   </div>
                 </div>
 
@@ -644,7 +717,7 @@ export default function MultiStepEventForm({
 
                 <div>
                   <label className="block text-sm font-medium text-zinc-300 mb-2">
-                    Registration Link *
+                    Registration Link <span className="text-zinc-500 text-xs">(Optional)</span>
                   </label>
                   <div className="relative">
                     <FiLink className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
@@ -655,7 +728,6 @@ export default function MultiStepEventForm({
                       onChange={handleInputChange}
                       className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                       placeholder="https://example.com/register"
-                      required
                     />
                   </div>
                 </div>
