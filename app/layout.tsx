@@ -32,11 +32,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${schibstedGrotesk.variable} ${martianMono.variable} antialiased bg-black min-h-screen`}
+        className={`${schibstedGrotesk.variable} ${martianMono.variable} bg-[#0a0e1a] min-h-screen`}
       >
         <Toaster position="top-right" richColors />
         <LenisProvider>
-          <Suspense fallback={<div className="h-16 bg-black" />}>
+          <Suspense fallback={<div className="h-20 bg-transparent" />}>
             <ConditionalNavbar />
           </Suspense>
           {children}

@@ -27,6 +27,9 @@ interface Event {
   date: string | Date;
   image: string;
   venue: string;
+  isGroupEvent: boolean;
+  minTeamSize: number;
+  maxTeamSize: number;
   startTime: string;
   endTime: string;
   participantLimit: number;
@@ -60,6 +63,9 @@ export default function MultiStepEventForm({
       : "",
     image: editingEvent?.image || "",
     venue: editingEvent?.venue || "",
+    isGroupEvent: editingEvent?.isGroupEvent || false,
+    minTeamSize: editingEvent?.minTeamSize || 2,
+    maxTeamSize: editingEvent?.maxTeamSize || 5,
     startTime: editingEvent?.startTime || "",
     endTime: editingEvent?.endTime || "",
     participantLimit: editingEvent?.participantLimit.toString() || "",
@@ -105,6 +111,8 @@ export default function MultiStepEventForm({
     }
   };
 
+
+
   const canProceedToStep2 = () => {
     return formData.name && formData.description && formData.date;
   };
@@ -139,15 +147,19 @@ export default function MultiStepEventForm({
         uploadFormData.append("file", selectedFile);
 
         const uploadResult = await uploadEventImage(uploadFormData);
-        setUploading(false);
 
         if (!uploadResult.success) {
           toast.error(uploadResult.error || "Failed to upload image");
+          setUploading(false);
           setIsSubmitting(false);
           return;
         }
         imageUrl = uploadResult.url || "";
       }
+
+
+
+      setUploading(false);
 
       if (!imageUrl) {
         toast.error("Please upload an image");
@@ -229,38 +241,45 @@ export default function MultiStepEventForm({
 
         {/* Progress Bar - Fixed */}
         <div className="px-8 py-6 border-b border-zinc-800">
-          <div className="flex items-center justify-between mb-4">
-            {[1, 2, 3].map((step) => (
-              <div key={step} className="flex items-center flex-1">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${currentStep > step
-                    ? "bg-green-500 text-white"
-                    : currentStep === step
-                      ? "bg-orange-500 text-white"
-                      : "bg-zinc-800 text-zinc-500"
-                    }`}
-                >
-                  {currentStep > step ? <FiCheck /> : step}
-                </div>
-                {step < 3 && (
+          <div className="flex items-center justify-between relative">
+            {/* Connecting Lines Layer */}
+            <div className="absolute top-5 left-0 w-full -translate-y-1/2 flex px-12 z-0">
+              <div className={`flex-1 h-0.5 transition-all duration-300 ${currentStep >= 2 ? "bg-orange-500" : "bg-zinc-800"}`} />
+              <div className={`flex-1 h-0.5 transition-all duration-300 ${currentStep >= 3 ? "bg-orange-500" : "bg-zinc-800"}`} />
+            </div>
+
+            {/* Steps Layer */}
+            <div className="relative z-10 flex justify-between w-full text-center">
+              {[
+                { step: 1, label: "Basic Info" },
+                { step: 2, label: "Event Details" },
+                { step: 3, label: "Additional Info" }
+              ].map((item) => (
+                <div key={item.step} className="flex flex-col items-center gap-3 w-32">
                   <div
-                    className={`flex-1 h-1 mx-2 transition-all ${currentStep > step ? "bg-green-500" : "bg-zinc-800"
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all border-4 ${currentStep > item.step
+                      ? "bg-orange-500 border-orange-500 text-white"
+                      : currentStep === item.step
+                        ? "bg-zinc-900 border-orange-500 text-orange-500"
+                        : "bg-zinc-900 border-zinc-700 text-zinc-500"
                       }`}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between text-sm text-zinc-400">
-            <span>Basic Info</span>
-            <span>Event Details</span>
-            <span>Additional Info</span>
+                  >
+                    {currentStep > item.step ? <FiCheck /> : item.step}
+                  </div>
+                  <span className={`text-sm font-medium ${currentStep >= item.step ? "text-white" : "text-zinc-500"
+                    }`}>
+                    {item.label}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Step Content - Scrollable */}
         <div
           className="px-8 py-6"
+          data-lenis-prevent
           style={{
             overflowY: 'scroll',
             overflowX: 'hidden',
@@ -400,6 +419,75 @@ export default function MultiStepEventForm({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-zinc-300 mb-2">
+                      Event Type
+                    </label>
+                    <div className="flex items-center gap-3 bg-zinc-800 p-3 rounded-lg border border-zinc-700">
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.isGroupEvent}
+                          onChange={(e) =>
+                            setFormData({ ...formData, isGroupEvent: e.target.checked })
+                          }
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                        <span className="ml-3 text-sm font-medium text-zinc-300">
+                          {formData.isGroupEvent ? "Group Event" : "Individual Event"}
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {formData.isGroupEvent && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-zinc-300 mb-2">
+                          Min Team Size
+                        </label>
+                        <div className="relative">
+                          <FiUsers className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 z-10" />
+                          <input
+                            type="number"
+                            min="2"
+                            value={formData.minTeamSize}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                minTeamSize: e.target.value ? parseInt(e.target.value) : 0,
+                              })
+                            }
+                            className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          />
+                        </div>
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-zinc-300 mb-2">
+                          Max Team Size
+                        </label>
+                        <div className="relative">
+                          <FiUsers className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 z-10" />
+                          <input
+                            type="number"
+                            min={formData.minTeamSize}
+                            value={formData.maxTeamSize}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                maxTeamSize: e.target.value ? parseInt(e.target.value) : 0,
+                              })
+                            }
+                            className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-300 mb-2">
                       Start Time *
                     </label>
                     <div className="relative">
@@ -533,6 +621,8 @@ export default function MultiStepEventForm({
                     </p>
                   </div>
                 </div>
+
+
 
                 <div>
                   <label className="block text-sm font-medium text-zinc-300 mb-2">

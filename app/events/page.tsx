@@ -4,28 +4,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { getPublicEvents } from "@/actions/events.action";
+import { getCategories } from "@/actions/events.action";
 import { FiCalendar } from "react-icons/fi";
-
-interface Event {
-  id: string;
-  name: string;
-  description: string;
-  date: string | Date;
-  image: string;
-  venue: string;
-  startTime: string;
-  endTime: string;
-  participantLimit: number;
-  registrationLink: string;
-  Category: {
-    id: string;
-    name: string;
-  };
-  _count: {
-    registeredStudents: number;
-  };
-}
 
 interface CategoryData {
   name: string;
@@ -44,28 +24,14 @@ const Events = () => {
   }, []);
 
   const fetchCategories = async () => {
-    const result = await getPublicEvents();
+    const result = await getCategories();
     if (result.success && result.data) {
-      // Group events by category and get first image
-      const categoryMap = new Map<string, { count: number; image: string }>();
-
-      result.data.forEach((event) => {
-        const categoryName = event.Category.name;
-        if (!categoryMap.has(categoryName)) {
-          categoryMap.set(categoryName, { count: 0, image: event.image });
-        }
-        const cat = categoryMap.get(categoryName)!;
-        cat.count++;
-      });
-
-      const categoriesData: CategoryData[] = Array.from(
-        categoryMap.entries()
-      ).map(([name, data]) => ({
-        name,
-        count: data.count,
-        image: data.image,
+      const categoriesData: CategoryData[] = result.data.map((cat) => ({
+        name: cat.name,
+        count: cat.Event.length,
+        // Use category image if available, otherwise fallback to first event image (if any), otherwise placeholder
+        image: cat.image || (cat.Event.length > 0 ? cat.Event[0].image : "/placeholder.png"),
       }));
-
       setCategories(categoriesData);
     }
     setLoading(false);
@@ -111,7 +77,7 @@ const Events = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             onClick={() => router.push("/profile/events")}
-            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-orange-500/50"
+            className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-600/50"
           >
             <FiCalendar size={20} />
             My Events
@@ -131,7 +97,7 @@ const Events = () => {
               placeholder="Search categories..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-6 py-4 pl-14 bg-zinc-900 text-white rounded-xl border border-zinc-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all placeholder-zinc-500"
+              className="w-full px-6 py-4 pl-14 bg-zinc-900 text-white rounded-xl border border-zinc-800 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all placeholder-zinc-500"
             />
             <svg
               className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500"
@@ -186,7 +152,7 @@ const Events = () => {
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="mt-4 px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
+                className="mt-4 px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
               >
                 Clear Search
               </button>
@@ -213,7 +179,7 @@ const Events = () => {
                 className="cursor-pointer perspective-1000"
                 style={{ transformStyle: "preserve-3d" }}
               >
-                <div className="relative h-80 rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 hover:border-orange-500/50 transition-all duration-300 shadow-2xl hover:shadow-orange-500/20">
+                <div className="relative h-80 rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 hover:border-red-600/50 transition-all duration-300 shadow-2xl hover:shadow-red-600/20">
                   {/* Background Image */}
                   <div className="absolute inset-0">
                     <Image
@@ -238,7 +204,7 @@ const Events = () => {
                       <h2 className="text-3xl font-bold text-white mb-2 capitalize">
                         {category.name}
                       </h2>
-                      <div className="flex items-center gap-2 text-orange-500">
+                      <div className="flex items-center gap-2 text-red-500">
                         <svg
                           className="w-5 h-5"
                           fill="none"

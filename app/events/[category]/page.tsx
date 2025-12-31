@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { getPublicEvents, registerForEvent, checkEventRegistration } from "@/actions/events.action";
+import { getPublicEvents, registerForEvent, checkEventRegistration, getCategories } from "@/actions/events.action";
 import { FiArrowLeft, FiCalendar, FiMapPin, FiClock, FiUsers } from "react-icons/fi";
 import SubmissionModal from "@/components/ui/SubmissionModal";
 
@@ -49,12 +49,47 @@ function CategoryPageContent() {
     success: false,
   });
   const [registeredEvents, setRegisteredEvents] = useState<Set<string>>(new Set());
+  const [categoryVideo, setCategoryVideo] = useState<string | null>(null);
+  const [categoryImage, setCategoryImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchEvents();
   }, [categoryName]);
 
+  const getEmbedUrl = (url: string) => {
+    if (!url) return null;
+    try {
+      if (url.includes("embed")) return url;
+
+      let videoId = "";
+      if (url.includes("youtu.be")) {
+        videoId = url.split("/").pop()?.split("?")[0] || "";
+      } else if (url.includes("v=")) {
+        videoId = url.split("v=")[1].split("&")[0];
+      }
+
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}`;
+      }
+    } catch (e) {
+      console.error("Error parsing video URL:", e);
+    }
+    return url;
+  };
+
   const fetchEvents = async () => {
+    // Fetch Category Details (for video and image)
+    const categoryResult = await getCategories();
+    if (categoryResult.success && categoryResult.data) {
+      const currentCategory = categoryResult.data.find(
+        (c) => c.name.toLowerCase() === categoryName.toLowerCase()
+      );
+      if (currentCategory) {
+        setCategoryVideo(currentCategory.video || null);
+        setCategoryImage(currentCategory.image || null);
+      }
+    }
+
     const result = await getPublicEvents();
     if (result.success && result.data) {
       const filtered = result.data.filter(
@@ -162,18 +197,55 @@ function CategoryPageContent() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => router.push("/events")}
-          className="mb-8 flex items-center gap-2 text-zinc-400 hover:text-orange-500 transition-colors mt-20"
+          className="mb-8 flex items-center gap-2 text-zinc-400 hover:text-red-500 transition-colors mt-20"
         >
           <FiArrowLeft size={20} />
           Back to Categories
         </motion.button>
+
+        {/* Category Media (Video or Image) */}
+        {categoryVideo ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="max-w-4xl mx-auto mb-12 rounded-2xl overflow-hidden shadow-2xl border border-zinc-800"
+          >
+            <div className="relative pt-[56.25%] bg-black">
+              <iframe
+                className="absolute top-0 left-0 w-full h-full"
+                src={getEmbedUrl(categoryVideo) || ""}
+                title="Category Video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </motion.div>
+        ) : categoryImage ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="max-w-4xl mx-auto mb-12 rounded-2xl overflow-hidden shadow-2xl border border-zinc-800"
+          >
+            <div className="relative aspect-[16/9] w-full">
+              <Image
+                src={categoryImage}
+                alt={categoryName}
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+          </motion.div>
+        ) : null}
 
         {/* Category Header */}
         <div className="text-center mb-12">
           <motion.h1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl font-bold text-orange-500 mb-4 capitalize"
+            className="text-5xl font-bold text-red-500 mb-4 capitalize"
           >
             {categoryName}
           </motion.h1>
@@ -200,7 +272,7 @@ function CategoryPageContent() {
               placeholder="Search events..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-6 py-4 pl-14 bg-zinc-900 text-white rounded-xl border border-zinc-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all placeholder-zinc-500"
+              className="w-full px-6 py-4 pl-14 bg-zinc-900 text-white rounded-xl border border-zinc-800 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all placeholder-zinc-500"
             />
             <svg
               className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500"
@@ -237,7 +309,7 @@ function CategoryPageContent() {
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="mt-4 px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
+                className="mt-4 px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
               >
                 Clear Search
               </button>
@@ -246,7 +318,7 @@ function CategoryPageContent() {
         ) : (
           <div className="relative">
             {/* Timeline Line */}
-            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-orange-500/30 hidden md:block"></div>
+            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-red-600/30 hidden md:block"></div>
 
             {/* Events */}
             <div className="space-y-8">
@@ -260,28 +332,28 @@ function CategoryPageContent() {
                 >
                   {/* Timeline Dot */}
                   <div className="absolute left-4 -ml-6 mt-6 hidden md:block">
-                    <div className="w-4 h-4 bg-orange-500 rounded-full relative z-10">
-                      <div className="absolute w-4 h-4 bg-orange-500 rounded-full animate-ping opacity-75"></div>
+                    <div className="w-4 h-4 bg-red-600 rounded-full relative z-10">
+                      <div className="absolute w-4 h-4 bg-red-600 rounded-full animate-ping opacity-75"></div>
                     </div>
                   </div>
 
                   {/* Event Card */}
                   <div
                     className={`bg-zinc-900 rounded-xl p-6 w-full cursor-pointer transition-all duration-300 transform hover:scale-[1.01] border ${expandedEventId === event.id
-                      ? "ring-2 ring-orange-500 border-orange-500"
-                      : "border-zinc-800 hover:border-orange-500/50"
+                      ? "ring-2 ring-red-600 border-red-600"
+                      : "border-zinc-800 hover:border-red-600/50"
                       }`}
                     onClick={() => handleEventClick(event.id)}
                   >
                     {/* Event Header */}
                     <div className="flex justify-between items-start">
-                      <h3 className="text-2xl font-bold text-orange-400 mb-2">
+                      <h3 className="text-2xl font-bold text-red-500 mb-2">
                         {event.name}
                       </h3>
                       <motion.div
                         animate={{ rotate: expandedEventId === event.id ? 180 : 0 }}
                         transition={{ duration: 0.3 }}
-                        className="text-orange-500"
+                        className="text-red-500"
                       >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -299,49 +371,69 @@ function CategoryPageContent() {
                           transition={{ duration: 0.3 }}
                           className="overflow-hidden"
                         >
-                          <div className="flex flex-col md:flex-row gap-6 mt-6">
-                            {/* Event Image */}
-                            <div className="w-full md:w-1/3 relative h-48">
+                          <div className="flex flex-col md:flex-row gap-8 mt-6">
+                            {/* Event Image - Vertical Portrait Sizing */}
+                            <div className="w-full md:w-[350px] relative h-[500px] shrink-0">
                               <Image
                                 src={event.image}
                                 alt={event.name}
                                 fill
-                                sizes="(max-width: 768px) 100vw, 33vw"
-                                className="object-cover rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300"
-                                quality={85}
+                                sizes="(max-width: 768px) 100vw, 350px"
+                                className="object-cover rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300"
+                                quality={95}
                               />
                             </div>
 
-                            {/* Event Details */}
-                            <div className="flex-1 space-y-4">
-                              <p className="text-zinc-300 text-base leading-relaxed">
-                                {event.description}
-                              </p>
+                            {/* Event Details - Stacked Layout */}
+                            <div className="flex-1 flex flex-col justify-between py-2">
+                              <div className="space-y-6">
+                                <p className="text-zinc-300 text-lg leading-relaxed">
+                                  {event.description}
+                                </p>
 
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div className="flex items-center text-zinc-300">
-                                  <FiMapPin className="text-orange-500 mr-2 flex-shrink-0" size={18} />
-                                  <span className="text-sm">{event.venue}</span>
-                                </div>
-                                <div className="flex items-center text-zinc-300">
-                                  <FiCalendar className="text-orange-500 mr-2 flex-shrink-0" size={18} />
-                                  <span className="text-sm">
-                                    {new Date(event.date).toLocaleDateString("en-US", {
-                                      month: "short",
-                                      day: "numeric",
-                                      year: "numeric",
-                                    })}
-                                  </span>
-                                </div>
-                                <div className="flex items-center text-zinc-300">
-                                  <FiClock className="text-orange-500 mr-2 flex-shrink-0" size={18} />
-                                  <span className="text-sm">{event.startTime} - {event.endTime}</span>
-                                </div>
-                                <div className="flex items-center text-zinc-300">
-                                  <FiUsers className="text-orange-500 mr-2 flex-shrink-0" size={18} />
-                                  <span className="text-sm">
-                                    {event._count.registeredStudents} / {event.participantLimit} registered
-                                  </span>
+                                <div className="flex flex-col space-y-4 bg-zinc-800/30 p-6 rounded-xl border border-zinc-800">
+                                  <div className="flex items-center text-zinc-200">
+                                    <div className="w-10 h-10 rounded-lg bg-red-600/10 flex items-center justify-center mr-4 shrink-0">
+                                      <FiMapPin className="text-red-500" size={20} />
+                                    </div>
+                                    <span className="text-base font-medium">{event.venue}</span>
+                                  </div>
+
+                                  <div className="w-full h-px bg-zinc-800" />
+
+                                  <div className="flex items-center text-zinc-200">
+                                    <div className="w-10 h-10 rounded-lg bg-red-600/10 flex items-center justify-center mr-4 shrink-0">
+                                      <FiCalendar className="text-red-500" size={20} />
+                                    </div>
+                                    <span className="text-base font-medium">
+                                      {new Date(event.date).toLocaleDateString("en-US", {
+                                        weekday: "long",
+                                        month: "long",
+                                        day: "numeric",
+                                        year: "numeric",
+                                      })}
+                                    </span>
+                                  </div>
+
+                                  <div className="w-full h-px bg-zinc-800" />
+
+                                  <div className="flex items-center text-zinc-200">
+                                    <div className="w-10 h-10 rounded-lg bg-red-600/10 flex items-center justify-center mr-4 shrink-0">
+                                      <FiClock className="text-red-500" size={20} />
+                                    </div>
+                                    <span className="text-base font-medium">{event.startTime} - {event.endTime}</span>
+                                  </div>
+
+                                  <div className="w-full h-px bg-zinc-800" />
+
+                                  <div className="flex items-center text-zinc-200">
+                                    <div className="w-10 h-10 rounded-lg bg-red-600/10 flex items-center justify-center mr-4 shrink-0">
+                                      <FiUsers className="text-red-500" size={20} />
+                                    </div>
+                                    <span className="text-base font-medium">
+                                      {event._count.registeredStudents} / {event.participantLimit} registered
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
 
@@ -364,7 +456,7 @@ function CategoryPageContent() {
                                 ) : (
                                   <button
                                     onClick={(e) => handleRegisterClick(event, e)}
-                                    className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-orange-500/50"
+                                    className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-600/50"
                                   >
                                     Register Now
                                   </button>
@@ -401,7 +493,7 @@ function CategoryPageContent() {
               className="bg-zinc-900 p-8 rounded-xl max-w-md w-full border border-zinc-800"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-2xl font-bold text-orange-500 mb-4">
+              <h3 className="text-2xl font-bold text-red-500 mb-4">
                 Register for {selectedEvent.name}
               </h3>
 
@@ -428,7 +520,7 @@ function CategoryPageContent() {
                     type="checkbox"
                     checked={acceptedTerms}
                     onChange={(e) => setAcceptedTerms(e.target.checked)}
-                    className="rounded border-zinc-600 text-orange-500 focus:ring-orange-500 bg-zinc-800"
+                    className="rounded border-zinc-600 text-red-600 focus:ring-red-600 bg-zinc-800"
                   />
                   I accept the terms and conditions
                 </label>
@@ -444,9 +536,9 @@ function CategoryPageContent() {
                 <button
                   onClick={handleRegistrationSubmit}
                   disabled={!acceptedTerms || registrationStatus.loading}
-                  className={`flex-1 bg-orange-500 text-white px-6 py-2 rounded-md transition-all duration-300 ${!acceptedTerms || registrationStatus.loading
+                  className={`flex-1 bg-red-600 text-white px-6 py-2 rounded-md transition-all duration-300 ${!acceptedTerms || registrationStatus.loading
                     ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-orange-600"
+                    : "hover:bg-red-700"
                     }`}
                 >
                   {registrationStatus.loading ? "Registering..." : "Confirm Registration"}
@@ -499,7 +591,7 @@ function CategoryPageContent() {
                       setShowSuccessPopup(false);
                       setShowSubmissionModal(true);
                     }}
-                    className="w-full bg-orange-500 text-white px-6 py-2.5 rounded-md hover:bg-orange-600 transition-all duration-300 font-semibold"
+                    className="w-full bg-red-600 text-white px-6 py-2.5 rounded-md hover:bg-red-700 transition-all duration-300 font-semibold"
                   >
                     Submit Your Work
                   </button>

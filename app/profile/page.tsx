@@ -21,7 +21,7 @@ async function SessionData() {
           <p className="text-zinc-400 mb-8">Please log in to view your profile</p>
           <Link
             href="/login"
-            className="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all font-medium"
+            className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all font-medium"
           >
             Go to Login
           </Link>
@@ -33,30 +33,30 @@ async function SessionData() {
   // Fetch registered events
   const eventsResult = await getMyRegisteredEvents();
   const registeredEvents = eventsResult.success ? eventsResult.data || [] : [];
-  
+
   // Get IP and User Agent
   const ipAddress = (session as any).session?.ipAddress || headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || "Unknown";
   const userAgent = (session as any).session?.userAgent || headersList.get("user-agent") || "Unknown";
-  
+
 
   return (
     <div className="min-h-screen w-full bg-black flex flex-col">
       {/* Header */}
       <div className="w-full px-6 py-6 mt-16">
         <div className="max-w-6xl mx-auto">
-          <ReturnButton href="/" label="Home"/>
+          <ReturnButton href="/" label="Home" />
         </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 w-full px-6 pb-8">
-        <ProfileClient 
-          user={session.user as any} 
+        <ProfileClient
+          user={session.user as any}
           registeredEvents={registeredEvents as any}
           ipAddress={ipAddress}
           userAgent={userAgent}
         />
-        
+
         {session.user.role === Role.ADMIN && (
           <div className="max-w-6xl mx-auto mt-6">
             <Link
@@ -78,7 +78,7 @@ async function ProfilePage() {
       fallback={
         <div className="text-white w-full h-screen flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin h-8 w-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <div className="animate-spin h-8 w-8 border-4 border-red-600 border-t-transparent rounded-full mx-auto mb-4"></div>
             <p>Loading profile...</p>
           </div>
         </div>

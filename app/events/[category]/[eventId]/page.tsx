@@ -7,6 +7,8 @@ import {
   getPublicEvents,
   registerForEvent,
   checkEventRegistration,
+  registerGroupEvent,
+  unregisterFromEvent,
 } from "@/actions/events.action";
 import {
   FiArrowLeft,
@@ -39,6 +41,9 @@ interface Event {
   _count: {
     registeredStudents: number;
   };
+  isGroupEvent: boolean;
+  minTeamSize: number;
+  maxTeamSize: number;
 }
 
 function EventDetailPageContent() {
@@ -52,9 +57,23 @@ function EventDetailPageContent() {
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [registering, setRegistering] = useState(false);
+  const [unregistering, setUnregistering] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [checkingRegistration, setCheckingRegistration] = useState(true);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [showUnregisterConfirm, setShowUnregisterConfirm] = useState(false);
+
+  // Group Registration State
+  const [showGroupModal, setShowGroupModal] = useState(false);
+  const [teamSize, setTeamSize] = useState(0);
+  const [groupName, setGroupName] = useState("");
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (event && event.isGroupEvent) {
+      setTeamSize(event.minTeamSize);
+    }
+  }, [event]);
 
   useEffect(() => {
     fetchEvent();
@@ -84,6 +103,12 @@ function EventDetailPageContent() {
       return;
     }
 
+    if (event?.isGroupEvent) {
+      setShowRegistrationModal(false);
+      setShowGroupModal(true);
+      return;
+    }
+
     setRegistering(true);
 
     const result = await registerForEvent(eventId);
@@ -93,7 +118,6 @@ function EventDetailPageContent() {
       setIsRegistered(true);
       setShowRegistrationModal(false);
       setAcceptedTerms(false);
-      // Refresh event data to update participant count
       fetchEvent();
     } else {
       toast.error(result.error || "Failed to register");
@@ -102,11 +126,61 @@ function EventDetailPageContent() {
     setRegistering(false);
   };
 
+  const handleGroupRegister = async () => {
+    // Basic validation
+    if (!groupName.trim()) {
+      toast.error("Please enter a group name");
+      return;
+    }
+    const requiredMembers = Math.max(0, teamSize - 1);
+    if (teamMembers.length < requiredMembers) {
+      toast.error(`Please add details for all ${requiredMembers} additional members`);
+      return;
+    }
+    for (const member of teamMembers) {
+      if (!member.name || !member.email || !member.phone || !member.college || !member.collegeId) {
+        toast.error("Please fill in all details for all team members");
+        return;
+      }
+    }
+
+    setRegistering(true);
+    const result = await registerGroupEvent(eventId, groupName, teamMembers);
+
+    if (result.success) {
+      toast.success("Team registered successfully!");
+      setIsRegistered(true);
+      setShowGroupModal(false);
+      setAcceptedTerms(false);
+      fetchEvent();
+    } else {
+      toast.error(result.error || "Failed to register team");
+    }
+    setRegistering(false);
+  };
+
   const handleShare = () => {
     if (event?.registrationLink) {
       navigator.clipboard.writeText(event.registrationLink);
       toast.success("Registration link copied to clipboard!");
     }
+  };
+
+  const handleUnregister = async () => {
+    setUnregistering(true);
+
+    const result = await unregisterFromEvent(eventId);
+
+    if (result.success) {
+      toast.success("Successfully unregistered from the event!");
+      setIsRegistered(false);
+      setShowUnregisterConfirm(false);
+      fetchEvent();
+    } else {
+      toast.error(result.error || "Failed to unregister");
+    }
+
+    setUnregistering(false);
   };
 
   if (loading) {
@@ -339,11 +413,7 @@ function EventDetailPageContent() {
                       <div
                         className="bg-orange-500 h-2 rounded-full transition-all"
                         style={{
-                          width: `${
-                            (event._count.registeredStudents /
-                              event.participantLimit) *
-                            100
-                          }%`,
+                          width: `${Math.min(100, (event._count.registeredStudents / event.participantLimit) * 100)}%`,
                         }}
                       />
                     </div>
@@ -351,10 +421,35 @@ function EventDetailPageContent() {
                 </div>
               </div>
 
-              {/* Register Button */}
+              {/* Register/Unregister Button */}
               {isRegistered ? (
-                <div className="w-full mt-6 px-6 py-4 bg-green-600 text-white font-bold rounded-lg text-center">
-                  ✓ Registered
+                <div className="space-y-3 mt-6">
+                  <div className="w-full px-6 py-4 bg-green-600/20 border border-green-500/50 text-green-400 font-bold rounded-lg text-center flex items-center justify-center gap-2">
+                    <FiCheck size={20} />
+                    Registered
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setShowUnregisterConfirm(true)}
+                    disabled={unregistering}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-medium rounded-lg transition-all shadow-lg shadow-red-600/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {unregistering ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Unregistering...
+                      </>
+                    ) : (
+                      <>
+                        <FiX size={18} />
+                        Unregister
+                      </>
+                    )}
+                  </motion.button>
                 </div>
               ) : (
                 <motion.button
@@ -370,8 +465,8 @@ function EventDetailPageContent() {
                   {checkingRegistration
                     ? "Loading..."
                     : event._count.registeredStudents >= event.participantLimit
-                    ? "Event Full"
-                    : "Register Now"}
+                      ? "Event Full"
+                      : "Register Now"}
                 </motion.button>
               )}
             </motion.div>
@@ -507,6 +602,233 @@ function EventDetailPageContent() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Group Registration Modal */}
+      <AnimatePresence>
+        {showGroupModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-zinc-900 rounded-2xl w-full max-w-3xl border border-zinc-800 shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
+            >
+              <div className="px-8 py-6 border-b border-zinc-800 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-white">
+                  Team Registration
+                </h2>
+                <button
+                  onClick={() => setShowGroupModal(false)}
+                  className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                >
+                  <FiX size={24} />
+                </button>
+              </div>
+
+              <div className="px-8 py-6 overflow-y-auto flex-1 space-y-6">
+                {/* Group Name */}
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">Group/Team Name *</label>
+                  <input
+                    type="text"
+                    value={groupName}
+                    onChange={(e) => setGroupName(e.target.value)}
+                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-orange-500 transition-all"
+                    placeholder="Enter unique team name"
+                  />
+                </div>
+
+                {/* Team Size Input */}
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">
+                    Total Team Size (Including You) *
+                  </label>
+                  <input
+                    type="number"
+                    min={event?.minTeamSize || 2}
+                    max={event?.maxTeamSize || 5}
+                    value={teamSize}
+                    onChange={(e) => {
+                      const size = parseInt(e.target.value);
+                      setTeamSize(size);
+                      const needed = Math.max(0, size - 1);
+                      const current = teamMembers.length;
+                      if (needed > current) {
+                        const newMembers = [...teamMembers];
+                        for (let i = 0; i < needed - current; i++) {
+                          newMembers.push({ name: '', college: '', collegeId: '', phone: '', email: '' });
+                        }
+                        setTeamMembers(newMembers);
+                      } else if (needed < current) {
+                        setTeamMembers(teamMembers.slice(0, needed));
+                      }
+                    }}
+                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-orange-500 transition-all"
+                  />
+                  <p className="text-zinc-500 text-sm mt-1">Min: {event?.minTeamSize} - Max: {event?.maxTeamSize}</p>
+                </div>
+
+                <div className="border-t border-zinc-800 pt-4">
+                  <h3 className="text-lg font-semibold text-white mb-4">Team Members</h3>
+
+                  {/* Team Lead (User) Card */}
+                  <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700 mb-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="bg-orange-500/20 text-orange-500 px-2 py-1 rounded text-xs font-bold uppercase">Team Lead</div>
+                      <span className="text-zinc-400 text-sm">(You)</span>
+                    </div>
+                    <p className="text-zinc-500 text-sm italic">Your details will be automatically included in the registration.</p>
+                  </div>
+
+                  {/* Member Inputs */}
+                  <div className="space-y-6">
+                    {teamMembers.map((member, idx) => (
+                      <div key={idx} className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
+                        <div className="mb-3 text-white font-medium">Member {idx + 2}</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs text-zinc-400 mb-1">Name *</label>
+                            <input
+                              type="text"
+                              value={member.name}
+                              onChange={(e) => {
+                                const newMembers = [...teamMembers];
+                                newMembers[idx].name = e.target.value;
+                                setTeamMembers(newMembers);
+                              }}
+                              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-600 rounded text-white text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-zinc-400 mb-1">College *</label>
+                            <input
+                              type="text"
+                              value={member.college}
+                              onChange={(e) => {
+                                const newMembers = [...teamMembers];
+                                newMembers[idx].college = e.target.value;
+                                setTeamMembers(newMembers);
+                              }}
+                              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-600 rounded text-white text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-zinc-400 mb-1">College ID *</label>
+                            <input
+                              type="text"
+                              value={member.collegeId}
+                              onChange={(e) => {
+                                const newMembers = [...teamMembers];
+                                newMembers[idx].collegeId = e.target.value;
+                                setTeamMembers(newMembers);
+                              }}
+                              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-600 rounded text-white text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-zinc-400 mb-1">Phone *</label>
+                            <input
+                              type="text"
+                              value={member.phone}
+                              onChange={(e) => {
+                                const newMembers = [...teamMembers];
+                                newMembers[idx].phone = e.target.value;
+                                setTeamMembers(newMembers);
+                              }}
+                              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-600 rounded text-white text-sm"
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-xs text-zinc-400 mb-1">Email *</label>
+                            <input
+                              type="email"
+                              value={member.email}
+                              onChange={(e) => {
+                                const newMembers = [...teamMembers];
+                                newMembers[idx].email = e.target.value;
+                                setTeamMembers(newMembers);
+                              }}
+                              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-600 rounded text-white text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+
+              </div>
+
+              <div className="px-8 py-6 border-t border-zinc-800 flex gap-3">
+                <button
+                  onClick={() => setShowGroupModal(false)}
+                  className="flex-1 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleGroupRegister}
+                  disabled={registering || !groupName || teamSize < (event?.minTeamSize || 2) || teamSize > (event?.maxTeamSize || 5)}
+                  className="flex-1 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  {registering ? "Registering..." : "Confirm Team Registration"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Unregister Confirmation Modal */}
+      <AnimatePresence>
+        {showUnregisterConfirm && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-zinc-900 rounded-2xl w-full max-w-md border border-zinc-800 shadow-2xl"
+            >
+              {/* Header */}
+              <div className="px-6 py-5 border-b border-zinc-800">
+                <h2 className="text-xl font-bold text-white">
+                  Unregister from Event
+                </h2>
+              </div>
+
+              {/* Content */}
+              <div className="px-6 py-6">
+                <p className="text-zinc-300 mb-4">
+                  Are you sure you want to unregister from <span className="font-semibold text-white">{event.name}</span>?
+                </p>
+                <p className="text-zinc-400 text-sm">
+                  This action cannot be undone. You will need to register again if you change your mind.
+                </p>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-5 border-t border-zinc-800 flex gap-3">
+                <button
+                  onClick={() => setShowUnregisterConfirm(false)}
+                  disabled={unregistering}
+                  className="flex-1 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUnregister}
+                  disabled={unregistering}
+                  className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {unregistering ? "Unregistering..." : "Yes, Unregister"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

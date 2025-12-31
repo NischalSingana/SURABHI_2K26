@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { getUserRegisteredEvents } from "@/actions/submissions.action";
+import { unregisterFromEvent } from "@/actions/events.action";
 import SubmissionModal from "@/components/ui/SubmissionModal";
-import { FiCalendar, FiMapPin, FiClock, FiUsers, FiUpload, FiCheckCircle } from "react-icons/fi";
+import { FiCalendar, FiMapPin, FiClock, FiUsers, FiUpload, FiCheckCircle, FiX } from "react-icons/fi";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface Event {
     id: string;
@@ -43,6 +45,8 @@ export default function MyEventsPage() {
     const [loading, setLoading] = useState(true);
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
     const [showSubmissionModal, setShowSubmissionModal] = useState(false);
+    const [unregistering, setUnregistering] = useState<string | null>(null);
+    const [showUnregisterConfirm, setShowUnregisterConfirm] = useState<string | null>(null);
 
     useEffect(() => {
         fetchMyEvents();
@@ -68,6 +72,22 @@ export default function MyEventsPage() {
 
     const handleSubmissionSuccess = () => {
         fetchMyEvents();
+    };
+
+    const handleUnregister = async (eventId: string) => {
+        setUnregistering(eventId);
+
+        const result = await unregisterFromEvent(eventId);
+
+        if (result.success) {
+            toast.success("Successfully unregistered from the event!");
+            setShowUnregisterConfirm(null);
+            fetchMyEvents();
+        } else {
+            toast.error(result.error || "Failed to unregister");
+        }
+
+        setUnregistering(null);
     };
 
     if (loading) {
@@ -193,17 +213,39 @@ export default function MyEventsPage() {
                                             </div>
                                         </div>
 
-                                        {/* Submit Work Button */}
-                                        <button
-                                            onClick={() => handleSubmitClick(event)}
-                                            className={`w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${hasSubmission
-                                                ? "bg-zinc-800 text-orange-400 border border-orange-500/30 hover:bg-zinc-700"
-                                                : "bg-orange-500 text-white hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/50"
-                                                }`}
-                                        >
-                                            <FiUpload size={16} />
-                                            {hasSubmission ? "Update Submission" : "Submit Work"}
-                                        </button>
+                                        {/* Action Buttons */}
+                                        <div className="space-y-2">
+                                            <button
+                                                onClick={() => handleSubmitClick(event)}
+                                                className={`w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${hasSubmission
+                                                    ? "bg-zinc-800 text-orange-400 border border-orange-500/30 hover:bg-zinc-700"
+                                                    : "bg-orange-500 text-white hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/50"
+                                                    }`}
+                                            >
+                                                <FiUpload size={16} />
+                                                {hasSubmission ? "Update Submission" : "Submit Work"}
+                                            </button>
+                                            <button
+                                                onClick={() => setShowUnregisterConfirm(event.id)}
+                                                disabled={unregistering === event.id}
+                                                className="w-full px-4 py-2.5 rounded-lg font-medium transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg shadow-red-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {unregistering === event.id ? (
+                                                    <>
+                                                        <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                        Unregistering...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <FiX size={16} />
+                                                        Unregister
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
 
                                         {hasSubmission && submission && (
                                             <div className="mt-3 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
@@ -240,6 +282,62 @@ export default function MyEventsPage() {
                     onSuccess={handleSubmissionSuccess}
                 />
             )}
+
+            {/* Unregister Confirmation Modal */}
+            <AnimatePresence>
+                {showUnregisterConfirm && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-zinc-900 rounded-2xl w-full max-w-md border border-zinc-800 shadow-2xl"
+                        >
+                            {/* Header */}
+                            <div className="px-6 py-5 border-b border-zinc-800">
+                                <h2 className="text-xl font-bold text-white">
+                                    Unregister from Event
+                                </h2>
+                            </div>
+
+                            {/* Content */}
+                            <div className="px-6 py-6">
+                                {(() => {
+                                    const eventToUnregister = events.find(e => e.id === showUnregisterConfirm);
+                                    return (
+                                        <>
+                                            <p className="text-zinc-300 mb-4">
+                                                Are you sure you want to unregister from <span className="font-semibold text-white">{eventToUnregister?.name}</span>?
+                                            </p>
+                                            <p className="text-zinc-400 text-sm">
+                                                This action cannot be undone. You will need to register again if you change your mind.
+                                            </p>
+                                        </>
+                                    );
+                                })()}
+                            </div>
+
+                            {/* Footer */}
+                            <div className="px-6 py-5 border-t border-zinc-800 flex gap-3">
+                                <button
+                                    onClick={() => setShowUnregisterConfirm(null)}
+                                    disabled={unregistering === showUnregisterConfirm}
+                                    className="flex-1 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => showUnregisterConfirm && handleUnregister(showUnregisterConfirm)}
+                                    disabled={unregistering === showUnregisterConfirm}
+                                    className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg font-medium transition-colors shadow-lg shadow-red-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {unregistering === showUnregisterConfirm ? "Unregistering..." : "Yes, Unregister"}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
