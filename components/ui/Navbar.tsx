@@ -73,7 +73,7 @@ const Navbar = () => {
                         </Link>
 
                         {/* Desktop Navigation */}
-                        <div className="hidden lg:flex items-center gap-8">
+                        <div className="hidden lg:flex items-center gap-16">
                             {navLinks.map((link, index) => (
                                 <motion.div
                                     key={link.name}
@@ -83,7 +83,7 @@ const Navbar = () => {
                                 >
                                     <Link
                                         href={link.href}
-                                        className={`relative text-sm font-medium transition-colors hover:text-red-400 ${pathname === link.href
+                                        className={`relative text-xl font-medium transition-colors hover:text-red-400 ${pathname === link.href
                                             ? "text-red-400"
                                             : "text-gray-300"
                                             }`}
