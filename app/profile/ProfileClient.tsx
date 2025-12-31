@@ -170,7 +170,7 @@ export default function ProfileClient({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsEditing(true)}
-            className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
           >
             <FiEdit2 />
             Edit Profile
@@ -182,21 +182,19 @@ export default function ProfileClient({
       <div className="flex gap-4 mb-8 border-b border-zinc-800">
         <button
           onClick={() => setActiveTab("profile")}
-          className={`px-6 py-3 font-medium transition-all ${
-            activeTab === "profile"
-              ? "text-orange-500 border-b-2 border-orange-500"
+          className={`px-6 py-3 font-medium transition-all ${activeTab === "profile"
+              ? "text-red-500 border-b-2 border-red-500"
               : "text-zinc-400 hover:text-white"
-          }`}
+            }`}
         >
           Profile Information
         </button>
         <button
           onClick={() => setActiveTab("events")}
-          className={`px-6 py-3 font-medium transition-all ${
-            activeTab === "events"
-              ? "text-orange-500 border-b-2 border-orange-500"
+          className={`px-6 py-3 font-medium transition-all ${activeTab === "events"
+              ? "text-red-500 border-b-2 border-red-500"
               : "text-zinc-400 hover:text-white"
-          }`}
+            }`}
         >
           My Events ({registeredEvents.length})
         </button>
@@ -212,7 +210,7 @@ export default function ProfileClient({
           {/* Profile Image */}
           <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
             <div className="flex items-center gap-6">
-              <div className="relative w-24 h-24 rounded-full overflow-hidden bg-zinc-800 border-2 border-orange-500">
+              <div className="relative w-24 h-24 rounded-full overflow-hidden bg-zinc-800 border-2 border-red-600">
                 {user.image ? (
                   <Image
                     src={user.image}
@@ -369,7 +367,7 @@ export default function ProfileClient({
                         year: parseInt(e.target.value),
                       })
                     }
-                    className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-600"
                   >
                     <option value={1}>1st Year</option>
                     <option value={2}>2nd Year</option>
@@ -379,15 +377,14 @@ export default function ProfileClient({
                 ) : (
                   <p className="text-white font-medium px-4 py-3 bg-zinc-800/50 rounded-lg">
                     {user.year
-                      ? `${user.year}${
-                          user.year === 1
-                            ? "st"
-                            : user.year === 2
-                            ? "nd"
-                            : user.year === 3
+                      ? `${user.year}${user.year === 1
+                        ? "st"
+                        : user.year === 2
+                          ? "nd"
+                          : user.year === 3
                             ? "rd"
                             : "th"
-                        } Year`
+                      } Year`
                       : "Not provided"}
                   </p>
                 )}
@@ -471,7 +468,7 @@ export default function ProfileClient({
                 whileTap={{ scale: 0.98 }}
                 onClick={handleSave}
                 disabled={saving}
-                className="flex-1 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <FiSave />
                 {saving ? "Saving..." : "Save Changes"}
@@ -508,7 +505,7 @@ export default function ProfileClient({
               </p>
               <a
                 href="/events"
-                className="inline-block px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors"
+                className="inline-block px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
               >
                 Browse Events
               </a>
@@ -520,7 +517,7 @@ export default function ProfileClient({
                   key={event.id}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden hover:border-orange-500/50 transition-all"
+                  className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden hover:border-red-600/50 transition-all"
                 >
                   <div className="relative h-48">
                     <img
@@ -532,7 +529,7 @@ export default function ProfileClient({
                           "https://via.placeholder.com/400x300?text=Event";
                       }}
                     />
-                    <div className="absolute top-3 right-3 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                    <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-medium">
                       {event.Category.name}
                     </div>
                     <div className="absolute top-3 left-3 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
@@ -550,7 +547,7 @@ export default function ProfileClient({
 
                     <div className="space-y-2 text-sm mb-4">
                       <div className="flex items-center gap-2 text-zinc-300">
-                        <FiCalendar className="text-orange-500" />
+                        <FiCalendar className="text-red-500" />
                         {new Date(event.date).toLocaleDateString("en-US", {
                           weekday: "short",
                           month: "short",
@@ -559,11 +556,11 @@ export default function ProfileClient({
                         })}
                       </div>
                       <div className="flex items-center gap-2 text-zinc-300">
-                        <FiClock className="text-orange-500" />
+                        <FiClock className="text-red-500" />
                         {event.startTime} - {event.endTime}
                       </div>
                       <div className="flex items-center gap-2 text-zinc-300">
-                        <FiMapPin className="text-orange-500" />
+                        <FiMapPin className="text-red-500" />
                         {event.venue}
                       </div>
                     </div>
@@ -617,7 +614,7 @@ export default function ProfileClient({
                 </p>
                 <div className="bg-zinc-800 rounded-lg p-4 mb-4">
                   <div className="flex items-center gap-2 text-sm text-zinc-400 mb-2">
-                    <FiCalendar className="text-orange-500" />
+                    <FiCalendar className="text-red-500" />
                     {new Date(eventToUnregister.date).toLocaleDateString(
                       "en-US",
                       {
@@ -629,7 +626,7 @@ export default function ProfileClient({
                     )}
                   </div>
                   <div className="flex items-center gap-2 text-sm text-zinc-400">
-                    <FiMapPin className="text-orange-500" />
+                    <FiMapPin className="text-red-500" />
                     {eventToUnregister.venue}
                   </div>
                 </div>
