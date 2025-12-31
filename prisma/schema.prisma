@@ -32,6 +32,7 @@ model User {
   registeredEvents      Event[]                  @relation("EventToUser")
   accommodationBookings AccommodationBooking[]
   eventSubmissions      EventSubmission[]
+  groupRegistrations    GroupRegistration[]
 
   @@map("users")
 }
@@ -86,6 +87,7 @@ model Category {
   updatedAt DateTime
   name      String
   image     String?
+  video     String?
   Event     Event[]
 }
 
@@ -96,10 +98,14 @@ model Event {
   description        String
   date               DateTime
   image              String
+
   venue              String
   startTime          String
   endTime            String
   participantLimit   Int
+  isGroupEvent       Boolean  @default(false)
+  minTeamSize        Int      @default(1)
+  maxTeamSize        Int      @default(1)
   termsandconditions String
   registrationLink   String
   createdAt          DateTime @default(now())
@@ -107,6 +113,25 @@ model Event {
   Category           Category @relation(fields: [categoryId], references: [id])
   registeredStudents User[]   @relation("EventToUser")
   submissions        EventSubmission[]
+  groupRegistrations GroupRegistration[]
+}
+
+model GroupRegistration {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  groupName String?
+  members   Json
+
+  @@unique([userId, eventId])
+  @@map("group_registrations")
 }
 
 enum PaymentStatus {
@@ -191,3 +216,15 @@ model EventSubmission {
   @@map("event_submissions")
 }
 
+
+model FAQ {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  category  String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("faqs")
+}

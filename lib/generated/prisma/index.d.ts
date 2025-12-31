@@ -44,6 +44,11 @@ export type Category = $Result.DefaultSelection<Prisma.$CategoryPayload>
  */
 export type Event = $Result.DefaultSelection<Prisma.$EventPayload>
 /**
+ * Model GroupRegistration
+ * 
+ */
+export type GroupRegistration = $Result.DefaultSelection<Prisma.$GroupRegistrationPayload>
+/**
  * Model AccommodationBooking
  * 
  */
@@ -53,6 +58,11 @@ export type AccommodationBooking = $Result.DefaultSelection<Prisma.$Accommodatio
  * 
  */
 export type EventSubmission = $Result.DefaultSelection<Prisma.$EventSubmissionPayload>
+/**
+ * Model FAQ
+ * 
+ */
+export type FAQ = $Result.DefaultSelection<Prisma.$FAQPayload>
 
 /**
  * Enums
@@ -300,6 +310,16 @@ export class PrismaClient<
   get event(): Prisma.EventDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.groupRegistration`: Exposes CRUD operations for the **GroupRegistration** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GroupRegistrations
+    * const groupRegistrations = await prisma.groupRegistration.findMany()
+    * ```
+    */
+  get groupRegistration(): Prisma.GroupRegistrationDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.accommodationBooking`: Exposes CRUD operations for the **AccommodationBooking** model.
     * Example usage:
     * ```ts
@@ -318,6 +338,16 @@ export class PrismaClient<
     * ```
     */
   get eventSubmission(): Prisma.EventSubmissionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.fAQ`: Exposes CRUD operations for the **FAQ** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more FAQS
+    * const fAQS = await prisma.fAQ.findMany()
+    * ```
+    */
+  get fAQ(): Prisma.FAQDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -765,8 +795,10 @@ export namespace Prisma {
     Verification: 'Verification',
     Category: 'Category',
     Event: 'Event',
+    GroupRegistration: 'GroupRegistration',
     AccommodationBooking: 'AccommodationBooking',
-    EventSubmission: 'EventSubmission'
+    EventSubmission: 'EventSubmission',
+    FAQ: 'FAQ'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -785,7 +817,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "session" | "account" | "verification" | "category" | "event" | "accommodationBooking" | "eventSubmission"
+      modelProps: "user" | "session" | "account" | "verification" | "category" | "event" | "groupRegistration" | "accommodationBooking" | "eventSubmission" | "fAQ"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1233,6 +1265,80 @@ export namespace Prisma {
           }
         }
       }
+      GroupRegistration: {
+        payload: Prisma.$GroupRegistrationPayload<ExtArgs>
+        fields: Prisma.GroupRegistrationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GroupRegistrationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRegistrationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GroupRegistrationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRegistrationPayload>
+          }
+          findFirst: {
+            args: Prisma.GroupRegistrationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRegistrationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GroupRegistrationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRegistrationPayload>
+          }
+          findMany: {
+            args: Prisma.GroupRegistrationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRegistrationPayload>[]
+          }
+          create: {
+            args: Prisma.GroupRegistrationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRegistrationPayload>
+          }
+          createMany: {
+            args: Prisma.GroupRegistrationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GroupRegistrationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRegistrationPayload>[]
+          }
+          delete: {
+            args: Prisma.GroupRegistrationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRegistrationPayload>
+          }
+          update: {
+            args: Prisma.GroupRegistrationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRegistrationPayload>
+          }
+          deleteMany: {
+            args: Prisma.GroupRegistrationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GroupRegistrationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.GroupRegistrationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRegistrationPayload>[]
+          }
+          upsert: {
+            args: Prisma.GroupRegistrationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GroupRegistrationPayload>
+          }
+          aggregate: {
+            args: Prisma.GroupRegistrationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGroupRegistration>
+          }
+          groupBy: {
+            args: Prisma.GroupRegistrationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GroupRegistrationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GroupRegistrationCountArgs<ExtArgs>
+            result: $Utils.Optional<GroupRegistrationCountAggregateOutputType> | number
+          }
+        }
+      }
       AccommodationBooking: {
         payload: Prisma.$AccommodationBookingPayload<ExtArgs>
         fields: Prisma.AccommodationBookingFieldRefs
@@ -1381,6 +1487,80 @@ export namespace Prisma {
           }
         }
       }
+      FAQ: {
+        payload: Prisma.$FAQPayload<ExtArgs>
+        fields: Prisma.FAQFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.FAQFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FAQPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.FAQFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FAQPayload>
+          }
+          findFirst: {
+            args: Prisma.FAQFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FAQPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.FAQFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FAQPayload>
+          }
+          findMany: {
+            args: Prisma.FAQFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FAQPayload>[]
+          }
+          create: {
+            args: Prisma.FAQCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FAQPayload>
+          }
+          createMany: {
+            args: Prisma.FAQCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.FAQCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FAQPayload>[]
+          }
+          delete: {
+            args: Prisma.FAQDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FAQPayload>
+          }
+          update: {
+            args: Prisma.FAQUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FAQPayload>
+          }
+          deleteMany: {
+            args: Prisma.FAQDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.FAQUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.FAQUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FAQPayload>[]
+          }
+          upsert: {
+            args: Prisma.FAQUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FAQPayload>
+          }
+          aggregate: {
+            args: Prisma.FAQAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateFAQ>
+          }
+          groupBy: {
+            args: Prisma.FAQGroupByArgs<ExtArgs>
+            result: $Utils.Optional<FAQGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.FAQCountArgs<ExtArgs>
+            result: $Utils.Optional<FAQCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1483,8 +1663,10 @@ export namespace Prisma {
     verification?: VerificationOmit
     category?: CategoryOmit
     event?: EventOmit
+    groupRegistration?: GroupRegistrationOmit
     accommodationBooking?: AccommodationBookingOmit
     eventSubmission?: EventSubmissionOmit
+    fAQ?: FAQOmit
   }
 
   /* Types for Logging */
@@ -1570,6 +1752,7 @@ export namespace Prisma {
     registeredEvents: number
     accommodationBookings: number
     eventSubmissions: number
+    groupRegistrations: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1578,6 +1761,7 @@ export namespace Prisma {
     registeredEvents?: boolean | UserCountOutputTypeCountRegisteredEventsArgs
     accommodationBookings?: boolean | UserCountOutputTypeCountAccommodationBookingsArgs
     eventSubmissions?: boolean | UserCountOutputTypeCountEventSubmissionsArgs
+    groupRegistrations?: boolean | UserCountOutputTypeCountGroupRegistrationsArgs
   }
 
   // Custom InputTypes
@@ -1626,6 +1810,13 @@ export namespace Prisma {
     where?: EventSubmissionWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountGroupRegistrationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GroupRegistrationWhereInput
+  }
+
 
   /**
    * Count Type CategoryCountOutputType
@@ -1665,11 +1856,13 @@ export namespace Prisma {
   export type EventCountOutputType = {
     registeredStudents: number
     submissions: number
+    groupRegistrations: number
   }
 
   export type EventCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     registeredStudents?: boolean | EventCountOutputTypeCountRegisteredStudentsArgs
     submissions?: boolean | EventCountOutputTypeCountSubmissionsArgs
+    groupRegistrations?: boolean | EventCountOutputTypeCountGroupRegistrationsArgs
   }
 
   // Custom InputTypes
@@ -1695,6 +1888,13 @@ export namespace Prisma {
    */
   export type EventCountOutputTypeCountSubmissionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: EventSubmissionWhereInput
+  }
+
+  /**
+   * EventCountOutputType without action
+   */
+  export type EventCountOutputTypeCountGroupRegistrationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GroupRegistrationWhereInput
   }
 
 
@@ -2009,6 +2209,7 @@ export namespace Prisma {
     registeredEvents?: boolean | User$registeredEventsArgs<ExtArgs>
     accommodationBookings?: boolean | User$accommodationBookingsArgs<ExtArgs>
     eventSubmissions?: boolean | User$eventSubmissionsArgs<ExtArgs>
+    groupRegistrations?: boolean | User$groupRegistrationsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -2082,6 +2283,7 @@ export namespace Prisma {
     registeredEvents?: boolean | User$registeredEventsArgs<ExtArgs>
     accommodationBookings?: boolean | User$accommodationBookingsArgs<ExtArgs>
     eventSubmissions?: boolean | User$eventSubmissionsArgs<ExtArgs>
+    groupRegistrations?: boolean | User$groupRegistrationsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2095,6 +2297,7 @@ export namespace Prisma {
       registeredEvents: Prisma.$EventPayload<ExtArgs>[]
       accommodationBookings: Prisma.$AccommodationBookingPayload<ExtArgs>[]
       eventSubmissions: Prisma.$EventSubmissionPayload<ExtArgs>[]
+      groupRegistrations: Prisma.$GroupRegistrationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2514,6 +2717,7 @@ export namespace Prisma {
     registeredEvents<T extends User$registeredEventsArgs<ExtArgs> = {}>(args?: Subset<T, User$registeredEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     accommodationBookings<T extends User$accommodationBookingsArgs<ExtArgs> = {}>(args?: Subset<T, User$accommodationBookingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccommodationBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     eventSubmissions<T extends User$eventSubmissionsArgs<ExtArgs> = {}>(args?: Subset<T, User$eventSubmissionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    groupRegistrations<T extends User$groupRegistrationsArgs<ExtArgs> = {}>(args?: Subset<T, User$groupRegistrationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupRegistrationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3066,6 +3270,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: EventSubmissionScalarFieldEnum | EventSubmissionScalarFieldEnum[]
+  }
+
+  /**
+   * User.groupRegistrations
+   */
+  export type User$groupRegistrationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRegistration
+     */
+    select?: GroupRegistrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRegistration
+     */
+    omit?: GroupRegistrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRegistrationInclude<ExtArgs> | null
+    where?: GroupRegistrationWhereInput
+    orderBy?: GroupRegistrationOrderByWithRelationInput | GroupRegistrationOrderByWithRelationInput[]
+    cursor?: GroupRegistrationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GroupRegistrationScalarFieldEnum | GroupRegistrationScalarFieldEnum[]
   }
 
   /**
@@ -6370,6 +6598,7 @@ export namespace Prisma {
     updatedAt: Date | null
     name: string | null
     image: string | null
+    video: string | null
   }
 
   export type CategoryMaxAggregateOutputType = {
@@ -6378,6 +6607,7 @@ export namespace Prisma {
     updatedAt: Date | null
     name: string | null
     image: string | null
+    video: string | null
   }
 
   export type CategoryCountAggregateOutputType = {
@@ -6386,6 +6616,7 @@ export namespace Prisma {
     updatedAt: number
     name: number
     image: number
+    video: number
     _all: number
   }
 
@@ -6396,6 +6627,7 @@ export namespace Prisma {
     updatedAt?: true
     name?: true
     image?: true
+    video?: true
   }
 
   export type CategoryMaxAggregateInputType = {
@@ -6404,6 +6636,7 @@ export namespace Prisma {
     updatedAt?: true
     name?: true
     image?: true
+    video?: true
   }
 
   export type CategoryCountAggregateInputType = {
@@ -6412,6 +6645,7 @@ export namespace Prisma {
     updatedAt?: true
     name?: true
     image?: true
+    video?: true
     _all?: true
   }
 
@@ -6493,6 +6727,7 @@ export namespace Prisma {
     updatedAt: Date
     name: string
     image: string | null
+    video: string | null
     _count: CategoryCountAggregateOutputType | null
     _min: CategoryMinAggregateOutputType | null
     _max: CategoryMaxAggregateOutputType | null
@@ -6518,6 +6753,7 @@ export namespace Prisma {
     updatedAt?: boolean
     name?: boolean
     image?: boolean
+    video?: boolean
     Event?: boolean | Category$EventArgs<ExtArgs>
     _count?: boolean | CategoryCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["category"]>
@@ -6528,6 +6764,7 @@ export namespace Prisma {
     updatedAt?: boolean
     name?: boolean
     image?: boolean
+    video?: boolean
   }, ExtArgs["result"]["category"]>
 
   export type CategorySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -6536,6 +6773,7 @@ export namespace Prisma {
     updatedAt?: boolean
     name?: boolean
     image?: boolean
+    video?: boolean
   }, ExtArgs["result"]["category"]>
 
   export type CategorySelectScalar = {
@@ -6544,9 +6782,10 @@ export namespace Prisma {
     updatedAt?: boolean
     name?: boolean
     image?: boolean
+    video?: boolean
   }
 
-  export type CategoryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "name" | "image", ExtArgs["result"]["category"]>
+  export type CategoryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "name" | "image" | "video", ExtArgs["result"]["category"]>
   export type CategoryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     Event?: boolean | Category$EventArgs<ExtArgs>
     _count?: boolean | CategoryCountOutputTypeDefaultArgs<ExtArgs>
@@ -6565,6 +6804,7 @@ export namespace Prisma {
       updatedAt: Date
       name: string
       image: string | null
+      video: string | null
     }, ExtArgs["result"]["category"]>
     composites: {}
   }
@@ -6994,6 +7234,7 @@ export namespace Prisma {
     readonly updatedAt: FieldRef<"Category", 'DateTime'>
     readonly name: FieldRef<"Category", 'String'>
     readonly image: FieldRef<"Category", 'String'>
+    readonly video: FieldRef<"Category", 'String'>
   }
     
 
@@ -7438,10 +7679,14 @@ export namespace Prisma {
 
   export type EventAvgAggregateOutputType = {
     participantLimit: number | null
+    minTeamSize: number | null
+    maxTeamSize: number | null
   }
 
   export type EventSumAggregateOutputType = {
     participantLimit: number | null
+    minTeamSize: number | null
+    maxTeamSize: number | null
   }
 
   export type EventMinAggregateOutputType = {
@@ -7455,6 +7700,9 @@ export namespace Prisma {
     startTime: string | null
     endTime: string | null
     participantLimit: number | null
+    isGroupEvent: boolean | null
+    minTeamSize: number | null
+    maxTeamSize: number | null
     termsandconditions: string | null
     registrationLink: string | null
     createdAt: Date | null
@@ -7472,6 +7720,9 @@ export namespace Prisma {
     startTime: string | null
     endTime: string | null
     participantLimit: number | null
+    isGroupEvent: boolean | null
+    minTeamSize: number | null
+    maxTeamSize: number | null
     termsandconditions: string | null
     registrationLink: string | null
     createdAt: Date | null
@@ -7489,6 +7740,9 @@ export namespace Prisma {
     startTime: number
     endTime: number
     participantLimit: number
+    isGroupEvent: number
+    minTeamSize: number
+    maxTeamSize: number
     termsandconditions: number
     registrationLink: number
     createdAt: number
@@ -7499,10 +7753,14 @@ export namespace Prisma {
 
   export type EventAvgAggregateInputType = {
     participantLimit?: true
+    minTeamSize?: true
+    maxTeamSize?: true
   }
 
   export type EventSumAggregateInputType = {
     participantLimit?: true
+    minTeamSize?: true
+    maxTeamSize?: true
   }
 
   export type EventMinAggregateInputType = {
@@ -7516,6 +7774,9 @@ export namespace Prisma {
     startTime?: true
     endTime?: true
     participantLimit?: true
+    isGroupEvent?: true
+    minTeamSize?: true
+    maxTeamSize?: true
     termsandconditions?: true
     registrationLink?: true
     createdAt?: true
@@ -7533,6 +7794,9 @@ export namespace Prisma {
     startTime?: true
     endTime?: true
     participantLimit?: true
+    isGroupEvent?: true
+    minTeamSize?: true
+    maxTeamSize?: true
     termsandconditions?: true
     registrationLink?: true
     createdAt?: true
@@ -7550,6 +7814,9 @@ export namespace Prisma {
     startTime?: true
     endTime?: true
     participantLimit?: true
+    isGroupEvent?: true
+    minTeamSize?: true
+    maxTeamSize?: true
     termsandconditions?: true
     registrationLink?: true
     createdAt?: true
@@ -7654,6 +7921,9 @@ export namespace Prisma {
     startTime: string
     endTime: string
     participantLimit: number
+    isGroupEvent: boolean
+    minTeamSize: number
+    maxTeamSize: number
     termsandconditions: string
     registrationLink: string
     createdAt: Date
@@ -7690,6 +7960,9 @@ export namespace Prisma {
     startTime?: boolean
     endTime?: boolean
     participantLimit?: boolean
+    isGroupEvent?: boolean
+    minTeamSize?: boolean
+    maxTeamSize?: boolean
     termsandconditions?: boolean
     registrationLink?: boolean
     createdAt?: boolean
@@ -7697,6 +7970,7 @@ export namespace Prisma {
     Category?: boolean | CategoryDefaultArgs<ExtArgs>
     registeredStudents?: boolean | Event$registeredStudentsArgs<ExtArgs>
     submissions?: boolean | Event$submissionsArgs<ExtArgs>
+    groupRegistrations?: boolean | Event$groupRegistrationsArgs<ExtArgs>
     _count?: boolean | EventCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["event"]>
 
@@ -7711,6 +7985,9 @@ export namespace Prisma {
     startTime?: boolean
     endTime?: boolean
     participantLimit?: boolean
+    isGroupEvent?: boolean
+    minTeamSize?: boolean
+    maxTeamSize?: boolean
     termsandconditions?: boolean
     registrationLink?: boolean
     createdAt?: boolean
@@ -7729,6 +8006,9 @@ export namespace Prisma {
     startTime?: boolean
     endTime?: boolean
     participantLimit?: boolean
+    isGroupEvent?: boolean
+    minTeamSize?: boolean
+    maxTeamSize?: boolean
     termsandconditions?: boolean
     registrationLink?: boolean
     createdAt?: boolean
@@ -7747,17 +8027,21 @@ export namespace Prisma {
     startTime?: boolean
     endTime?: boolean
     participantLimit?: boolean
+    isGroupEvent?: boolean
+    minTeamSize?: boolean
+    maxTeamSize?: boolean
     termsandconditions?: boolean
     registrationLink?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "categoryId" | "name" | "description" | "date" | "image" | "venue" | "startTime" | "endTime" | "participantLimit" | "termsandconditions" | "registrationLink" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
+  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "categoryId" | "name" | "description" | "date" | "image" | "venue" | "startTime" | "endTime" | "participantLimit" | "isGroupEvent" | "minTeamSize" | "maxTeamSize" | "termsandconditions" | "registrationLink" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
   export type EventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     Category?: boolean | CategoryDefaultArgs<ExtArgs>
     registeredStudents?: boolean | Event$registeredStudentsArgs<ExtArgs>
     submissions?: boolean | Event$submissionsArgs<ExtArgs>
+    groupRegistrations?: boolean | Event$groupRegistrationsArgs<ExtArgs>
     _count?: boolean | EventCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type EventIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7773,6 +8057,7 @@ export namespace Prisma {
       Category: Prisma.$CategoryPayload<ExtArgs>
       registeredStudents: Prisma.$UserPayload<ExtArgs>[]
       submissions: Prisma.$EventSubmissionPayload<ExtArgs>[]
+      groupRegistrations: Prisma.$GroupRegistrationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -7785,6 +8070,9 @@ export namespace Prisma {
       startTime: string
       endTime: string
       participantLimit: number
+      isGroupEvent: boolean
+      minTeamSize: number
+      maxTeamSize: number
       termsandconditions: string
       registrationLink: string
       createdAt: Date
@@ -8186,6 +8474,7 @@ export namespace Prisma {
     Category<T extends CategoryDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CategoryDefaultArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     registeredStudents<T extends Event$registeredStudentsArgs<ExtArgs> = {}>(args?: Subset<T, Event$registeredStudentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     submissions<T extends Event$submissionsArgs<ExtArgs> = {}>(args?: Subset<T, Event$submissionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    groupRegistrations<T extends Event$groupRegistrationsArgs<ExtArgs> = {}>(args?: Subset<T, Event$groupRegistrationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupRegistrationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8225,6 +8514,9 @@ export namespace Prisma {
     readonly startTime: FieldRef<"Event", 'String'>
     readonly endTime: FieldRef<"Event", 'String'>
     readonly participantLimit: FieldRef<"Event", 'Int'>
+    readonly isGroupEvent: FieldRef<"Event", 'Boolean'>
+    readonly minTeamSize: FieldRef<"Event", 'Int'>
+    readonly maxTeamSize: FieldRef<"Event", 'Int'>
     readonly termsandconditions: FieldRef<"Event", 'String'>
     readonly registrationLink: FieldRef<"Event", 'String'>
     readonly createdAt: FieldRef<"Event", 'DateTime'>
@@ -8673,6 +8965,30 @@ export namespace Prisma {
   }
 
   /**
+   * Event.groupRegistrations
+   */
+  export type Event$groupRegistrationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRegistration
+     */
+    select?: GroupRegistrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRegistration
+     */
+    omit?: GroupRegistrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRegistrationInclude<ExtArgs> | null
+    where?: GroupRegistrationWhereInput
+    orderBy?: GroupRegistrationOrderByWithRelationInput | GroupRegistrationOrderByWithRelationInput[]
+    cursor?: GroupRegistrationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GroupRegistrationScalarFieldEnum | GroupRegistrationScalarFieldEnum[]
+  }
+
+  /**
    * Event without action
    */
   export type EventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8688,6 +9004,1094 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: EventInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model GroupRegistration
+   */
+
+  export type AggregateGroupRegistration = {
+    _count: GroupRegistrationCountAggregateOutputType | null
+    _min: GroupRegistrationMinAggregateOutputType | null
+    _max: GroupRegistrationMaxAggregateOutputType | null
+  }
+
+  export type GroupRegistrationMinAggregateOutputType = {
+    id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    eventId: string | null
+    userId: string | null
+    groupName: string | null
+  }
+
+  export type GroupRegistrationMaxAggregateOutputType = {
+    id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    eventId: string | null
+    userId: string | null
+    groupName: string | null
+  }
+
+  export type GroupRegistrationCountAggregateOutputType = {
+    id: number
+    createdAt: number
+    updatedAt: number
+    eventId: number
+    userId: number
+    groupName: number
+    members: number
+    _all: number
+  }
+
+
+  export type GroupRegistrationMinAggregateInputType = {
+    id?: true
+    createdAt?: true
+    updatedAt?: true
+    eventId?: true
+    userId?: true
+    groupName?: true
+  }
+
+  export type GroupRegistrationMaxAggregateInputType = {
+    id?: true
+    createdAt?: true
+    updatedAt?: true
+    eventId?: true
+    userId?: true
+    groupName?: true
+  }
+
+  export type GroupRegistrationCountAggregateInputType = {
+    id?: true
+    createdAt?: true
+    updatedAt?: true
+    eventId?: true
+    userId?: true
+    groupName?: true
+    members?: true
+    _all?: true
+  }
+
+  export type GroupRegistrationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GroupRegistration to aggregate.
+     */
+    where?: GroupRegistrationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupRegistrations to fetch.
+     */
+    orderBy?: GroupRegistrationOrderByWithRelationInput | GroupRegistrationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GroupRegistrationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupRegistrations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupRegistrations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GroupRegistrations
+    **/
+    _count?: true | GroupRegistrationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GroupRegistrationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GroupRegistrationMaxAggregateInputType
+  }
+
+  export type GetGroupRegistrationAggregateType<T extends GroupRegistrationAggregateArgs> = {
+        [P in keyof T & keyof AggregateGroupRegistration]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGroupRegistration[P]>
+      : GetScalarType<T[P], AggregateGroupRegistration[P]>
+  }
+
+
+
+
+  export type GroupRegistrationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GroupRegistrationWhereInput
+    orderBy?: GroupRegistrationOrderByWithAggregationInput | GroupRegistrationOrderByWithAggregationInput[]
+    by: GroupRegistrationScalarFieldEnum[] | GroupRegistrationScalarFieldEnum
+    having?: GroupRegistrationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GroupRegistrationCountAggregateInputType | true
+    _min?: GroupRegistrationMinAggregateInputType
+    _max?: GroupRegistrationMaxAggregateInputType
+  }
+
+  export type GroupRegistrationGroupByOutputType = {
+    id: string
+    createdAt: Date
+    updatedAt: Date
+    eventId: string
+    userId: string
+    groupName: string | null
+    members: JsonValue
+    _count: GroupRegistrationCountAggregateOutputType | null
+    _min: GroupRegistrationMinAggregateOutputType | null
+    _max: GroupRegistrationMaxAggregateOutputType | null
+  }
+
+  type GetGroupRegistrationGroupByPayload<T extends GroupRegistrationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GroupRegistrationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GroupRegistrationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GroupRegistrationGroupByOutputType[P]>
+            : GetScalarType<T[P], GroupRegistrationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GroupRegistrationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    eventId?: boolean
+    userId?: boolean
+    groupName?: boolean
+    members?: boolean
+    event?: boolean | EventDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["groupRegistration"]>
+
+  export type GroupRegistrationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    eventId?: boolean
+    userId?: boolean
+    groupName?: boolean
+    members?: boolean
+    event?: boolean | EventDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["groupRegistration"]>
+
+  export type GroupRegistrationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    eventId?: boolean
+    userId?: boolean
+    groupName?: boolean
+    members?: boolean
+    event?: boolean | EventDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["groupRegistration"]>
+
+  export type GroupRegistrationSelectScalar = {
+    id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    eventId?: boolean
+    userId?: boolean
+    groupName?: boolean
+    members?: boolean
+  }
+
+  export type GroupRegistrationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "eventId" | "userId" | "groupName" | "members", ExtArgs["result"]["groupRegistration"]>
+  export type GroupRegistrationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    event?: boolean | EventDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type GroupRegistrationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    event?: boolean | EventDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type GroupRegistrationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    event?: boolean | EventDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $GroupRegistrationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GroupRegistration"
+    objects: {
+      event: Prisma.$EventPayload<ExtArgs>
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      createdAt: Date
+      updatedAt: Date
+      eventId: string
+      userId: string
+      groupName: string | null
+      members: Prisma.JsonValue
+    }, ExtArgs["result"]["groupRegistration"]>
+    composites: {}
+  }
+
+  type GroupRegistrationGetPayload<S extends boolean | null | undefined | GroupRegistrationDefaultArgs> = $Result.GetResult<Prisma.$GroupRegistrationPayload, S>
+
+  type GroupRegistrationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<GroupRegistrationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: GroupRegistrationCountAggregateInputType | true
+    }
+
+  export interface GroupRegistrationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GroupRegistration'], meta: { name: 'GroupRegistration' } }
+    /**
+     * Find zero or one GroupRegistration that matches the filter.
+     * @param {GroupRegistrationFindUniqueArgs} args - Arguments to find a GroupRegistration
+     * @example
+     * // Get one GroupRegistration
+     * const groupRegistration = await prisma.groupRegistration.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GroupRegistrationFindUniqueArgs>(args: SelectSubset<T, GroupRegistrationFindUniqueArgs<ExtArgs>>): Prisma__GroupRegistrationClient<$Result.GetResult<Prisma.$GroupRegistrationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one GroupRegistration that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {GroupRegistrationFindUniqueOrThrowArgs} args - Arguments to find a GroupRegistration
+     * @example
+     * // Get one GroupRegistration
+     * const groupRegistration = await prisma.groupRegistration.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GroupRegistrationFindUniqueOrThrowArgs>(args: SelectSubset<T, GroupRegistrationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GroupRegistrationClient<$Result.GetResult<Prisma.$GroupRegistrationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GroupRegistration that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupRegistrationFindFirstArgs} args - Arguments to find a GroupRegistration
+     * @example
+     * // Get one GroupRegistration
+     * const groupRegistration = await prisma.groupRegistration.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GroupRegistrationFindFirstArgs>(args?: SelectSubset<T, GroupRegistrationFindFirstArgs<ExtArgs>>): Prisma__GroupRegistrationClient<$Result.GetResult<Prisma.$GroupRegistrationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GroupRegistration that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupRegistrationFindFirstOrThrowArgs} args - Arguments to find a GroupRegistration
+     * @example
+     * // Get one GroupRegistration
+     * const groupRegistration = await prisma.groupRegistration.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GroupRegistrationFindFirstOrThrowArgs>(args?: SelectSubset<T, GroupRegistrationFindFirstOrThrowArgs<ExtArgs>>): Prisma__GroupRegistrationClient<$Result.GetResult<Prisma.$GroupRegistrationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more GroupRegistrations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupRegistrationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GroupRegistrations
+     * const groupRegistrations = await prisma.groupRegistration.findMany()
+     * 
+     * // Get first 10 GroupRegistrations
+     * const groupRegistrations = await prisma.groupRegistration.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const groupRegistrationWithIdOnly = await prisma.groupRegistration.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GroupRegistrationFindManyArgs>(args?: SelectSubset<T, GroupRegistrationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupRegistrationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a GroupRegistration.
+     * @param {GroupRegistrationCreateArgs} args - Arguments to create a GroupRegistration.
+     * @example
+     * // Create one GroupRegistration
+     * const GroupRegistration = await prisma.groupRegistration.create({
+     *   data: {
+     *     // ... data to create a GroupRegistration
+     *   }
+     * })
+     * 
+     */
+    create<T extends GroupRegistrationCreateArgs>(args: SelectSubset<T, GroupRegistrationCreateArgs<ExtArgs>>): Prisma__GroupRegistrationClient<$Result.GetResult<Prisma.$GroupRegistrationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many GroupRegistrations.
+     * @param {GroupRegistrationCreateManyArgs} args - Arguments to create many GroupRegistrations.
+     * @example
+     * // Create many GroupRegistrations
+     * const groupRegistration = await prisma.groupRegistration.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GroupRegistrationCreateManyArgs>(args?: SelectSubset<T, GroupRegistrationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GroupRegistrations and returns the data saved in the database.
+     * @param {GroupRegistrationCreateManyAndReturnArgs} args - Arguments to create many GroupRegistrations.
+     * @example
+     * // Create many GroupRegistrations
+     * const groupRegistration = await prisma.groupRegistration.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GroupRegistrations and only return the `id`
+     * const groupRegistrationWithIdOnly = await prisma.groupRegistration.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GroupRegistrationCreateManyAndReturnArgs>(args?: SelectSubset<T, GroupRegistrationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupRegistrationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a GroupRegistration.
+     * @param {GroupRegistrationDeleteArgs} args - Arguments to delete one GroupRegistration.
+     * @example
+     * // Delete one GroupRegistration
+     * const GroupRegistration = await prisma.groupRegistration.delete({
+     *   where: {
+     *     // ... filter to delete one GroupRegistration
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GroupRegistrationDeleteArgs>(args: SelectSubset<T, GroupRegistrationDeleteArgs<ExtArgs>>): Prisma__GroupRegistrationClient<$Result.GetResult<Prisma.$GroupRegistrationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one GroupRegistration.
+     * @param {GroupRegistrationUpdateArgs} args - Arguments to update one GroupRegistration.
+     * @example
+     * // Update one GroupRegistration
+     * const groupRegistration = await prisma.groupRegistration.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GroupRegistrationUpdateArgs>(args: SelectSubset<T, GroupRegistrationUpdateArgs<ExtArgs>>): Prisma__GroupRegistrationClient<$Result.GetResult<Prisma.$GroupRegistrationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more GroupRegistrations.
+     * @param {GroupRegistrationDeleteManyArgs} args - Arguments to filter GroupRegistrations to delete.
+     * @example
+     * // Delete a few GroupRegistrations
+     * const { count } = await prisma.groupRegistration.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GroupRegistrationDeleteManyArgs>(args?: SelectSubset<T, GroupRegistrationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GroupRegistrations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupRegistrationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GroupRegistrations
+     * const groupRegistration = await prisma.groupRegistration.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GroupRegistrationUpdateManyArgs>(args: SelectSubset<T, GroupRegistrationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GroupRegistrations and returns the data updated in the database.
+     * @param {GroupRegistrationUpdateManyAndReturnArgs} args - Arguments to update many GroupRegistrations.
+     * @example
+     * // Update many GroupRegistrations
+     * const groupRegistration = await prisma.groupRegistration.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more GroupRegistrations and only return the `id`
+     * const groupRegistrationWithIdOnly = await prisma.groupRegistration.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends GroupRegistrationUpdateManyAndReturnArgs>(args: SelectSubset<T, GroupRegistrationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupRegistrationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one GroupRegistration.
+     * @param {GroupRegistrationUpsertArgs} args - Arguments to update or create a GroupRegistration.
+     * @example
+     * // Update or create a GroupRegistration
+     * const groupRegistration = await prisma.groupRegistration.upsert({
+     *   create: {
+     *     // ... data to create a GroupRegistration
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GroupRegistration we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GroupRegistrationUpsertArgs>(args: SelectSubset<T, GroupRegistrationUpsertArgs<ExtArgs>>): Prisma__GroupRegistrationClient<$Result.GetResult<Prisma.$GroupRegistrationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of GroupRegistrations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupRegistrationCountArgs} args - Arguments to filter GroupRegistrations to count.
+     * @example
+     * // Count the number of GroupRegistrations
+     * const count = await prisma.groupRegistration.count({
+     *   where: {
+     *     // ... the filter for the GroupRegistrations we want to count
+     *   }
+     * })
+    **/
+    count<T extends GroupRegistrationCountArgs>(
+      args?: Subset<T, GroupRegistrationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GroupRegistrationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GroupRegistration.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupRegistrationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GroupRegistrationAggregateArgs>(args: Subset<T, GroupRegistrationAggregateArgs>): Prisma.PrismaPromise<GetGroupRegistrationAggregateType<T>>
+
+    /**
+     * Group by GroupRegistration.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GroupRegistrationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupRegistrationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupRegistrationGroupByArgs['orderBy'] }
+        : { orderBy?: GroupRegistrationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupRegistrationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGroupRegistrationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GroupRegistration model
+   */
+  readonly fields: GroupRegistrationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GroupRegistration.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GroupRegistrationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    event<T extends EventDefaultArgs<ExtArgs> = {}>(args?: Subset<T, EventDefaultArgs<ExtArgs>>): Prisma__EventClient<$Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GroupRegistration model
+   */
+  interface GroupRegistrationFieldRefs {
+    readonly id: FieldRef<"GroupRegistration", 'String'>
+    readonly createdAt: FieldRef<"GroupRegistration", 'DateTime'>
+    readonly updatedAt: FieldRef<"GroupRegistration", 'DateTime'>
+    readonly eventId: FieldRef<"GroupRegistration", 'String'>
+    readonly userId: FieldRef<"GroupRegistration", 'String'>
+    readonly groupName: FieldRef<"GroupRegistration", 'String'>
+    readonly members: FieldRef<"GroupRegistration", 'Json'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GroupRegistration findUnique
+   */
+  export type GroupRegistrationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRegistration
+     */
+    select?: GroupRegistrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRegistration
+     */
+    omit?: GroupRegistrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRegistrationInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupRegistration to fetch.
+     */
+    where: GroupRegistrationWhereUniqueInput
+  }
+
+  /**
+   * GroupRegistration findUniqueOrThrow
+   */
+  export type GroupRegistrationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRegistration
+     */
+    select?: GroupRegistrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRegistration
+     */
+    omit?: GroupRegistrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRegistrationInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupRegistration to fetch.
+     */
+    where: GroupRegistrationWhereUniqueInput
+  }
+
+  /**
+   * GroupRegistration findFirst
+   */
+  export type GroupRegistrationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRegistration
+     */
+    select?: GroupRegistrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRegistration
+     */
+    omit?: GroupRegistrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRegistrationInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupRegistration to fetch.
+     */
+    where?: GroupRegistrationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupRegistrations to fetch.
+     */
+    orderBy?: GroupRegistrationOrderByWithRelationInput | GroupRegistrationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GroupRegistrations.
+     */
+    cursor?: GroupRegistrationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupRegistrations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupRegistrations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GroupRegistrations.
+     */
+    distinct?: GroupRegistrationScalarFieldEnum | GroupRegistrationScalarFieldEnum[]
+  }
+
+  /**
+   * GroupRegistration findFirstOrThrow
+   */
+  export type GroupRegistrationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRegistration
+     */
+    select?: GroupRegistrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRegistration
+     */
+    omit?: GroupRegistrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRegistrationInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupRegistration to fetch.
+     */
+    where?: GroupRegistrationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupRegistrations to fetch.
+     */
+    orderBy?: GroupRegistrationOrderByWithRelationInput | GroupRegistrationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GroupRegistrations.
+     */
+    cursor?: GroupRegistrationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupRegistrations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupRegistrations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GroupRegistrations.
+     */
+    distinct?: GroupRegistrationScalarFieldEnum | GroupRegistrationScalarFieldEnum[]
+  }
+
+  /**
+   * GroupRegistration findMany
+   */
+  export type GroupRegistrationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRegistration
+     */
+    select?: GroupRegistrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRegistration
+     */
+    omit?: GroupRegistrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRegistrationInclude<ExtArgs> | null
+    /**
+     * Filter, which GroupRegistrations to fetch.
+     */
+    where?: GroupRegistrationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GroupRegistrations to fetch.
+     */
+    orderBy?: GroupRegistrationOrderByWithRelationInput | GroupRegistrationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GroupRegistrations.
+     */
+    cursor?: GroupRegistrationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GroupRegistrations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GroupRegistrations.
+     */
+    skip?: number
+    distinct?: GroupRegistrationScalarFieldEnum | GroupRegistrationScalarFieldEnum[]
+  }
+
+  /**
+   * GroupRegistration create
+   */
+  export type GroupRegistrationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRegistration
+     */
+    select?: GroupRegistrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRegistration
+     */
+    omit?: GroupRegistrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRegistrationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a GroupRegistration.
+     */
+    data: XOR<GroupRegistrationCreateInput, GroupRegistrationUncheckedCreateInput>
+  }
+
+  /**
+   * GroupRegistration createMany
+   */
+  export type GroupRegistrationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GroupRegistrations.
+     */
+    data: GroupRegistrationCreateManyInput | GroupRegistrationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GroupRegistration createManyAndReturn
+   */
+  export type GroupRegistrationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRegistration
+     */
+    select?: GroupRegistrationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRegistration
+     */
+    omit?: GroupRegistrationOmit<ExtArgs> | null
+    /**
+     * The data used to create many GroupRegistrations.
+     */
+    data: GroupRegistrationCreateManyInput | GroupRegistrationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRegistrationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GroupRegistration update
+   */
+  export type GroupRegistrationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRegistration
+     */
+    select?: GroupRegistrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRegistration
+     */
+    omit?: GroupRegistrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRegistrationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a GroupRegistration.
+     */
+    data: XOR<GroupRegistrationUpdateInput, GroupRegistrationUncheckedUpdateInput>
+    /**
+     * Choose, which GroupRegistration to update.
+     */
+    where: GroupRegistrationWhereUniqueInput
+  }
+
+  /**
+   * GroupRegistration updateMany
+   */
+  export type GroupRegistrationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GroupRegistrations.
+     */
+    data: XOR<GroupRegistrationUpdateManyMutationInput, GroupRegistrationUncheckedUpdateManyInput>
+    /**
+     * Filter which GroupRegistrations to update
+     */
+    where?: GroupRegistrationWhereInput
+    /**
+     * Limit how many GroupRegistrations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GroupRegistration updateManyAndReturn
+   */
+  export type GroupRegistrationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRegistration
+     */
+    select?: GroupRegistrationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRegistration
+     */
+    omit?: GroupRegistrationOmit<ExtArgs> | null
+    /**
+     * The data used to update GroupRegistrations.
+     */
+    data: XOR<GroupRegistrationUpdateManyMutationInput, GroupRegistrationUncheckedUpdateManyInput>
+    /**
+     * Filter which GroupRegistrations to update
+     */
+    where?: GroupRegistrationWhereInput
+    /**
+     * Limit how many GroupRegistrations to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRegistrationIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GroupRegistration upsert
+   */
+  export type GroupRegistrationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRegistration
+     */
+    select?: GroupRegistrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRegistration
+     */
+    omit?: GroupRegistrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRegistrationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the GroupRegistration to update in case it exists.
+     */
+    where: GroupRegistrationWhereUniqueInput
+    /**
+     * In case the GroupRegistration found by the `where` argument doesn't exist, create a new GroupRegistration with this data.
+     */
+    create: XOR<GroupRegistrationCreateInput, GroupRegistrationUncheckedCreateInput>
+    /**
+     * In case the GroupRegistration was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GroupRegistrationUpdateInput, GroupRegistrationUncheckedUpdateInput>
+  }
+
+  /**
+   * GroupRegistration delete
+   */
+  export type GroupRegistrationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRegistration
+     */
+    select?: GroupRegistrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRegistration
+     */
+    omit?: GroupRegistrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRegistrationInclude<ExtArgs> | null
+    /**
+     * Filter which GroupRegistration to delete.
+     */
+    where: GroupRegistrationWhereUniqueInput
+  }
+
+  /**
+   * GroupRegistration deleteMany
+   */
+  export type GroupRegistrationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GroupRegistrations to delete
+     */
+    where?: GroupRegistrationWhereInput
+    /**
+     * Limit how many GroupRegistrations to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * GroupRegistration without action
+   */
+  export type GroupRegistrationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GroupRegistration
+     */
+    select?: GroupRegistrationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GroupRegistration
+     */
+    omit?: GroupRegistrationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GroupRegistrationInclude<ExtArgs> | null
   }
 
 
@@ -11006,6 +12410,1061 @@ export namespace Prisma {
 
 
   /**
+   * Model FAQ
+   */
+
+  export type AggregateFAQ = {
+    _count: FAQCountAggregateOutputType | null
+    _avg: FAQAvgAggregateOutputType | null
+    _sum: FAQSumAggregateOutputType | null
+    _min: FAQMinAggregateOutputType | null
+    _max: FAQMaxAggregateOutputType | null
+  }
+
+  export type FAQAvgAggregateOutputType = {
+    order: number | null
+  }
+
+  export type FAQSumAggregateOutputType = {
+    order: number | null
+  }
+
+  export type FAQMinAggregateOutputType = {
+    id: string | null
+    question: string | null
+    answer: string | null
+    category: string | null
+    order: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type FAQMaxAggregateOutputType = {
+    id: string | null
+    question: string | null
+    answer: string | null
+    category: string | null
+    order: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type FAQCountAggregateOutputType = {
+    id: number
+    question: number
+    answer: number
+    category: number
+    order: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type FAQAvgAggregateInputType = {
+    order?: true
+  }
+
+  export type FAQSumAggregateInputType = {
+    order?: true
+  }
+
+  export type FAQMinAggregateInputType = {
+    id?: true
+    question?: true
+    answer?: true
+    category?: true
+    order?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type FAQMaxAggregateInputType = {
+    id?: true
+    question?: true
+    answer?: true
+    category?: true
+    order?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type FAQCountAggregateInputType = {
+    id?: true
+    question?: true
+    answer?: true
+    category?: true
+    order?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type FAQAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which FAQ to aggregate.
+     */
+    where?: FAQWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of FAQS to fetch.
+     */
+    orderBy?: FAQOrderByWithRelationInput | FAQOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: FAQWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` FAQS from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` FAQS.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned FAQS
+    **/
+    _count?: true | FAQCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: FAQAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: FAQSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: FAQMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: FAQMaxAggregateInputType
+  }
+
+  export type GetFAQAggregateType<T extends FAQAggregateArgs> = {
+        [P in keyof T & keyof AggregateFAQ]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateFAQ[P]>
+      : GetScalarType<T[P], AggregateFAQ[P]>
+  }
+
+
+
+
+  export type FAQGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: FAQWhereInput
+    orderBy?: FAQOrderByWithAggregationInput | FAQOrderByWithAggregationInput[]
+    by: FAQScalarFieldEnum[] | FAQScalarFieldEnum
+    having?: FAQScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: FAQCountAggregateInputType | true
+    _avg?: FAQAvgAggregateInputType
+    _sum?: FAQSumAggregateInputType
+    _min?: FAQMinAggregateInputType
+    _max?: FAQMaxAggregateInputType
+  }
+
+  export type FAQGroupByOutputType = {
+    id: string
+    question: string
+    answer: string
+    category: string | null
+    order: number
+    createdAt: Date
+    updatedAt: Date
+    _count: FAQCountAggregateOutputType | null
+    _avg: FAQAvgAggregateOutputType | null
+    _sum: FAQSumAggregateOutputType | null
+    _min: FAQMinAggregateOutputType | null
+    _max: FAQMaxAggregateOutputType | null
+  }
+
+  type GetFAQGroupByPayload<T extends FAQGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<FAQGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof FAQGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], FAQGroupByOutputType[P]>
+            : GetScalarType<T[P], FAQGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type FAQSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    question?: boolean
+    answer?: boolean
+    category?: boolean
+    order?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["fAQ"]>
+
+  export type FAQSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    question?: boolean
+    answer?: boolean
+    category?: boolean
+    order?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["fAQ"]>
+
+  export type FAQSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    question?: boolean
+    answer?: boolean
+    category?: boolean
+    order?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["fAQ"]>
+
+  export type FAQSelectScalar = {
+    id?: boolean
+    question?: boolean
+    answer?: boolean
+    category?: boolean
+    order?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type FAQOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "question" | "answer" | "category" | "order" | "createdAt" | "updatedAt", ExtArgs["result"]["fAQ"]>
+
+  export type $FAQPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "FAQ"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      question: string
+      answer: string
+      category: string | null
+      order: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["fAQ"]>
+    composites: {}
+  }
+
+  type FAQGetPayload<S extends boolean | null | undefined | FAQDefaultArgs> = $Result.GetResult<Prisma.$FAQPayload, S>
+
+  type FAQCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<FAQFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: FAQCountAggregateInputType | true
+    }
+
+  export interface FAQDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['FAQ'], meta: { name: 'FAQ' } }
+    /**
+     * Find zero or one FAQ that matches the filter.
+     * @param {FAQFindUniqueArgs} args - Arguments to find a FAQ
+     * @example
+     * // Get one FAQ
+     * const fAQ = await prisma.fAQ.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends FAQFindUniqueArgs>(args: SelectSubset<T, FAQFindUniqueArgs<ExtArgs>>): Prisma__FAQClient<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one FAQ that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {FAQFindUniqueOrThrowArgs} args - Arguments to find a FAQ
+     * @example
+     * // Get one FAQ
+     * const fAQ = await prisma.fAQ.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends FAQFindUniqueOrThrowArgs>(args: SelectSubset<T, FAQFindUniqueOrThrowArgs<ExtArgs>>): Prisma__FAQClient<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first FAQ that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FAQFindFirstArgs} args - Arguments to find a FAQ
+     * @example
+     * // Get one FAQ
+     * const fAQ = await prisma.fAQ.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends FAQFindFirstArgs>(args?: SelectSubset<T, FAQFindFirstArgs<ExtArgs>>): Prisma__FAQClient<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first FAQ that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FAQFindFirstOrThrowArgs} args - Arguments to find a FAQ
+     * @example
+     * // Get one FAQ
+     * const fAQ = await prisma.fAQ.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends FAQFindFirstOrThrowArgs>(args?: SelectSubset<T, FAQFindFirstOrThrowArgs<ExtArgs>>): Prisma__FAQClient<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more FAQS that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FAQFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all FAQS
+     * const fAQS = await prisma.fAQ.findMany()
+     * 
+     * // Get first 10 FAQS
+     * const fAQS = await prisma.fAQ.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const fAQWithIdOnly = await prisma.fAQ.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends FAQFindManyArgs>(args?: SelectSubset<T, FAQFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a FAQ.
+     * @param {FAQCreateArgs} args - Arguments to create a FAQ.
+     * @example
+     * // Create one FAQ
+     * const FAQ = await prisma.fAQ.create({
+     *   data: {
+     *     // ... data to create a FAQ
+     *   }
+     * })
+     * 
+     */
+    create<T extends FAQCreateArgs>(args: SelectSubset<T, FAQCreateArgs<ExtArgs>>): Prisma__FAQClient<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many FAQS.
+     * @param {FAQCreateManyArgs} args - Arguments to create many FAQS.
+     * @example
+     * // Create many FAQS
+     * const fAQ = await prisma.fAQ.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends FAQCreateManyArgs>(args?: SelectSubset<T, FAQCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many FAQS and returns the data saved in the database.
+     * @param {FAQCreateManyAndReturnArgs} args - Arguments to create many FAQS.
+     * @example
+     * // Create many FAQS
+     * const fAQ = await prisma.fAQ.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many FAQS and only return the `id`
+     * const fAQWithIdOnly = await prisma.fAQ.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends FAQCreateManyAndReturnArgs>(args?: SelectSubset<T, FAQCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a FAQ.
+     * @param {FAQDeleteArgs} args - Arguments to delete one FAQ.
+     * @example
+     * // Delete one FAQ
+     * const FAQ = await prisma.fAQ.delete({
+     *   where: {
+     *     // ... filter to delete one FAQ
+     *   }
+     * })
+     * 
+     */
+    delete<T extends FAQDeleteArgs>(args: SelectSubset<T, FAQDeleteArgs<ExtArgs>>): Prisma__FAQClient<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one FAQ.
+     * @param {FAQUpdateArgs} args - Arguments to update one FAQ.
+     * @example
+     * // Update one FAQ
+     * const fAQ = await prisma.fAQ.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends FAQUpdateArgs>(args: SelectSubset<T, FAQUpdateArgs<ExtArgs>>): Prisma__FAQClient<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more FAQS.
+     * @param {FAQDeleteManyArgs} args - Arguments to filter FAQS to delete.
+     * @example
+     * // Delete a few FAQS
+     * const { count } = await prisma.fAQ.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends FAQDeleteManyArgs>(args?: SelectSubset<T, FAQDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more FAQS.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FAQUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many FAQS
+     * const fAQ = await prisma.fAQ.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends FAQUpdateManyArgs>(args: SelectSubset<T, FAQUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more FAQS and returns the data updated in the database.
+     * @param {FAQUpdateManyAndReturnArgs} args - Arguments to update many FAQS.
+     * @example
+     * // Update many FAQS
+     * const fAQ = await prisma.fAQ.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more FAQS and only return the `id`
+     * const fAQWithIdOnly = await prisma.fAQ.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends FAQUpdateManyAndReturnArgs>(args: SelectSubset<T, FAQUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one FAQ.
+     * @param {FAQUpsertArgs} args - Arguments to update or create a FAQ.
+     * @example
+     * // Update or create a FAQ
+     * const fAQ = await prisma.fAQ.upsert({
+     *   create: {
+     *     // ... data to create a FAQ
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the FAQ we want to update
+     *   }
+     * })
+     */
+    upsert<T extends FAQUpsertArgs>(args: SelectSubset<T, FAQUpsertArgs<ExtArgs>>): Prisma__FAQClient<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of FAQS.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FAQCountArgs} args - Arguments to filter FAQS to count.
+     * @example
+     * // Count the number of FAQS
+     * const count = await prisma.fAQ.count({
+     *   where: {
+     *     // ... the filter for the FAQS we want to count
+     *   }
+     * })
+    **/
+    count<T extends FAQCountArgs>(
+      args?: Subset<T, FAQCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], FAQCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a FAQ.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FAQAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends FAQAggregateArgs>(args: Subset<T, FAQAggregateArgs>): Prisma.PrismaPromise<GetFAQAggregateType<T>>
+
+    /**
+     * Group by FAQ.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FAQGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends FAQGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: FAQGroupByArgs['orderBy'] }
+        : { orderBy?: FAQGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, FAQGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetFAQGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the FAQ model
+   */
+  readonly fields: FAQFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for FAQ.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__FAQClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the FAQ model
+   */
+  interface FAQFieldRefs {
+    readonly id: FieldRef<"FAQ", 'String'>
+    readonly question: FieldRef<"FAQ", 'String'>
+    readonly answer: FieldRef<"FAQ", 'String'>
+    readonly category: FieldRef<"FAQ", 'String'>
+    readonly order: FieldRef<"FAQ", 'Int'>
+    readonly createdAt: FieldRef<"FAQ", 'DateTime'>
+    readonly updatedAt: FieldRef<"FAQ", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * FAQ findUnique
+   */
+  export type FAQFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FAQ
+     */
+    select?: FAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FAQ
+     */
+    omit?: FAQOmit<ExtArgs> | null
+    /**
+     * Filter, which FAQ to fetch.
+     */
+    where: FAQWhereUniqueInput
+  }
+
+  /**
+   * FAQ findUniqueOrThrow
+   */
+  export type FAQFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FAQ
+     */
+    select?: FAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FAQ
+     */
+    omit?: FAQOmit<ExtArgs> | null
+    /**
+     * Filter, which FAQ to fetch.
+     */
+    where: FAQWhereUniqueInput
+  }
+
+  /**
+   * FAQ findFirst
+   */
+  export type FAQFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FAQ
+     */
+    select?: FAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FAQ
+     */
+    omit?: FAQOmit<ExtArgs> | null
+    /**
+     * Filter, which FAQ to fetch.
+     */
+    where?: FAQWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of FAQS to fetch.
+     */
+    orderBy?: FAQOrderByWithRelationInput | FAQOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for FAQS.
+     */
+    cursor?: FAQWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` FAQS from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` FAQS.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of FAQS.
+     */
+    distinct?: FAQScalarFieldEnum | FAQScalarFieldEnum[]
+  }
+
+  /**
+   * FAQ findFirstOrThrow
+   */
+  export type FAQFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FAQ
+     */
+    select?: FAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FAQ
+     */
+    omit?: FAQOmit<ExtArgs> | null
+    /**
+     * Filter, which FAQ to fetch.
+     */
+    where?: FAQWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of FAQS to fetch.
+     */
+    orderBy?: FAQOrderByWithRelationInput | FAQOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for FAQS.
+     */
+    cursor?: FAQWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` FAQS from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` FAQS.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of FAQS.
+     */
+    distinct?: FAQScalarFieldEnum | FAQScalarFieldEnum[]
+  }
+
+  /**
+   * FAQ findMany
+   */
+  export type FAQFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FAQ
+     */
+    select?: FAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FAQ
+     */
+    omit?: FAQOmit<ExtArgs> | null
+    /**
+     * Filter, which FAQS to fetch.
+     */
+    where?: FAQWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of FAQS to fetch.
+     */
+    orderBy?: FAQOrderByWithRelationInput | FAQOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing FAQS.
+     */
+    cursor?: FAQWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` FAQS from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` FAQS.
+     */
+    skip?: number
+    distinct?: FAQScalarFieldEnum | FAQScalarFieldEnum[]
+  }
+
+  /**
+   * FAQ create
+   */
+  export type FAQCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FAQ
+     */
+    select?: FAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FAQ
+     */
+    omit?: FAQOmit<ExtArgs> | null
+    /**
+     * The data needed to create a FAQ.
+     */
+    data: XOR<FAQCreateInput, FAQUncheckedCreateInput>
+  }
+
+  /**
+   * FAQ createMany
+   */
+  export type FAQCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many FAQS.
+     */
+    data: FAQCreateManyInput | FAQCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * FAQ createManyAndReturn
+   */
+  export type FAQCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FAQ
+     */
+    select?: FAQSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the FAQ
+     */
+    omit?: FAQOmit<ExtArgs> | null
+    /**
+     * The data used to create many FAQS.
+     */
+    data: FAQCreateManyInput | FAQCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * FAQ update
+   */
+  export type FAQUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FAQ
+     */
+    select?: FAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FAQ
+     */
+    omit?: FAQOmit<ExtArgs> | null
+    /**
+     * The data needed to update a FAQ.
+     */
+    data: XOR<FAQUpdateInput, FAQUncheckedUpdateInput>
+    /**
+     * Choose, which FAQ to update.
+     */
+    where: FAQWhereUniqueInput
+  }
+
+  /**
+   * FAQ updateMany
+   */
+  export type FAQUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update FAQS.
+     */
+    data: XOR<FAQUpdateManyMutationInput, FAQUncheckedUpdateManyInput>
+    /**
+     * Filter which FAQS to update
+     */
+    where?: FAQWhereInput
+    /**
+     * Limit how many FAQS to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * FAQ updateManyAndReturn
+   */
+  export type FAQUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FAQ
+     */
+    select?: FAQSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the FAQ
+     */
+    omit?: FAQOmit<ExtArgs> | null
+    /**
+     * The data used to update FAQS.
+     */
+    data: XOR<FAQUpdateManyMutationInput, FAQUncheckedUpdateManyInput>
+    /**
+     * Filter which FAQS to update
+     */
+    where?: FAQWhereInput
+    /**
+     * Limit how many FAQS to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * FAQ upsert
+   */
+  export type FAQUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FAQ
+     */
+    select?: FAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FAQ
+     */
+    omit?: FAQOmit<ExtArgs> | null
+    /**
+     * The filter to search for the FAQ to update in case it exists.
+     */
+    where: FAQWhereUniqueInput
+    /**
+     * In case the FAQ found by the `where` argument doesn't exist, create a new FAQ with this data.
+     */
+    create: XOR<FAQCreateInput, FAQUncheckedCreateInput>
+    /**
+     * In case the FAQ was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<FAQUpdateInput, FAQUncheckedUpdateInput>
+  }
+
+  /**
+   * FAQ delete
+   */
+  export type FAQDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FAQ
+     */
+    select?: FAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FAQ
+     */
+    omit?: FAQOmit<ExtArgs> | null
+    /**
+     * Filter which FAQ to delete.
+     */
+    where: FAQWhereUniqueInput
+  }
+
+  /**
+   * FAQ deleteMany
+   */
+  export type FAQDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which FAQS to delete
+     */
+    where?: FAQWhereInput
+    /**
+     * Limit how many FAQS to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * FAQ without action
+   */
+  export type FAQDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FAQ
+     */
+    select?: FAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FAQ
+     */
+    omit?: FAQOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -11093,7 +13552,8 @@ export namespace Prisma {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     name: 'name',
-    image: 'image'
+    image: 'image',
+    video: 'video'
   };
 
   export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typeof CategoryScalarFieldEnum]
@@ -11110,6 +13570,9 @@ export namespace Prisma {
     startTime: 'startTime',
     endTime: 'endTime',
     participantLimit: 'participantLimit',
+    isGroupEvent: 'isGroupEvent',
+    minTeamSize: 'minTeamSize',
+    maxTeamSize: 'maxTeamSize',
     termsandconditions: 'termsandconditions',
     registrationLink: 'registrationLink',
     createdAt: 'createdAt',
@@ -11117,6 +13580,19 @@ export namespace Prisma {
   };
 
   export type EventScalarFieldEnum = (typeof EventScalarFieldEnum)[keyof typeof EventScalarFieldEnum]
+
+
+  export const GroupRegistrationScalarFieldEnum: {
+    id: 'id',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    eventId: 'eventId',
+    userId: 'userId',
+    groupName: 'groupName',
+    members: 'members'
+  };
+
+  export type GroupRegistrationScalarFieldEnum = (typeof GroupRegistrationScalarFieldEnum)[keyof typeof GroupRegistrationScalarFieldEnum]
 
 
   export const AccommodationBookingScalarFieldEnum: {
@@ -11153,12 +13629,32 @@ export namespace Prisma {
   export type EventSubmissionScalarFieldEnum = (typeof EventSubmissionScalarFieldEnum)[keyof typeof EventSubmissionScalarFieldEnum]
 
 
+  export const FAQScalarFieldEnum: {
+    id: 'id',
+    question: 'question',
+    answer: 'answer',
+    category: 'category',
+    order: 'order',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type FAQScalarFieldEnum = (typeof FAQScalarFieldEnum)[keyof typeof FAQScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
   };
 
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+  export const JsonNullValueInput: {
+    JsonNull: typeof JsonNull
+  };
+
+  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
   export const NullableJsonNullValueInput: {
@@ -11277,6 +13773,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+  /**
    * Reference to a field of type 'Gender'
    */
   export type EnumGenderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Gender'>
@@ -11301,20 +13811,6 @@ export namespace Prisma {
    * Reference to a field of type 'BookingType[]'
    */
   export type ListEnumBookingTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookingType[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'Json'
-   */
-  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-  /**
-   * Reference to a field of type 'QueryMode'
-   */
-  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -11390,6 +13886,7 @@ export namespace Prisma {
     registeredEvents?: EventListRelationFilter
     accommodationBookings?: AccommodationBookingListRelationFilter
     eventSubmissions?: EventSubmissionListRelationFilter
+    groupRegistrations?: GroupRegistrationListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -11416,6 +13913,7 @@ export namespace Prisma {
     registeredEvents?: EventOrderByRelationAggregateInput
     accommodationBookings?: AccommodationBookingOrderByRelationAggregateInput
     eventSubmissions?: EventSubmissionOrderByRelationAggregateInput
+    groupRegistrations?: GroupRegistrationOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -11445,6 +13943,7 @@ export namespace Prisma {
     registeredEvents?: EventListRelationFilter
     accommodationBookings?: AccommodationBookingListRelationFilter
     eventSubmissions?: EventSubmissionListRelationFilter
+    groupRegistrations?: GroupRegistrationListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -11728,6 +14227,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Category"> | Date | string
     name?: StringFilter<"Category"> | string
     image?: StringNullableFilter<"Category"> | string | null
+    video?: StringNullableFilter<"Category"> | string | null
     Event?: EventListRelationFilter
   }
 
@@ -11737,6 +14237,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     name?: SortOrder
     image?: SortOrderInput | SortOrder
+    video?: SortOrderInput | SortOrder
     Event?: EventOrderByRelationAggregateInput
   }
 
@@ -11749,6 +14250,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Category"> | Date | string
     name?: StringFilter<"Category"> | string
     image?: StringNullableFilter<"Category"> | string | null
+    video?: StringNullableFilter<"Category"> | string | null
     Event?: EventListRelationFilter
   }, "id">
 
@@ -11758,6 +14260,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     name?: SortOrder
     image?: SortOrderInput | SortOrder
+    video?: SortOrderInput | SortOrder
     _count?: CategoryCountOrderByAggregateInput
     _max?: CategoryMaxOrderByAggregateInput
     _min?: CategoryMinOrderByAggregateInput
@@ -11772,6 +14275,7 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"Category"> | Date | string
     name?: StringWithAggregatesFilter<"Category"> | string
     image?: StringNullableWithAggregatesFilter<"Category"> | string | null
+    video?: StringNullableWithAggregatesFilter<"Category"> | string | null
   }
 
   export type EventWhereInput = {
@@ -11788,6 +14292,9 @@ export namespace Prisma {
     startTime?: StringFilter<"Event"> | string
     endTime?: StringFilter<"Event"> | string
     participantLimit?: IntFilter<"Event"> | number
+    isGroupEvent?: BoolFilter<"Event"> | boolean
+    minTeamSize?: IntFilter<"Event"> | number
+    maxTeamSize?: IntFilter<"Event"> | number
     termsandconditions?: StringFilter<"Event"> | string
     registrationLink?: StringFilter<"Event"> | string
     createdAt?: DateTimeFilter<"Event"> | Date | string
@@ -11795,6 +14302,7 @@ export namespace Prisma {
     Category?: XOR<CategoryScalarRelationFilter, CategoryWhereInput>
     registeredStudents?: UserListRelationFilter
     submissions?: EventSubmissionListRelationFilter
+    groupRegistrations?: GroupRegistrationListRelationFilter
   }
 
   export type EventOrderByWithRelationInput = {
@@ -11808,6 +14316,9 @@ export namespace Prisma {
     startTime?: SortOrder
     endTime?: SortOrder
     participantLimit?: SortOrder
+    isGroupEvent?: SortOrder
+    minTeamSize?: SortOrder
+    maxTeamSize?: SortOrder
     termsandconditions?: SortOrder
     registrationLink?: SortOrder
     createdAt?: SortOrder
@@ -11815,6 +14326,7 @@ export namespace Prisma {
     Category?: CategoryOrderByWithRelationInput
     registeredStudents?: UserOrderByRelationAggregateInput
     submissions?: EventSubmissionOrderByRelationAggregateInput
+    groupRegistrations?: GroupRegistrationOrderByRelationAggregateInput
   }
 
   export type EventWhereUniqueInput = Prisma.AtLeast<{
@@ -11831,6 +14343,9 @@ export namespace Prisma {
     startTime?: StringFilter<"Event"> | string
     endTime?: StringFilter<"Event"> | string
     participantLimit?: IntFilter<"Event"> | number
+    isGroupEvent?: BoolFilter<"Event"> | boolean
+    minTeamSize?: IntFilter<"Event"> | number
+    maxTeamSize?: IntFilter<"Event"> | number
     termsandconditions?: StringFilter<"Event"> | string
     registrationLink?: StringFilter<"Event"> | string
     createdAt?: DateTimeFilter<"Event"> | Date | string
@@ -11838,6 +14353,7 @@ export namespace Prisma {
     Category?: XOR<CategoryScalarRelationFilter, CategoryWhereInput>
     registeredStudents?: UserListRelationFilter
     submissions?: EventSubmissionListRelationFilter
+    groupRegistrations?: GroupRegistrationListRelationFilter
   }, "id">
 
   export type EventOrderByWithAggregationInput = {
@@ -11851,6 +14367,9 @@ export namespace Prisma {
     startTime?: SortOrder
     endTime?: SortOrder
     participantLimit?: SortOrder
+    isGroupEvent?: SortOrder
+    minTeamSize?: SortOrder
+    maxTeamSize?: SortOrder
     termsandconditions?: SortOrder
     registrationLink?: SortOrder
     createdAt?: SortOrder
@@ -11876,10 +14395,82 @@ export namespace Prisma {
     startTime?: StringWithAggregatesFilter<"Event"> | string
     endTime?: StringWithAggregatesFilter<"Event"> | string
     participantLimit?: IntWithAggregatesFilter<"Event"> | number
+    isGroupEvent?: BoolWithAggregatesFilter<"Event"> | boolean
+    minTeamSize?: IntWithAggregatesFilter<"Event"> | number
+    maxTeamSize?: IntWithAggregatesFilter<"Event"> | number
     termsandconditions?: StringWithAggregatesFilter<"Event"> | string
     registrationLink?: StringWithAggregatesFilter<"Event"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Event"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Event"> | Date | string
+  }
+
+  export type GroupRegistrationWhereInput = {
+    AND?: GroupRegistrationWhereInput | GroupRegistrationWhereInput[]
+    OR?: GroupRegistrationWhereInput[]
+    NOT?: GroupRegistrationWhereInput | GroupRegistrationWhereInput[]
+    id?: StringFilter<"GroupRegistration"> | string
+    createdAt?: DateTimeFilter<"GroupRegistration"> | Date | string
+    updatedAt?: DateTimeFilter<"GroupRegistration"> | Date | string
+    eventId?: StringFilter<"GroupRegistration"> | string
+    userId?: StringFilter<"GroupRegistration"> | string
+    groupName?: StringNullableFilter<"GroupRegistration"> | string | null
+    members?: JsonFilter<"GroupRegistration">
+    event?: XOR<EventScalarRelationFilter, EventWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type GroupRegistrationOrderByWithRelationInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    eventId?: SortOrder
+    userId?: SortOrder
+    groupName?: SortOrderInput | SortOrder
+    members?: SortOrder
+    event?: EventOrderByWithRelationInput
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type GroupRegistrationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId_eventId?: GroupRegistrationUserIdEventIdCompoundUniqueInput
+    AND?: GroupRegistrationWhereInput | GroupRegistrationWhereInput[]
+    OR?: GroupRegistrationWhereInput[]
+    NOT?: GroupRegistrationWhereInput | GroupRegistrationWhereInput[]
+    createdAt?: DateTimeFilter<"GroupRegistration"> | Date | string
+    updatedAt?: DateTimeFilter<"GroupRegistration"> | Date | string
+    eventId?: StringFilter<"GroupRegistration"> | string
+    userId?: StringFilter<"GroupRegistration"> | string
+    groupName?: StringNullableFilter<"GroupRegistration"> | string | null
+    members?: JsonFilter<"GroupRegistration">
+    event?: XOR<EventScalarRelationFilter, EventWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "userId_eventId">
+
+  export type GroupRegistrationOrderByWithAggregationInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    eventId?: SortOrder
+    userId?: SortOrder
+    groupName?: SortOrderInput | SortOrder
+    members?: SortOrder
+    _count?: GroupRegistrationCountOrderByAggregateInput
+    _max?: GroupRegistrationMaxOrderByAggregateInput
+    _min?: GroupRegistrationMinOrderByAggregateInput
+  }
+
+  export type GroupRegistrationScalarWhereWithAggregatesInput = {
+    AND?: GroupRegistrationScalarWhereWithAggregatesInput | GroupRegistrationScalarWhereWithAggregatesInput[]
+    OR?: GroupRegistrationScalarWhereWithAggregatesInput[]
+    NOT?: GroupRegistrationScalarWhereWithAggregatesInput | GroupRegistrationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"GroupRegistration"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"GroupRegistration"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"GroupRegistration"> | Date | string
+    eventId?: StringWithAggregatesFilter<"GroupRegistration"> | string
+    userId?: StringWithAggregatesFilter<"GroupRegistration"> | string
+    groupName?: StringNullableWithAggregatesFilter<"GroupRegistration"> | string | null
+    members?: JsonWithAggregatesFilter<"GroupRegistration">
   }
 
   export type AccommodationBookingWhereInput = {
@@ -12058,6 +14649,70 @@ export namespace Prisma {
     notes?: StringNullableWithAggregatesFilter<"EventSubmission"> | string | null
   }
 
+  export type FAQWhereInput = {
+    AND?: FAQWhereInput | FAQWhereInput[]
+    OR?: FAQWhereInput[]
+    NOT?: FAQWhereInput | FAQWhereInput[]
+    id?: StringFilter<"FAQ"> | string
+    question?: StringFilter<"FAQ"> | string
+    answer?: StringFilter<"FAQ"> | string
+    category?: StringNullableFilter<"FAQ"> | string | null
+    order?: IntFilter<"FAQ"> | number
+    createdAt?: DateTimeFilter<"FAQ"> | Date | string
+    updatedAt?: DateTimeFilter<"FAQ"> | Date | string
+  }
+
+  export type FAQOrderByWithRelationInput = {
+    id?: SortOrder
+    question?: SortOrder
+    answer?: SortOrder
+    category?: SortOrderInput | SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type FAQWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: FAQWhereInput | FAQWhereInput[]
+    OR?: FAQWhereInput[]
+    NOT?: FAQWhereInput | FAQWhereInput[]
+    question?: StringFilter<"FAQ"> | string
+    answer?: StringFilter<"FAQ"> | string
+    category?: StringNullableFilter<"FAQ"> | string | null
+    order?: IntFilter<"FAQ"> | number
+    createdAt?: DateTimeFilter<"FAQ"> | Date | string
+    updatedAt?: DateTimeFilter<"FAQ"> | Date | string
+  }, "id">
+
+  export type FAQOrderByWithAggregationInput = {
+    id?: SortOrder
+    question?: SortOrder
+    answer?: SortOrder
+    category?: SortOrderInput | SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: FAQCountOrderByAggregateInput
+    _avg?: FAQAvgOrderByAggregateInput
+    _max?: FAQMaxOrderByAggregateInput
+    _min?: FAQMinOrderByAggregateInput
+    _sum?: FAQSumOrderByAggregateInput
+  }
+
+  export type FAQScalarWhereWithAggregatesInput = {
+    AND?: FAQScalarWhereWithAggregatesInput | FAQScalarWhereWithAggregatesInput[]
+    OR?: FAQScalarWhereWithAggregatesInput[]
+    NOT?: FAQScalarWhereWithAggregatesInput | FAQScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"FAQ"> | string
+    question?: StringWithAggregatesFilter<"FAQ"> | string
+    answer?: StringWithAggregatesFilter<"FAQ"> | string
+    category?: StringNullableWithAggregatesFilter<"FAQ"> | string | null
+    order?: IntWithAggregatesFilter<"FAQ"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"FAQ"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"FAQ"> | Date | string
+  }
+
   export type UserCreateInput = {
     id: string
     createdAt?: Date | string
@@ -12082,6 +14737,7 @@ export namespace Prisma {
     registeredEvents?: EventCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -12108,6 +14764,7 @@ export namespace Prisma {
     registeredEvents?: EventUncheckedCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingUncheckedCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -12134,6 +14791,7 @@ export namespace Prisma {
     registeredEvents?: EventUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -12160,6 +14818,7 @@ export namespace Prisma {
     registeredEvents?: EventUncheckedUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUncheckedUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -12481,6 +15140,7 @@ export namespace Prisma {
     updatedAt: Date | string
     name: string
     image?: string | null
+    video?: string | null
     Event?: EventCreateNestedManyWithoutCategoryInput
   }
 
@@ -12490,6 +15150,7 @@ export namespace Prisma {
     updatedAt: Date | string
     name: string
     image?: string | null
+    video?: string | null
     Event?: EventUncheckedCreateNestedManyWithoutCategoryInput
   }
 
@@ -12499,6 +15160,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    video?: NullableStringFieldUpdateOperationsInput | string | null
     Event?: EventUpdateManyWithoutCategoryNestedInput
   }
 
@@ -12508,6 +15170,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    video?: NullableStringFieldUpdateOperationsInput | string | null
     Event?: EventUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
@@ -12517,6 +15180,7 @@ export namespace Prisma {
     updatedAt: Date | string
     name: string
     image?: string | null
+    video?: string | null
   }
 
   export type CategoryUpdateManyMutationInput = {
@@ -12525,6 +15189,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    video?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type CategoryUncheckedUpdateManyInput = {
@@ -12533,6 +15198,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    video?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EventCreateInput = {
@@ -12545,6 +15211,9 @@ export namespace Prisma {
     startTime: string
     endTime: string
     participantLimit: number
+    isGroupEvent?: boolean
+    minTeamSize?: number
+    maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
     createdAt?: Date | string
@@ -12552,6 +15221,7 @@ export namespace Prisma {
     Category: CategoryCreateNestedOneWithoutEventInput
     registeredStudents?: UserCreateNestedManyWithoutRegisteredEventsInput
     submissions?: EventSubmissionCreateNestedManyWithoutEventInput
+    groupRegistrations?: GroupRegistrationCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateInput = {
@@ -12565,12 +15235,16 @@ export namespace Prisma {
     startTime: string
     endTime: string
     participantLimit: number
+    isGroupEvent?: boolean
+    minTeamSize?: number
+    maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
     createdAt?: Date | string
     updatedAt: Date | string
     registeredStudents?: UserUncheckedCreateNestedManyWithoutRegisteredEventsInput
     submissions?: EventSubmissionUncheckedCreateNestedManyWithoutEventInput
+    groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventUpdateInput = {
@@ -12583,6 +15257,9 @@ export namespace Prisma {
     startTime?: StringFieldUpdateOperationsInput | string
     endTime?: StringFieldUpdateOperationsInput | string
     participantLimit?: IntFieldUpdateOperationsInput | number
+    isGroupEvent?: BoolFieldUpdateOperationsInput | boolean
+    minTeamSize?: IntFieldUpdateOperationsInput | number
+    maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -12590,6 +15267,7 @@ export namespace Prisma {
     Category?: CategoryUpdateOneRequiredWithoutEventNestedInput
     registeredStudents?: UserUpdateManyWithoutRegisteredEventsNestedInput
     submissions?: EventSubmissionUpdateManyWithoutEventNestedInput
+    groupRegistrations?: GroupRegistrationUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateInput = {
@@ -12603,12 +15281,16 @@ export namespace Prisma {
     startTime?: StringFieldUpdateOperationsInput | string
     endTime?: StringFieldUpdateOperationsInput | string
     participantLimit?: IntFieldUpdateOperationsInput | number
+    isGroupEvent?: BoolFieldUpdateOperationsInput | boolean
+    minTeamSize?: IntFieldUpdateOperationsInput | number
+    maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     registeredStudents?: UserUncheckedUpdateManyWithoutRegisteredEventsNestedInput
     submissions?: EventSubmissionUncheckedUpdateManyWithoutEventNestedInput
+    groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type EventCreateManyInput = {
@@ -12622,6 +15304,9 @@ export namespace Prisma {
     startTime: string
     endTime: string
     participantLimit: number
+    isGroupEvent?: boolean
+    minTeamSize?: number
+    maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
     createdAt?: Date | string
@@ -12638,6 +15323,9 @@ export namespace Prisma {
     startTime?: StringFieldUpdateOperationsInput | string
     endTime?: StringFieldUpdateOperationsInput | string
     participantLimit?: IntFieldUpdateOperationsInput | number
+    isGroupEvent?: BoolFieldUpdateOperationsInput | boolean
+    minTeamSize?: IntFieldUpdateOperationsInput | number
+    maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -12655,10 +15343,81 @@ export namespace Prisma {
     startTime?: StringFieldUpdateOperationsInput | string
     endTime?: StringFieldUpdateOperationsInput | string
     participantLimit?: IntFieldUpdateOperationsInput | number
+    isGroupEvent?: BoolFieldUpdateOperationsInput | boolean
+    minTeamSize?: IntFieldUpdateOperationsInput | number
+    maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GroupRegistrationCreateInput = {
+    id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    groupName?: string | null
+    members: JsonNullValueInput | InputJsonValue
+    event: EventCreateNestedOneWithoutGroupRegistrationsInput
+    user: UserCreateNestedOneWithoutGroupRegistrationsInput
+  }
+
+  export type GroupRegistrationUncheckedCreateInput = {
+    id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    eventId: string
+    userId: string
+    groupName?: string | null
+    members: JsonNullValueInput | InputJsonValue
+  }
+
+  export type GroupRegistrationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    members?: JsonNullValueInput | InputJsonValue
+    event?: EventUpdateOneRequiredWithoutGroupRegistrationsNestedInput
+    user?: UserUpdateOneRequiredWithoutGroupRegistrationsNestedInput
+  }
+
+  export type GroupRegistrationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    members?: JsonNullValueInput | InputJsonValue
+  }
+
+  export type GroupRegistrationCreateManyInput = {
+    id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    eventId: string
+    userId: string
+    groupName?: string | null
+    members: JsonNullValueInput | InputJsonValue
+  }
+
+  export type GroupRegistrationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    members?: JsonNullValueInput | InputJsonValue
+  }
+
+  export type GroupRegistrationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    members?: JsonNullValueInput | InputJsonValue
   }
 
   export type AccommodationBookingCreateInput = {
@@ -12854,6 +15613,76 @@ export namespace Prisma {
     notes?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type FAQCreateInput = {
+    id?: string
+    question: string
+    answer: string
+    category?: string | null
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FAQUncheckedCreateInput = {
+    id?: string
+    question: string
+    answer: string
+    category?: string | null
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FAQUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    question?: StringFieldUpdateOperationsInput | string
+    answer?: StringFieldUpdateOperationsInput | string
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FAQUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    question?: StringFieldUpdateOperationsInput | string
+    answer?: StringFieldUpdateOperationsInput | string
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FAQCreateManyInput = {
+    id?: string
+    question: string
+    answer: string
+    category?: string | null
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FAQUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    question?: StringFieldUpdateOperationsInput | string
+    answer?: StringFieldUpdateOperationsInput | string
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FAQUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    question?: StringFieldUpdateOperationsInput | string
+    answer?: StringFieldUpdateOperationsInput | string
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -12955,6 +15784,12 @@ export namespace Prisma {
     none?: EventSubmissionWhereInput
   }
 
+  export type GroupRegistrationListRelationFilter = {
+    every?: GroupRegistrationWhereInput
+    some?: GroupRegistrationWhereInput
+    none?: GroupRegistrationWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -12977,6 +15812,10 @@ export namespace Prisma {
   }
 
   export type EventSubmissionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type GroupRegistrationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -13289,6 +16128,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     name?: SortOrder
     image?: SortOrder
+    video?: SortOrder
   }
 
   export type CategoryMaxOrderByAggregateInput = {
@@ -13297,6 +16137,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     name?: SortOrder
     image?: SortOrder
+    video?: SortOrder
   }
 
   export type CategoryMinOrderByAggregateInput = {
@@ -13305,6 +16146,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     name?: SortOrder
     image?: SortOrder
+    video?: SortOrder
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -13344,6 +16186,9 @@ export namespace Prisma {
     startTime?: SortOrder
     endTime?: SortOrder
     participantLimit?: SortOrder
+    isGroupEvent?: SortOrder
+    minTeamSize?: SortOrder
+    maxTeamSize?: SortOrder
     termsandconditions?: SortOrder
     registrationLink?: SortOrder
     createdAt?: SortOrder
@@ -13352,6 +16197,8 @@ export namespace Prisma {
 
   export type EventAvgOrderByAggregateInput = {
     participantLimit?: SortOrder
+    minTeamSize?: SortOrder
+    maxTeamSize?: SortOrder
   }
 
   export type EventMaxOrderByAggregateInput = {
@@ -13365,6 +16212,9 @@ export namespace Prisma {
     startTime?: SortOrder
     endTime?: SortOrder
     participantLimit?: SortOrder
+    isGroupEvent?: SortOrder
+    minTeamSize?: SortOrder
+    maxTeamSize?: SortOrder
     termsandconditions?: SortOrder
     registrationLink?: SortOrder
     createdAt?: SortOrder
@@ -13382,6 +16232,9 @@ export namespace Prisma {
     startTime?: SortOrder
     endTime?: SortOrder
     participantLimit?: SortOrder
+    isGroupEvent?: SortOrder
+    minTeamSize?: SortOrder
+    maxTeamSize?: SortOrder
     termsandconditions?: SortOrder
     registrationLink?: SortOrder
     createdAt?: SortOrder
@@ -13390,6 +16243,8 @@ export namespace Prisma {
 
   export type EventSumOrderByAggregateInput = {
     participantLimit?: SortOrder
+    minTeamSize?: SortOrder
+    maxTeamSize?: SortOrder
   }
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -13406,6 +16261,93 @@ export namespace Prisma {
     _sum?: NestedIntFilter<$PrismaModel>
     _min?: NestedIntFilter<$PrismaModel>
     _max?: NestedIntFilter<$PrismaModel>
+  }
+  export type JsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type EventScalarRelationFilter = {
+    is?: EventWhereInput
+    isNot?: EventWhereInput
+  }
+
+  export type GroupRegistrationUserIdEventIdCompoundUniqueInput = {
+    userId: string
+    eventId: string
+  }
+
+  export type GroupRegistrationCountOrderByAggregateInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    eventId?: SortOrder
+    userId?: SortOrder
+    groupName?: SortOrder
+    members?: SortOrder
+  }
+
+  export type GroupRegistrationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    eventId?: SortOrder
+    userId?: SortOrder
+    groupName?: SortOrder
+  }
+
+  export type GroupRegistrationMinOrderByAggregateInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    eventId?: SortOrder
+    userId?: SortOrder
+    groupName?: SortOrder
+  }
+  export type JsonWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedJsonFilter<$PrismaModel>
+    _max?: NestedJsonFilter<$PrismaModel>
   }
 
   export type EnumGenderFilter<$PrismaModel = never> = {
@@ -13597,11 +16539,6 @@ export namespace Prisma {
     _max?: NestedEnumBookingStatusFilter<$PrismaModel>
   }
 
-  export type EventScalarRelationFilter = {
-    is?: EventWhereInput
-    isNot?: EventWhereInput
-  }
-
   export type EventSubmissionUserIdEventIdCompoundUniqueInput = {
     userId: string
     eventId: string
@@ -13635,6 +16572,44 @@ export namespace Prisma {
     eventId?: SortOrder
     submissionLink?: SortOrder
     notes?: SortOrder
+  }
+
+  export type FAQCountOrderByAggregateInput = {
+    id?: SortOrder
+    question?: SortOrder
+    answer?: SortOrder
+    category?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type FAQAvgOrderByAggregateInput = {
+    order?: SortOrder
+  }
+
+  export type FAQMaxOrderByAggregateInput = {
+    id?: SortOrder
+    question?: SortOrder
+    answer?: SortOrder
+    category?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type FAQMinOrderByAggregateInput = {
+    id?: SortOrder
+    question?: SortOrder
+    answer?: SortOrder
+    category?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type FAQSumOrderByAggregateInput = {
+    order?: SortOrder
   }
 
   export type AccountCreateNestedManyWithoutUserInput = {
@@ -13671,6 +16646,13 @@ export namespace Prisma {
     connect?: EventSubmissionWhereUniqueInput | EventSubmissionWhereUniqueInput[]
   }
 
+  export type GroupRegistrationCreateNestedManyWithoutUserInput = {
+    create?: XOR<GroupRegistrationCreateWithoutUserInput, GroupRegistrationUncheckedCreateWithoutUserInput> | GroupRegistrationCreateWithoutUserInput[] | GroupRegistrationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: GroupRegistrationCreateOrConnectWithoutUserInput | GroupRegistrationCreateOrConnectWithoutUserInput[]
+    createMany?: GroupRegistrationCreateManyUserInputEnvelope
+    connect?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+  }
+
   export type AccountUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -13703,6 +16685,13 @@ export namespace Prisma {
     connectOrCreate?: EventSubmissionCreateOrConnectWithoutUserInput | EventSubmissionCreateOrConnectWithoutUserInput[]
     createMany?: EventSubmissionCreateManyUserInputEnvelope
     connect?: EventSubmissionWhereUniqueInput | EventSubmissionWhereUniqueInput[]
+  }
+
+  export type GroupRegistrationUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<GroupRegistrationCreateWithoutUserInput, GroupRegistrationUncheckedCreateWithoutUserInput> | GroupRegistrationCreateWithoutUserInput[] | GroupRegistrationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: GroupRegistrationCreateOrConnectWithoutUserInput | GroupRegistrationCreateOrConnectWithoutUserInput[]
+    createMany?: GroupRegistrationCreateManyUserInputEnvelope
+    connect?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -13806,6 +16795,20 @@ export namespace Prisma {
     deleteMany?: EventSubmissionScalarWhereInput | EventSubmissionScalarWhereInput[]
   }
 
+  export type GroupRegistrationUpdateManyWithoutUserNestedInput = {
+    create?: XOR<GroupRegistrationCreateWithoutUserInput, GroupRegistrationUncheckedCreateWithoutUserInput> | GroupRegistrationCreateWithoutUserInput[] | GroupRegistrationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: GroupRegistrationCreateOrConnectWithoutUserInput | GroupRegistrationCreateOrConnectWithoutUserInput[]
+    upsert?: GroupRegistrationUpsertWithWhereUniqueWithoutUserInput | GroupRegistrationUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: GroupRegistrationCreateManyUserInputEnvelope
+    set?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+    disconnect?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+    delete?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+    connect?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+    update?: GroupRegistrationUpdateWithWhereUniqueWithoutUserInput | GroupRegistrationUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: GroupRegistrationUpdateManyWithWhereWithoutUserInput | GroupRegistrationUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: GroupRegistrationScalarWhereInput | GroupRegistrationScalarWhereInput[]
+  }
+
   export type AccountUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -13873,6 +16876,20 @@ export namespace Prisma {
     update?: EventSubmissionUpdateWithWhereUniqueWithoutUserInput | EventSubmissionUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: EventSubmissionUpdateManyWithWhereWithoutUserInput | EventSubmissionUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: EventSubmissionScalarWhereInput | EventSubmissionScalarWhereInput[]
+  }
+
+  export type GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<GroupRegistrationCreateWithoutUserInput, GroupRegistrationUncheckedCreateWithoutUserInput> | GroupRegistrationCreateWithoutUserInput[] | GroupRegistrationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: GroupRegistrationCreateOrConnectWithoutUserInput | GroupRegistrationCreateOrConnectWithoutUserInput[]
+    upsert?: GroupRegistrationUpsertWithWhereUniqueWithoutUserInput | GroupRegistrationUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: GroupRegistrationCreateManyUserInputEnvelope
+    set?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+    disconnect?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+    delete?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+    connect?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+    update?: GroupRegistrationUpdateWithWhereUniqueWithoutUserInput | GroupRegistrationUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: GroupRegistrationUpdateManyWithWhereWithoutUserInput | GroupRegistrationUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: GroupRegistrationScalarWhereInput | GroupRegistrationScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutSessionsInput = {
@@ -13968,6 +16985,13 @@ export namespace Prisma {
     connect?: EventSubmissionWhereUniqueInput | EventSubmissionWhereUniqueInput[]
   }
 
+  export type GroupRegistrationCreateNestedManyWithoutEventInput = {
+    create?: XOR<GroupRegistrationCreateWithoutEventInput, GroupRegistrationUncheckedCreateWithoutEventInput> | GroupRegistrationCreateWithoutEventInput[] | GroupRegistrationUncheckedCreateWithoutEventInput[]
+    connectOrCreate?: GroupRegistrationCreateOrConnectWithoutEventInput | GroupRegistrationCreateOrConnectWithoutEventInput[]
+    createMany?: GroupRegistrationCreateManyEventInputEnvelope
+    connect?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+  }
+
   export type UserUncheckedCreateNestedManyWithoutRegisteredEventsInput = {
     create?: XOR<UserCreateWithoutRegisteredEventsInput, UserUncheckedCreateWithoutRegisteredEventsInput> | UserCreateWithoutRegisteredEventsInput[] | UserUncheckedCreateWithoutRegisteredEventsInput[]
     connectOrCreate?: UserCreateOrConnectWithoutRegisteredEventsInput | UserCreateOrConnectWithoutRegisteredEventsInput[]
@@ -13979,6 +17003,13 @@ export namespace Prisma {
     connectOrCreate?: EventSubmissionCreateOrConnectWithoutEventInput | EventSubmissionCreateOrConnectWithoutEventInput[]
     createMany?: EventSubmissionCreateManyEventInputEnvelope
     connect?: EventSubmissionWhereUniqueInput | EventSubmissionWhereUniqueInput[]
+  }
+
+  export type GroupRegistrationUncheckedCreateNestedManyWithoutEventInput = {
+    create?: XOR<GroupRegistrationCreateWithoutEventInput, GroupRegistrationUncheckedCreateWithoutEventInput> | GroupRegistrationCreateWithoutEventInput[] | GroupRegistrationUncheckedCreateWithoutEventInput[]
+    connectOrCreate?: GroupRegistrationCreateOrConnectWithoutEventInput | GroupRegistrationCreateOrConnectWithoutEventInput[]
+    createMany?: GroupRegistrationCreateManyEventInputEnvelope
+    connect?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -14024,6 +17055,20 @@ export namespace Prisma {
     deleteMany?: EventSubmissionScalarWhereInput | EventSubmissionScalarWhereInput[]
   }
 
+  export type GroupRegistrationUpdateManyWithoutEventNestedInput = {
+    create?: XOR<GroupRegistrationCreateWithoutEventInput, GroupRegistrationUncheckedCreateWithoutEventInput> | GroupRegistrationCreateWithoutEventInput[] | GroupRegistrationUncheckedCreateWithoutEventInput[]
+    connectOrCreate?: GroupRegistrationCreateOrConnectWithoutEventInput | GroupRegistrationCreateOrConnectWithoutEventInput[]
+    upsert?: GroupRegistrationUpsertWithWhereUniqueWithoutEventInput | GroupRegistrationUpsertWithWhereUniqueWithoutEventInput[]
+    createMany?: GroupRegistrationCreateManyEventInputEnvelope
+    set?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+    disconnect?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+    delete?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+    connect?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+    update?: GroupRegistrationUpdateWithWhereUniqueWithoutEventInput | GroupRegistrationUpdateWithWhereUniqueWithoutEventInput[]
+    updateMany?: GroupRegistrationUpdateManyWithWhereWithoutEventInput | GroupRegistrationUpdateManyWithWhereWithoutEventInput[]
+    deleteMany?: GroupRegistrationScalarWhereInput | GroupRegistrationScalarWhereInput[]
+  }
+
   export type UserUncheckedUpdateManyWithoutRegisteredEventsNestedInput = {
     create?: XOR<UserCreateWithoutRegisteredEventsInput, UserUncheckedCreateWithoutRegisteredEventsInput> | UserCreateWithoutRegisteredEventsInput[] | UserUncheckedCreateWithoutRegisteredEventsInput[]
     connectOrCreate?: UserCreateOrConnectWithoutRegisteredEventsInput | UserCreateOrConnectWithoutRegisteredEventsInput[]
@@ -14049,6 +17094,48 @@ export namespace Prisma {
     update?: EventSubmissionUpdateWithWhereUniqueWithoutEventInput | EventSubmissionUpdateWithWhereUniqueWithoutEventInput[]
     updateMany?: EventSubmissionUpdateManyWithWhereWithoutEventInput | EventSubmissionUpdateManyWithWhereWithoutEventInput[]
     deleteMany?: EventSubmissionScalarWhereInput | EventSubmissionScalarWhereInput[]
+  }
+
+  export type GroupRegistrationUncheckedUpdateManyWithoutEventNestedInput = {
+    create?: XOR<GroupRegistrationCreateWithoutEventInput, GroupRegistrationUncheckedCreateWithoutEventInput> | GroupRegistrationCreateWithoutEventInput[] | GroupRegistrationUncheckedCreateWithoutEventInput[]
+    connectOrCreate?: GroupRegistrationCreateOrConnectWithoutEventInput | GroupRegistrationCreateOrConnectWithoutEventInput[]
+    upsert?: GroupRegistrationUpsertWithWhereUniqueWithoutEventInput | GroupRegistrationUpsertWithWhereUniqueWithoutEventInput[]
+    createMany?: GroupRegistrationCreateManyEventInputEnvelope
+    set?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+    disconnect?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+    delete?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+    connect?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+    update?: GroupRegistrationUpdateWithWhereUniqueWithoutEventInput | GroupRegistrationUpdateWithWhereUniqueWithoutEventInput[]
+    updateMany?: GroupRegistrationUpdateManyWithWhereWithoutEventInput | GroupRegistrationUpdateManyWithWhereWithoutEventInput[]
+    deleteMany?: GroupRegistrationScalarWhereInput | GroupRegistrationScalarWhereInput[]
+  }
+
+  export type EventCreateNestedOneWithoutGroupRegistrationsInput = {
+    create?: XOR<EventCreateWithoutGroupRegistrationsInput, EventUncheckedCreateWithoutGroupRegistrationsInput>
+    connectOrCreate?: EventCreateOrConnectWithoutGroupRegistrationsInput
+    connect?: EventWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutGroupRegistrationsInput = {
+    create?: XOR<UserCreateWithoutGroupRegistrationsInput, UserUncheckedCreateWithoutGroupRegistrationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutGroupRegistrationsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type EventUpdateOneRequiredWithoutGroupRegistrationsNestedInput = {
+    create?: XOR<EventCreateWithoutGroupRegistrationsInput, EventUncheckedCreateWithoutGroupRegistrationsInput>
+    connectOrCreate?: EventCreateOrConnectWithoutGroupRegistrationsInput
+    upsert?: EventUpsertWithoutGroupRegistrationsInput
+    connect?: EventWhereUniqueInput
+    update?: XOR<XOR<EventUpdateToOneWithWhereWithoutGroupRegistrationsInput, EventUpdateWithoutGroupRegistrationsInput>, EventUncheckedUpdateWithoutGroupRegistrationsInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutGroupRegistrationsNestedInput = {
+    create?: XOR<UserCreateWithoutGroupRegistrationsInput, UserUncheckedCreateWithoutGroupRegistrationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutGroupRegistrationsInput
+    upsert?: UserUpsertWithoutGroupRegistrationsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutGroupRegistrationsInput, UserUpdateWithoutGroupRegistrationsInput>, UserUncheckedUpdateWithoutGroupRegistrationsInput>
   }
 
   export type UserCreateNestedOneWithoutAccommodationBookingsInput = {
@@ -14347,6 +17434,29 @@ export namespace Prisma {
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
   }
+  export type NestedJsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type NestedEnumGenderFilter<$PrismaModel = never> = {
     equals?: $Enums.Gender | EnumGenderFieldRefInput<$PrismaModel>
@@ -14529,12 +17639,16 @@ export namespace Prisma {
     startTime: string
     endTime: string
     participantLimit: number
+    isGroupEvent?: boolean
+    minTeamSize?: number
+    maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
     createdAt?: Date | string
     updatedAt: Date | string
     Category: CategoryCreateNestedOneWithoutEventInput
     submissions?: EventSubmissionCreateNestedManyWithoutEventInput
+    groupRegistrations?: GroupRegistrationCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutRegisteredStudentsInput = {
@@ -14548,11 +17662,15 @@ export namespace Prisma {
     startTime: string
     endTime: string
     participantLimit: number
+    isGroupEvent?: boolean
+    minTeamSize?: number
+    maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
     createdAt?: Date | string
     updatedAt: Date | string
     submissions?: EventSubmissionUncheckedCreateNestedManyWithoutEventInput
+    groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutRegisteredStudentsInput = {
@@ -14629,6 +17747,34 @@ export namespace Prisma {
 
   export type EventSubmissionCreateManyUserInputEnvelope = {
     data: EventSubmissionCreateManyUserInput | EventSubmissionCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type GroupRegistrationCreateWithoutUserInput = {
+    id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    groupName?: string | null
+    members: JsonNullValueInput | InputJsonValue
+    event: EventCreateNestedOneWithoutGroupRegistrationsInput
+  }
+
+  export type GroupRegistrationUncheckedCreateWithoutUserInput = {
+    id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    eventId: string
+    groupName?: string | null
+    members: JsonNullValueInput | InputJsonValue
+  }
+
+  export type GroupRegistrationCreateOrConnectWithoutUserInput = {
+    where: GroupRegistrationWhereUniqueInput
+    create: XOR<GroupRegistrationCreateWithoutUserInput, GroupRegistrationUncheckedCreateWithoutUserInput>
+  }
+
+  export type GroupRegistrationCreateManyUserInputEnvelope = {
+    data: GroupRegistrationCreateManyUserInput | GroupRegistrationCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -14727,6 +17873,9 @@ export namespace Prisma {
     startTime?: StringFilter<"Event"> | string
     endTime?: StringFilter<"Event"> | string
     participantLimit?: IntFilter<"Event"> | number
+    isGroupEvent?: BoolFilter<"Event"> | boolean
+    minTeamSize?: IntFilter<"Event"> | number
+    maxTeamSize?: IntFilter<"Event"> | number
     termsandconditions?: StringFilter<"Event"> | string
     registrationLink?: StringFilter<"Event"> | string
     createdAt?: DateTimeFilter<"Event"> | Date | string
@@ -14799,6 +17948,35 @@ export namespace Prisma {
     notes?: StringNullableFilter<"EventSubmission"> | string | null
   }
 
+  export type GroupRegistrationUpsertWithWhereUniqueWithoutUserInput = {
+    where: GroupRegistrationWhereUniqueInput
+    update: XOR<GroupRegistrationUpdateWithoutUserInput, GroupRegistrationUncheckedUpdateWithoutUserInput>
+    create: XOR<GroupRegistrationCreateWithoutUserInput, GroupRegistrationUncheckedCreateWithoutUserInput>
+  }
+
+  export type GroupRegistrationUpdateWithWhereUniqueWithoutUserInput = {
+    where: GroupRegistrationWhereUniqueInput
+    data: XOR<GroupRegistrationUpdateWithoutUserInput, GroupRegistrationUncheckedUpdateWithoutUserInput>
+  }
+
+  export type GroupRegistrationUpdateManyWithWhereWithoutUserInput = {
+    where: GroupRegistrationScalarWhereInput
+    data: XOR<GroupRegistrationUpdateManyMutationInput, GroupRegistrationUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type GroupRegistrationScalarWhereInput = {
+    AND?: GroupRegistrationScalarWhereInput | GroupRegistrationScalarWhereInput[]
+    OR?: GroupRegistrationScalarWhereInput[]
+    NOT?: GroupRegistrationScalarWhereInput | GroupRegistrationScalarWhereInput[]
+    id?: StringFilter<"GroupRegistration"> | string
+    createdAt?: DateTimeFilter<"GroupRegistration"> | Date | string
+    updatedAt?: DateTimeFilter<"GroupRegistration"> | Date | string
+    eventId?: StringFilter<"GroupRegistration"> | string
+    userId?: StringFilter<"GroupRegistration"> | string
+    groupName?: StringNullableFilter<"GroupRegistration"> | string | null
+    members?: JsonFilter<"GroupRegistration">
+  }
+
   export type UserCreateWithoutSessionsInput = {
     id: string
     createdAt?: Date | string
@@ -14822,6 +18000,7 @@ export namespace Prisma {
     registeredEvents?: EventCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -14847,6 +18026,7 @@ export namespace Prisma {
     registeredEvents?: EventUncheckedCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingUncheckedCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -14888,6 +18068,7 @@ export namespace Prisma {
     registeredEvents?: EventUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -14913,6 +18094,7 @@ export namespace Prisma {
     registeredEvents?: EventUncheckedUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUncheckedUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutAccountsInput = {
@@ -14938,6 +18120,7 @@ export namespace Prisma {
     registeredEvents?: EventCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -14963,6 +18146,7 @@ export namespace Prisma {
     registeredEvents?: EventUncheckedCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingUncheckedCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -15004,6 +18188,7 @@ export namespace Prisma {
     registeredEvents?: EventUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -15029,6 +18214,7 @@ export namespace Prisma {
     registeredEvents?: EventUncheckedUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUncheckedUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type EventCreateWithoutCategoryInput = {
@@ -15041,12 +18227,16 @@ export namespace Prisma {
     startTime: string
     endTime: string
     participantLimit: number
+    isGroupEvent?: boolean
+    minTeamSize?: number
+    maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
     createdAt?: Date | string
     updatedAt: Date | string
     registeredStudents?: UserCreateNestedManyWithoutRegisteredEventsInput
     submissions?: EventSubmissionCreateNestedManyWithoutEventInput
+    groupRegistrations?: GroupRegistrationCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutCategoryInput = {
@@ -15059,12 +18249,16 @@ export namespace Prisma {
     startTime: string
     endTime: string
     participantLimit: number
+    isGroupEvent?: boolean
+    minTeamSize?: number
+    maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
     createdAt?: Date | string
     updatedAt: Date | string
     registeredStudents?: UserUncheckedCreateNestedManyWithoutRegisteredEventsInput
     submissions?: EventSubmissionUncheckedCreateNestedManyWithoutEventInput
+    groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutCategoryInput = {
@@ -15099,6 +18293,7 @@ export namespace Prisma {
     updatedAt: Date | string
     name: string
     image?: string | null
+    video?: string | null
   }
 
   export type CategoryUncheckedCreateWithoutEventInput = {
@@ -15107,6 +18302,7 @@ export namespace Prisma {
     updatedAt: Date | string
     name: string
     image?: string | null
+    video?: string | null
   }
 
   export type CategoryCreateOrConnectWithoutEventInput = {
@@ -15137,6 +18333,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutUserInput
     accommodationBookings?: AccommodationBookingCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutRegisteredEventsInput = {
@@ -15162,6 +18359,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     accommodationBookings?: AccommodationBookingUncheckedCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutRegisteredEventsInput = {
@@ -15197,6 +18395,34 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type GroupRegistrationCreateWithoutEventInput = {
+    id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    groupName?: string | null
+    members: JsonNullValueInput | InputJsonValue
+    user: UserCreateNestedOneWithoutGroupRegistrationsInput
+  }
+
+  export type GroupRegistrationUncheckedCreateWithoutEventInput = {
+    id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    userId: string
+    groupName?: string | null
+    members: JsonNullValueInput | InputJsonValue
+  }
+
+  export type GroupRegistrationCreateOrConnectWithoutEventInput = {
+    where: GroupRegistrationWhereUniqueInput
+    create: XOR<GroupRegistrationCreateWithoutEventInput, GroupRegistrationUncheckedCreateWithoutEventInput>
+  }
+
+  export type GroupRegistrationCreateManyEventInputEnvelope = {
+    data: GroupRegistrationCreateManyEventInput | GroupRegistrationCreateManyEventInput[]
+    skipDuplicates?: boolean
+  }
+
   export type CategoryUpsertWithoutEventInput = {
     update: XOR<CategoryUpdateWithoutEventInput, CategoryUncheckedUpdateWithoutEventInput>
     create: XOR<CategoryCreateWithoutEventInput, CategoryUncheckedCreateWithoutEventInput>
@@ -15214,6 +18440,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    video?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type CategoryUncheckedUpdateWithoutEventInput = {
@@ -15222,6 +18449,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    video?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type UserUpsertWithWhereUniqueWithoutRegisteredEventsInput = {
@@ -15280,6 +18508,246 @@ export namespace Prisma {
     data: XOR<EventSubmissionUpdateManyMutationInput, EventSubmissionUncheckedUpdateManyWithoutEventInput>
   }
 
+  export type GroupRegistrationUpsertWithWhereUniqueWithoutEventInput = {
+    where: GroupRegistrationWhereUniqueInput
+    update: XOR<GroupRegistrationUpdateWithoutEventInput, GroupRegistrationUncheckedUpdateWithoutEventInput>
+    create: XOR<GroupRegistrationCreateWithoutEventInput, GroupRegistrationUncheckedCreateWithoutEventInput>
+  }
+
+  export type GroupRegistrationUpdateWithWhereUniqueWithoutEventInput = {
+    where: GroupRegistrationWhereUniqueInput
+    data: XOR<GroupRegistrationUpdateWithoutEventInput, GroupRegistrationUncheckedUpdateWithoutEventInput>
+  }
+
+  export type GroupRegistrationUpdateManyWithWhereWithoutEventInput = {
+    where: GroupRegistrationScalarWhereInput
+    data: XOR<GroupRegistrationUpdateManyMutationInput, GroupRegistrationUncheckedUpdateManyWithoutEventInput>
+  }
+
+  export type EventCreateWithoutGroupRegistrationsInput = {
+    id: string
+    name: string
+    description: string
+    date: Date | string
+    image: string
+    venue: string
+    startTime: string
+    endTime: string
+    participantLimit: number
+    isGroupEvent?: boolean
+    minTeamSize?: number
+    maxTeamSize?: number
+    termsandconditions: string
+    registrationLink: string
+    createdAt?: Date | string
+    updatedAt: Date | string
+    Category: CategoryCreateNestedOneWithoutEventInput
+    registeredStudents?: UserCreateNestedManyWithoutRegisteredEventsInput
+    submissions?: EventSubmissionCreateNestedManyWithoutEventInput
+  }
+
+  export type EventUncheckedCreateWithoutGroupRegistrationsInput = {
+    id: string
+    categoryId: string
+    name: string
+    description: string
+    date: Date | string
+    image: string
+    venue: string
+    startTime: string
+    endTime: string
+    participantLimit: number
+    isGroupEvent?: boolean
+    minTeamSize?: number
+    maxTeamSize?: number
+    termsandconditions: string
+    registrationLink: string
+    createdAt?: Date | string
+    updatedAt: Date | string
+    registeredStudents?: UserUncheckedCreateNestedManyWithoutRegisteredEventsInput
+    submissions?: EventSubmissionUncheckedCreateNestedManyWithoutEventInput
+  }
+
+  export type EventCreateOrConnectWithoutGroupRegistrationsInput = {
+    where: EventWhereUniqueInput
+    create: XOR<EventCreateWithoutGroupRegistrationsInput, EventUncheckedCreateWithoutGroupRegistrationsInput>
+  }
+
+  export type UserCreateWithoutGroupRegistrationsInput = {
+    id: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    email: string
+    emailVerified?: boolean
+    name?: string | null
+    image?: string | null
+    collage?: string | null
+    collageId?: string | null
+    branch?: string | null
+    transactionId?: string | null
+    paymentProof?: string | null
+    year?: number | null
+    isApproved?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    phone?: string | null
+    password?: string | null
+    role?: $Enums.Role
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    registeredEvents?: EventCreateNestedManyWithoutRegisteredStudentsInput
+    accommodationBookings?: AccommodationBookingCreateNestedManyWithoutUserInput
+    eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutGroupRegistrationsInput = {
+    id: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    email: string
+    emailVerified?: boolean
+    name?: string | null
+    image?: string | null
+    collage?: string | null
+    collageId?: string | null
+    branch?: string | null
+    transactionId?: string | null
+    paymentProof?: string | null
+    year?: number | null
+    isApproved?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    phone?: string | null
+    password?: string | null
+    role?: $Enums.Role
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    registeredEvents?: EventUncheckedCreateNestedManyWithoutRegisteredStudentsInput
+    accommodationBookings?: AccommodationBookingUncheckedCreateNestedManyWithoutUserInput
+    eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutGroupRegistrationsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutGroupRegistrationsInput, UserUncheckedCreateWithoutGroupRegistrationsInput>
+  }
+
+  export type EventUpsertWithoutGroupRegistrationsInput = {
+    update: XOR<EventUpdateWithoutGroupRegistrationsInput, EventUncheckedUpdateWithoutGroupRegistrationsInput>
+    create: XOR<EventCreateWithoutGroupRegistrationsInput, EventUncheckedCreateWithoutGroupRegistrationsInput>
+    where?: EventWhereInput
+  }
+
+  export type EventUpdateToOneWithWhereWithoutGroupRegistrationsInput = {
+    where?: EventWhereInput
+    data: XOR<EventUpdateWithoutGroupRegistrationsInput, EventUncheckedUpdateWithoutGroupRegistrationsInput>
+  }
+
+  export type EventUpdateWithoutGroupRegistrationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    image?: StringFieldUpdateOperationsInput | string
+    venue?: StringFieldUpdateOperationsInput | string
+    startTime?: StringFieldUpdateOperationsInput | string
+    endTime?: StringFieldUpdateOperationsInput | string
+    participantLimit?: IntFieldUpdateOperationsInput | number
+    isGroupEvent?: BoolFieldUpdateOperationsInput | boolean
+    minTeamSize?: IntFieldUpdateOperationsInput | number
+    maxTeamSize?: IntFieldUpdateOperationsInput | number
+    termsandconditions?: StringFieldUpdateOperationsInput | string
+    registrationLink?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    Category?: CategoryUpdateOneRequiredWithoutEventNestedInput
+    registeredStudents?: UserUpdateManyWithoutRegisteredEventsNestedInput
+    submissions?: EventSubmissionUpdateManyWithoutEventNestedInput
+  }
+
+  export type EventUncheckedUpdateWithoutGroupRegistrationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    image?: StringFieldUpdateOperationsInput | string
+    venue?: StringFieldUpdateOperationsInput | string
+    startTime?: StringFieldUpdateOperationsInput | string
+    endTime?: StringFieldUpdateOperationsInput | string
+    participantLimit?: IntFieldUpdateOperationsInput | number
+    isGroupEvent?: BoolFieldUpdateOperationsInput | boolean
+    minTeamSize?: IntFieldUpdateOperationsInput | number
+    maxTeamSize?: IntFieldUpdateOperationsInput | number
+    termsandconditions?: StringFieldUpdateOperationsInput | string
+    registrationLink?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    registeredStudents?: UserUncheckedUpdateManyWithoutRegisteredEventsNestedInput
+    submissions?: EventSubmissionUncheckedUpdateManyWithoutEventNestedInput
+  }
+
+  export type UserUpsertWithoutGroupRegistrationsInput = {
+    update: XOR<UserUpdateWithoutGroupRegistrationsInput, UserUncheckedUpdateWithoutGroupRegistrationsInput>
+    create: XOR<UserCreateWithoutGroupRegistrationsInput, UserUncheckedCreateWithoutGroupRegistrationsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutGroupRegistrationsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutGroupRegistrationsInput, UserUncheckedUpdateWithoutGroupRegistrationsInput>
+  }
+
+  export type UserUpdateWithoutGroupRegistrationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    collage?: NullableStringFieldUpdateOperationsInput | string | null
+    collageId?: NullableStringFieldUpdateOperationsInput | string | null
+    branch?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProof?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    isApproved?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    registeredEvents?: EventUpdateManyWithoutRegisteredStudentsNestedInput
+    accommodationBookings?: AccommodationBookingUpdateManyWithoutUserNestedInput
+    eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutGroupRegistrationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    collage?: NullableStringFieldUpdateOperationsInput | string | null
+    collageId?: NullableStringFieldUpdateOperationsInput | string | null
+    branch?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProof?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    isApproved?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    registeredEvents?: EventUncheckedUpdateManyWithoutRegisteredStudentsNestedInput
+    accommodationBookings?: AccommodationBookingUncheckedUpdateManyWithoutUserNestedInput
+    eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
+  }
+
   export type UserCreateWithoutAccommodationBookingsInput = {
     id: string
     createdAt?: Date | string
@@ -15303,6 +18771,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutUserInput
     registeredEvents?: EventCreateNestedManyWithoutRegisteredStudentsInput
     eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAccommodationBookingsInput = {
@@ -15328,6 +18797,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     registeredEvents?: EventUncheckedCreateNestedManyWithoutRegisteredStudentsInput
     eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAccommodationBookingsInput = {
@@ -15369,6 +18839,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutUserNestedInput
     registeredEvents?: EventUpdateManyWithoutRegisteredStudentsNestedInput
     eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccommodationBookingsInput = {
@@ -15394,6 +18865,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     registeredEvents?: EventUncheckedUpdateManyWithoutRegisteredStudentsNestedInput
     eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutEventSubmissionsInput = {
@@ -15419,6 +18891,7 @@ export namespace Prisma {
     sessions?: SessionCreateNestedManyWithoutUserInput
     registeredEvents?: EventCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutEventSubmissionsInput = {
@@ -15444,6 +18917,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     registeredEvents?: EventUncheckedCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingUncheckedCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutEventSubmissionsInput = {
@@ -15461,12 +18935,16 @@ export namespace Prisma {
     startTime: string
     endTime: string
     participantLimit: number
+    isGroupEvent?: boolean
+    minTeamSize?: number
+    maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
     createdAt?: Date | string
     updatedAt: Date | string
     Category: CategoryCreateNestedOneWithoutEventInput
     registeredStudents?: UserCreateNestedManyWithoutRegisteredEventsInput
+    groupRegistrations?: GroupRegistrationCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutSubmissionsInput = {
@@ -15480,11 +18958,15 @@ export namespace Prisma {
     startTime: string
     endTime: string
     participantLimit: number
+    isGroupEvent?: boolean
+    minTeamSize?: number
+    maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
     createdAt?: Date | string
     updatedAt: Date | string
     registeredStudents?: UserUncheckedCreateNestedManyWithoutRegisteredEventsInput
+    groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutSubmissionsInput = {
@@ -15526,6 +19008,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutUserNestedInput
     registeredEvents?: EventUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutEventSubmissionsInput = {
@@ -15551,6 +19034,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     registeredEvents?: EventUncheckedUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUncheckedUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type EventUpsertWithoutSubmissionsInput = {
@@ -15574,12 +19058,16 @@ export namespace Prisma {
     startTime?: StringFieldUpdateOperationsInput | string
     endTime?: StringFieldUpdateOperationsInput | string
     participantLimit?: IntFieldUpdateOperationsInput | number
+    isGroupEvent?: BoolFieldUpdateOperationsInput | boolean
+    minTeamSize?: IntFieldUpdateOperationsInput | number
+    maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Category?: CategoryUpdateOneRequiredWithoutEventNestedInput
     registeredStudents?: UserUpdateManyWithoutRegisteredEventsNestedInput
+    groupRegistrations?: GroupRegistrationUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutSubmissionsInput = {
@@ -15593,11 +19081,15 @@ export namespace Prisma {
     startTime?: StringFieldUpdateOperationsInput | string
     endTime?: StringFieldUpdateOperationsInput | string
     participantLimit?: IntFieldUpdateOperationsInput | number
+    isGroupEvent?: BoolFieldUpdateOperationsInput | boolean
+    minTeamSize?: IntFieldUpdateOperationsInput | number
+    maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     registeredStudents?: UserUncheckedUpdateManyWithoutRegisteredEventsNestedInput
+    groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type AccountCreateManyUserInput = {
@@ -15649,6 +19141,15 @@ export namespace Prisma {
     eventId: string
     submissionLink: string
     notes?: string | null
+  }
+
+  export type GroupRegistrationCreateManyUserInput = {
+    id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    eventId: string
+    groupName?: string | null
+    members: JsonNullValueInput | InputJsonValue
   }
 
   export type AccountUpdateWithoutUserInput = {
@@ -15736,12 +19237,16 @@ export namespace Prisma {
     startTime?: StringFieldUpdateOperationsInput | string
     endTime?: StringFieldUpdateOperationsInput | string
     participantLimit?: IntFieldUpdateOperationsInput | number
+    isGroupEvent?: BoolFieldUpdateOperationsInput | boolean
+    minTeamSize?: IntFieldUpdateOperationsInput | number
+    maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Category?: CategoryUpdateOneRequiredWithoutEventNestedInput
     submissions?: EventSubmissionUpdateManyWithoutEventNestedInput
+    groupRegistrations?: GroupRegistrationUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutRegisteredStudentsInput = {
@@ -15755,11 +19260,15 @@ export namespace Prisma {
     startTime?: StringFieldUpdateOperationsInput | string
     endTime?: StringFieldUpdateOperationsInput | string
     participantLimit?: IntFieldUpdateOperationsInput | number
+    isGroupEvent?: BoolFieldUpdateOperationsInput | boolean
+    minTeamSize?: IntFieldUpdateOperationsInput | number
+    maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     submissions?: EventSubmissionUncheckedUpdateManyWithoutEventNestedInput
+    groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateManyWithoutRegisteredStudentsInput = {
@@ -15773,6 +19282,9 @@ export namespace Prisma {
     startTime?: StringFieldUpdateOperationsInput | string
     endTime?: StringFieldUpdateOperationsInput | string
     participantLimit?: IntFieldUpdateOperationsInput | number
+    isGroupEvent?: BoolFieldUpdateOperationsInput | boolean
+    minTeamSize?: IntFieldUpdateOperationsInput | number
+    maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15857,6 +19369,33 @@ export namespace Prisma {
     notes?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type GroupRegistrationUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    members?: JsonNullValueInput | InputJsonValue
+    event?: EventUpdateOneRequiredWithoutGroupRegistrationsNestedInput
+  }
+
+  export type GroupRegistrationUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    members?: JsonNullValueInput | InputJsonValue
+  }
+
+  export type GroupRegistrationUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    members?: JsonNullValueInput | InputJsonValue
+  }
+
   export type EventCreateManyCategoryInput = {
     id: string
     name: string
@@ -15867,6 +19406,9 @@ export namespace Prisma {
     startTime: string
     endTime: string
     participantLimit: number
+    isGroupEvent?: boolean
+    minTeamSize?: number
+    maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
     createdAt?: Date | string
@@ -15883,12 +19425,16 @@ export namespace Prisma {
     startTime?: StringFieldUpdateOperationsInput | string
     endTime?: StringFieldUpdateOperationsInput | string
     participantLimit?: IntFieldUpdateOperationsInput | number
+    isGroupEvent?: BoolFieldUpdateOperationsInput | boolean
+    minTeamSize?: IntFieldUpdateOperationsInput | number
+    maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     registeredStudents?: UserUpdateManyWithoutRegisteredEventsNestedInput
     submissions?: EventSubmissionUpdateManyWithoutEventNestedInput
+    groupRegistrations?: GroupRegistrationUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutCategoryInput = {
@@ -15901,12 +19447,16 @@ export namespace Prisma {
     startTime?: StringFieldUpdateOperationsInput | string
     endTime?: StringFieldUpdateOperationsInput | string
     participantLimit?: IntFieldUpdateOperationsInput | number
+    isGroupEvent?: BoolFieldUpdateOperationsInput | boolean
+    minTeamSize?: IntFieldUpdateOperationsInput | number
+    maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     registeredStudents?: UserUncheckedUpdateManyWithoutRegisteredEventsNestedInput
     submissions?: EventSubmissionUncheckedUpdateManyWithoutEventNestedInput
+    groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateManyWithoutCategoryInput = {
@@ -15919,6 +19469,9 @@ export namespace Prisma {
     startTime?: StringFieldUpdateOperationsInput | string
     endTime?: StringFieldUpdateOperationsInput | string
     participantLimit?: IntFieldUpdateOperationsInput | number
+    isGroupEvent?: BoolFieldUpdateOperationsInput | boolean
+    minTeamSize?: IntFieldUpdateOperationsInput | number
+    maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15932,6 +19485,15 @@ export namespace Prisma {
     userId: string
     submissionLink: string
     notes?: string | null
+  }
+
+  export type GroupRegistrationCreateManyEventInput = {
+    id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    userId: string
+    groupName?: string | null
+    members: JsonNullValueInput | InputJsonValue
   }
 
   export type UserUpdateWithoutRegisteredEventsInput = {
@@ -15957,6 +19519,7 @@ export namespace Prisma {
     sessions?: SessionUpdateManyWithoutUserNestedInput
     accommodationBookings?: AccommodationBookingUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutRegisteredEventsInput = {
@@ -15982,6 +19545,7 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     accommodationBookings?: AccommodationBookingUncheckedUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateManyWithoutRegisteredEventsInput = {
@@ -16030,6 +19594,33 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     submissionLink?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type GroupRegistrationUpdateWithoutEventInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    members?: JsonNullValueInput | InputJsonValue
+    user?: UserUpdateOneRequiredWithoutGroupRegistrationsNestedInput
+  }
+
+  export type GroupRegistrationUncheckedUpdateWithoutEventInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    userId?: StringFieldUpdateOperationsInput | string
+    groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    members?: JsonNullValueInput | InputJsonValue
+  }
+
+  export type GroupRegistrationUncheckedUpdateManyWithoutEventInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    userId?: StringFieldUpdateOperationsInput | string
+    groupName?: NullableStringFieldUpdateOperationsInput | string | null
+    members?: JsonNullValueInput | InputJsonValue
   }
 
 
