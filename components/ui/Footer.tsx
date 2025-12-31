@@ -9,7 +9,7 @@ const Footer = () => {
 
     const socialLinks = [
         { icon: FaInstagram, href: "https://instagram.com/klsurabhi", label: "Instagram" },
-        { icon: FaYoutube, href: "#", label: "Youtube" },
+        { icon: FaYoutube, href: "https://www.youtube.com/@KLUSurabhiFest", label: "Youtube" },
         { icon: FaFacebook, href: "#", label: "Facebook" },
     ];
 
