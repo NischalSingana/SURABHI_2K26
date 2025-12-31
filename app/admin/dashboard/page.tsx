@@ -11,7 +11,7 @@ const page = async () => {
                     className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-6 border border-gray-700"
                 >
                     <div className="flex flex-col items-center justify-center space-y-4">
-                        <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
+                        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
                             <svg
                                 className="w-8 h-8 text-white"
                                 fill="none"
@@ -38,7 +38,7 @@ const page = async () => {
                     className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-6 border border-gray-700"
                 >
                     <div className="flex flex-col items-center justify-center space-y-4">
-                        <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center">
+                        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
                             <svg
                                 className="w-8 h-8 text-white"
                                 fill="none"
@@ -65,7 +65,7 @@ const page = async () => {
                     className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-6 border border-gray-700"
                 >
                     <div className="flex flex-col items-center justify-center space-y-4">
-                        <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center">
+                        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
                             <svg
                                 className="w-8 h-8 text-white"
                                 fill="none"
@@ -92,7 +92,7 @@ const page = async () => {
                     className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-6 border border-gray-700"
                 >
                     <div className="flex flex-col items-center justify-center space-y-4">
-                        <div className="w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center">
+                        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
                             <svg
                                 className="w-8 h-8 text-white"
                                 fill="none"
