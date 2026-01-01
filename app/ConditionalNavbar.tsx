@@ -1,7 +1,9 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import PillNav from "@/components/ui/PillNav";
+import { useSession } from "@/lib/auth-client";
+import { useEffect } from "react";
 
 const navItems = [
     { label: "Home", href: "/" },
@@ -13,9 +15,20 @@ const navItems = [
 
 export default function ConditionalNavbar() {
     const pathname = usePathname();
+    const router = useRouter();
+    const { data: session, isPending } = useSession();
 
-    // Hide navbar on admin routes
-    if (pathname?.startsWith("/admin")) {
+    useEffect(() => {
+        if (!isPending && session?.user?.role === "JUDGE") {
+            // Allow access only to /judge/* routes
+            if (!pathname?.startsWith("/judge")) {
+                router.replace("/judge/dashboard");
+            }
+        }
+    }, [session, isPending, pathname, router]);
+
+    // Hide navbar on admin routes OR if user is a judge
+    if (pathname?.startsWith("/admin") || session?.user?.role === "JUDGE") {
         return null;
     }
 
