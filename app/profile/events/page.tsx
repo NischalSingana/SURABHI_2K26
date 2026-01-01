@@ -9,6 +9,7 @@ import SubmissionModal from "@/components/ui/SubmissionModal";
 import { FiCalendar, FiMapPin, FiClock, FiUsers, FiUpload, FiCheckCircle, FiX } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import Loader from "@/components/ui/Loader";
 
 interface Event {
     id: string;
@@ -104,11 +105,7 @@ export default function MyEventsPage() {
     };
 
     if (loading) {
-        return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
-                <div className="text-white text-xl">Loading your events...</div>
-            </div>
-        );
+        return <Loader />;
     }
 
     return (

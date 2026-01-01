@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { getCategories } from "@/actions/events.action";
+import Loader from "@/components/ui/Loader";
+
 import { FiCalendar } from "react-icons/fi";
 
 interface CategoryData {
@@ -37,13 +39,12 @@ const Events = () => {
     setLoading(false);
   };
 
+
   if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-xl">Loading events...</div>
-      </div>
-    );
+    return <Loader />;
   }
+
+
 
   // Filter categories based on search query
   const filteredCategories = categories.filter((category) =>
