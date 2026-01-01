@@ -18,7 +18,7 @@ export default function JudgeManagementPage() {
     const loadData = async () => {
         const res = await getCategoriesWithJudges();
         if (res.success) {
-            setData(res.data);
+            setData(res.data || []);
         } else {
             toast.error("Failed to load data");
         }

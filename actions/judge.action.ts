@@ -77,6 +77,7 @@ export async function createJudgeAccount(categoryId: string, email: string, pass
             // Create new user
             await prisma.user.create({
                 data: {
+                    id: crypto.randomUUID(),
                     email,
                     name,
                     role: "JUDGE",

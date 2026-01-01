@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getEvaluations } from "@/actions/evaluation.action";
 import Loader from "@/components/ui/Loader";
-import { FiChevronDown, FiChevronUp, FiDownload, FiTrophy } from "react-icons/fi";
+import { FiChevronDown, FiChevronUp, FiDownload, FiAward } from "react-icons/fi";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -45,7 +45,7 @@ export default function AdminEvaluationsPage() {
 
                 {events.length === 0 ? (
                     <div className="text-center py-20 bg-zinc-900 rounded-2xl border border-zinc-800">
-                        <FiTrophy className="mx-auto text-4xl text-gray-600 mb-4" />
+                        <FiAward className="mx-auto text-4xl text-gray-600 mb-4" />
                         <h3 className="text-xl font-bold text-gray-400">No evaluations found</h3>
                         <p className="text-gray-500">Judges haven't submitted any scores yet.</p>
                     </div>
