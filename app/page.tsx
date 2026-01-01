@@ -225,10 +225,14 @@ const HomePage = () => {
                             <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full blur-2xl" />
                             <FiMusic className="text-red-500 text-3xl mb-4" />
                             <h4 className="text-xl font-bold text-white mb-2">Hobby Clubs</h4>
-                            <ul className="space-y-2 text-sm text-zinc-400">
-                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-500 rounded-full" /> Narthana (Dance)</li>
-                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-orange-500 rounded-full" /> Swara (Music)</li>
-                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-yellow-500 rounded-full" /> Abhinaya (Drama)</li>
+                            <ul className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-zinc-400">
+                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-500 rounded-full" /> Nrithya (Dance)</li>
+                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-orange-500 rounded-full" /> Raaga (Music)</li>
+                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-yellow-500 rounded-full" /> Natyaka (Drama)</li>
+                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-500 rounded-full" /> Chitrakala (Arts)</li>
+                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full" /> Sahithya (Lit)</li>
+                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-purple-500 rounded-full" /> Vastra (Fashion)</li>
+                                <li className="flex items-center gap-2 col-span-2"><span className="w-1.5 h-1.5 bg-pink-500 rounded-full" /> Chitramela (Filmmaking)</li>
                             </ul>
                         </motion.div>
 
