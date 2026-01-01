@@ -17,8 +17,11 @@ import {
   FiXCircle,
   FiMapPin,
   FiTrash2,
+  FiLogOut,
 } from "react-icons/fi";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { signOut } from "@/lib/auth-client";
 import { updateProfile } from "@/actions/profile.action";
 import { unregisterFromEvent } from "@/actions/events.action";
 import Image from "next/image";
@@ -66,6 +69,7 @@ export default function ProfileClient({
   ipAddress,
   userAgent,
 }: ProfileClientProps) {
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"profile" | "events">("profile");
@@ -83,6 +87,16 @@ export default function ProfileClient({
     branch: user.branch || "",
     year: user.year || 1,
   });
+
+  const handleLogout = async () => {
+    await signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/login");
+        },
+      },
+    });
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -165,17 +179,31 @@ export default function ProfileClient({
           <div className="flex items-center gap-4">{getStatusBadge()}</div>
         </div>
 
-        {activeTab === "profile" && !isEditing && (
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setIsEditing(true)}
-            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-          >
-            <FiEdit2 />
-            Edit Profile
-          </motion.button>
-        )}
+        <div className="flex items-center gap-4">
+          {activeTab === "profile" && !isEditing && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsEditing(true)}
+              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+            >
+              <FiEdit2 />
+              Edit Profile
+            </motion.button>
+          )}
+
+          {!isEditing && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleLogout}
+              className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+            >
+              <FiLogOut />
+              Logout
+            </motion.button>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}
@@ -183,8 +211,8 @@ export default function ProfileClient({
         <button
           onClick={() => setActiveTab("profile")}
           className={`px-6 py-3 font-medium transition-all ${activeTab === "profile"
-              ? "text-red-500 border-b-2 border-red-500"
-              : "text-zinc-400 hover:text-white"
+            ? "text-red-500 border-b-2 border-red-500"
+            : "text-zinc-400 hover:text-white"
             }`}
         >
           Profile Information
@@ -192,8 +220,8 @@ export default function ProfileClient({
         <button
           onClick={() => setActiveTab("events")}
           className={`px-6 py-3 font-medium transition-all ${activeTab === "events"
-              ? "text-red-500 border-b-2 border-red-500"
-              : "text-zinc-400 hover:text-white"
+            ? "text-red-500 border-b-2 border-red-500"
+            : "text-zinc-400 hover:text-white"
             }`}
         >
           My Events ({registeredEvents.length})
