@@ -128,7 +128,7 @@ const Navbar = () => {
                                     </motion.div>
                                 </Link>
                             ) : (
-                                <Link href="/auth/login">
+                                <Link href="/login">
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
@@ -235,7 +235,7 @@ const Navbar = () => {
                                     </Link>
                                 ) : (
                                     <Link
-                                        href="/auth/login"
+                                        href="/login"
                                         onClick={() => setIsMobileMenuOpen(false)}
                                     >
                                         <motion.button

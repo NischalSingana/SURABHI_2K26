@@ -266,7 +266,7 @@ const PillNav: React.FC<PillNavProps> = ({
               </div>
             </Link>
           ) : (
-            <Link href="/auth/login" className="pill-login-button">
+            <Link href="/login" className="pill-login-button">
               <FiLogIn size={18} />
               <span>Login / Register</span>
             </Link>
@@ -327,7 +327,7 @@ const PillNav: React.FC<PillNavProps> = ({
               </Link>
             ) : (
               <Link
-                href="/auth/login"
+                href="/login"
                 className="mobile-menu-link mobile-login-button"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
