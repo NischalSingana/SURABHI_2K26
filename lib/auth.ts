@@ -29,8 +29,16 @@ export const auth = betterAuth({
     },
     emailAndPassword: {
         enabled: true,
-
-
+        password: {
+            hash: async (p) => {
+                const { hash } = await import("bcryptjs");
+                return hash(p, 10);
+            },
+            verify: async (p, h) => {
+                const { compare } = await import("bcryptjs");
+                return compare(p, h);
+            }
+        }
     },
     session: {
         cookieCache: {
