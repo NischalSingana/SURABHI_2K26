@@ -176,7 +176,10 @@ const HomePage = () => {
                                     Surabhi is the flagship cultural festival of <span className="text-red-400 font-medium">KL University</span>, celebrated as a grand platform for artistic expression and cultural diversity. Held annually, it brings together talent from across the country, transforming the campus into a vibrant hub of creativity where tradition meets modern expression through dance, music, theatre, fine arts, and literary events.
                                 </p>
                                 <p className="text-gray-400 text-lg leading-relaxed">
-                                    What sets Surabhi apart is its student-driven spirit—planned, organized, and executed by passionate teams fostering leadership and innovation. This commitment to excellence has earned a proud place in the <span className="text-white border-b border-red-500/50">Indian Book of Records</span>. Over two power-packed days, thousands unite to celebrate art, culture, and passion, making Surabhi not just an event, but a legacy of cultural brilliance.
+                                    What sets Surabhi apart is its student-driven spirit—planned, organized, and executed by passionate teams fostering leadership and innovation. This commitment to excellence has earned a proud place in the <span className="text-white border-b border-red-500/50">Indian Book of Records</span>.
+                                </p>
+                                <p className="text-gray-400 text-lg leading-relaxed">
+                                    Over two power-packed days, thousands unite to celebrate art, culture, and passion. From electrifying performances to breathtaking showcases, Surabhi is more than an event—it's a legacy of cultural brilliance that continues to inspire and unite diverse voices in a spectacular celebration of creativity.
                                 </p>
                             </div>
                         </motion.div>
