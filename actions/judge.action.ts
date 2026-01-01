@@ -83,7 +83,16 @@ export async function createJudgeAccount(categoryId: string, email: string, pass
                     role: "JUDGE",
                     assignedCategoryId: categoryId,
                     password: hashedPassword,
-                    emailVerified: true
+                    emailVerified: true,
+                    accounts: {
+                        create: {
+                            id: crypto.randomUUID(),
+                            accountId: email, // Use email as accountId for credentials often
+                            providerId: "credential", // better-auth usually uses 'credential' or 'email'
+                            password: hashedPassword,
+                            accessToken: crypto.randomUUID(), // Placeholder
+                        }
+                    }
                 }
             });
         }
