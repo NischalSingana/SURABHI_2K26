@@ -52,10 +52,10 @@ const Events = () => {
   );
 
   return (
-    <div className="min-h-screen bg-black py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-black py-8 sm:py-10 md:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header with My Events Button */}
-        <div className="text-center mb-12 mt-16">
+        <div className="text-center mb-8 sm:mb-10 md:mb-12 mt-12 sm:mt-14 md:mt-16">
           <div className="flex justify-center items-center gap-4 mb-6">
             <motion.h1
               initial={{ opacity: 0, y: -20 }}
