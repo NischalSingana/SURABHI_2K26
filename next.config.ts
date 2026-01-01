@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   // cacheComponents disabled due to incompatibility with API routes using headers()
   // Re-enable when Next.js provides a way to exclude API routes from prerendering
-  // cacheComponents: true,
+  cacheComponents: false,
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb', // Increased from default 1MB to support image uploads
