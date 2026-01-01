@@ -147,7 +147,7 @@ const MultiStepAccommodation = () => {
   const totalAmount = formData.numberOfGuests * 500;
 
   return (
-    <div className="min-h-screen bg-[#0a0e1a] text-white flex flex-col md:flex-row relative overflow-hidden pt-24 md:pt-36">
+    <div className="min-h-screen bg-[#0a0e1a] text-white flex flex-col md:flex-row relative overflow-hidden pt-20 md:pt-24">
       {/* Background Gradients */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-red-600/10 rounded-full blur-[120px]" />
@@ -155,7 +155,7 @@ const MultiStepAccommodation = () => {
       </div>
 
       {/* Left Panel - Info & Rules (Sticky on Desktop) */}
-      <div className="w-full md:w-1/3 min-h-[30vh] md:h-[calc(100vh-9rem)] md:sticky md:top-36 bg-zinc-900/50 backdrop-blur-xl border-b md:border-b-0 md:border-r border-zinc-800 p-8 flex flex-col justify-between z-10 rounded-br-2xl md:rounded-r-2xl border-r-0 md:border-r">
+      <div className="w-full md:w-1/3 min-h-[30vh] md:h-[calc(100vh-6rem)] md:sticky md:top-24 bg-zinc-900/50 backdrop-blur-xl border-b md:border-b-0 md:border-r border-zinc-800 p-8 flex flex-col justify-between z-10 rounded-br-2xl md:rounded-r-2xl border-r-0 md:border-r">
         <div>
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center shrink-0">
