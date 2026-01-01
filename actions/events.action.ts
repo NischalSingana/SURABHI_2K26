@@ -355,6 +355,16 @@ export async function registerGroupEvent(
       console.log("registerGroupEvent: No session");
       return { success: false, error: "Please login to register for events" };
     }
+
+    // Check approval status
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isApproved: true }
+    });
+
+    if (!user?.isApproved) {
+      return { success: false, error: "Please wait till admin approves your registration." };
+    }
     console.log("registerGroupEvent: User logged in", session.user.id);
 
     // Validate that all members have an ID (meaning they are verified users)
@@ -532,6 +542,16 @@ export async function registerForEvent(eventId: string) {
       return { success: false, error: "Please login to register for events" };
     }
 
+    // Check approval status
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isApproved: true }
+    });
+
+    if (!user?.isApproved) {
+      return { success: false, error: "Please wait till admin approves your registration." };
+    }
+
     // Use transaction with serializable isolation to prevent race conditions
     const registrationResult = await prisma.$transaction(
       async (tx) => {
@@ -626,18 +646,22 @@ export async function checkEventRegistration(eventId: string) {
       return { success: true, isRegistered: false };
     }
 
-    const user = await prisma.user.findFirst({
-      where: {
-        id: session.user.id,
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        isApproved: true,
         registeredEvents: {
-          some: {
-            id: eventId,
-          },
-        },
-      },
+          where: { id: eventId },
+          select: { id: true }
+        }
+      }
     });
 
-    return { success: true, isRegistered: !!user };
+    return {
+      success: true,
+      isRegistered: !!(user?.registeredEvents.length),
+      isApproved: !!user?.isApproved
+    };
   } catch (error) {
     console.error("Error checking registration:", error);
     return { success: false, error: "Failed to check registration" };
