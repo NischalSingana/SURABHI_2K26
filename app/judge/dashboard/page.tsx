@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { signOut, useSession } from "@/lib/auth-client";
 import {
     FiLogOut, FiUser, FiStar, FiMessageSquare,
-    FiUsers, FiCalendar, FiChevronRight, FiCheckCircle, FiLoader, FiFilter
+    FiUsers, FiCalendar, FiChevronRight, FiCheckCircle, FiLoader, FiFilter, FiSearch, FiChevronDown
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -50,6 +50,8 @@ export default function JudgeDashboard() {
     const [score, setScore] = useState<number | "">("");
     const [remarks, setRemarks] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         if (!isPending && !session) {
@@ -224,6 +226,26 @@ export default function JudgeDashboard() {
             });
         });
 
+        // Sort alphabetically by display name
+        list.sort((a, b) => {
+            const nameA = (a.displayName || "").toLowerCase();
+            const nameB = (b.displayName || "").toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+
+        // Filter by search query
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            return list.filter(p => {
+                const matchesName = (p.displayName || "").toLowerCase().includes(query);
+                const matchesSubtitle = (p.subtitle || "").toLowerCase().includes(query);
+                const matchesMembers = p.members?.some((m: any) =>
+                    (m.name || m || "").toLowerCase().includes(query)
+                );
+                return matchesName || matchesSubtitle || matchesMembers;
+            });
+        }
+
         return list;
     };
 
@@ -307,6 +329,28 @@ export default function JudgeDashboard() {
                             </div>
                         </div>
 
+                        {/* Search Bar */}
+                        <div className="mb-4 sm:mb-6">
+                            <div className="relative">
+                                <FiSearch className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4 sm:w-5 sm:h-5" />
+                                <input
+                                    type="text"
+                                    placeholder={`Search ${selectedEvent.isGroupEvent ? 'teams' : 'participants'}...`}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full bg-[#161616] border border-white/10 rounded-xl pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 text-white text-sm sm:text-base placeholder:text-gray-500 focus:outline-none focus:border-red-500 transition-colors"
+                                />
+                                {searchQuery && (
+                                    <button
+                                        onClick={() => setSearchQuery("")}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white text-xs"
+                                    >
+                                        Clear
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             {getDisplayParticipants(selectedEvent).map((participant, index) => (
                                 <motion.div
@@ -325,27 +369,61 @@ export default function JudgeDashboard() {
                                             </div>
                                         </div>
 
-                                        {participant.type === "GROUP" && participant.members && participant.members.length > 0 && (
-                                            <div className="mb-3 bg-black/20 p-2.5 sm:p-3 rounded-lg text-xs border-l-2 border-red-500/30">
-                                                <p className="text-gray-500 font-medium mb-1.5">Team Members:</p>
-                                                <ul className="space-y-1.5 text-gray-400 max-h-20 sm:max-h-24 overflow-y-auto">
-                                                    {/* Show leader first */}
-                                                    <li className="flex justify-between items-center pb-1.5 border-b border-white/5">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <span className="text-[10px] bg-red-600/20 text-red-400 px-1.5 py-0.5 rounded">LEADER</span>
-                                                            <span className="text-white font-medium">{participant.subtitle?.replace('Leader: ', '')}</span>
-                                                        </div>
-                                                    </li>
-                                                    {/* Show other members */}
-                                                    {participant.members.map((m: any, idx: number) => (
-                                                        <li key={idx} className="flex justify-between pl-2">
-                                                            <span>{m.name || m}</span>
-                                                            {m.rollNo && <span className="opacity-50 text-[10px]">{m.rollNo}</span>}
-                                                        </li>
-                                                    ))}
-                                                </ul>
+                                        {participant.type === "GROUP" && participant.members && participant.members.length > 0 ? (
+                                            <div className="mb-3">
+                                                <button
+                                                    onClick={() => {
+                                                        const newExpanded = new Set(expandedTeams);
+                                                        if (newExpanded.has(participant.id)) {
+                                                            newExpanded.delete(participant.id);
+                                                        } else {
+                                                            newExpanded.add(participant.id);
+                                                        }
+                                                        setExpandedTeams(newExpanded);
+                                                    }}
+                                                    className="w-full flex items-center justify-between bg-black/20 p-2.5 sm:p-3 rounded-lg text-xs border-l-2 border-red-500/30 hover:bg-black/30 transition-colors"
+                                                >
+                                                    <span className="text-gray-400 font-medium">
+                                                        {participant.members.length + 1} Members (incl. leader)
+                                                    </span>
+                                                    <FiChevronDown
+                                                        className={`w-4 h-4 text-gray-500 transition-transform ${expandedTeams.has(participant.id) ? 'rotate-180' : ''
+                                                            }`}
+                                                    />
+                                                </button>
+
+                                                <AnimatePresence>
+                                                    {expandedTeams.has(participant.id) && (
+                                                        <motion.div
+                                                            initial={{ height: 0, opacity: 0 }}
+                                                            animate={{ height: 'auto', opacity: 1 }}
+                                                            exit={{ height: 0, opacity: 0 }}
+                                                            transition={{ duration: 0.2 }}
+                                                            className="overflow-hidden"
+                                                        >
+                                                            <div className="mt-2 bg-black/20 p-2.5 sm:p-3 rounded-lg text-xs border-l-2 border-red-500/30">
+                                                                <ul className="space-y-1.5 text-gray-400 max-h-32 overflow-y-auto">
+                                                                    {/* Show leader first */}
+                                                                    <li className="flex justify-between items-center pb-1.5 border-b border-white/5">
+                                                                        <div className="flex items-center gap-1.5">
+                                                                            <span className="text-[10px] bg-red-600/20 text-red-400 px-1.5 py-0.5 rounded">LEADER</span>
+                                                                            <span className="text-white font-medium">{participant.subtitle?.replace('Leader: ', '')}</span>
+                                                                        </div>
+                                                                    </li>
+                                                                    {/* Show other members */}
+                                                                    {participant.members.map((m: any, idx: number) => (
+                                                                        <li key={idx} className="flex justify-between pl-2">
+                                                                            <span>{m.name || m}</span>
+                                                                            {m.rollNo && <span className="opacity-50 text-[10px]">{m.rollNo}</span>}
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
                                             </div>
-                                        )}
+                                        ) : null}
 
                                         {participant.isEvaluated && (
                                             <span className="bg-green-500/10 text-green-500 text-[10px] sm:text-xs px-2 py-1 rounded-full flex items-center gap-1 w-fit">
