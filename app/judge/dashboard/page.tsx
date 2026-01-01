@@ -32,6 +32,7 @@ interface Event {
     description: string;
     venue: string;
     startTime: string;
+    endTime: string | null;
     isGroupEvent: boolean;
     registeredStudents: Participant[];
     groupRegistrations: { user: Participant; groupName: string | null; members: any }[];
@@ -281,8 +282,13 @@ export default function JudgeDashboard() {
 
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 text-sm">
                                 <div className="bg-[#161616] p-3 sm:p-4 rounded-xl border border-white/5">
-                                    <p className="text-gray-500 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"><FiCalendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Date & Time</p>
-                                    <p className="font-medium text-xs sm:text-sm">{formatDate(selectedEvent.startTime)}</p>
+                                    <p className="text-gray-500 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"><FiCalendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Event Date</p>
+                                    <p className="font-medium text-xs sm:text-sm">
+                                        {formatDateShort(selectedEvent.startTime)}
+                                        {selectedEvent.endTime && selectedEvent.endTime !== selectedEvent.startTime && (
+                                            <span className="text-gray-500"> - {formatDateShort(selectedEvent.endTime)}</span>
+                                        )}
+                                    </p>
                                 </div>
                                 <div className="bg-[#161616] p-3 sm:p-4 rounded-xl border border-white/5">
                                     <p className="text-gray-500 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"><FiFilter className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Venue</p>
@@ -302,11 +308,11 @@ export default function JudgeDashboard() {
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                            {getDisplayParticipants(selectedEvent).map((participant) => (
+                            {getDisplayParticipants(selectedEvent).map((participant, index) => (
                                 <motion.div
                                     key={participant.id}
                                     layout
-                                    className={`bg-[#161616] border ${participant.isEvaluated ? 'border-green-500/20' : 'border-white/5'} rounded-xl p-4 sm:p-5 hover:border-white/20 transition-all`}
+                                    className={`bg-[#161616] border-t-2 ${participant.type === 'GROUP' ? 'border-t-red-500/50' : 'border-t-blue-500/50'} border-x border-b ${participant.isEvaluated ? 'border-green-500/20' : 'border-white/5'} rounded-xl p-4 sm:p-5 hover:border-white/20 transition-all ${index > 0 ? 'mt-0' : ''}`}
                                 >
                                     <div className="mb-4">
                                         <div className="flex items-center gap-2 sm:gap-3 mb-2">
@@ -320,13 +326,21 @@ export default function JudgeDashboard() {
                                         </div>
 
                                         {participant.type === "GROUP" && participant.members && participant.members.length > 0 && (
-                                            <div className="mb-3 bg-black/20 p-2.5 sm:p-3 rounded-lg text-xs">
+                                            <div className="mb-3 bg-black/20 p-2.5 sm:p-3 rounded-lg text-xs border-l-2 border-red-500/30">
                                                 <p className="text-gray-500 font-medium mb-1.5">Team Members:</p>
-                                                <ul className="space-y-1 text-gray-400 max-h-20 sm:max-h-24 overflow-y-auto">
+                                                <ul className="space-y-1.5 text-gray-400 max-h-20 sm:max-h-24 overflow-y-auto">
+                                                    {/* Show leader first */}
+                                                    <li className="flex justify-between items-center pb-1.5 border-b border-white/5">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="text-[10px] bg-red-600/20 text-red-400 px-1.5 py-0.5 rounded">LEADER</span>
+                                                            <span className="text-white font-medium">{participant.subtitle?.replace('Leader: ', '')}</span>
+                                                        </div>
+                                                    </li>
+                                                    {/* Show other members */}
                                                     {participant.members.map((m: any, idx: number) => (
-                                                        <li key={idx} className="flex justify-between">
+                                                        <li key={idx} className="flex justify-between pl-2">
                                                             <span>{m.name || m}</span>
-                                                            {m.rollNo && <span className="opacity-50">{m.rollNo}</span>}
+                                                            {m.rollNo && <span className="opacity-50 text-[10px]">{m.rollNo}</span>}
                                                         </li>
                                                     ))}
                                                 </ul>
