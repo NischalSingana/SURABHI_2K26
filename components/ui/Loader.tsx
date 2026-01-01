@@ -62,6 +62,7 @@ export default function Loader() {
                         src="/images/surabhi_white_logo.png"
                         alt="Surabhi Loader"
                         fill
+                        sizes="160px"
                         className="object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
                         priority
                     />
