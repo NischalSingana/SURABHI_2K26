@@ -230,7 +230,7 @@ const HomePage = () => {
                                 <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-orange-500 rounded-full" /> Raaga (Music)</li>
                                 <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-yellow-500 rounded-full" /> Natyaka (Drama)</li>
                                 <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-500 rounded-full" /> Chitrakala (Arts)</li>
-                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full" /> Sahithya (Lit)</li>
+                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full" /> Sahithya (Literature)</li>
                                 <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-purple-500 rounded-full" /> Vastra (Fashion)</li>
                                 <li className="flex items-center gap-2 col-span-2"><span className="w-1.5 h-1.5 bg-pink-500 rounded-full" /> Chitramela (Filmmaking)</li>
                             </ul>
