@@ -60,6 +60,7 @@ function EventDetailPageContent() {
   const [registering, setRegistering] = useState(false);
   const [unregistering, setUnregistering] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [isApproved, setIsApproved] = useState<boolean | undefined>(undefined);
   const [checkingRegistration, setCheckingRegistration] = useState(true);
   const [showImageModal, setShowImageModal] = useState(false);
   const [showUnregisterConfirm, setShowUnregisterConfirm] = useState(false);
@@ -87,6 +88,21 @@ function EventDetailPageContent() {
     checkRegistration();
   }, [eventId]);
 
+  // Lock body scroll when any modal is open
+  useEffect(() => {
+    if (showRegistrationModal || showGroupModal || showImageModal || showUnregisterConfirm) {
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+    } else {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+  }, [showRegistrationModal, showGroupModal, showImageModal, showUnregisterConfirm]);
+
   const fetchEvent = async () => {
     const result = await getPublicEvents();
     if (result.success && result.data) {
@@ -100,11 +116,20 @@ function EventDetailPageContent() {
     const result = await checkEventRegistration(eventId);
     if (result.success) {
       setIsRegistered(result.isRegistered || false);
+      setIsApproved(result.isApproved);
     }
     setCheckingRegistration(false);
   };
 
   const handleRegister = async () => {
+    // Check if user is approved
+    if (isApproved === false) {
+      toast.error("Please wait till admin approves your registration.");
+      return;
+    }
+    // If undefined, maybe not loaded or not logged in. Backend handles "Please login".
+    // But backend now returns specific error for approval.
+
     if (!acceptedTerms) {
       toast.error("Please accept the terms and conditions");
       return;
@@ -518,7 +543,18 @@ function EventDetailPageContent() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => setShowRegistrationModal(true)}
+                  onClick={() => {
+                    if (isApproved === undefined) {
+                      toast.error("Please register/login first to register for event.");
+                      // router.push("/login"); // Optional: Redirect to login
+                      return;
+                    }
+                    if (isApproved === false) {
+                      toast.error("Please wait till admin approves your registration.");
+                      return;
+                    }
+                    setShowRegistrationModal(true);
+                  }}
                   disabled={
                     event._count.registeredStudents >= event.participantLimit ||
                     checkingRegistration
@@ -607,12 +643,18 @@ function EventDetailPageContent() {
               </div>
 
               {/* Content */}
-              <div className="px-8 py-6 overflow-y-auto flex-1">
+              <div
+                className="px-8 py-6 overflow-y-auto flex-1 relative z-10"
+                data-lenis-prevent
+              >
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-white mb-3">
                     Terms and Conditions
                   </h3>
-                  <div className="bg-zinc-800 rounded-lg p-4 max-h-64 overflow-y-auto">
+                  <div
+                    className="bg-zinc-800 rounded-lg p-4 max-h-64 overflow-y-auto"
+                    data-lenis-prevent
+                  >
                     <p className="text-zinc-300 text-sm whitespace-pre-line leading-relaxed">
                       {event.termsandconditions}
                     </p>
@@ -688,7 +730,10 @@ function EventDetailPageContent() {
                 </button>
               </div>
 
-              <div className="px-8 py-6 overflow-y-auto flex-1 space-y-6">
+              <div
+                className="px-8 py-6 overflow-y-auto flex-1 space-y-6 relative z-10"
+                data-lenis-prevent
+              >
                 {/* Group Name */}
                 <div>
                   <label className="block text-sm font-medium text-zinc-300 mb-2">Group/Team Name *</label>

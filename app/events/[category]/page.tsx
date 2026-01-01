@@ -7,6 +7,7 @@ import Image from "next/image";
 import { getPublicEvents, registerForEvent, checkEventRegistration, getCategories } from "@/actions/events.action";
 import { FiArrowLeft, FiCalendar, FiMapPin, FiClock, FiUsers } from "react-icons/fi";
 import SubmissionModal from "@/components/ui/SubmissionModal";
+import { toast } from "sonner";
 
 interface Event {
   id: string;
@@ -27,6 +28,7 @@ interface Event {
   _count: {
     registeredStudents: number;
   };
+  isGroupEvent: boolean;
 }
 
 function CategoryPageContent() {
@@ -116,6 +118,13 @@ function CategoryPageContent() {
 
   const handleRegisterClick = (event: Event, e: React.MouseEvent) => {
     e.stopPropagation();
+
+    if (event.isGroupEvent) {
+      toast.info("Redirecting to team registration...");
+      router.push(`/events/${encodeURIComponent(categoryName)}/${event.id}`);
+      return;
+    }
+
     setSelectedEvent(event);
     setShowRegisterPopup(true);
   };
