@@ -143,7 +143,13 @@ export default function UsersPage() {
                                         Events
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Payment
+                                        Payment Status
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                        Txn ID
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                        Proof
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                                         Approval
@@ -175,10 +181,10 @@ export default function UsersPage() {
                                                     handlePaymentStatusChange(user.id, e.target.value as PaymentStatus)
                                                 }
                                                 className={`text-xs px-2 py-1 rounded-full border ${user.paymentStatus === "APPROVED"
-                                                        ? "bg-green-900/20 text-green-400 border-green-700"
-                                                        : user.paymentStatus === "REJECTED"
-                                                            ? "bg-red-900/20 text-red-400 border-red-700"
-                                                            : "bg-yellow-900/20 text-yellow-400 border-yellow-700"
+                                                    ? "bg-green-900/20 text-green-400 border-green-700"
+                                                    : user.paymentStatus === "REJECTED"
+                                                        ? "bg-red-900/20 text-red-400 border-red-700"
+                                                        : "bg-yellow-900/20 text-yellow-400 border-yellow-700"
                                                     }`}
                                             >
                                                 <option value="PENDING">Pending</option>
@@ -186,11 +192,28 @@ export default function UsersPage() {
                                                 <option value="REJECTED">Rejected</option>
                                             </select>
                                         </td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
+                                            {user.transactionId || "-"}
+                                        </td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm">
+                                            {user.paymentProof ? (
+                                                <a
+                                                    href={user.paymentProof}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-400 hover:text-blue-300 underline"
+                                                >
+                                                    View
+                                                </a>
+                                            ) : (
+                                                <span className="text-gray-500">-</span>
+                                            )}
+                                        </td>
                                         <td className="px-4 py-4 whitespace-nowrap">
                                             <span
                                                 className={`inline-flex text-xs px-2 py-1 rounded-full ${user.isApproved
-                                                        ? "bg-green-900/20 text-green-400"
-                                                        : "bg-red-900/20 text-red-400"
+                                                    ? "bg-green-900/20 text-green-400"
+                                                    : "bg-red-900/20 text-red-400"
                                                     }`}
                                             >
                                                 {user.isApproved ? "Approved" : "Not Approved"}

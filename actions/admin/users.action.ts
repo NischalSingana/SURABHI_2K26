@@ -49,6 +49,7 @@ export async function getAllUsers(filters?: {
                 isApproved: true,
                 paymentStatus: true,
                 transactionId: true,
+                paymentProof: true,
                 role: true,
                 createdAt: true,
                 _count: {
