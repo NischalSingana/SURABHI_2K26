@@ -63,6 +63,11 @@ export type EventSubmission = $Result.DefaultSelection<Prisma.$EventSubmissionPa
  * 
  */
 export type FAQ = $Result.DefaultSelection<Prisma.$FAQPayload>
+/**
+ * Model Evaluation
+ * 
+ */
+export type Evaluation = $Result.DefaultSelection<Prisma.$EvaluationPayload>
 
 /**
  * Enums
@@ -79,7 +84,8 @@ export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
 
 export const Role: {
   USER: 'USER',
-  ADMIN: 'ADMIN'
+  ADMIN: 'ADMIN',
+  JUDGE: 'JUDGE'
 };
 
 export type Role = (typeof Role)[keyof typeof Role]
@@ -348,6 +354,16 @@ export class PrismaClient<
     * ```
     */
   get fAQ(): Prisma.FAQDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.evaluation`: Exposes CRUD operations for the **Evaluation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Evaluations
+    * const evaluations = await prisma.evaluation.findMany()
+    * ```
+    */
+  get evaluation(): Prisma.EvaluationDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -798,7 +814,8 @@ export namespace Prisma {
     GroupRegistration: 'GroupRegistration',
     AccommodationBooking: 'AccommodationBooking',
     EventSubmission: 'EventSubmission',
-    FAQ: 'FAQ'
+    FAQ: 'FAQ',
+    Evaluation: 'Evaluation'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -817,7 +834,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "session" | "account" | "verification" | "category" | "event" | "groupRegistration" | "accommodationBooking" | "eventSubmission" | "fAQ"
+      modelProps: "user" | "session" | "account" | "verification" | "category" | "event" | "groupRegistration" | "accommodationBooking" | "eventSubmission" | "fAQ" | "evaluation"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1561,6 +1578,80 @@ export namespace Prisma {
           }
         }
       }
+      Evaluation: {
+        payload: Prisma.$EvaluationPayload<ExtArgs>
+        fields: Prisma.EvaluationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EvaluationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvaluationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EvaluationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvaluationPayload>
+          }
+          findFirst: {
+            args: Prisma.EvaluationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvaluationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EvaluationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvaluationPayload>
+          }
+          findMany: {
+            args: Prisma.EvaluationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvaluationPayload>[]
+          }
+          create: {
+            args: Prisma.EvaluationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvaluationPayload>
+          }
+          createMany: {
+            args: Prisma.EvaluationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EvaluationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvaluationPayload>[]
+          }
+          delete: {
+            args: Prisma.EvaluationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvaluationPayload>
+          }
+          update: {
+            args: Prisma.EvaluationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvaluationPayload>
+          }
+          deleteMany: {
+            args: Prisma.EvaluationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EvaluationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.EvaluationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvaluationPayload>[]
+          }
+          upsert: {
+            args: Prisma.EvaluationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvaluationPayload>
+          }
+          aggregate: {
+            args: Prisma.EvaluationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEvaluation>
+          }
+          groupBy: {
+            args: Prisma.EvaluationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EvaluationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EvaluationCountArgs<ExtArgs>
+            result: $Utils.Optional<EvaluationCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1667,6 +1758,7 @@ export namespace Prisma {
     accommodationBooking?: AccommodationBookingOmit
     eventSubmission?: EventSubmissionOmit
     fAQ?: FAQOmit
+    evaluation?: EvaluationOmit
   }
 
   /* Types for Logging */
@@ -1753,6 +1845,8 @@ export namespace Prisma {
     accommodationBookings: number
     eventSubmissions: number
     groupRegistrations: number
+    evaluationsGiven: number
+    evaluationsReceived: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1762,6 +1856,8 @@ export namespace Prisma {
     accommodationBookings?: boolean | UserCountOutputTypeCountAccommodationBookingsArgs
     eventSubmissions?: boolean | UserCountOutputTypeCountEventSubmissionsArgs
     groupRegistrations?: boolean | UserCountOutputTypeCountGroupRegistrationsArgs
+    evaluationsGiven?: boolean | UserCountOutputTypeCountEvaluationsGivenArgs
+    evaluationsReceived?: boolean | UserCountOutputTypeCountEvaluationsReceivedArgs
   }
 
   // Custom InputTypes
@@ -1817,6 +1913,20 @@ export namespace Prisma {
     where?: GroupRegistrationWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountEvaluationsGivenArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EvaluationWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountEvaluationsReceivedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EvaluationWhereInput
+  }
+
 
   /**
    * Count Type CategoryCountOutputType
@@ -1857,12 +1967,14 @@ export namespace Prisma {
     registeredStudents: number
     submissions: number
     groupRegistrations: number
+    evaluations: number
   }
 
   export type EventCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     registeredStudents?: boolean | EventCountOutputTypeCountRegisteredStudentsArgs
     submissions?: boolean | EventCountOutputTypeCountSubmissionsArgs
     groupRegistrations?: boolean | EventCountOutputTypeCountGroupRegistrationsArgs
+    evaluations?: boolean | EventCountOutputTypeCountEvaluationsArgs
   }
 
   // Custom InputTypes
@@ -1895,6 +2007,13 @@ export namespace Prisma {
    */
   export type EventCountOutputTypeCountGroupRegistrationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: GroupRegistrationWhereInput
+  }
+
+  /**
+   * EventCountOutputType without action
+   */
+  export type EventCountOutputTypeCountEvaluationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EvaluationWhereInput
   }
 
 
@@ -1941,6 +2060,7 @@ export namespace Prisma {
     phone: string | null
     password: string | null
     role: $Enums.Role | null
+    assignedCategoryId: string | null
   }
 
   export type UserMaxAggregateOutputType = {
@@ -1962,6 +2082,7 @@ export namespace Prisma {
     phone: string | null
     password: string | null
     role: $Enums.Role | null
+    assignedCategoryId: string | null
   }
 
   export type UserCountAggregateOutputType = {
@@ -1983,6 +2104,7 @@ export namespace Prisma {
     phone: number
     password: number
     role: number
+    assignedCategoryId: number
     _all: number
   }
 
@@ -2014,6 +2136,7 @@ export namespace Prisma {
     phone?: true
     password?: true
     role?: true
+    assignedCategoryId?: true
   }
 
   export type UserMaxAggregateInputType = {
@@ -2035,6 +2158,7 @@ export namespace Prisma {
     phone?: true
     password?: true
     role?: true
+    assignedCategoryId?: true
   }
 
   export type UserCountAggregateInputType = {
@@ -2056,6 +2180,7 @@ export namespace Prisma {
     phone?: true
     password?: true
     role?: true
+    assignedCategoryId?: true
     _all?: true
   }
 
@@ -2164,6 +2289,7 @@ export namespace Prisma {
     phone: string | null
     password: string | null
     role: $Enums.Role
+    assignedCategoryId: string | null
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
     _sum: UserSumAggregateOutputType | null
@@ -2204,12 +2330,15 @@ export namespace Prisma {
     phone?: boolean
     password?: boolean
     role?: boolean
+    assignedCategoryId?: boolean
     accounts?: boolean | User$accountsArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
     registeredEvents?: boolean | User$registeredEventsArgs<ExtArgs>
     accommodationBookings?: boolean | User$accommodationBookingsArgs<ExtArgs>
     eventSubmissions?: boolean | User$eventSubmissionsArgs<ExtArgs>
     groupRegistrations?: boolean | User$groupRegistrationsArgs<ExtArgs>
+    evaluationsGiven?: boolean | User$evaluationsGivenArgs<ExtArgs>
+    evaluationsReceived?: boolean | User$evaluationsReceivedArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -2232,6 +2361,7 @@ export namespace Prisma {
     phone?: boolean
     password?: boolean
     role?: boolean
+    assignedCategoryId?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -2253,6 +2383,7 @@ export namespace Prisma {
     phone?: boolean
     password?: boolean
     role?: boolean
+    assignedCategoryId?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
@@ -2274,9 +2405,10 @@ export namespace Prisma {
     phone?: boolean
     password?: boolean
     role?: boolean
+    assignedCategoryId?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "email" | "emailVerified" | "name" | "image" | "collage" | "collageId" | "branch" | "transactionId" | "paymentProof" | "year" | "isApproved" | "paymentStatus" | "phone" | "password" | "role", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "email" | "emailVerified" | "name" | "image" | "collage" | "collageId" | "branch" | "transactionId" | "paymentProof" | "year" | "isApproved" | "paymentStatus" | "phone" | "password" | "role" | "assignedCategoryId", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     accounts?: boolean | User$accountsArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
@@ -2284,6 +2416,8 @@ export namespace Prisma {
     accommodationBookings?: boolean | User$accommodationBookingsArgs<ExtArgs>
     eventSubmissions?: boolean | User$eventSubmissionsArgs<ExtArgs>
     groupRegistrations?: boolean | User$groupRegistrationsArgs<ExtArgs>
+    evaluationsGiven?: boolean | User$evaluationsGivenArgs<ExtArgs>
+    evaluationsReceived?: boolean | User$evaluationsReceivedArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2298,6 +2432,8 @@ export namespace Prisma {
       accommodationBookings: Prisma.$AccommodationBookingPayload<ExtArgs>[]
       eventSubmissions: Prisma.$EventSubmissionPayload<ExtArgs>[]
       groupRegistrations: Prisma.$GroupRegistrationPayload<ExtArgs>[]
+      evaluationsGiven: Prisma.$EvaluationPayload<ExtArgs>[]
+      evaluationsReceived: Prisma.$EvaluationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2318,6 +2454,7 @@ export namespace Prisma {
       phone: string | null
       password: string | null
       role: $Enums.Role
+      assignedCategoryId: string | null
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
@@ -2718,6 +2855,8 @@ export namespace Prisma {
     accommodationBookings<T extends User$accommodationBookingsArgs<ExtArgs> = {}>(args?: Subset<T, User$accommodationBookingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccommodationBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     eventSubmissions<T extends User$eventSubmissionsArgs<ExtArgs> = {}>(args?: Subset<T, User$eventSubmissionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     groupRegistrations<T extends User$groupRegistrationsArgs<ExtArgs> = {}>(args?: Subset<T, User$groupRegistrationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupRegistrationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    evaluationsGiven<T extends User$evaluationsGivenArgs<ExtArgs> = {}>(args?: Subset<T, User$evaluationsGivenArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EvaluationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    evaluationsReceived<T extends User$evaluationsReceivedArgs<ExtArgs> = {}>(args?: Subset<T, User$evaluationsReceivedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EvaluationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2765,6 +2904,7 @@ export namespace Prisma {
     readonly phone: FieldRef<"User", 'String'>
     readonly password: FieldRef<"User", 'String'>
     readonly role: FieldRef<"User", 'Role'>
+    readonly assignedCategoryId: FieldRef<"User", 'String'>
   }
     
 
@@ -3294,6 +3434,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: GroupRegistrationScalarFieldEnum | GroupRegistrationScalarFieldEnum[]
+  }
+
+  /**
+   * User.evaluationsGiven
+   */
+  export type User$evaluationsGivenArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evaluation
+     */
+    select?: EvaluationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evaluation
+     */
+    omit?: EvaluationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvaluationInclude<ExtArgs> | null
+    where?: EvaluationWhereInput
+    orderBy?: EvaluationOrderByWithRelationInput | EvaluationOrderByWithRelationInput[]
+    cursor?: EvaluationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: EvaluationScalarFieldEnum | EvaluationScalarFieldEnum[]
+  }
+
+  /**
+   * User.evaluationsReceived
+   */
+  export type User$evaluationsReceivedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evaluation
+     */
+    select?: EvaluationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evaluation
+     */
+    omit?: EvaluationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvaluationInclude<ExtArgs> | null
+    where?: EvaluationWhereInput
+    orderBy?: EvaluationOrderByWithRelationInput | EvaluationOrderByWithRelationInput[]
+    cursor?: EvaluationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: EvaluationScalarFieldEnum | EvaluationScalarFieldEnum[]
   }
 
   /**
@@ -7971,6 +8159,7 @@ export namespace Prisma {
     registeredStudents?: boolean | Event$registeredStudentsArgs<ExtArgs>
     submissions?: boolean | Event$submissionsArgs<ExtArgs>
     groupRegistrations?: boolean | Event$groupRegistrationsArgs<ExtArgs>
+    evaluations?: boolean | Event$evaluationsArgs<ExtArgs>
     _count?: boolean | EventCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["event"]>
 
@@ -8042,6 +8231,7 @@ export namespace Prisma {
     registeredStudents?: boolean | Event$registeredStudentsArgs<ExtArgs>
     submissions?: boolean | Event$submissionsArgs<ExtArgs>
     groupRegistrations?: boolean | Event$groupRegistrationsArgs<ExtArgs>
+    evaluations?: boolean | Event$evaluationsArgs<ExtArgs>
     _count?: boolean | EventCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type EventIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8058,6 +8248,7 @@ export namespace Prisma {
       registeredStudents: Prisma.$UserPayload<ExtArgs>[]
       submissions: Prisma.$EventSubmissionPayload<ExtArgs>[]
       groupRegistrations: Prisma.$GroupRegistrationPayload<ExtArgs>[]
+      evaluations: Prisma.$EvaluationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -8475,6 +8666,7 @@ export namespace Prisma {
     registeredStudents<T extends Event$registeredStudentsArgs<ExtArgs> = {}>(args?: Subset<T, Event$registeredStudentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     submissions<T extends Event$submissionsArgs<ExtArgs> = {}>(args?: Subset<T, Event$submissionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     groupRegistrations<T extends Event$groupRegistrationsArgs<ExtArgs> = {}>(args?: Subset<T, Event$groupRegistrationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupRegistrationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    evaluations<T extends Event$evaluationsArgs<ExtArgs> = {}>(args?: Subset<T, Event$evaluationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EvaluationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8986,6 +9178,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: GroupRegistrationScalarFieldEnum | GroupRegistrationScalarFieldEnum[]
+  }
+
+  /**
+   * Event.evaluations
+   */
+  export type Event$evaluationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evaluation
+     */
+    select?: EvaluationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evaluation
+     */
+    omit?: EvaluationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvaluationInclude<ExtArgs> | null
+    where?: EvaluationWhereInput
+    orderBy?: EvaluationOrderByWithRelationInput | EvaluationOrderByWithRelationInput[]
+    cursor?: EvaluationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: EvaluationScalarFieldEnum | EvaluationScalarFieldEnum[]
   }
 
   /**
@@ -13491,6 +13707,1153 @@ export namespace Prisma {
 
 
   /**
+   * Model Evaluation
+   */
+
+  export type AggregateEvaluation = {
+    _count: EvaluationCountAggregateOutputType | null
+    _avg: EvaluationAvgAggregateOutputType | null
+    _sum: EvaluationSumAggregateOutputType | null
+    _min: EvaluationMinAggregateOutputType | null
+    _max: EvaluationMaxAggregateOutputType | null
+  }
+
+  export type EvaluationAvgAggregateOutputType = {
+    score: number | null
+  }
+
+  export type EvaluationSumAggregateOutputType = {
+    score: number | null
+  }
+
+  export type EvaluationMinAggregateOutputType = {
+    id: string | null
+    score: number | null
+    remarks: string | null
+    judgeId: string | null
+    eventId: string | null
+    participantId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EvaluationMaxAggregateOutputType = {
+    id: string | null
+    score: number | null
+    remarks: string | null
+    judgeId: string | null
+    eventId: string | null
+    participantId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EvaluationCountAggregateOutputType = {
+    id: number
+    score: number
+    remarks: number
+    judgeId: number
+    eventId: number
+    participantId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type EvaluationAvgAggregateInputType = {
+    score?: true
+  }
+
+  export type EvaluationSumAggregateInputType = {
+    score?: true
+  }
+
+  export type EvaluationMinAggregateInputType = {
+    id?: true
+    score?: true
+    remarks?: true
+    judgeId?: true
+    eventId?: true
+    participantId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EvaluationMaxAggregateInputType = {
+    id?: true
+    score?: true
+    remarks?: true
+    judgeId?: true
+    eventId?: true
+    participantId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EvaluationCountAggregateInputType = {
+    id?: true
+    score?: true
+    remarks?: true
+    judgeId?: true
+    eventId?: true
+    participantId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type EvaluationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Evaluation to aggregate.
+     */
+    where?: EvaluationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Evaluations to fetch.
+     */
+    orderBy?: EvaluationOrderByWithRelationInput | EvaluationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EvaluationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Evaluations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Evaluations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Evaluations
+    **/
+    _count?: true | EvaluationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EvaluationAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EvaluationSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EvaluationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EvaluationMaxAggregateInputType
+  }
+
+  export type GetEvaluationAggregateType<T extends EvaluationAggregateArgs> = {
+        [P in keyof T & keyof AggregateEvaluation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEvaluation[P]>
+      : GetScalarType<T[P], AggregateEvaluation[P]>
+  }
+
+
+
+
+  export type EvaluationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EvaluationWhereInput
+    orderBy?: EvaluationOrderByWithAggregationInput | EvaluationOrderByWithAggregationInput[]
+    by: EvaluationScalarFieldEnum[] | EvaluationScalarFieldEnum
+    having?: EvaluationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EvaluationCountAggregateInputType | true
+    _avg?: EvaluationAvgAggregateInputType
+    _sum?: EvaluationSumAggregateInputType
+    _min?: EvaluationMinAggregateInputType
+    _max?: EvaluationMaxAggregateInputType
+  }
+
+  export type EvaluationGroupByOutputType = {
+    id: string
+    score: number
+    remarks: string | null
+    judgeId: string
+    eventId: string
+    participantId: string
+    createdAt: Date
+    updatedAt: Date
+    _count: EvaluationCountAggregateOutputType | null
+    _avg: EvaluationAvgAggregateOutputType | null
+    _sum: EvaluationSumAggregateOutputType | null
+    _min: EvaluationMinAggregateOutputType | null
+    _max: EvaluationMaxAggregateOutputType | null
+  }
+
+  type GetEvaluationGroupByPayload<T extends EvaluationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EvaluationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EvaluationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EvaluationGroupByOutputType[P]>
+            : GetScalarType<T[P], EvaluationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EvaluationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    score?: boolean
+    remarks?: boolean
+    judgeId?: boolean
+    eventId?: boolean
+    participantId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    judge?: boolean | UserDefaultArgs<ExtArgs>
+    event?: boolean | EventDefaultArgs<ExtArgs>
+    participant?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["evaluation"]>
+
+  export type EvaluationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    score?: boolean
+    remarks?: boolean
+    judgeId?: boolean
+    eventId?: boolean
+    participantId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    judge?: boolean | UserDefaultArgs<ExtArgs>
+    event?: boolean | EventDefaultArgs<ExtArgs>
+    participant?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["evaluation"]>
+
+  export type EvaluationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    score?: boolean
+    remarks?: boolean
+    judgeId?: boolean
+    eventId?: boolean
+    participantId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    judge?: boolean | UserDefaultArgs<ExtArgs>
+    event?: boolean | EventDefaultArgs<ExtArgs>
+    participant?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["evaluation"]>
+
+  export type EvaluationSelectScalar = {
+    id?: boolean
+    score?: boolean
+    remarks?: boolean
+    judgeId?: boolean
+    eventId?: boolean
+    participantId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type EvaluationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "score" | "remarks" | "judgeId" | "eventId" | "participantId" | "createdAt" | "updatedAt", ExtArgs["result"]["evaluation"]>
+  export type EvaluationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    judge?: boolean | UserDefaultArgs<ExtArgs>
+    event?: boolean | EventDefaultArgs<ExtArgs>
+    participant?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type EvaluationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    judge?: boolean | UserDefaultArgs<ExtArgs>
+    event?: boolean | EventDefaultArgs<ExtArgs>
+    participant?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type EvaluationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    judge?: boolean | UserDefaultArgs<ExtArgs>
+    event?: boolean | EventDefaultArgs<ExtArgs>
+    participant?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $EvaluationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Evaluation"
+    objects: {
+      judge: Prisma.$UserPayload<ExtArgs>
+      event: Prisma.$EventPayload<ExtArgs>
+      participant: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      score: number
+      remarks: string | null
+      judgeId: string
+      eventId: string
+      participantId: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["evaluation"]>
+    composites: {}
+  }
+
+  type EvaluationGetPayload<S extends boolean | null | undefined | EvaluationDefaultArgs> = $Result.GetResult<Prisma.$EvaluationPayload, S>
+
+  type EvaluationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<EvaluationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: EvaluationCountAggregateInputType | true
+    }
+
+  export interface EvaluationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Evaluation'], meta: { name: 'Evaluation' } }
+    /**
+     * Find zero or one Evaluation that matches the filter.
+     * @param {EvaluationFindUniqueArgs} args - Arguments to find a Evaluation
+     * @example
+     * // Get one Evaluation
+     * const evaluation = await prisma.evaluation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EvaluationFindUniqueArgs>(args: SelectSubset<T, EvaluationFindUniqueArgs<ExtArgs>>): Prisma__EvaluationClient<$Result.GetResult<Prisma.$EvaluationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Evaluation that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {EvaluationFindUniqueOrThrowArgs} args - Arguments to find a Evaluation
+     * @example
+     * // Get one Evaluation
+     * const evaluation = await prisma.evaluation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EvaluationFindUniqueOrThrowArgs>(args: SelectSubset<T, EvaluationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EvaluationClient<$Result.GetResult<Prisma.$EvaluationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Evaluation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EvaluationFindFirstArgs} args - Arguments to find a Evaluation
+     * @example
+     * // Get one Evaluation
+     * const evaluation = await prisma.evaluation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EvaluationFindFirstArgs>(args?: SelectSubset<T, EvaluationFindFirstArgs<ExtArgs>>): Prisma__EvaluationClient<$Result.GetResult<Prisma.$EvaluationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Evaluation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EvaluationFindFirstOrThrowArgs} args - Arguments to find a Evaluation
+     * @example
+     * // Get one Evaluation
+     * const evaluation = await prisma.evaluation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EvaluationFindFirstOrThrowArgs>(args?: SelectSubset<T, EvaluationFindFirstOrThrowArgs<ExtArgs>>): Prisma__EvaluationClient<$Result.GetResult<Prisma.$EvaluationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Evaluations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EvaluationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Evaluations
+     * const evaluations = await prisma.evaluation.findMany()
+     * 
+     * // Get first 10 Evaluations
+     * const evaluations = await prisma.evaluation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const evaluationWithIdOnly = await prisma.evaluation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EvaluationFindManyArgs>(args?: SelectSubset<T, EvaluationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EvaluationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Evaluation.
+     * @param {EvaluationCreateArgs} args - Arguments to create a Evaluation.
+     * @example
+     * // Create one Evaluation
+     * const Evaluation = await prisma.evaluation.create({
+     *   data: {
+     *     // ... data to create a Evaluation
+     *   }
+     * })
+     * 
+     */
+    create<T extends EvaluationCreateArgs>(args: SelectSubset<T, EvaluationCreateArgs<ExtArgs>>): Prisma__EvaluationClient<$Result.GetResult<Prisma.$EvaluationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Evaluations.
+     * @param {EvaluationCreateManyArgs} args - Arguments to create many Evaluations.
+     * @example
+     * // Create many Evaluations
+     * const evaluation = await prisma.evaluation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EvaluationCreateManyArgs>(args?: SelectSubset<T, EvaluationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Evaluations and returns the data saved in the database.
+     * @param {EvaluationCreateManyAndReturnArgs} args - Arguments to create many Evaluations.
+     * @example
+     * // Create many Evaluations
+     * const evaluation = await prisma.evaluation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Evaluations and only return the `id`
+     * const evaluationWithIdOnly = await prisma.evaluation.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EvaluationCreateManyAndReturnArgs>(args?: SelectSubset<T, EvaluationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EvaluationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Evaluation.
+     * @param {EvaluationDeleteArgs} args - Arguments to delete one Evaluation.
+     * @example
+     * // Delete one Evaluation
+     * const Evaluation = await prisma.evaluation.delete({
+     *   where: {
+     *     // ... filter to delete one Evaluation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EvaluationDeleteArgs>(args: SelectSubset<T, EvaluationDeleteArgs<ExtArgs>>): Prisma__EvaluationClient<$Result.GetResult<Prisma.$EvaluationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Evaluation.
+     * @param {EvaluationUpdateArgs} args - Arguments to update one Evaluation.
+     * @example
+     * // Update one Evaluation
+     * const evaluation = await prisma.evaluation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EvaluationUpdateArgs>(args: SelectSubset<T, EvaluationUpdateArgs<ExtArgs>>): Prisma__EvaluationClient<$Result.GetResult<Prisma.$EvaluationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Evaluations.
+     * @param {EvaluationDeleteManyArgs} args - Arguments to filter Evaluations to delete.
+     * @example
+     * // Delete a few Evaluations
+     * const { count } = await prisma.evaluation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EvaluationDeleteManyArgs>(args?: SelectSubset<T, EvaluationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Evaluations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EvaluationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Evaluations
+     * const evaluation = await prisma.evaluation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EvaluationUpdateManyArgs>(args: SelectSubset<T, EvaluationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Evaluations and returns the data updated in the database.
+     * @param {EvaluationUpdateManyAndReturnArgs} args - Arguments to update many Evaluations.
+     * @example
+     * // Update many Evaluations
+     * const evaluation = await prisma.evaluation.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Evaluations and only return the `id`
+     * const evaluationWithIdOnly = await prisma.evaluation.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends EvaluationUpdateManyAndReturnArgs>(args: SelectSubset<T, EvaluationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EvaluationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Evaluation.
+     * @param {EvaluationUpsertArgs} args - Arguments to update or create a Evaluation.
+     * @example
+     * // Update or create a Evaluation
+     * const evaluation = await prisma.evaluation.upsert({
+     *   create: {
+     *     // ... data to create a Evaluation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Evaluation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EvaluationUpsertArgs>(args: SelectSubset<T, EvaluationUpsertArgs<ExtArgs>>): Prisma__EvaluationClient<$Result.GetResult<Prisma.$EvaluationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Evaluations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EvaluationCountArgs} args - Arguments to filter Evaluations to count.
+     * @example
+     * // Count the number of Evaluations
+     * const count = await prisma.evaluation.count({
+     *   where: {
+     *     // ... the filter for the Evaluations we want to count
+     *   }
+     * })
+    **/
+    count<T extends EvaluationCountArgs>(
+      args?: Subset<T, EvaluationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EvaluationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Evaluation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EvaluationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EvaluationAggregateArgs>(args: Subset<T, EvaluationAggregateArgs>): Prisma.PrismaPromise<GetEvaluationAggregateType<T>>
+
+    /**
+     * Group by Evaluation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EvaluationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EvaluationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EvaluationGroupByArgs['orderBy'] }
+        : { orderBy?: EvaluationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EvaluationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEvaluationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Evaluation model
+   */
+  readonly fields: EvaluationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Evaluation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EvaluationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    judge<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    event<T extends EventDefaultArgs<ExtArgs> = {}>(args?: Subset<T, EventDefaultArgs<ExtArgs>>): Prisma__EventClient<$Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    participant<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Evaluation model
+   */
+  interface EvaluationFieldRefs {
+    readonly id: FieldRef<"Evaluation", 'String'>
+    readonly score: FieldRef<"Evaluation", 'Float'>
+    readonly remarks: FieldRef<"Evaluation", 'String'>
+    readonly judgeId: FieldRef<"Evaluation", 'String'>
+    readonly eventId: FieldRef<"Evaluation", 'String'>
+    readonly participantId: FieldRef<"Evaluation", 'String'>
+    readonly createdAt: FieldRef<"Evaluation", 'DateTime'>
+    readonly updatedAt: FieldRef<"Evaluation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Evaluation findUnique
+   */
+  export type EvaluationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evaluation
+     */
+    select?: EvaluationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evaluation
+     */
+    omit?: EvaluationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvaluationInclude<ExtArgs> | null
+    /**
+     * Filter, which Evaluation to fetch.
+     */
+    where: EvaluationWhereUniqueInput
+  }
+
+  /**
+   * Evaluation findUniqueOrThrow
+   */
+  export type EvaluationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evaluation
+     */
+    select?: EvaluationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evaluation
+     */
+    omit?: EvaluationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvaluationInclude<ExtArgs> | null
+    /**
+     * Filter, which Evaluation to fetch.
+     */
+    where: EvaluationWhereUniqueInput
+  }
+
+  /**
+   * Evaluation findFirst
+   */
+  export type EvaluationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evaluation
+     */
+    select?: EvaluationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evaluation
+     */
+    omit?: EvaluationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvaluationInclude<ExtArgs> | null
+    /**
+     * Filter, which Evaluation to fetch.
+     */
+    where?: EvaluationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Evaluations to fetch.
+     */
+    orderBy?: EvaluationOrderByWithRelationInput | EvaluationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Evaluations.
+     */
+    cursor?: EvaluationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Evaluations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Evaluations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Evaluations.
+     */
+    distinct?: EvaluationScalarFieldEnum | EvaluationScalarFieldEnum[]
+  }
+
+  /**
+   * Evaluation findFirstOrThrow
+   */
+  export type EvaluationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evaluation
+     */
+    select?: EvaluationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evaluation
+     */
+    omit?: EvaluationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvaluationInclude<ExtArgs> | null
+    /**
+     * Filter, which Evaluation to fetch.
+     */
+    where?: EvaluationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Evaluations to fetch.
+     */
+    orderBy?: EvaluationOrderByWithRelationInput | EvaluationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Evaluations.
+     */
+    cursor?: EvaluationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Evaluations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Evaluations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Evaluations.
+     */
+    distinct?: EvaluationScalarFieldEnum | EvaluationScalarFieldEnum[]
+  }
+
+  /**
+   * Evaluation findMany
+   */
+  export type EvaluationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evaluation
+     */
+    select?: EvaluationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evaluation
+     */
+    omit?: EvaluationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvaluationInclude<ExtArgs> | null
+    /**
+     * Filter, which Evaluations to fetch.
+     */
+    where?: EvaluationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Evaluations to fetch.
+     */
+    orderBy?: EvaluationOrderByWithRelationInput | EvaluationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Evaluations.
+     */
+    cursor?: EvaluationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Evaluations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Evaluations.
+     */
+    skip?: number
+    distinct?: EvaluationScalarFieldEnum | EvaluationScalarFieldEnum[]
+  }
+
+  /**
+   * Evaluation create
+   */
+  export type EvaluationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evaluation
+     */
+    select?: EvaluationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evaluation
+     */
+    omit?: EvaluationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvaluationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Evaluation.
+     */
+    data: XOR<EvaluationCreateInput, EvaluationUncheckedCreateInput>
+  }
+
+  /**
+   * Evaluation createMany
+   */
+  export type EvaluationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Evaluations.
+     */
+    data: EvaluationCreateManyInput | EvaluationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Evaluation createManyAndReturn
+   */
+  export type EvaluationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evaluation
+     */
+    select?: EvaluationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evaluation
+     */
+    omit?: EvaluationOmit<ExtArgs> | null
+    /**
+     * The data used to create many Evaluations.
+     */
+    data: EvaluationCreateManyInput | EvaluationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvaluationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Evaluation update
+   */
+  export type EvaluationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evaluation
+     */
+    select?: EvaluationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evaluation
+     */
+    omit?: EvaluationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvaluationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Evaluation.
+     */
+    data: XOR<EvaluationUpdateInput, EvaluationUncheckedUpdateInput>
+    /**
+     * Choose, which Evaluation to update.
+     */
+    where: EvaluationWhereUniqueInput
+  }
+
+  /**
+   * Evaluation updateMany
+   */
+  export type EvaluationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Evaluations.
+     */
+    data: XOR<EvaluationUpdateManyMutationInput, EvaluationUncheckedUpdateManyInput>
+    /**
+     * Filter which Evaluations to update
+     */
+    where?: EvaluationWhereInput
+    /**
+     * Limit how many Evaluations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Evaluation updateManyAndReturn
+   */
+  export type EvaluationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evaluation
+     */
+    select?: EvaluationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evaluation
+     */
+    omit?: EvaluationOmit<ExtArgs> | null
+    /**
+     * The data used to update Evaluations.
+     */
+    data: XOR<EvaluationUpdateManyMutationInput, EvaluationUncheckedUpdateManyInput>
+    /**
+     * Filter which Evaluations to update
+     */
+    where?: EvaluationWhereInput
+    /**
+     * Limit how many Evaluations to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvaluationIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Evaluation upsert
+   */
+  export type EvaluationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evaluation
+     */
+    select?: EvaluationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evaluation
+     */
+    omit?: EvaluationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvaluationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Evaluation to update in case it exists.
+     */
+    where: EvaluationWhereUniqueInput
+    /**
+     * In case the Evaluation found by the `where` argument doesn't exist, create a new Evaluation with this data.
+     */
+    create: XOR<EvaluationCreateInput, EvaluationUncheckedCreateInput>
+    /**
+     * In case the Evaluation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EvaluationUpdateInput, EvaluationUncheckedUpdateInput>
+  }
+
+  /**
+   * Evaluation delete
+   */
+  export type EvaluationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evaluation
+     */
+    select?: EvaluationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evaluation
+     */
+    omit?: EvaluationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvaluationInclude<ExtArgs> | null
+    /**
+     * Filter which Evaluation to delete.
+     */
+    where: EvaluationWhereUniqueInput
+  }
+
+  /**
+   * Evaluation deleteMany
+   */
+  export type EvaluationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Evaluations to delete
+     */
+    where?: EvaluationWhereInput
+    /**
+     * Limit how many Evaluations to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Evaluation without action
+   */
+  export type EvaluationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evaluation
+     */
+    select?: EvaluationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evaluation
+     */
+    omit?: EvaluationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvaluationInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -13522,7 +14885,8 @@ export namespace Prisma {
     paymentStatus: 'paymentStatus',
     phone: 'phone',
     password: 'password',
-    role: 'role'
+    role: 'role',
+    assignedCategoryId: 'assignedCategoryId'
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -13668,6 +15032,20 @@ export namespace Prisma {
   };
 
   export type FAQScalarFieldEnum = (typeof FAQScalarFieldEnum)[keyof typeof FAQScalarFieldEnum]
+
+
+  export const EvaluationScalarFieldEnum: {
+    id: 'id',
+    score: 'score',
+    remarks: 'remarks',
+    judgeId: 'judgeId',
+    eventId: 'eventId',
+    participantId: 'participantId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type EvaluationScalarFieldEnum = (typeof EvaluationScalarFieldEnum)[keyof typeof EvaluationScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -13909,12 +15287,15 @@ export namespace Prisma {
     phone?: StringNullableFilter<"User"> | string | null
     password?: StringNullableFilter<"User"> | string | null
     role?: EnumRoleFilter<"User"> | $Enums.Role
+    assignedCategoryId?: StringNullableFilter<"User"> | string | null
     accounts?: AccountListRelationFilter
     sessions?: SessionListRelationFilter
     registeredEvents?: EventListRelationFilter
     accommodationBookings?: AccommodationBookingListRelationFilter
     eventSubmissions?: EventSubmissionListRelationFilter
     groupRegistrations?: GroupRegistrationListRelationFilter
+    evaluationsGiven?: EvaluationListRelationFilter
+    evaluationsReceived?: EvaluationListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -13936,12 +15317,15 @@ export namespace Prisma {
     phone?: SortOrderInput | SortOrder
     password?: SortOrderInput | SortOrder
     role?: SortOrder
+    assignedCategoryId?: SortOrderInput | SortOrder
     accounts?: AccountOrderByRelationAggregateInput
     sessions?: SessionOrderByRelationAggregateInput
     registeredEvents?: EventOrderByRelationAggregateInput
     accommodationBookings?: AccommodationBookingOrderByRelationAggregateInput
     eventSubmissions?: EventSubmissionOrderByRelationAggregateInput
     groupRegistrations?: GroupRegistrationOrderByRelationAggregateInput
+    evaluationsGiven?: EvaluationOrderByRelationAggregateInput
+    evaluationsReceived?: EvaluationOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -13966,12 +15350,15 @@ export namespace Prisma {
     phone?: StringNullableFilter<"User"> | string | null
     password?: StringNullableFilter<"User"> | string | null
     role?: EnumRoleFilter<"User"> | $Enums.Role
+    assignedCategoryId?: StringNullableFilter<"User"> | string | null
     accounts?: AccountListRelationFilter
     sessions?: SessionListRelationFilter
     registeredEvents?: EventListRelationFilter
     accommodationBookings?: AccommodationBookingListRelationFilter
     eventSubmissions?: EventSubmissionListRelationFilter
     groupRegistrations?: GroupRegistrationListRelationFilter
+    evaluationsGiven?: EvaluationListRelationFilter
+    evaluationsReceived?: EvaluationListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -13993,6 +15380,7 @@ export namespace Prisma {
     phone?: SortOrderInput | SortOrder
     password?: SortOrderInput | SortOrder
     role?: SortOrder
+    assignedCategoryId?: SortOrderInput | SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -14022,6 +15410,7 @@ export namespace Prisma {
     phone?: StringNullableWithAggregatesFilter<"User"> | string | null
     password?: StringNullableWithAggregatesFilter<"User"> | string | null
     role?: EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
+    assignedCategoryId?: StringNullableWithAggregatesFilter<"User"> | string | null
   }
 
   export type SessionWhereInput = {
@@ -14331,6 +15720,7 @@ export namespace Prisma {
     registeredStudents?: UserListRelationFilter
     submissions?: EventSubmissionListRelationFilter
     groupRegistrations?: GroupRegistrationListRelationFilter
+    evaluations?: EvaluationListRelationFilter
   }
 
   export type EventOrderByWithRelationInput = {
@@ -14355,6 +15745,7 @@ export namespace Prisma {
     registeredStudents?: UserOrderByRelationAggregateInput
     submissions?: EventSubmissionOrderByRelationAggregateInput
     groupRegistrations?: GroupRegistrationOrderByRelationAggregateInput
+    evaluations?: EvaluationOrderByRelationAggregateInput
   }
 
   export type EventWhereUniqueInput = Prisma.AtLeast<{
@@ -14382,6 +15773,7 @@ export namespace Prisma {
     registeredStudents?: UserListRelationFilter
     submissions?: EventSubmissionListRelationFilter
     groupRegistrations?: GroupRegistrationListRelationFilter
+    evaluations?: EvaluationListRelationFilter
   }, "id">
 
   export type EventOrderByWithAggregationInput = {
@@ -14751,6 +16143,85 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"FAQ"> | Date | string
   }
 
+  export type EvaluationWhereInput = {
+    AND?: EvaluationWhereInput | EvaluationWhereInput[]
+    OR?: EvaluationWhereInput[]
+    NOT?: EvaluationWhereInput | EvaluationWhereInput[]
+    id?: StringFilter<"Evaluation"> | string
+    score?: FloatFilter<"Evaluation"> | number
+    remarks?: StringNullableFilter<"Evaluation"> | string | null
+    judgeId?: StringFilter<"Evaluation"> | string
+    eventId?: StringFilter<"Evaluation"> | string
+    participantId?: StringFilter<"Evaluation"> | string
+    createdAt?: DateTimeFilter<"Evaluation"> | Date | string
+    updatedAt?: DateTimeFilter<"Evaluation"> | Date | string
+    judge?: XOR<UserScalarRelationFilter, UserWhereInput>
+    event?: XOR<EventScalarRelationFilter, EventWhereInput>
+    participant?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type EvaluationOrderByWithRelationInput = {
+    id?: SortOrder
+    score?: SortOrder
+    remarks?: SortOrderInput | SortOrder
+    judgeId?: SortOrder
+    eventId?: SortOrder
+    participantId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    judge?: UserOrderByWithRelationInput
+    event?: EventOrderByWithRelationInput
+    participant?: UserOrderByWithRelationInput
+  }
+
+  export type EvaluationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    judgeId_eventId_participantId?: EvaluationJudgeIdEventIdParticipantIdCompoundUniqueInput
+    AND?: EvaluationWhereInput | EvaluationWhereInput[]
+    OR?: EvaluationWhereInput[]
+    NOT?: EvaluationWhereInput | EvaluationWhereInput[]
+    score?: FloatFilter<"Evaluation"> | number
+    remarks?: StringNullableFilter<"Evaluation"> | string | null
+    judgeId?: StringFilter<"Evaluation"> | string
+    eventId?: StringFilter<"Evaluation"> | string
+    participantId?: StringFilter<"Evaluation"> | string
+    createdAt?: DateTimeFilter<"Evaluation"> | Date | string
+    updatedAt?: DateTimeFilter<"Evaluation"> | Date | string
+    judge?: XOR<UserScalarRelationFilter, UserWhereInput>
+    event?: XOR<EventScalarRelationFilter, EventWhereInput>
+    participant?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "judgeId_eventId_participantId">
+
+  export type EvaluationOrderByWithAggregationInput = {
+    id?: SortOrder
+    score?: SortOrder
+    remarks?: SortOrderInput | SortOrder
+    judgeId?: SortOrder
+    eventId?: SortOrder
+    participantId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: EvaluationCountOrderByAggregateInput
+    _avg?: EvaluationAvgOrderByAggregateInput
+    _max?: EvaluationMaxOrderByAggregateInput
+    _min?: EvaluationMinOrderByAggregateInput
+    _sum?: EvaluationSumOrderByAggregateInput
+  }
+
+  export type EvaluationScalarWhereWithAggregatesInput = {
+    AND?: EvaluationScalarWhereWithAggregatesInput | EvaluationScalarWhereWithAggregatesInput[]
+    OR?: EvaluationScalarWhereWithAggregatesInput[]
+    NOT?: EvaluationScalarWhereWithAggregatesInput | EvaluationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Evaluation"> | string
+    score?: FloatWithAggregatesFilter<"Evaluation"> | number
+    remarks?: StringNullableWithAggregatesFilter<"Evaluation"> | string | null
+    judgeId?: StringWithAggregatesFilter<"Evaluation"> | string
+    eventId?: StringWithAggregatesFilter<"Evaluation"> | string
+    participantId?: StringWithAggregatesFilter<"Evaluation"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Evaluation"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Evaluation"> | Date | string
+  }
+
   export type UserCreateInput = {
     id: string
     createdAt?: Date | string
@@ -14770,12 +16241,15 @@ export namespace Prisma {
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
+    assignedCategoryId?: string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     registeredEvents?: EventCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
+    evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -14797,12 +16271,15 @@ export namespace Prisma {
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
+    assignedCategoryId?: string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     registeredEvents?: EventUncheckedCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingUncheckedCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
+    evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
   }
 
   export type UserUpdateInput = {
@@ -14824,12 +16301,15 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     registeredEvents?: EventUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
     groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
+    evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -14851,12 +16331,15 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     registeredEvents?: EventUncheckedUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUncheckedUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
+    evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -14878,6 +16361,7 @@ export namespace Prisma {
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
+    assignedCategoryId?: string | null
   }
 
   export type UserUpdateManyMutationInput = {
@@ -14899,6 +16383,7 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type UserUncheckedUpdateManyInput = {
@@ -14920,6 +16405,7 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type SessionCreateInput = {
@@ -15260,6 +16746,7 @@ export namespace Prisma {
     registeredStudents?: UserCreateNestedManyWithoutRegisteredEventsInput
     submissions?: EventSubmissionCreateNestedManyWithoutEventInput
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutEventInput
+    evaluations?: EvaluationCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateInput = {
@@ -15283,6 +16770,7 @@ export namespace Prisma {
     registeredStudents?: UserUncheckedCreateNestedManyWithoutRegisteredEventsInput
     submissions?: EventSubmissionUncheckedCreateNestedManyWithoutEventInput
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutEventInput
+    evaluations?: EvaluationUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventUpdateInput = {
@@ -15306,6 +16794,7 @@ export namespace Prisma {
     registeredStudents?: UserUpdateManyWithoutRegisteredEventsNestedInput
     submissions?: EventSubmissionUpdateManyWithoutEventNestedInput
     groupRegistrations?: GroupRegistrationUpdateManyWithoutEventNestedInput
+    evaluations?: EvaluationUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateInput = {
@@ -15329,6 +16818,7 @@ export namespace Prisma {
     registeredStudents?: UserUncheckedUpdateManyWithoutRegisteredEventsNestedInput
     submissions?: EventSubmissionUncheckedUpdateManyWithoutEventNestedInput
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutEventNestedInput
+    evaluations?: EvaluationUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type EventCreateManyInput = {
@@ -15735,6 +17225,80 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type EvaluationCreateInput = {
+    id?: string
+    score: number
+    remarks?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    judge: UserCreateNestedOneWithoutEvaluationsGivenInput
+    event: EventCreateNestedOneWithoutEvaluationsInput
+    participant: UserCreateNestedOneWithoutEvaluationsReceivedInput
+  }
+
+  export type EvaluationUncheckedCreateInput = {
+    id?: string
+    score: number
+    remarks?: string | null
+    judgeId: string
+    eventId: string
+    participantId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EvaluationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    judge?: UserUpdateOneRequiredWithoutEvaluationsGivenNestedInput
+    event?: EventUpdateOneRequiredWithoutEvaluationsNestedInput
+    participant?: UserUpdateOneRequiredWithoutEvaluationsReceivedNestedInput
+  }
+
+  export type EvaluationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    judgeId?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    participantId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EvaluationCreateManyInput = {
+    id?: string
+    score: number
+    remarks?: string | null
+    judgeId: string
+    eventId: string
+    participantId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EvaluationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EvaluationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    judgeId?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    participantId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -15842,6 +17406,12 @@ export namespace Prisma {
     none?: GroupRegistrationWhereInput
   }
 
+  export type EvaluationListRelationFilter = {
+    every?: EvaluationWhereInput
+    some?: EvaluationWhereInput
+    none?: EvaluationWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -15871,6 +17441,10 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type EvaluationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type UserCountOrderByAggregateInput = {
     id?: SortOrder
     createdAt?: SortOrder
@@ -15890,6 +17464,7 @@ export namespace Prisma {
     phone?: SortOrder
     password?: SortOrder
     role?: SortOrder
+    assignedCategoryId?: SortOrder
   }
 
   export type UserAvgOrderByAggregateInput = {
@@ -15915,6 +17490,7 @@ export namespace Prisma {
     phone?: SortOrder
     password?: SortOrder
     role?: SortOrder
+    assignedCategoryId?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
@@ -15936,6 +17512,7 @@ export namespace Prisma {
     phone?: SortOrder
     password?: SortOrder
     role?: SortOrder
+    assignedCategoryId?: SortOrder
   }
 
   export type UserSumOrderByAggregateInput = {
@@ -16670,6 +18247,80 @@ export namespace Prisma {
     order?: SortOrder
   }
 
+  export type FloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
+  export type EvaluationJudgeIdEventIdParticipantIdCompoundUniqueInput = {
+    judgeId: string
+    eventId: string
+    participantId: string
+  }
+
+  export type EvaluationCountOrderByAggregateInput = {
+    id?: SortOrder
+    score?: SortOrder
+    remarks?: SortOrder
+    judgeId?: SortOrder
+    eventId?: SortOrder
+    participantId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EvaluationAvgOrderByAggregateInput = {
+    score?: SortOrder
+  }
+
+  export type EvaluationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    score?: SortOrder
+    remarks?: SortOrder
+    judgeId?: SortOrder
+    eventId?: SortOrder
+    participantId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EvaluationMinOrderByAggregateInput = {
+    id?: SortOrder
+    score?: SortOrder
+    remarks?: SortOrder
+    judgeId?: SortOrder
+    eventId?: SortOrder
+    participantId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EvaluationSumOrderByAggregateInput = {
+    score?: SortOrder
+  }
+
+  export type FloatWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
+  }
+
   export type AccountCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -16711,6 +18362,20 @@ export namespace Prisma {
     connect?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
   }
 
+  export type EvaluationCreateNestedManyWithoutJudgeInput = {
+    create?: XOR<EvaluationCreateWithoutJudgeInput, EvaluationUncheckedCreateWithoutJudgeInput> | EvaluationCreateWithoutJudgeInput[] | EvaluationUncheckedCreateWithoutJudgeInput[]
+    connectOrCreate?: EvaluationCreateOrConnectWithoutJudgeInput | EvaluationCreateOrConnectWithoutJudgeInput[]
+    createMany?: EvaluationCreateManyJudgeInputEnvelope
+    connect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+  }
+
+  export type EvaluationCreateNestedManyWithoutParticipantInput = {
+    create?: XOR<EvaluationCreateWithoutParticipantInput, EvaluationUncheckedCreateWithoutParticipantInput> | EvaluationCreateWithoutParticipantInput[] | EvaluationUncheckedCreateWithoutParticipantInput[]
+    connectOrCreate?: EvaluationCreateOrConnectWithoutParticipantInput | EvaluationCreateOrConnectWithoutParticipantInput[]
+    createMany?: EvaluationCreateManyParticipantInputEnvelope
+    connect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+  }
+
   export type AccountUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -16750,6 +18415,20 @@ export namespace Prisma {
     connectOrCreate?: GroupRegistrationCreateOrConnectWithoutUserInput | GroupRegistrationCreateOrConnectWithoutUserInput[]
     createMany?: GroupRegistrationCreateManyUserInputEnvelope
     connect?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+  }
+
+  export type EvaluationUncheckedCreateNestedManyWithoutJudgeInput = {
+    create?: XOR<EvaluationCreateWithoutJudgeInput, EvaluationUncheckedCreateWithoutJudgeInput> | EvaluationCreateWithoutJudgeInput[] | EvaluationUncheckedCreateWithoutJudgeInput[]
+    connectOrCreate?: EvaluationCreateOrConnectWithoutJudgeInput | EvaluationCreateOrConnectWithoutJudgeInput[]
+    createMany?: EvaluationCreateManyJudgeInputEnvelope
+    connect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+  }
+
+  export type EvaluationUncheckedCreateNestedManyWithoutParticipantInput = {
+    create?: XOR<EvaluationCreateWithoutParticipantInput, EvaluationUncheckedCreateWithoutParticipantInput> | EvaluationCreateWithoutParticipantInput[] | EvaluationUncheckedCreateWithoutParticipantInput[]
+    connectOrCreate?: EvaluationCreateOrConnectWithoutParticipantInput | EvaluationCreateOrConnectWithoutParticipantInput[]
+    createMany?: EvaluationCreateManyParticipantInputEnvelope
+    connect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -16867,6 +18546,34 @@ export namespace Prisma {
     deleteMany?: GroupRegistrationScalarWhereInput | GroupRegistrationScalarWhereInput[]
   }
 
+  export type EvaluationUpdateManyWithoutJudgeNestedInput = {
+    create?: XOR<EvaluationCreateWithoutJudgeInput, EvaluationUncheckedCreateWithoutJudgeInput> | EvaluationCreateWithoutJudgeInput[] | EvaluationUncheckedCreateWithoutJudgeInput[]
+    connectOrCreate?: EvaluationCreateOrConnectWithoutJudgeInput | EvaluationCreateOrConnectWithoutJudgeInput[]
+    upsert?: EvaluationUpsertWithWhereUniqueWithoutJudgeInput | EvaluationUpsertWithWhereUniqueWithoutJudgeInput[]
+    createMany?: EvaluationCreateManyJudgeInputEnvelope
+    set?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    disconnect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    delete?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    connect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    update?: EvaluationUpdateWithWhereUniqueWithoutJudgeInput | EvaluationUpdateWithWhereUniqueWithoutJudgeInput[]
+    updateMany?: EvaluationUpdateManyWithWhereWithoutJudgeInput | EvaluationUpdateManyWithWhereWithoutJudgeInput[]
+    deleteMany?: EvaluationScalarWhereInput | EvaluationScalarWhereInput[]
+  }
+
+  export type EvaluationUpdateManyWithoutParticipantNestedInput = {
+    create?: XOR<EvaluationCreateWithoutParticipantInput, EvaluationUncheckedCreateWithoutParticipantInput> | EvaluationCreateWithoutParticipantInput[] | EvaluationUncheckedCreateWithoutParticipantInput[]
+    connectOrCreate?: EvaluationCreateOrConnectWithoutParticipantInput | EvaluationCreateOrConnectWithoutParticipantInput[]
+    upsert?: EvaluationUpsertWithWhereUniqueWithoutParticipantInput | EvaluationUpsertWithWhereUniqueWithoutParticipantInput[]
+    createMany?: EvaluationCreateManyParticipantInputEnvelope
+    set?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    disconnect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    delete?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    connect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    update?: EvaluationUpdateWithWhereUniqueWithoutParticipantInput | EvaluationUpdateWithWhereUniqueWithoutParticipantInput[]
+    updateMany?: EvaluationUpdateManyWithWhereWithoutParticipantInput | EvaluationUpdateManyWithWhereWithoutParticipantInput[]
+    deleteMany?: EvaluationScalarWhereInput | EvaluationScalarWhereInput[]
+  }
+
   export type AccountUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -16948,6 +18655,34 @@ export namespace Prisma {
     update?: GroupRegistrationUpdateWithWhereUniqueWithoutUserInput | GroupRegistrationUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: GroupRegistrationUpdateManyWithWhereWithoutUserInput | GroupRegistrationUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: GroupRegistrationScalarWhereInput | GroupRegistrationScalarWhereInput[]
+  }
+
+  export type EvaluationUncheckedUpdateManyWithoutJudgeNestedInput = {
+    create?: XOR<EvaluationCreateWithoutJudgeInput, EvaluationUncheckedCreateWithoutJudgeInput> | EvaluationCreateWithoutJudgeInput[] | EvaluationUncheckedCreateWithoutJudgeInput[]
+    connectOrCreate?: EvaluationCreateOrConnectWithoutJudgeInput | EvaluationCreateOrConnectWithoutJudgeInput[]
+    upsert?: EvaluationUpsertWithWhereUniqueWithoutJudgeInput | EvaluationUpsertWithWhereUniqueWithoutJudgeInput[]
+    createMany?: EvaluationCreateManyJudgeInputEnvelope
+    set?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    disconnect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    delete?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    connect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    update?: EvaluationUpdateWithWhereUniqueWithoutJudgeInput | EvaluationUpdateWithWhereUniqueWithoutJudgeInput[]
+    updateMany?: EvaluationUpdateManyWithWhereWithoutJudgeInput | EvaluationUpdateManyWithWhereWithoutJudgeInput[]
+    deleteMany?: EvaluationScalarWhereInput | EvaluationScalarWhereInput[]
+  }
+
+  export type EvaluationUncheckedUpdateManyWithoutParticipantNestedInput = {
+    create?: XOR<EvaluationCreateWithoutParticipantInput, EvaluationUncheckedCreateWithoutParticipantInput> | EvaluationCreateWithoutParticipantInput[] | EvaluationUncheckedCreateWithoutParticipantInput[]
+    connectOrCreate?: EvaluationCreateOrConnectWithoutParticipantInput | EvaluationCreateOrConnectWithoutParticipantInput[]
+    upsert?: EvaluationUpsertWithWhereUniqueWithoutParticipantInput | EvaluationUpsertWithWhereUniqueWithoutParticipantInput[]
+    createMany?: EvaluationCreateManyParticipantInputEnvelope
+    set?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    disconnect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    delete?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    connect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    update?: EvaluationUpdateWithWhereUniqueWithoutParticipantInput | EvaluationUpdateWithWhereUniqueWithoutParticipantInput[]
+    updateMany?: EvaluationUpdateManyWithWhereWithoutParticipantInput | EvaluationUpdateManyWithWhereWithoutParticipantInput[]
+    deleteMany?: EvaluationScalarWhereInput | EvaluationScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutSessionsInput = {
@@ -17050,6 +18785,13 @@ export namespace Prisma {
     connect?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
   }
 
+  export type EvaluationCreateNestedManyWithoutEventInput = {
+    create?: XOR<EvaluationCreateWithoutEventInput, EvaluationUncheckedCreateWithoutEventInput> | EvaluationCreateWithoutEventInput[] | EvaluationUncheckedCreateWithoutEventInput[]
+    connectOrCreate?: EvaluationCreateOrConnectWithoutEventInput | EvaluationCreateOrConnectWithoutEventInput[]
+    createMany?: EvaluationCreateManyEventInputEnvelope
+    connect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+  }
+
   export type UserUncheckedCreateNestedManyWithoutRegisteredEventsInput = {
     create?: XOR<UserCreateWithoutRegisteredEventsInput, UserUncheckedCreateWithoutRegisteredEventsInput> | UserCreateWithoutRegisteredEventsInput[] | UserUncheckedCreateWithoutRegisteredEventsInput[]
     connectOrCreate?: UserCreateOrConnectWithoutRegisteredEventsInput | UserCreateOrConnectWithoutRegisteredEventsInput[]
@@ -17068,6 +18810,13 @@ export namespace Prisma {
     connectOrCreate?: GroupRegistrationCreateOrConnectWithoutEventInput | GroupRegistrationCreateOrConnectWithoutEventInput[]
     createMany?: GroupRegistrationCreateManyEventInputEnvelope
     connect?: GroupRegistrationWhereUniqueInput | GroupRegistrationWhereUniqueInput[]
+  }
+
+  export type EvaluationUncheckedCreateNestedManyWithoutEventInput = {
+    create?: XOR<EvaluationCreateWithoutEventInput, EvaluationUncheckedCreateWithoutEventInput> | EvaluationCreateWithoutEventInput[] | EvaluationUncheckedCreateWithoutEventInput[]
+    connectOrCreate?: EvaluationCreateOrConnectWithoutEventInput | EvaluationCreateOrConnectWithoutEventInput[]
+    createMany?: EvaluationCreateManyEventInputEnvelope
+    connect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -17127,6 +18876,20 @@ export namespace Prisma {
     deleteMany?: GroupRegistrationScalarWhereInput | GroupRegistrationScalarWhereInput[]
   }
 
+  export type EvaluationUpdateManyWithoutEventNestedInput = {
+    create?: XOR<EvaluationCreateWithoutEventInput, EvaluationUncheckedCreateWithoutEventInput> | EvaluationCreateWithoutEventInput[] | EvaluationUncheckedCreateWithoutEventInput[]
+    connectOrCreate?: EvaluationCreateOrConnectWithoutEventInput | EvaluationCreateOrConnectWithoutEventInput[]
+    upsert?: EvaluationUpsertWithWhereUniqueWithoutEventInput | EvaluationUpsertWithWhereUniqueWithoutEventInput[]
+    createMany?: EvaluationCreateManyEventInputEnvelope
+    set?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    disconnect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    delete?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    connect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    update?: EvaluationUpdateWithWhereUniqueWithoutEventInput | EvaluationUpdateWithWhereUniqueWithoutEventInput[]
+    updateMany?: EvaluationUpdateManyWithWhereWithoutEventInput | EvaluationUpdateManyWithWhereWithoutEventInput[]
+    deleteMany?: EvaluationScalarWhereInput | EvaluationScalarWhereInput[]
+  }
+
   export type UserUncheckedUpdateManyWithoutRegisteredEventsNestedInput = {
     create?: XOR<UserCreateWithoutRegisteredEventsInput, UserUncheckedCreateWithoutRegisteredEventsInput> | UserCreateWithoutRegisteredEventsInput[] | UserUncheckedCreateWithoutRegisteredEventsInput[]
     connectOrCreate?: UserCreateOrConnectWithoutRegisteredEventsInput | UserCreateOrConnectWithoutRegisteredEventsInput[]
@@ -17166,6 +18929,20 @@ export namespace Prisma {
     update?: GroupRegistrationUpdateWithWhereUniqueWithoutEventInput | GroupRegistrationUpdateWithWhereUniqueWithoutEventInput[]
     updateMany?: GroupRegistrationUpdateManyWithWhereWithoutEventInput | GroupRegistrationUpdateManyWithWhereWithoutEventInput[]
     deleteMany?: GroupRegistrationScalarWhereInput | GroupRegistrationScalarWhereInput[]
+  }
+
+  export type EvaluationUncheckedUpdateManyWithoutEventNestedInput = {
+    create?: XOR<EvaluationCreateWithoutEventInput, EvaluationUncheckedCreateWithoutEventInput> | EvaluationCreateWithoutEventInput[] | EvaluationUncheckedCreateWithoutEventInput[]
+    connectOrCreate?: EvaluationCreateOrConnectWithoutEventInput | EvaluationCreateOrConnectWithoutEventInput[]
+    upsert?: EvaluationUpsertWithWhereUniqueWithoutEventInput | EvaluationUpsertWithWhereUniqueWithoutEventInput[]
+    createMany?: EvaluationCreateManyEventInputEnvelope
+    set?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    disconnect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    delete?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    connect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+    update?: EvaluationUpdateWithWhereUniqueWithoutEventInput | EvaluationUpdateWithWhereUniqueWithoutEventInput[]
+    updateMany?: EvaluationUpdateManyWithWhereWithoutEventInput | EvaluationUpdateManyWithWhereWithoutEventInput[]
+    deleteMany?: EvaluationScalarWhereInput | EvaluationScalarWhereInput[]
   }
 
   export type EventCreateNestedOneWithoutGroupRegistrationsInput = {
@@ -17256,6 +19033,56 @@ export namespace Prisma {
     upsert?: EventUpsertWithoutSubmissionsInput
     connect?: EventWhereUniqueInput
     update?: XOR<XOR<EventUpdateToOneWithWhereWithoutSubmissionsInput, EventUpdateWithoutSubmissionsInput>, EventUncheckedUpdateWithoutSubmissionsInput>
+  }
+
+  export type UserCreateNestedOneWithoutEvaluationsGivenInput = {
+    create?: XOR<UserCreateWithoutEvaluationsGivenInput, UserUncheckedCreateWithoutEvaluationsGivenInput>
+    connectOrCreate?: UserCreateOrConnectWithoutEvaluationsGivenInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type EventCreateNestedOneWithoutEvaluationsInput = {
+    create?: XOR<EventCreateWithoutEvaluationsInput, EventUncheckedCreateWithoutEvaluationsInput>
+    connectOrCreate?: EventCreateOrConnectWithoutEvaluationsInput
+    connect?: EventWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutEvaluationsReceivedInput = {
+    create?: XOR<UserCreateWithoutEvaluationsReceivedInput, UserUncheckedCreateWithoutEvaluationsReceivedInput>
+    connectOrCreate?: UserCreateOrConnectWithoutEvaluationsReceivedInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type FloatFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type UserUpdateOneRequiredWithoutEvaluationsGivenNestedInput = {
+    create?: XOR<UserCreateWithoutEvaluationsGivenInput, UserUncheckedCreateWithoutEvaluationsGivenInput>
+    connectOrCreate?: UserCreateOrConnectWithoutEvaluationsGivenInput
+    upsert?: UserUpsertWithoutEvaluationsGivenInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutEvaluationsGivenInput, UserUpdateWithoutEvaluationsGivenInput>, UserUncheckedUpdateWithoutEvaluationsGivenInput>
+  }
+
+  export type EventUpdateOneRequiredWithoutEvaluationsNestedInput = {
+    create?: XOR<EventCreateWithoutEvaluationsInput, EventUncheckedCreateWithoutEvaluationsInput>
+    connectOrCreate?: EventCreateOrConnectWithoutEvaluationsInput
+    upsert?: EventUpsertWithoutEvaluationsInput
+    connect?: EventWhereUniqueInput
+    update?: XOR<XOR<EventUpdateToOneWithWhereWithoutEvaluationsInput, EventUpdateWithoutEvaluationsInput>, EventUncheckedUpdateWithoutEvaluationsInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutEvaluationsReceivedNestedInput = {
+    create?: XOR<UserCreateWithoutEvaluationsReceivedInput, UserUncheckedCreateWithoutEvaluationsReceivedInput>
+    connectOrCreate?: UserCreateOrConnectWithoutEvaluationsReceivedInput
+    upsert?: UserUpsertWithoutEvaluationsReceivedInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutEvaluationsReceivedInput, UserUpdateWithoutEvaluationsReceivedInput>, UserUncheckedUpdateWithoutEvaluationsReceivedInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -17617,6 +19444,22 @@ export namespace Prisma {
     _max?: NestedEnumBookingStatusFilter<$PrismaModel>
   }
 
+  export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
+  }
+
   export type AccountCreateWithoutUserInput = {
     id: string
     createdAt?: Date | string
@@ -17707,6 +19550,7 @@ export namespace Prisma {
     Category: CategoryCreateNestedOneWithoutEventInput
     submissions?: EventSubmissionCreateNestedManyWithoutEventInput
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutEventInput
+    evaluations?: EvaluationCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutRegisteredStudentsInput = {
@@ -17729,6 +19573,7 @@ export namespace Prisma {
     updatedAt: Date | string
     submissions?: EventSubmissionUncheckedCreateNestedManyWithoutEventInput
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutEventInput
+    evaluations?: EvaluationUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutRegisteredStudentsInput = {
@@ -17837,6 +19682,66 @@ export namespace Prisma {
 
   export type GroupRegistrationCreateManyUserInputEnvelope = {
     data: GroupRegistrationCreateManyUserInput | GroupRegistrationCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type EvaluationCreateWithoutJudgeInput = {
+    id?: string
+    score: number
+    remarks?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    event: EventCreateNestedOneWithoutEvaluationsInput
+    participant: UserCreateNestedOneWithoutEvaluationsReceivedInput
+  }
+
+  export type EvaluationUncheckedCreateWithoutJudgeInput = {
+    id?: string
+    score: number
+    remarks?: string | null
+    eventId: string
+    participantId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EvaluationCreateOrConnectWithoutJudgeInput = {
+    where: EvaluationWhereUniqueInput
+    create: XOR<EvaluationCreateWithoutJudgeInput, EvaluationUncheckedCreateWithoutJudgeInput>
+  }
+
+  export type EvaluationCreateManyJudgeInputEnvelope = {
+    data: EvaluationCreateManyJudgeInput | EvaluationCreateManyJudgeInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type EvaluationCreateWithoutParticipantInput = {
+    id?: string
+    score: number
+    remarks?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    judge: UserCreateNestedOneWithoutEvaluationsGivenInput
+    event: EventCreateNestedOneWithoutEvaluationsInput
+  }
+
+  export type EvaluationUncheckedCreateWithoutParticipantInput = {
+    id?: string
+    score: number
+    remarks?: string | null
+    judgeId: string
+    eventId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EvaluationCreateOrConnectWithoutParticipantInput = {
+    where: EvaluationWhereUniqueInput
+    create: XOR<EvaluationCreateWithoutParticipantInput, EvaluationUncheckedCreateWithoutParticipantInput>
+  }
+
+  export type EvaluationCreateManyParticipantInputEnvelope = {
+    data: EvaluationCreateManyParticipantInput | EvaluationCreateManyParticipantInput[]
     skipDuplicates?: boolean
   }
 
@@ -18041,6 +19946,52 @@ export namespace Prisma {
     members?: JsonFilter<"GroupRegistration">
   }
 
+  export type EvaluationUpsertWithWhereUniqueWithoutJudgeInput = {
+    where: EvaluationWhereUniqueInput
+    update: XOR<EvaluationUpdateWithoutJudgeInput, EvaluationUncheckedUpdateWithoutJudgeInput>
+    create: XOR<EvaluationCreateWithoutJudgeInput, EvaluationUncheckedCreateWithoutJudgeInput>
+  }
+
+  export type EvaluationUpdateWithWhereUniqueWithoutJudgeInput = {
+    where: EvaluationWhereUniqueInput
+    data: XOR<EvaluationUpdateWithoutJudgeInput, EvaluationUncheckedUpdateWithoutJudgeInput>
+  }
+
+  export type EvaluationUpdateManyWithWhereWithoutJudgeInput = {
+    where: EvaluationScalarWhereInput
+    data: XOR<EvaluationUpdateManyMutationInput, EvaluationUncheckedUpdateManyWithoutJudgeInput>
+  }
+
+  export type EvaluationScalarWhereInput = {
+    AND?: EvaluationScalarWhereInput | EvaluationScalarWhereInput[]
+    OR?: EvaluationScalarWhereInput[]
+    NOT?: EvaluationScalarWhereInput | EvaluationScalarWhereInput[]
+    id?: StringFilter<"Evaluation"> | string
+    score?: FloatFilter<"Evaluation"> | number
+    remarks?: StringNullableFilter<"Evaluation"> | string | null
+    judgeId?: StringFilter<"Evaluation"> | string
+    eventId?: StringFilter<"Evaluation"> | string
+    participantId?: StringFilter<"Evaluation"> | string
+    createdAt?: DateTimeFilter<"Evaluation"> | Date | string
+    updatedAt?: DateTimeFilter<"Evaluation"> | Date | string
+  }
+
+  export type EvaluationUpsertWithWhereUniqueWithoutParticipantInput = {
+    where: EvaluationWhereUniqueInput
+    update: XOR<EvaluationUpdateWithoutParticipantInput, EvaluationUncheckedUpdateWithoutParticipantInput>
+    create: XOR<EvaluationCreateWithoutParticipantInput, EvaluationUncheckedCreateWithoutParticipantInput>
+  }
+
+  export type EvaluationUpdateWithWhereUniqueWithoutParticipantInput = {
+    where: EvaluationWhereUniqueInput
+    data: XOR<EvaluationUpdateWithoutParticipantInput, EvaluationUncheckedUpdateWithoutParticipantInput>
+  }
+
+  export type EvaluationUpdateManyWithWhereWithoutParticipantInput = {
+    where: EvaluationScalarWhereInput
+    data: XOR<EvaluationUpdateManyMutationInput, EvaluationUncheckedUpdateManyWithoutParticipantInput>
+  }
+
   export type UserCreateWithoutSessionsInput = {
     id: string
     createdAt?: Date | string
@@ -18060,11 +20011,14 @@ export namespace Prisma {
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
+    assignedCategoryId?: string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     registeredEvents?: EventCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
+    evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -18086,11 +20040,14 @@ export namespace Prisma {
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
+    assignedCategoryId?: string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     registeredEvents?: EventUncheckedCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingUncheckedCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
+    evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -18128,11 +20085,14 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     registeredEvents?: EventUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
     groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
+    evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -18154,11 +20114,14 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     registeredEvents?: EventUncheckedUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUncheckedUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
+    evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
   }
 
   export type UserCreateWithoutAccountsInput = {
@@ -18180,11 +20143,14 @@ export namespace Prisma {
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
+    assignedCategoryId?: string | null
     sessions?: SessionCreateNestedManyWithoutUserInput
     registeredEvents?: EventCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
+    evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -18206,11 +20172,14 @@ export namespace Prisma {
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
+    assignedCategoryId?: string | null
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     registeredEvents?: EventUncheckedCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingUncheckedCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
+    evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -18248,11 +20217,14 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
     sessions?: SessionUpdateManyWithoutUserNestedInput
     registeredEvents?: EventUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
     groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
+    evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -18274,11 +20246,14 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     registeredEvents?: EventUncheckedUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUncheckedUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
+    evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
   }
 
   export type EventCreateWithoutCategoryInput = {
@@ -18301,6 +20276,7 @@ export namespace Prisma {
     registeredStudents?: UserCreateNestedManyWithoutRegisteredEventsInput
     submissions?: EventSubmissionCreateNestedManyWithoutEventInput
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutEventInput
+    evaluations?: EvaluationCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutCategoryInput = {
@@ -18323,6 +20299,7 @@ export namespace Prisma {
     registeredStudents?: UserUncheckedCreateNestedManyWithoutRegisteredEventsInput
     submissions?: EventSubmissionUncheckedCreateNestedManyWithoutEventInput
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutEventInput
+    evaluations?: EvaluationUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutCategoryInput = {
@@ -18393,11 +20370,14 @@ export namespace Prisma {
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
+    assignedCategoryId?: string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     accommodationBookings?: AccommodationBookingCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
+    evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
   }
 
   export type UserUncheckedCreateWithoutRegisteredEventsInput = {
@@ -18419,11 +20399,14 @@ export namespace Prisma {
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
+    assignedCategoryId?: string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     accommodationBookings?: AccommodationBookingUncheckedCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
+    evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
   }
 
   export type UserCreateOrConnectWithoutRegisteredEventsInput = {
@@ -18488,6 +20471,36 @@ export namespace Prisma {
 
   export type GroupRegistrationCreateManyEventInputEnvelope = {
     data: GroupRegistrationCreateManyEventInput | GroupRegistrationCreateManyEventInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type EvaluationCreateWithoutEventInput = {
+    id?: string
+    score: number
+    remarks?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    judge: UserCreateNestedOneWithoutEvaluationsGivenInput
+    participant: UserCreateNestedOneWithoutEvaluationsReceivedInput
+  }
+
+  export type EvaluationUncheckedCreateWithoutEventInput = {
+    id?: string
+    score: number
+    remarks?: string | null
+    judgeId: string
+    participantId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EvaluationCreateOrConnectWithoutEventInput = {
+    where: EvaluationWhereUniqueInput
+    create: XOR<EvaluationCreateWithoutEventInput, EvaluationUncheckedCreateWithoutEventInput>
+  }
+
+  export type EvaluationCreateManyEventInputEnvelope = {
+    data: EvaluationCreateManyEventInput | EvaluationCreateManyEventInput[]
     skipDuplicates?: boolean
   }
 
@@ -18558,6 +20571,7 @@ export namespace Prisma {
     phone?: StringNullableFilter<"User"> | string | null
     password?: StringNullableFilter<"User"> | string | null
     role?: EnumRoleFilter<"User"> | $Enums.Role
+    assignedCategoryId?: StringNullableFilter<"User"> | string | null
   }
 
   export type EventSubmissionUpsertWithWhereUniqueWithoutEventInput = {
@@ -18592,6 +20606,22 @@ export namespace Prisma {
     data: XOR<GroupRegistrationUpdateManyMutationInput, GroupRegistrationUncheckedUpdateManyWithoutEventInput>
   }
 
+  export type EvaluationUpsertWithWhereUniqueWithoutEventInput = {
+    where: EvaluationWhereUniqueInput
+    update: XOR<EvaluationUpdateWithoutEventInput, EvaluationUncheckedUpdateWithoutEventInput>
+    create: XOR<EvaluationCreateWithoutEventInput, EvaluationUncheckedCreateWithoutEventInput>
+  }
+
+  export type EvaluationUpdateWithWhereUniqueWithoutEventInput = {
+    where: EvaluationWhereUniqueInput
+    data: XOR<EvaluationUpdateWithoutEventInput, EvaluationUncheckedUpdateWithoutEventInput>
+  }
+
+  export type EvaluationUpdateManyWithWhereWithoutEventInput = {
+    where: EvaluationScalarWhereInput
+    data: XOR<EvaluationUpdateManyMutationInput, EvaluationUncheckedUpdateManyWithoutEventInput>
+  }
+
   export type EventCreateWithoutGroupRegistrationsInput = {
     id: string
     name: string
@@ -18612,6 +20642,7 @@ export namespace Prisma {
     Category: CategoryCreateNestedOneWithoutEventInput
     registeredStudents?: UserCreateNestedManyWithoutRegisteredEventsInput
     submissions?: EventSubmissionCreateNestedManyWithoutEventInput
+    evaluations?: EvaluationCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutGroupRegistrationsInput = {
@@ -18634,6 +20665,7 @@ export namespace Prisma {
     updatedAt: Date | string
     registeredStudents?: UserUncheckedCreateNestedManyWithoutRegisteredEventsInput
     submissions?: EventSubmissionUncheckedCreateNestedManyWithoutEventInput
+    evaluations?: EvaluationUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutGroupRegistrationsInput = {
@@ -18660,11 +20692,14 @@ export namespace Prisma {
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
+    assignedCategoryId?: string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     registeredEvents?: EventCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
+    evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
   }
 
   export type UserUncheckedCreateWithoutGroupRegistrationsInput = {
@@ -18686,11 +20721,14 @@ export namespace Prisma {
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
+    assignedCategoryId?: string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     registeredEvents?: EventUncheckedCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingUncheckedCreateNestedManyWithoutUserInput
     eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
+    evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
   }
 
   export type UserCreateOrConnectWithoutGroupRegistrationsInput = {
@@ -18729,6 +20767,7 @@ export namespace Prisma {
     Category?: CategoryUpdateOneRequiredWithoutEventNestedInput
     registeredStudents?: UserUpdateManyWithoutRegisteredEventsNestedInput
     submissions?: EventSubmissionUpdateManyWithoutEventNestedInput
+    evaluations?: EvaluationUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutGroupRegistrationsInput = {
@@ -18751,6 +20790,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     registeredStudents?: UserUncheckedUpdateManyWithoutRegisteredEventsNestedInput
     submissions?: EventSubmissionUncheckedUpdateManyWithoutEventNestedInput
+    evaluations?: EvaluationUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type UserUpsertWithoutGroupRegistrationsInput = {
@@ -18783,11 +20823,14 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     registeredEvents?: EventUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
+    evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
   }
 
   export type UserUncheckedUpdateWithoutGroupRegistrationsInput = {
@@ -18809,11 +20852,14 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     registeredEvents?: EventUncheckedUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUncheckedUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
+    evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
   }
 
   export type UserCreateWithoutAccommodationBookingsInput = {
@@ -18835,11 +20881,14 @@ export namespace Prisma {
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
+    assignedCategoryId?: string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     registeredEvents?: EventCreateNestedManyWithoutRegisteredStudentsInput
     eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
+    evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
   }
 
   export type UserUncheckedCreateWithoutAccommodationBookingsInput = {
@@ -18861,11 +20910,14 @@ export namespace Prisma {
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
+    assignedCategoryId?: string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     registeredEvents?: EventUncheckedCreateNestedManyWithoutRegisteredStudentsInput
     eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
+    evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
   }
 
   export type UserCreateOrConnectWithoutAccommodationBookingsInput = {
@@ -18903,11 +20955,14 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     registeredEvents?: EventUpdateManyWithoutRegisteredStudentsNestedInput
     eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
     groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
+    evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccommodationBookingsInput = {
@@ -18929,11 +20984,14 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     registeredEvents?: EventUncheckedUpdateManyWithoutRegisteredStudentsNestedInput
     eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
+    evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
   }
 
   export type UserCreateWithoutEventSubmissionsInput = {
@@ -18955,11 +21013,14 @@ export namespace Prisma {
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
+    assignedCategoryId?: string | null
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     registeredEvents?: EventCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingCreateNestedManyWithoutUserInput
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
+    evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
   }
 
   export type UserUncheckedCreateWithoutEventSubmissionsInput = {
@@ -18981,11 +21042,14 @@ export namespace Prisma {
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
+    assignedCategoryId?: string | null
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     registeredEvents?: EventUncheckedCreateNestedManyWithoutRegisteredStudentsInput
     accommodationBookings?: AccommodationBookingUncheckedCreateNestedManyWithoutUserInput
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
+    evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
   }
 
   export type UserCreateOrConnectWithoutEventSubmissionsInput = {
@@ -19013,6 +21077,7 @@ export namespace Prisma {
     Category: CategoryCreateNestedOneWithoutEventInput
     registeredStudents?: UserCreateNestedManyWithoutRegisteredEventsInput
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutEventInput
+    evaluations?: EvaluationCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutSubmissionsInput = {
@@ -19035,6 +21100,7 @@ export namespace Prisma {
     updatedAt: Date | string
     registeredStudents?: UserUncheckedCreateNestedManyWithoutRegisteredEventsInput
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutEventInput
+    evaluations?: EvaluationUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutSubmissionsInput = {
@@ -19072,11 +21138,14 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     registeredEvents?: EventUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUpdateManyWithoutUserNestedInput
     groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
+    evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
   }
 
   export type UserUncheckedUpdateWithoutEventSubmissionsInput = {
@@ -19098,11 +21167,14 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     registeredEvents?: EventUncheckedUpdateManyWithoutRegisteredStudentsNestedInput
     accommodationBookings?: AccommodationBookingUncheckedUpdateManyWithoutUserNestedInput
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
+    evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
   }
 
   export type EventUpsertWithoutSubmissionsInput = {
@@ -19136,6 +21208,7 @@ export namespace Prisma {
     Category?: CategoryUpdateOneRequiredWithoutEventNestedInput
     registeredStudents?: UserUpdateManyWithoutRegisteredEventsNestedInput
     groupRegistrations?: GroupRegistrationUpdateManyWithoutEventNestedInput
+    evaluations?: EvaluationUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutSubmissionsInput = {
@@ -19158,6 +21231,379 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     registeredStudents?: UserUncheckedUpdateManyWithoutRegisteredEventsNestedInput
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutEventNestedInput
+    evaluations?: EvaluationUncheckedUpdateManyWithoutEventNestedInput
+  }
+
+  export type UserCreateWithoutEvaluationsGivenInput = {
+    id: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    email: string
+    emailVerified?: boolean
+    name?: string | null
+    image?: string | null
+    collage?: string | null
+    collageId?: string | null
+    branch?: string | null
+    transactionId?: string | null
+    paymentProof?: string | null
+    year?: number | null
+    isApproved?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    phone?: string | null
+    password?: string | null
+    role?: $Enums.Role
+    assignedCategoryId?: string | null
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    registeredEvents?: EventCreateNestedManyWithoutRegisteredStudentsInput
+    accommodationBookings?: AccommodationBookingCreateNestedManyWithoutUserInput
+    eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
+    evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
+  }
+
+  export type UserUncheckedCreateWithoutEvaluationsGivenInput = {
+    id: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    email: string
+    emailVerified?: boolean
+    name?: string | null
+    image?: string | null
+    collage?: string | null
+    collageId?: string | null
+    branch?: string | null
+    transactionId?: string | null
+    paymentProof?: string | null
+    year?: number | null
+    isApproved?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    phone?: string | null
+    password?: string | null
+    role?: $Enums.Role
+    assignedCategoryId?: string | null
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    registeredEvents?: EventUncheckedCreateNestedManyWithoutRegisteredStudentsInput
+    accommodationBookings?: AccommodationBookingUncheckedCreateNestedManyWithoutUserInput
+    eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
+    evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
+  }
+
+  export type UserCreateOrConnectWithoutEvaluationsGivenInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutEvaluationsGivenInput, UserUncheckedCreateWithoutEvaluationsGivenInput>
+  }
+
+  export type EventCreateWithoutEvaluationsInput = {
+    id: string
+    name: string
+    description: string
+    date: Date | string
+    image: string
+    venue: string
+    startTime: string
+    endTime: string
+    participantLimit: number
+    isGroupEvent?: boolean
+    minTeamSize?: number
+    maxTeamSize?: number
+    termsandconditions: string
+    registrationLink: string
+    createdAt?: Date | string
+    updatedAt: Date | string
+    Category: CategoryCreateNestedOneWithoutEventInput
+    registeredStudents?: UserCreateNestedManyWithoutRegisteredEventsInput
+    submissions?: EventSubmissionCreateNestedManyWithoutEventInput
+    groupRegistrations?: GroupRegistrationCreateNestedManyWithoutEventInput
+  }
+
+  export type EventUncheckedCreateWithoutEvaluationsInput = {
+    id: string
+    categoryId: string
+    name: string
+    description: string
+    date: Date | string
+    image: string
+    venue: string
+    startTime: string
+    endTime: string
+    participantLimit: number
+    isGroupEvent?: boolean
+    minTeamSize?: number
+    maxTeamSize?: number
+    termsandconditions: string
+    registrationLink: string
+    createdAt?: Date | string
+    updatedAt: Date | string
+    registeredStudents?: UserUncheckedCreateNestedManyWithoutRegisteredEventsInput
+    submissions?: EventSubmissionUncheckedCreateNestedManyWithoutEventInput
+    groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutEventInput
+  }
+
+  export type EventCreateOrConnectWithoutEvaluationsInput = {
+    where: EventWhereUniqueInput
+    create: XOR<EventCreateWithoutEvaluationsInput, EventUncheckedCreateWithoutEvaluationsInput>
+  }
+
+  export type UserCreateWithoutEvaluationsReceivedInput = {
+    id: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    email: string
+    emailVerified?: boolean
+    name?: string | null
+    image?: string | null
+    collage?: string | null
+    collageId?: string | null
+    branch?: string | null
+    transactionId?: string | null
+    paymentProof?: string | null
+    year?: number | null
+    isApproved?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    phone?: string | null
+    password?: string | null
+    role?: $Enums.Role
+    assignedCategoryId?: string | null
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    registeredEvents?: EventCreateNestedManyWithoutRegisteredStudentsInput
+    accommodationBookings?: AccommodationBookingCreateNestedManyWithoutUserInput
+    eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
+  }
+
+  export type UserUncheckedCreateWithoutEvaluationsReceivedInput = {
+    id: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    email: string
+    emailVerified?: boolean
+    name?: string | null
+    image?: string | null
+    collage?: string | null
+    collageId?: string | null
+    branch?: string | null
+    transactionId?: string | null
+    paymentProof?: string | null
+    year?: number | null
+    isApproved?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    phone?: string | null
+    password?: string | null
+    role?: $Enums.Role
+    assignedCategoryId?: string | null
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    registeredEvents?: EventUncheckedCreateNestedManyWithoutRegisteredStudentsInput
+    accommodationBookings?: AccommodationBookingUncheckedCreateNestedManyWithoutUserInput
+    eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
+  }
+
+  export type UserCreateOrConnectWithoutEvaluationsReceivedInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutEvaluationsReceivedInput, UserUncheckedCreateWithoutEvaluationsReceivedInput>
+  }
+
+  export type UserUpsertWithoutEvaluationsGivenInput = {
+    update: XOR<UserUpdateWithoutEvaluationsGivenInput, UserUncheckedUpdateWithoutEvaluationsGivenInput>
+    create: XOR<UserCreateWithoutEvaluationsGivenInput, UserUncheckedCreateWithoutEvaluationsGivenInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutEvaluationsGivenInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutEvaluationsGivenInput, UserUncheckedUpdateWithoutEvaluationsGivenInput>
+  }
+
+  export type UserUpdateWithoutEvaluationsGivenInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    collage?: NullableStringFieldUpdateOperationsInput | string | null
+    collageId?: NullableStringFieldUpdateOperationsInput | string | null
+    branch?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProof?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    isApproved?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    registeredEvents?: EventUpdateManyWithoutRegisteredStudentsNestedInput
+    accommodationBookings?: AccommodationBookingUpdateManyWithoutUserNestedInput
+    eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
+    evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutEvaluationsGivenInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    collage?: NullableStringFieldUpdateOperationsInput | string | null
+    collageId?: NullableStringFieldUpdateOperationsInput | string | null
+    branch?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProof?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    isApproved?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    registeredEvents?: EventUncheckedUpdateManyWithoutRegisteredStudentsNestedInput
+    accommodationBookings?: AccommodationBookingUncheckedUpdateManyWithoutUserNestedInput
+    eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
+    evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
+  }
+
+  export type EventUpsertWithoutEvaluationsInput = {
+    update: XOR<EventUpdateWithoutEvaluationsInput, EventUncheckedUpdateWithoutEvaluationsInput>
+    create: XOR<EventCreateWithoutEvaluationsInput, EventUncheckedCreateWithoutEvaluationsInput>
+    where?: EventWhereInput
+  }
+
+  export type EventUpdateToOneWithWhereWithoutEvaluationsInput = {
+    where?: EventWhereInput
+    data: XOR<EventUpdateWithoutEvaluationsInput, EventUncheckedUpdateWithoutEvaluationsInput>
+  }
+
+  export type EventUpdateWithoutEvaluationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    image?: StringFieldUpdateOperationsInput | string
+    venue?: StringFieldUpdateOperationsInput | string
+    startTime?: StringFieldUpdateOperationsInput | string
+    endTime?: StringFieldUpdateOperationsInput | string
+    participantLimit?: IntFieldUpdateOperationsInput | number
+    isGroupEvent?: BoolFieldUpdateOperationsInput | boolean
+    minTeamSize?: IntFieldUpdateOperationsInput | number
+    maxTeamSize?: IntFieldUpdateOperationsInput | number
+    termsandconditions?: StringFieldUpdateOperationsInput | string
+    registrationLink?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    Category?: CategoryUpdateOneRequiredWithoutEventNestedInput
+    registeredStudents?: UserUpdateManyWithoutRegisteredEventsNestedInput
+    submissions?: EventSubmissionUpdateManyWithoutEventNestedInput
+    groupRegistrations?: GroupRegistrationUpdateManyWithoutEventNestedInput
+  }
+
+  export type EventUncheckedUpdateWithoutEvaluationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    image?: StringFieldUpdateOperationsInput | string
+    venue?: StringFieldUpdateOperationsInput | string
+    startTime?: StringFieldUpdateOperationsInput | string
+    endTime?: StringFieldUpdateOperationsInput | string
+    participantLimit?: IntFieldUpdateOperationsInput | number
+    isGroupEvent?: BoolFieldUpdateOperationsInput | boolean
+    minTeamSize?: IntFieldUpdateOperationsInput | number
+    maxTeamSize?: IntFieldUpdateOperationsInput | number
+    termsandconditions?: StringFieldUpdateOperationsInput | string
+    registrationLink?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    registeredStudents?: UserUncheckedUpdateManyWithoutRegisteredEventsNestedInput
+    submissions?: EventSubmissionUncheckedUpdateManyWithoutEventNestedInput
+    groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutEventNestedInput
+  }
+
+  export type UserUpsertWithoutEvaluationsReceivedInput = {
+    update: XOR<UserUpdateWithoutEvaluationsReceivedInput, UserUncheckedUpdateWithoutEvaluationsReceivedInput>
+    create: XOR<UserCreateWithoutEvaluationsReceivedInput, UserUncheckedCreateWithoutEvaluationsReceivedInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutEvaluationsReceivedInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutEvaluationsReceivedInput, UserUncheckedUpdateWithoutEvaluationsReceivedInput>
+  }
+
+  export type UserUpdateWithoutEvaluationsReceivedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    collage?: NullableStringFieldUpdateOperationsInput | string | null
+    collageId?: NullableStringFieldUpdateOperationsInput | string | null
+    branch?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProof?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    isApproved?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    registeredEvents?: EventUpdateManyWithoutRegisteredStudentsNestedInput
+    accommodationBookings?: AccommodationBookingUpdateManyWithoutUserNestedInput
+    eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutEvaluationsReceivedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    collage?: NullableStringFieldUpdateOperationsInput | string | null
+    collageId?: NullableStringFieldUpdateOperationsInput | string | null
+    branch?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProof?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    isApproved?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    registeredEvents?: EventUncheckedUpdateManyWithoutRegisteredStudentsNestedInput
+    accommodationBookings?: AccommodationBookingUncheckedUpdateManyWithoutUserNestedInput
+    eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
   }
 
   export type AccountCreateManyUserInput = {
@@ -19220,6 +21666,26 @@ export namespace Prisma {
     mentorName?: string | null
     mentorPhone?: string | null
     members: JsonNullValueInput | InputJsonValue
+  }
+
+  export type EvaluationCreateManyJudgeInput = {
+    id?: string
+    score: number
+    remarks?: string | null
+    eventId: string
+    participantId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EvaluationCreateManyParticipantInput = {
+    id?: string
+    score: number
+    remarks?: string | null
+    judgeId: string
+    eventId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AccountUpdateWithoutUserInput = {
@@ -19317,6 +21783,7 @@ export namespace Prisma {
     Category?: CategoryUpdateOneRequiredWithoutEventNestedInput
     submissions?: EventSubmissionUpdateManyWithoutEventNestedInput
     groupRegistrations?: GroupRegistrationUpdateManyWithoutEventNestedInput
+    evaluations?: EvaluationUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutRegisteredStudentsInput = {
@@ -19339,6 +21806,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     submissions?: EventSubmissionUncheckedUpdateManyWithoutEventNestedInput
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutEventNestedInput
+    evaluations?: EvaluationUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateManyWithoutRegisteredStudentsInput = {
@@ -19472,6 +21940,66 @@ export namespace Prisma {
     members?: JsonNullValueInput | InputJsonValue
   }
 
+  export type EvaluationUpdateWithoutJudgeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    event?: EventUpdateOneRequiredWithoutEvaluationsNestedInput
+    participant?: UserUpdateOneRequiredWithoutEvaluationsReceivedNestedInput
+  }
+
+  export type EvaluationUncheckedUpdateWithoutJudgeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    eventId?: StringFieldUpdateOperationsInput | string
+    participantId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EvaluationUncheckedUpdateManyWithoutJudgeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    eventId?: StringFieldUpdateOperationsInput | string
+    participantId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EvaluationUpdateWithoutParticipantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    judge?: UserUpdateOneRequiredWithoutEvaluationsGivenNestedInput
+    event?: EventUpdateOneRequiredWithoutEvaluationsNestedInput
+  }
+
+  export type EvaluationUncheckedUpdateWithoutParticipantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    judgeId?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EvaluationUncheckedUpdateManyWithoutParticipantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    judgeId?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type EventCreateManyCategoryInput = {
     id: string
     name: string
@@ -19511,6 +22039,7 @@ export namespace Prisma {
     registeredStudents?: UserUpdateManyWithoutRegisteredEventsNestedInput
     submissions?: EventSubmissionUpdateManyWithoutEventNestedInput
     groupRegistrations?: GroupRegistrationUpdateManyWithoutEventNestedInput
+    evaluations?: EvaluationUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutCategoryInput = {
@@ -19533,6 +22062,7 @@ export namespace Prisma {
     registeredStudents?: UserUncheckedUpdateManyWithoutRegisteredEventsNestedInput
     submissions?: EventSubmissionUncheckedUpdateManyWithoutEventNestedInput
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutEventNestedInput
+    evaluations?: EvaluationUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateManyWithoutCategoryInput = {
@@ -19574,6 +22104,16 @@ export namespace Prisma {
     members: JsonNullValueInput | InputJsonValue
   }
 
+  export type EvaluationCreateManyEventInput = {
+    id?: string
+    score: number
+    remarks?: string | null
+    judgeId: string
+    participantId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type UserUpdateWithoutRegisteredEventsInput = {
     id?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -19593,11 +22133,14 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     accommodationBookings?: AccommodationBookingUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
     groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
+    evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
   }
 
   export type UserUncheckedUpdateWithoutRegisteredEventsInput = {
@@ -19619,11 +22162,14 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     accommodationBookings?: AccommodationBookingUncheckedUpdateManyWithoutUserNestedInput
     eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
+    evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
   }
 
   export type UserUncheckedUpdateManyWithoutRegisteredEventsInput = {
@@ -19645,6 +22191,7 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EventSubmissionUpdateWithoutEventInput = {
@@ -19705,6 +22252,36 @@ export namespace Prisma {
     mentorName?: NullableStringFieldUpdateOperationsInput | string | null
     mentorPhone?: NullableStringFieldUpdateOperationsInput | string | null
     members?: JsonNullValueInput | InputJsonValue
+  }
+
+  export type EvaluationUpdateWithoutEventInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    judge?: UserUpdateOneRequiredWithoutEvaluationsGivenNestedInput
+    participant?: UserUpdateOneRequiredWithoutEvaluationsReceivedNestedInput
+  }
+
+  export type EvaluationUncheckedUpdateWithoutEventInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    judgeId?: StringFieldUpdateOperationsInput | string
+    participantId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EvaluationUncheckedUpdateManyWithoutEventInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: FloatFieldUpdateOperationsInput | number
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    judgeId?: StringFieldUpdateOperationsInput | string
+    participantId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

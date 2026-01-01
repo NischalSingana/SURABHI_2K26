@@ -29,6 +29,8 @@ export default function AdminLayoutWrapper({
     { href: "/admin/users", label: "Users" },
     { href: "/admin/accommodation", label: "Accommodation" },
     { href: "/admin/analytics", label: "Analytics" },
+    { href: "/admin/judges", label: "Judges" },
+    { href: "/admin/evaluations", label: "Evaluations" },
   ];
 
   return (
