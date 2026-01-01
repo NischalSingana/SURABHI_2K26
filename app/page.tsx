@@ -173,10 +173,16 @@ const HomePage = () => {
                                     A Legacy of Artistic Excellence
                                 </h3>
                                 <p className="text-gray-400 text-lg leading-relaxed">
-                                    Surabhi stands as the crown jewel of <span className="text-red-400 font-medium">KL University</span>, an annual international cultural phenomenon that transforms our campus into a vibrant canvas of creativity. It is where tradition dances with modernity, and diverse cultures harmonize into a singular celebration of art.
+                                    Surabhi is the flagship cultural festival of <span className="text-red-400 font-medium">KL University</span>, celebrated as a grand platform for artistic expression, cultural diversity, and student-led excellence. Held annually, Surabhi brings together talent from across the country and beyond, transforming the campus into a vibrant hub of creativity, performance, and celebration.
                                 </p>
                                 <p className="text-gray-400 text-lg leading-relaxed">
-                                    From electrifying musical performances to breathtaking theatrical displays, Surabhi is more than an event—it's an emotion. Proudly holding a place in the <span className="text-white border-b border-red-500/50">Indian Book of Records</span>, we continue to set new benchmarks in student-led cultural excellence, uniting thousands in a two-day spectacle of passion and talent.
+                                    Rooted in tradition yet driven by modern expression, Surabhi seamlessly blends classical arts with contemporary forms. From spellbinding dance and music performances to theatrical showcases, fine arts, and literary events, the fest provides a stage where diverse cultures, ideas, and artistic voices come together as one.
+                                </p>
+                                <p className="text-gray-400 text-lg leading-relaxed">
+                                    What sets Surabhi apart is its student-driven spirit. Planned, organized, and executed by passionate student teams, the festival fosters leadership, teamwork, and innovation while delivering a professional, large-scale cultural experience. This commitment to excellence has earned Surabhi a proud place in the <span className="text-white border-b border-red-500/50">Indian Book of Records</span>, reflecting its impact and scale in student-led cultural initiatives.
+                                </p>
+                                <p className="text-gray-400 text-lg leading-relaxed">
+                                    Beyond competitions and performances, Surabhi is an emotion—a celebration of unity, passion, and self-expression. Over two power-packed days, thousands of participants and spectators come together to celebrate art, culture, and youthful energy, making Surabhi not just an event, but a legacy of cultural brilliance.
                                 </p>
                             </div>
                         </motion.div>
