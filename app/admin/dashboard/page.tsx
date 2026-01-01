@@ -140,6 +140,40 @@ const page = async () => {
                         </p>
                     </div>
                 </Link>
+
+                <Link
+                    href="/admin/judges"
+                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-6 border border-gray-700"
+                >
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
+                            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+                        <h2 className="text-xl font-semibold text-white">Manage Judges</h2>
+                        <p className="text-gray-400 text-center text-sm">
+                            Create and manage judge accounts
+                        </p>
+                    </div>
+                </Link>
+
+                <Link
+                    href="/admin/evaluations"
+                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-6 border border-gray-700"
+                >
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
+                            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <h2 className="text-xl font-semibold text-white">Evaluations</h2>
+                        <p className="text-gray-400 text-center text-sm">
+                            View event scores and results
+                        </p>
+                    </div>
+                </Link>
             </div>
         </div>
     );
