@@ -11,6 +11,10 @@ export const auth = betterAuth({
         provider: "postgresql",
 
     }),
+    trustedOrigins: [
+        "https://klsurabhi.nischalsingana.com",
+        "http://localhost:3000"
+    ],
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID as string,
