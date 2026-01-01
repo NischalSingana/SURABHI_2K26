@@ -59,6 +59,8 @@ export default function JudgeLoginPage() {
                             src="/images/surabhi_white_logo.png"
                             alt="Surabhi Logo"
                             fill
+                            sizes="192px"
+                            priority
                             className="object-contain"
                         />
                     </div>
