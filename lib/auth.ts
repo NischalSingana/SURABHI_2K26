@@ -34,10 +34,13 @@ export const auth = betterAuth({
                 const { hash } = await import("bcryptjs");
                 return hash(p, 10);
             },
-            verify: async (p, h) => {
+            verify: async ({ hash, password }) => {
                 const { compare } = await import("bcryptjs");
-                console.log("Verifying password. Hash length:", h?.length, "Password provided:", !!p);
-                return compare(p, h);
+                console.log("Auth Verify | Password:", !!password, "Hash Len:", hash?.length);
+                console.log("Auth Verify | Hash Start:", hash?.substring(0, 10));
+                const valid = await compare(password, hash);
+                console.log("Auth Verify | Valid:", valid);
+                return valid;
             }
         }
     },
