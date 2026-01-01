@@ -13,6 +13,7 @@ import { IoClose } from "react-icons/io5";
 const navLinks = [
     { name: "Home", href: "/" },
     { name: "Events", href: "/events" },
+    { name: "Accommodation", href: "/accommodation" },
     { name: "Gallery", href: "/gallery" },
     { name: "Contact", href: "/contact" },
 ];

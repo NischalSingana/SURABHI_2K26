@@ -6,6 +6,7 @@ import PillNav from "@/components/ui/PillNav";
 const navItems = [
     { label: "Home", href: "/" },
     { label: "Events", href: "/events" },
+    { label: "Accommodation", href: "/accommodation" },
     { label: "Gallery", href: "/gallery" },
     { label: "Contact", href: "/contact" },
 ];
