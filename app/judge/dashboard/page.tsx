@@ -232,18 +232,18 @@ export default function JudgeDashboard() {
         <div className="min-h-screen bg-[#0a0a0a] text-white font-[family-name:var(--font-Schibsted_Grotesk)]">
             {/* Header */}
             <header className="bg-[#111] border-b border-white/10 sticky top-0 z-20">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
-                            <FiStar className="text-white" />
+                <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 bg-red-600 rounded-lg flex items-center justify-center">
+                            <FiStar className="text-white text-sm sm:text-base" />
                         </div>
-                        <div>
-                            <h1 className="font-bold text-lg">Judge Panel</h1>
+                        <div className="hidden sm:block">
+                            <h1 className="font-bold text-base sm:text-lg">Judge Panel</h1>
                             <p className="text-xs text-gray-400">{categoryName} Category</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-300">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                        <div className="hidden sm:flex items-center gap-2 text-xs sm:text-sm text-gray-300">
                             <FiUser />
                             <span>{session?.user?.name}</span>
                         </div>
@@ -252,15 +252,15 @@ export default function JudgeDashboard() {
                                 signOut();
                                 router.push("/judge/login");
                             }}
-                            className="p-2 hover:bg-white/5 rounded-full text-gray-400 hover:text-white transition-colors"
+                            className="p-1.5 sm:p-2 hover:bg-white/5 rounded-full text-gray-400 hover:text-white transition-colors"
                         >
-                            <FiLogOut size={20} />
+                            <FiLogOut size={18} className="sm:w-5 sm:h-5" />
                         </button>
                     </div>
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
                 {selectedEvent ? (
                     // EVENT DETAIL VIEW
                     <motion.div
@@ -275,54 +275,54 @@ export default function JudgeDashboard() {
                             <FiChevronRight className="rotate-180" /> Back to Dashboard
                         </button>
 
-                        <div className="bg-[#111] border border-white/10 rounded-2xl p-6 mb-8">
-                            <h2 className="text-3xl font-bold mb-4">{selectedEvent.name}</h2>
-                            <p className="text-gray-400 mb-6">{selectedEvent.description}</p>
+                        <div className="bg-[#111] border border-white/10 rounded-2xl p-4 sm:p-5 md:p-6 mb-6 sm:mb-8">
+                            <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">{selectedEvent.name}</h2>
+                            <p className="text-gray-400 text-sm sm:text-base mb-4 sm:mb-6">{selectedEvent.description}</p>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
-                                <div className="bg-[#161616] p-4 rounded-xl border border-white/5">
-                                    <p className="text-gray-500 mb-1 flex items-center gap-2"><FiCalendar /> Date & Time</p>
-                                    <p className="font-medium">{formatDate(selectedEvent.startTime)}</p>
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 text-sm">
+                                <div className="bg-[#161616] p-3 sm:p-4 rounded-xl border border-white/5">
+                                    <p className="text-gray-500 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"><FiCalendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Date & Time</p>
+                                    <p className="font-medium text-xs sm:text-sm">{formatDate(selectedEvent.startTime)}</p>
                                 </div>
-                                <div className="bg-[#161616] p-4 rounded-xl border border-white/5">
-                                    <p className="text-gray-500 mb-1 flex items-center gap-2"><FiFilter /> Venue</p>
-                                    <p className="font-medium">{selectedEvent.venue}</p>
+                                <div className="bg-[#161616] p-3 sm:p-4 rounded-xl border border-white/5">
+                                    <p className="text-gray-500 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"><FiFilter className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Venue</p>
+                                    <p className="font-medium text-xs sm:text-sm truncate" title={selectedEvent.venue}>{selectedEvent.venue}</p>
                                 </div>
-                                <div className="bg-[#161616] p-4 rounded-xl border border-white/5">
-                                    <p className="text-gray-500 mb-1 flex items-center gap-2"><FiUsers /> Participants</p>
-                                    <p className="font-medium">{getDisplayParticipants(selectedEvent).length} {selectedEvent.isGroupEvent ? "Teams" : "Entries"}</p>
+                                <div className="bg-[#161616] p-3 sm:p-4 rounded-xl border border-white/5">
+                                    <p className="text-gray-500 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"><FiUsers className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Participants</p>
+                                    <p className="font-medium text-xs sm:text-sm">{getDisplayParticipants(selectedEvent).length} {selectedEvent.isGroupEvent ? "Teams" : "Entries"}</p>
                                 </div>
-                                <div className="bg-[#161616] p-4 rounded-xl border border-white/5">
-                                    <p className="text-gray-500 mb-1 flex items-center gap-2"><FiCheckCircle /> Status</p>
-                                    <p className="font-medium">
+                                <div className="bg-[#161616] p-3 sm:p-4 rounded-xl border border-white/5">
+                                    <p className="text-gray-500 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"><FiCheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Status</p>
+                                    <p className="font-medium text-xs sm:text-sm">
                                         {getDisplayParticipants(selectedEvent).filter(p => p.isEvaluated).length} / {getDisplayParticipants(selectedEvent).length} Evaluated
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             {getDisplayParticipants(selectedEvent).map((participant) => (
                                 <motion.div
                                     key={participant.id}
                                     layout
-                                    className={`bg-[#161616] border ${participant.isEvaluated ? 'border-green-500/20' : 'border-white/5'} rounded-xl p-5 hover:border-white/20 transition-all`}
+                                    className={`bg-[#161616] border ${participant.isEvaluated ? 'border-green-500/20' : 'border-white/5'} rounded-xl p-4 sm:p-5 hover:border-white/20 transition-all`}
                                 >
                                     <div className="mb-4">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-sm font-bold shrink-0">
+                                        <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-xs sm:text-sm font-bold shrink-0">
                                                 {participant.displayName?.[0]?.toUpperCase()}
                                             </div>
-                                            <div className="overflow-hidden">
-                                                <h3 className="font-semibold truncate" title={participant.displayName || ""}>{participant.displayName}</h3>
+                                            <div className="overflow-hidden flex-1">
+                                                <h3 className="font-semibold truncate text-sm sm:text-base" title={participant.displayName || ""}>{participant.displayName}</h3>
                                                 <p className="text-xs text-gray-500 truncate">{participant.subtitle || ""}</p>
                                             </div>
                                         </div>
 
-                                        {participant.type === "GROUP" && participant.members && (
-                                            <div className="mb-3 bg-black/20 p-3 rounded-lg text-xs">
-                                                <p className="text-gray-500 font-medium mb-1">Team Members:</p>
-                                                <ul className="space-y-1 text-gray-400 max-h-24 overflow-y-auto">
+                                        {participant.type === "GROUP" && participant.members && participant.members.length > 0 && (
+                                            <div className="mb-3 bg-black/20 p-2.5 sm:p-3 rounded-lg text-xs">
+                                                <p className="text-gray-500 font-medium mb-1.5">Team Members:</p>
+                                                <ul className="space-y-1 text-gray-400 max-h-20 sm:max-h-24 overflow-y-auto">
                                                     {participant.members.map((m: any, idx: number) => (
                                                         <li key={idx} className="flex justify-between">
                                                             <span>{m.name || m}</span>
@@ -334,7 +334,7 @@ export default function JudgeDashboard() {
                                         )}
 
                                         {participant.isEvaluated && (
-                                            <span className="bg-green-500/10 text-green-500 text-xs px-2 py-1 rounded-full flex items-center gap-1 w-fit">
+                                            <span className="bg-green-500/10 text-green-500 text-[10px] sm:text-xs px-2 py-1 rounded-full flex items-center gap-1 w-fit">
                                                 <FiCheckCircle size={10} /> Graded: {participant.score}/10
                                             </span>
                                         )}
@@ -363,16 +363,16 @@ export default function JudgeDashboard() {
                     </motion.div>
                 ) : (
                     // DASHBOARD GRID VIEW
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                         {events.map((event) => (
                             <motion.div
                                 key={event.id}
                                 layoutId={event.id}
                                 onClick={() => setSelectedEvent(event)}
-                                className="bg-[#111] border border-white/10 rounded-2xl p-6 cursor-pointer hover:border-red-500/30 hover:bg-[#161616] transition-all group"
+                                className="bg-[#111] border border-white/10 rounded-2xl p-4 sm:p-5 md:p-6 cursor-pointer hover:border-red-500/30 hover:bg-[#161616] transition-all group"
                             >
-                                <div className="flex justify-between items-start mb-3">
-                                    <h3 className="text-xl font-bold group-hover:text-red-400 transition-colors line-clamp-1">{event.name}</h3>
+                                <div className="flex justify-between items-start mb-2 sm:mb-3">
+                                    <h3 className="text-lg sm:text-xl font-bold group-hover:text-red-400 transition-colors line-clamp-2 flex-1">{event.name}</h3>
                                     {event.isGroupEvent && (
                                         <span className="text-[10px] bg-red-900/30 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">
                                             Group
@@ -412,22 +412,22 @@ export default function JudgeDashboard() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4"
                         onClick={() => setEvaluatingParticipant(null)}
                     >
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-[#1a1a1a] border border-white/10 w-full max-w-lg rounded-2xl p-6 shadow-2xl"
+                            className="bg-[#1a1a1a] border border-white/10 w-full max-w-lg rounded-2xl p-4 sm:p-5 md:p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <h3 className="text-2xl font-bold mb-1">Evaluate {evaluatingParticipant.name}</h3>
-                            <p className="text-gray-400 text-sm mb-6">{selectedEvent?.name}</p>
+                            <h3 className="text-xl sm:text-2xl font-bold mb-1">Evaluate {evaluatingParticipant.name}</h3>
+                            <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6">{selectedEvent?.name}</p>
 
-                            <div className="space-y-6">
+                            <div className="space-y-4 sm:space-y-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-2">Score (out of 10)</label>
+                                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Score (out of 10)</label>
                                     <div className="relative">
                                         <input
                                             type="number"
@@ -436,7 +436,7 @@ export default function JudgeDashboard() {
                                             step="0.1"
                                             value={score}
                                             onChange={(e) => setScore(e.target.value)}
-                                            className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:border-red-500 transition-colors"
+                                            className="w-full bg-[#111] border border-white/10 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-base sm:text-lg focus:outline-none focus:border-red-500 transition-colors"
                                             placeholder="0.0"
                                         />
                                         <FiStar className="absolute right-4 top-1/2 -translate-y-1/2 text-yellow-500" />
@@ -444,13 +444,13 @@ export default function JudgeDashboard() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-2">Remarks (Optional)</label>
+                                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Remarks (Optional)</label>
                                     <div className="relative">
                                         <textarea
                                             rows={3}
                                             value={remarks}
                                             onChange={(e) => setRemarks(e.target.value)}
-                                            className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500 transition-colors resize-none"
+                                            className="w-full bg-[#111] border border-white/10 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base focus:outline-none focus:border-red-500 transition-colors resize-none"
                                             placeholder="Great performance, but..."
                                         />
                                         <FiMessageSquare className="absolute right-4 top-4 text-gray-600" />
@@ -467,7 +467,7 @@ export default function JudgeDashboard() {
                                     <button
                                         onClick={handleEvaluationSubmit}
                                         disabled={submitting}
-                                        className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+                                        className="flex-1 py-3 sm:py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2 min-h-[44px] sm:min-h-0"
                                     >
                                         {submitting ? <FiLoader className="animate-spin" /> : "Submit Evaluation"}
                                     </button>
