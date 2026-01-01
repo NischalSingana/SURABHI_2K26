@@ -41,7 +41,7 @@ export default function JudgeLoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center px-4 py-8 sm:p-4 relative overflow-hidden">
             {/* Background Effects */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-red-900/10 rounded-full blur-[100px]" />
@@ -51,10 +51,10 @@ export default function JudgeLoginPage() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl relative z-10"
+                className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl relative z-10"
             >
-                <div className="flex flex-col items-center mb-8">
-                    <div className="w-48 h-24 relative mb-4">
+                <div className="flex flex-col items-center mb-6 sm:mb-8">
+                    <div className="w-32 h-16 sm:w-48 sm:h-24 relative mb-3 sm:mb-4">
                         <Image
                             src="/images/surabhi_white_logo.png"
                             alt="Surabhi Logo"
@@ -64,15 +64,15 @@ export default function JudgeLoginPage() {
                             className="object-contain"
                         />
                     </div>
-                    <h1 className="text-3xl font-bold text-white font-[family-name:var(--font-Schibsted_Grotesk)]">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white font-[family-name:var(--font-Schibsted_Grotesk)]">
                         Judge Portal
                     </h1>
-                    <p className="text-gray-400 text-sm mt-2 text-center">
+                    <p className="text-gray-400 text-xs sm:text-sm mt-2 text-center">
                         Secure access for event evaluation
                     </p>
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-6">
+                <form onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-300 ml-1">Email Address</label>
                         <div className="relative">

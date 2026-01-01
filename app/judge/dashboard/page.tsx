@@ -121,6 +121,31 @@ export default function JudgeDashboard() {
         return events.find(e => e.id === eventId)?.evaluations.find(ev => ev.participantId === participantId);
     };
 
+    // Helper to safely parse dates
+    const formatDate = (dateValue: any): string => {
+        try {
+            const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+            if (date && !isNaN(date.getTime())) {
+                return date.toLocaleString();
+            }
+            return 'Invalid Date';
+        } catch {
+            return 'Invalid Date';
+        }
+    };
+
+    const formatDateShort = (dateValue: any): string => {
+        try {
+            const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+            if (date && !isNaN(date.getTime())) {
+                return date.toLocaleDateString();
+            }
+            return 'Invalid Date';
+        } catch {
+            return 'Invalid Date';
+        }
+    };
+
     interface ParticipantDisplay {
         id: string;
         type: "INDIVIDUAL" | "GROUP";
@@ -130,27 +155,43 @@ export default function JudgeDashboard() {
         isEvaluated: boolean;
         score?: number;
         remarks?: string | null;
+        actualUserId?: string; // The real user ID for evaluation
     }
 
     const getDisplayParticipants = (event: Event): ParticipantDisplay[] => {
         const list: ParticipantDisplay[] = [];
+        const seenUserIds = new Set<string>();
 
         // 1. Individual Registrants
         event.registeredStudents.forEach(user => {
+            if (seenUserIds.has(user.id)) return; // Skip if already added as group leader
+            seenUserIds.add(user.id);
+
             const evaluation = getEvaluation(event.id, user.id);
             list.push({
-                id: user.id,
+                id: `individual-${user.id}`,
                 type: "INDIVIDUAL",
                 displayName: user.name || "Unknown User",
                 subtitle: user.collageId || "No ID",
+                members: undefined,
                 isEvaluated: !!evaluation,
                 score: evaluation?.score,
-                remarks: evaluation?.remarks
+                remarks: evaluation?.remarks,
+                actualUserId: user.id // For evaluation purposes
             });
         });
 
         // 2. Group Registrations
-        event.groupRegistrations.forEach(reg => {
+        event.groupRegistrations.forEach((reg, index) => {
+            if (seenUserIds.has(reg.user.id)) {
+                // Remove the individual entry and replace with group
+                const individualIndex = list.findIndex(p => p.actualUserId === reg.user.id);
+                if (individualIndex !== -1) {
+                    list.splice(individualIndex, 1);
+                }
+            }
+            seenUserIds.add(reg.user.id);
+
             const evaluation = getEvaluation(event.id, reg.user.id);
             // Parse members if it's a string, though it should be JSON object from Prisma
             let membersList = [];
@@ -170,14 +211,15 @@ export default function JudgeDashboard() {
             }
 
             list.push({
-                id: reg.user.id, // Leader ID used for evaluation key
+                id: `group-${reg.user.id}-${index}`,
                 type: "GROUP",
                 displayName: reg.groupName || `Team ${reg.user.name}`,
                 subtitle: `Leader: ${reg.user.name}`,
                 members: Array.isArray(membersList) ? membersList : [],
                 isEvaluated: !!evaluation,
                 score: evaluation?.score,
-                remarks: evaluation?.remarks
+                remarks: evaluation?.remarks,
+                actualUserId: reg.user.id // For evaluation purposes
             });
         });
 
@@ -240,7 +282,7 @@ export default function JudgeDashboard() {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
                                 <div className="bg-[#161616] p-4 rounded-xl border border-white/5">
                                     <p className="text-gray-500 mb-1 flex items-center gap-2"><FiCalendar /> Date & Time</p>
-                                    <p className="font-medium">{new Date(selectedEvent.startTime).toLocaleString()}</p>
+                                    <p className="font-medium">{formatDate(selectedEvent.startTime)}</p>
                                 </div>
                                 <div className="bg-[#161616] p-4 rounded-xl border border-white/5">
                                     <p className="text-gray-500 mb-1 flex items-center gap-2"><FiFilter /> Venue</p>
@@ -301,7 +343,7 @@ export default function JudgeDashboard() {
                                     <button
                                         onClick={() => {
                                             setEvaluatingParticipant({
-                                                id: participant.id,
+                                                id: participant.actualUserId || participant.id,
                                                 name: participant.displayName,
                                                 email: "", // Not needed for display
                                                 collageId: null,
@@ -351,7 +393,7 @@ export default function JudgeDashboard() {
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span className="flex items-center gap-2"><FiCalendar /> Date</span>
-                                        <span className="text-white font-mono">{new Date(event.startTime).toLocaleDateString()}</span>
+                                        <span className="text-white font-mono">{formatDateShort(event.startTime)}</span>
                                     </div>
                                 </div>
                                 <div className="mt-6 flex items-center gap-2 text-red-500 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">

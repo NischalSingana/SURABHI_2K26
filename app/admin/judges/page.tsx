@@ -126,7 +126,7 @@ export default function JudgeManagementPage() {
                 <div className="mt-6 bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl text-sm text-blue-200">
                     <h3 className="font-bold mb-1">Default Credentials</h3>
                     <p>All created accounts use the default password: <code className="bg-black/30 px-1 py-0.5 rounded text-white">password123</code></p>
-                    <p className="mt-1">Login URL: <u>/judge/login</u></p>
+                    <p className="mt-1">Login URL: <u>https://klsurabhi.in/judge/login</u></p>
                 </div>
             </div>
         </div>
