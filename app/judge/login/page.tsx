@@ -54,9 +54,9 @@ export default function JudgeLoginPage() {
                 className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl relative z-10"
             >
                 <div className="flex flex-col items-center mb-8">
-                    <div className="w-16 h-16 relative mb-4">
+                    <div className="w-48 h-24 relative mb-4">
                         <Image
-                            src="/favicon.ico"
+                            src="/icons/surabhi_white_logo.png"
                             alt="Surabhi Logo"
                             fill
                             className="object-contain"
