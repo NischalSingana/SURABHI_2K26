@@ -97,6 +97,33 @@ const PillNav: React.FC<PillNavProps> = ({
     return () => { };
   }, [ease, initialLoadAnimation]);
 
+  // Auto-close mobile menu when pathname changes (user navigates)
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+      const hamburger = hamburgerRef.current;
+      const menu = mobileMenuRef.current;
+
+      if (hamburger) {
+        const lines = hamburger.querySelectorAll('.hamburger-line');
+        gsap.to(lines[0], { rotation: 0, y: 0, duration: 0.3, ease });
+        gsap.to(lines[1], { rotation: 0, y: 0, duration: 0.3, ease });
+      }
+
+      if (menu) {
+        gsap.to(menu, {
+          opacity: 0,
+          y: 10,
+          duration: 0.2,
+          ease,
+          onComplete: () => {
+            gsap.set(menu, { visibility: 'hidden' });
+          }
+        });
+      }
+    }
+  }, [pathname, ease, isMobileMenuOpen]);
+
   // Simplified handlers - primarily for state or future use if needed, 
   // but for now CSS handles the visual hover.
   const handleEnter = (i: number) => { };
