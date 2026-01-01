@@ -147,7 +147,7 @@ const HomePage = () => {
                         className="text-center mb-16"
                     >
                         <h2 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-red-100 to-red-200 bg-clip-text text-transparent font-[family-name:var(--font-Schibsted_Grotesk)] tracking-tight">
-                            The Cultural Phenomena
+                            About Surabhi
                         </h2>
                         <div className="flex items-center justify-center gap-4 text-red-500/60 font-[family-name:var(--font-Martian_Mono)] text-sm tracking-widest uppercase">
                             <span className="w-12 h-[1px] bg-red-800" />
@@ -173,21 +173,14 @@ const HomePage = () => {
                                     <FiHeart size={24} />
                                 </div>
                                 <h3 className="text-3xl font-bold text-white font-[family-name:var(--font-Schibsted_Grotesk)]">
-                                    Where Tradition Meets Tomorrow
+                                    Celebrating Culture, Creativity & Unity
                                 </h3>
                                 <p className="text-gray-400 text-lg leading-relaxed">
-                                    Surabhi isn't just an event; it's the heartbeat of KL University. A kaleidoscope where
-                                    <span className="text-red-400 font-medium"> global cultures collide</span>, creating a symphony of art, music, and passion.
+                                    Surabhi is the annual international cultural festival of <span className="text-red-400 font-medium">KL University</span>. It is a vibrant platform where students from diverse backgrounds come together to showcase their artistic talents.
                                 </p>
                                 <p className="text-gray-400 text-lg leading-relaxed">
-                                    Recognized by the <span className="text-white border-b border-red-500/50">Indian Book of Records</span>, we orchestrate the largest convergence of young talent, fostering a legacy that transcends borders.
+                                    More than just a fest, Surabhi creates an environment of joy and celebration, featuring music, dance, theater, and literary events. Recognized by the <span className="text-white border-b border-red-500/50">Indian Book of Records</span>, we unite thousands of hearts every year.
                                 </p>
-                            </div>
-
-                            <div className="relative z-10 pt-8">
-                                <button className="text-sm font-[family-name:var(--font-Martian_Mono)] text-red-400 flex items-center gap-2 hover:gap-4 transition-all">
-                                    EXPLORE LEGACY <FiGlobe />
-                                </button>
                             </div>
                         </motion.div>
 
