@@ -187,7 +187,27 @@ export async function getUserRegisteredEvents() {
             return { success: false, error: "User not found" };
         }
 
-        return { success: true, data: user.registeredEvents, submissions: user.eventSubmissions };
+        // Fetch group registrations only for events the user is registered for
+        const eventIds = user.registeredEvents.map(e => e.id);
+        const allGroupRegs = await prisma.groupRegistration.findMany({
+            where: {
+                eventId: { in: eventIds },
+            },
+        });
+
+        // Filter for groups where the user is either the leader OR a member
+        const relevantGroupRegs = allGroupRegs.filter(gr => {
+            if (gr.userId === session.user.id) return true;
+            const members = gr.members as any[];
+            return Array.isArray(members) && members.some((m: any) => m.userId === session.user.id || m.email === session.user.email);
+        });
+
+        return {
+            success: true,
+            data: user.registeredEvents,
+            submissions: user.eventSubmissions,
+            groupRegistrations: relevantGroupRegs
+        };
     } catch (error) {
         console.error("Error fetching registered events:", error);
         return { success: false, error: "Failed to fetch registered events" };

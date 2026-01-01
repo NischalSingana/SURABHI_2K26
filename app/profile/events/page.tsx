@@ -38,10 +38,22 @@ interface Submission {
     updatedAt: Date;
 }
 
+interface GroupRegistration {
+    id: string;
+    eventId: string;
+    userId: string;
+    groupName: string | null;
+    mentorName: string | null;
+    mentorPhone: string | null;
+    members: any;
+}
+
+
 export default function MyEventsPage() {
     const router = useRouter();
     const [events, setEvents] = useState<Event[]>([]);
     const [submissions, setSubmissions] = useState<Submission[]>([]);
+    const [groupRegistrations, setGroupRegistrations] = useState<GroupRegistration[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
     const [showSubmissionModal, setShowSubmissionModal] = useState(false);
@@ -57,6 +69,7 @@ export default function MyEventsPage() {
         if (result.success && result.data) {
             setEvents(result.data);
             setSubmissions(result.submissions || []);
+            setGroupRegistrations(result.groupRegistrations || []);
         }
         setLoading(false);
     };
@@ -183,6 +196,8 @@ export default function MyEventsPage() {
                                         )}
                                     </div>
 
+
+
                                     {/* Event Details */}
                                     <div className="p-5">
                                         <h3 className="text-xl font-bold text-white mb-2 line-clamp-1">
@@ -191,6 +206,34 @@ export default function MyEventsPage() {
                                         <p className="text-zinc-400 text-sm mb-4 line-clamp-2">
                                             {event.description}
                                         </p>
+
+                                        {/* Team Details Section */}
+                                        {(() => {
+                                            const group = groupRegistrations.find(g => g.eventId === event.id);
+                                            if (!group) return null;
+                                            const members = group.members as any[];
+                                            return (
+                                                <div className="mb-4 p-3 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <FiUsers className="text-red-500" />
+                                                        <span className="font-semibold text-white text-sm">{group.groupName || "Team"}</span>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        {members && members.map((m: any, idx: number) => (
+                                                            <div key={idx} className="text-xs text-zinc-400 flex justify-between">
+                                                                <span>{m.name || m.email}</span>
+                                                                {m.userId === group.userId && <span className="text-red-500 text-[10px] ml-2">LEAD</span>}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    {group.mentorName && (
+                                                        <div className="mt-2 pt-2 border-t border-zinc-700/50 text-xs text-zinc-500">
+                                                            <span className="text-zinc-400">Mentor:</span> {group.mentorName}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
 
                                         <div className="space-y-2 mb-4">
                                             <div className="flex items-center text-zinc-300 text-sm">
@@ -270,18 +313,20 @@ export default function MyEventsPage() {
             </div>
 
             {/* Submission Modal */}
-            {selectedEvent && (
-                <SubmissionModal
-                    event={selectedEvent}
-                    isOpen={showSubmissionModal}
-                    onClose={() => {
-                        setShowSubmissionModal(false);
-                        setSelectedEvent(null);
-                    }}
-                    existingSubmission={getSubmissionForEvent(selectedEvent.id)}
-                    onSuccess={handleSubmissionSuccess}
-                />
-            )}
+            {
+                selectedEvent && (
+                    <SubmissionModal
+                        event={selectedEvent}
+                        isOpen={showSubmissionModal}
+                        onClose={() => {
+                            setShowSubmissionModal(false);
+                            setSelectedEvent(null);
+                        }}
+                        existingSubmission={getSubmissionForEvent(selectedEvent.id)}
+                        onSuccess={handleSubmissionSuccess}
+                    />
+                )
+            }
 
             {/* Unregister Confirmation Modal */}
             <AnimatePresence>
@@ -338,6 +383,6 @@ export default function MyEventsPage() {
                     </div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 }
