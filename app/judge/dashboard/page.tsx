@@ -32,6 +32,7 @@ interface Event {
     description: string;
     venue: string;
     startTime: string;
+    isGroupEvent: boolean;
     registeredStudents: Participant[];
     groupRegistrations: { user: Participant; groupName: string | null; members: any }[];
     evaluations: Evaluation[];
@@ -120,20 +121,67 @@ export default function JudgeDashboard() {
         return events.find(e => e.id === eventId)?.evaluations.find(ev => ev.participantId === participantId);
     };
 
-    // Combine individual and group leaders into a single list format
-    // For group events, usually the user who registered is the "leader" or contact. 
-    // The schema allows group registrations, but evaluation links to a `participant` (User).
-    // So we'll evaluate the User who made the registration.
-    const getParticipants = (event: Event) => {
-        // We need to merge registeredStudents and groupRegistration leaders user objects
-        // Use a Map to ensure uniqueness if needed, though usually they are exclusive lists
-        const participants = [...event.registeredStudents];
-        event.groupRegistrations.forEach(gr => {
-            if (!participants.find(p => p.id === gr.user.id)) {
-                participants.push(gr.user);
-            }
+    interface ParticipantDisplay {
+        id: string;
+        type: "INDIVIDUAL" | "GROUP";
+        displayName: string | null;
+        subtitle: string | null;
+        members?: any[];
+        isEvaluated: boolean;
+        score?: number;
+        remarks?: string | null;
+    }
+
+    const getDisplayParticipants = (event: Event): ParticipantDisplay[] => {
+        const list: ParticipantDisplay[] = [];
+
+        // 1. Individual Registrants
+        event.registeredStudents.forEach(user => {
+            const evaluation = getEvaluation(event.id, user.id);
+            list.push({
+                id: user.id,
+                type: "INDIVIDUAL",
+                displayName: user.name || "Unknown User",
+                subtitle: user.collageId || "No ID",
+                isEvaluated: !!evaluation,
+                score: evaluation?.score,
+                remarks: evaluation?.remarks
+            });
         });
-        return participants;
+
+        // 2. Group Registrations
+        event.groupRegistrations.forEach(reg => {
+            const evaluation = getEvaluation(event.id, reg.user.id);
+            // Parse members if it's a string, though it should be JSON object from Prisma
+            let membersList = [];
+            try {
+                if (typeof reg.members === 'string') {
+                    membersList = JSON.parse(reg.members);
+                } else {
+                    membersList = reg.members; // Already object/array
+                }
+                // If nested in 'members' key (common in some form builders)
+                if (!Array.isArray(membersList) && membersList && typeof membersList === 'object' && 'members' in membersList) {
+                    // @ts-ignore
+                    membersList = membersList.members;
+                }
+            } catch (e) {
+                console.error("Error parsing members", e);
+            }
+
+            list.push({
+                id: reg.user.id, // Leader ID used for evaluation key
+                type: "GROUP",
+                displayName: reg.groupName || `Team ${reg.user.name}`,
+                subtitle: `Leader: ${reg.user.name}`,
+                members: Array.isArray(membersList) ? membersList : [],
+                isEvaluated: !!evaluation,
+                score: evaluation?.score,
+                remarks: evaluation?.remarks
+            });
+        });
+
+        return list;
     };
 
     if (loading || isPending) return <Loader />;
@@ -186,52 +234,88 @@ export default function JudgeDashboard() {
                         </button>
 
                         <div className="bg-[#111] border border-white/10 rounded-2xl p-6 mb-8">
-                            <h2 className="text-3xl font-bold mb-2">{selectedEvent.name}</h2>
-                            <div className="flex gap-6 text-gray-400 text-sm">
-                                <span className="flex items-center gap-2"><FiCalendar /> {new Date(selectedEvent.startTime).toLocaleString()}</span>
-                                <span className="flex items-center gap-2"><FiUsers /> {getParticipants(selectedEvent).length} Participants</span>
+                            <h2 className="text-3xl font-bold mb-4">{selectedEvent.name}</h2>
+                            <p className="text-gray-400 mb-6">{selectedEvent.description}</p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
+                                <div className="bg-[#161616] p-4 rounded-xl border border-white/5">
+                                    <p className="text-gray-500 mb-1 flex items-center gap-2"><FiCalendar /> Date & Time</p>
+                                    <p className="font-medium">{new Date(selectedEvent.startTime).toLocaleString()}</p>
+                                </div>
+                                <div className="bg-[#161616] p-4 rounded-xl border border-white/5">
+                                    <p className="text-gray-500 mb-1 flex items-center gap-2"><FiFilter /> Venue</p>
+                                    <p className="font-medium">{selectedEvent.venue}</p>
+                                </div>
+                                <div className="bg-[#161616] p-4 rounded-xl border border-white/5">
+                                    <p className="text-gray-500 mb-1 flex items-center gap-2"><FiUsers /> Participants</p>
+                                    <p className="font-medium">{getDisplayParticipants(selectedEvent).length} {selectedEvent.isGroupEvent ? "Teams" : "Entries"}</p>
+                                </div>
+                                <div className="bg-[#161616] p-4 rounded-xl border border-white/5">
+                                    <p className="text-gray-500 mb-1 flex items-center gap-2"><FiCheckCircle /> Status</p>
+                                    <p className="font-medium">
+                                        {getDisplayParticipants(selectedEvent).filter(p => p.isEvaluated).length} / {getDisplayParticipants(selectedEvent).length} Evaluated
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {getParticipants(selectedEvent).map((participant) => {
-                                const evaluation = getEvaluation(selectedEvent.id, participant.id);
-                                return (
-                                    <motion.div
-                                        key={participant.id}
-                                        layout
-                                        className={`bg-[#161616] border ${evaluation ? 'border-green-500/20' : 'border-white/5'} rounded-xl p-5 hover:border-white/20 transition-all`}
-                                    >
-                                        <div className="flex items-start justify-between mb-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-sm font-bold">
-                                                    {participant.name?.[0]?.toUpperCase()}
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-semibold">{participant.name}</h3>
-                                                    <p className="text-xs text-gray-500">{participant.collageId || "No ID"}</p>
-                                                </div>
+                            {getDisplayParticipants(selectedEvent).map((participant) => (
+                                <motion.div
+                                    key={participant.id}
+                                    layout
+                                    className={`bg-[#161616] border ${participant.isEvaluated ? 'border-green-500/20' : 'border-white/5'} rounded-xl p-5 hover:border-white/20 transition-all`}
+                                >
+                                    <div className="mb-4">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-sm font-bold shrink-0">
+                                                {participant.displayName?.[0]?.toUpperCase()}
                                             </div>
-                                            {evaluation && (
-                                                <span className="bg-green-500/10 text-green-500 text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                                                    <FiCheckCircle size={10} /> Graded: {evaluation.score}/10
-                                                </span>
-                                            )}
+                                            <div className="overflow-hidden">
+                                                <h3 className="font-semibold truncate" title={participant.displayName}>{participant.displayName}</h3>
+                                                <p className="text-xs text-gray-500 truncate">{participant.subtitle}</p>
+                                            </div>
                                         </div>
 
-                                        <button
-                                            onClick={() => {
-                                                setEvaluatingParticipant(participant);
-                                                setScore(evaluation?.score ?? "");
-                                                setRemarks(evaluation?.remarks || "");
-                                            }}
-                                            className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm font-medium transition-colors border border-white/5"
-                                        >
-                                            {evaluation ? "Edit Evaluation" : "Evaluate"}
-                                        </button>
-                                    </motion.div>
-                                );
-                            })}
+                                        {participant.type === "GROUP" && participant.members && (
+                                            <div className="mb-3 bg-black/20 p-3 rounded-lg text-xs">
+                                                <p className="text-gray-500 font-medium mb-1">Team Members:</p>
+                                                <ul className="space-y-1 text-gray-400 max-h-24 overflow-y-auto">
+                                                    {participant.members.map((m: any, idx: number) => (
+                                                        <li key={idx} className="flex justify-between">
+                                                            <span>{m.name || m}</span>
+                                                            {m.rollNo && <span className="opacity-50">{m.rollNo}</span>}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                        {participant.isEvaluated && (
+                                            <span className="bg-green-500/10 text-green-500 text-xs px-2 py-1 rounded-full flex items-center gap-1 w-fit">
+                                                <FiCheckCircle size={10} /> Graded: {participant.score}/10
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        onClick={() => {
+                                            setEvaluatingParticipant({
+                                                id: participant.id,
+                                                name: participant.displayName,
+                                                email: "", // Not needed for display
+                                                collageId: null,
+                                                image: null
+                                            });
+                                            setScore(participant.score ?? "");
+                                            setRemarks(participant.remarks || "");
+                                        }}
+                                        className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm font-medium transition-colors border border-white/5"
+                                    >
+                                        {participant.isEvaluated ? "Edit Evaluation" : "Evaluate"}
+                                    </button>
+                                </motion.div>
+                            ))}
                         </div>
                     </motion.div>
                 ) : (
@@ -244,15 +328,29 @@ export default function JudgeDashboard() {
                                 onClick={() => setSelectedEvent(event)}
                                 className="bg-[#111] border border-white/10 rounded-2xl p-6 cursor-pointer hover:border-red-500/30 hover:bg-[#161616] transition-all group"
                             >
-                                <h3 className="text-xl font-bold mb-3 group-hover:text-red-400 transition-colors">{event.name}</h3>
+                                <div className="flex justify-between items-start mb-3">
+                                    <h3 className="text-xl font-bold group-hover:text-red-400 transition-colors line-clamp-1">{event.name}</h3>
+                                    {event.isGroupEvent && (
+                                        <span className="text-[10px] bg-red-900/30 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">
+                                            Group
+                                        </span>
+                                    )}
+                                </div>
+
+                                <p className="text-sm text-gray-500 line-clamp-2 mb-4 h-10">{event.description}</p>
+
                                 <div className="space-y-2 text-sm text-gray-400">
                                     <div className="flex items-center justify-between">
-                                        <span className="flex items-center gap-2"><FiUsers /> Participants</span>
-                                        <span className="text-white font-mono">{getParticipants(event).length}</span>
+                                        <span className="flex items-center gap-2"><FiUsers /> {event.isGroupEvent ? "Teams" : "Participants"}</span>
+                                        <span className="text-white font-mono">{getDisplayParticipants(event).length}</span>
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span className="flex items-center gap-2"><FiCheckCircle /> Evaluated</span>
                                         <span className="text-white font-mono">{event.evaluations.length}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="flex items-center gap-2"><FiCalendar /> Date</span>
+                                        <span className="text-white font-mono">{new Date(event.startTime).toLocaleDateString()}</span>
                                     </div>
                                 </div>
                                 <div className="mt-6 flex items-center gap-2 text-red-500 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
