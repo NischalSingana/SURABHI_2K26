@@ -34,9 +34,9 @@ export const auth = betterAuth({
                 const { hash } = await import("bcryptjs");
                 return hash(p, 10);
             },
-            verify: async (p, h) => {
+            verify: async ({ hash, password }: { hash: string; password: string }) => {
                 const { compare } = await import("bcryptjs");
-                return compare(p, h);
+                return compare(password, hash);
             }
         }
     },
