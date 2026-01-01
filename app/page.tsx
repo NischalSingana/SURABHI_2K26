@@ -151,7 +151,7 @@ const HomePage = () => {
                         </h2>
                         <div className="flex items-center justify-center gap-4 text-red-500/60 font-[family-name:var(--font-Martian_Mono)] text-sm tracking-widest uppercase">
                             <span className="w-12 h-[1px] bg-red-800" />
-                            Est. 2009
+                            International Cultural Fest
                             <span className="w-12 h-[1px] bg-red-800" />
                         </div>
                     </motion.div>
@@ -169,17 +169,14 @@ const HomePage = () => {
                             <div className="absolute -right-20 -top-20 w-64 h-64 bg-red-600/10 rounded-full blur-3xl group-hover:bg-red-600/20 transition-all duration-500" />
 
                             <div className="relative z-10 space-y-6">
-                                <div className="w-12 h-12 rounded-full bg-red-600/20 flex items-center justify-center text-red-500 mb-4">
-                                    <FiHeart size={24} />
-                                </div>
                                 <h3 className="text-3xl font-bold text-white font-[family-name:var(--font-Schibsted_Grotesk)]">
-                                    Celebrating Culture, Creativity & Unity
+                                    A Legacy of Artistic Excellence
                                 </h3>
                                 <p className="text-gray-400 text-lg leading-relaxed">
-                                    Surabhi is the annual international cultural festival of <span className="text-red-400 font-medium">KL University</span>. It is a vibrant platform where students from diverse backgrounds come together to showcase their artistic talents.
+                                    Surabhi stands as the crown jewel of <span className="text-red-400 font-medium">KL University</span>, an annual international cultural phenomenon that transforms our campus into a vibrant canvas of creativity. It is where tradition dances with modernity, and diverse cultures harmonize into a singular celebration of art.
                                 </p>
                                 <p className="text-gray-400 text-lg leading-relaxed">
-                                    More than just a fest, Surabhi creates an environment of joy and celebration, featuring music, dance, theater, and literary events. Recognized by the <span className="text-white border-b border-red-500/50">Indian Book of Records</span>, we unite thousands of hearts every year.
+                                    From electrifying musical performances to breathtaking theatrical displays, Surabhi is more than an event—it's an emotion. Proudly holding a place in the <span className="text-white border-b border-red-500/50">Indian Book of Records</span>, we continue to set new benchmarks in student-led cultural excellence, uniting thousands in a two-day spectacle of passion and talent.
                                 </p>
                             </div>
                         </motion.div>
@@ -230,7 +227,7 @@ const HomePage = () => {
                                 <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-orange-500 rounded-full" /> Raaga (Music)</li>
                                 <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-yellow-500 rounded-full" /> Natyaka (Drama)</li>
                                 <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-500 rounded-full" /> Chitrakala (Arts)</li>
-                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full" /> Sahithya (Literature)</li>
+                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full" /> Sahithya (Lit)</li>
                                 <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-purple-500 rounded-full" /> Vastra (Fashion)</li>
                                 <li className="flex items-center gap-2 col-span-2"><span className="w-1.5 h-1.5 bg-pink-500 rounded-full" /> Chitramela (Filmmaking)</li>
                             </ul>
