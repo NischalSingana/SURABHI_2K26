@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { signOut, useSession } from "@/lib/auth-client";
 import {
     FiLogOut, FiUser, FiStar, FiMessageSquare,
-    FiUsers, FiCalendar, FiChevronRight, FiCheckCircle, FiLoader
+    FiUsers, FiCalendar, FiChevronRight, FiCheckCircle, FiLoader, FiFilter
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -272,8 +272,8 @@ export default function JudgeDashboard() {
                                                 {participant.displayName?.[0]?.toUpperCase()}
                                             </div>
                                             <div className="overflow-hidden">
-                                                <h3 className="font-semibold truncate" title={participant.displayName}>{participant.displayName}</h3>
-                                                <p className="text-xs text-gray-500 truncate">{participant.subtitle}</p>
+                                                <h3 className="font-semibold truncate" title={participant.displayName || ""}>{participant.displayName}</h3>
+                                                <p className="text-xs text-gray-500 truncate">{participant.subtitle || ""}</p>
                                             </div>
                                         </div>
 
@@ -307,7 +307,8 @@ export default function JudgeDashboard() {
                                                 collageId: null,
                                                 image: null
                                             });
-                                            setScore(participant.score ?? "");
+                                            const scoreVal = participant.score;
+                                            setScore(scoreVal !== undefined && scoreVal !== null ? scoreVal : "");
                                             setRemarks(participant.remarks || "");
                                         }}
                                         className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm font-medium transition-colors border border-white/5"
