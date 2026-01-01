@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { signOut, useSession } from "@/lib/auth-client";
 import {
     FiLogOut, FiUser, FiStar, FiMessageSquare,
-    FiUsers, FiCalendar, FiChevronRight, FiCheckCircle
+    FiUsers, FiCalendar, FiChevronRight, FiCheckCircle, FiLoader
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
