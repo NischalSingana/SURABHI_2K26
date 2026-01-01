@@ -56,7 +56,7 @@ export default function JudgeLoginPage() {
                 <div className="flex flex-col items-center mb-8">
                     <div className="w-48 h-24 relative mb-4">
                         <Image
-                            src="/icons/surabhi_white_logo.png"
+                            src="/images/surabhi_white_logo.png"
                             alt="Surabhi Logo"
                             fill
                             className="object-contain"
