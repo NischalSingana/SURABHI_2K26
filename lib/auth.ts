@@ -15,7 +15,7 @@ export const auth = betterAuth({
         "https://klsurabhi.nischalsingana.com",
         "http://localhost:3000"
     ],
-    baseURL: process.env.NODE_ENV === "development" ? "http://localhost:3000" : (process.env.BETTER_AUTH_URL || "https://klsurabhi.nischalsingana.com"),
+    baseURL: process.env.BETTER_AUTH_URL || "https://klsurabhi.nischalsingana.com",
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID as string,
