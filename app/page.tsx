@@ -133,7 +133,7 @@ const HomePage = () => {
             </section>
 
             {/* About Surabhi Section - Bento Grid Redesign */}
-            <section className="relative z-10 w-full min-h-screen bg-[#0a0000] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-24 overflow-hidden">
+            <section className="relative z-10 w-full min-h-screen bg-[#0a0000] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20 lg:py-24 overflow-hidden">
                 {/* Background Noise/Gradient */}
                 <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 brightness-100 mix-blend-overlay pointer-events-none" />
                 <div className="absolute inset-0 bg-gradient-to-tr from-red-900/10 via-black to-black pointer-events-none" />
@@ -146,7 +146,7 @@ const HomePage = () => {
                         transition={{ duration: 0.8 }}
                         className="text-center mb-16"
                     >
-                        <h2 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-red-100 to-red-200 bg-clip-text text-transparent font-[family-name:var(--font-Schibsted_Grotesk)] tracking-tight">
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-white via-red-100 to-red-200 bg-clip-text text-transparent font-[family-name:var(--font-Schibsted_Grotesk)] tracking-tight">
                             About Surabhi
                         </h2>
                         <div className="flex items-center justify-center gap-4 text-red-500/60 font-[family-name:var(--font-Martian_Mono)] text-sm tracking-widest uppercase">
@@ -156,7 +156,7 @@ const HomePage = () => {
                         </div>
                     </motion.div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4 h-full md:h-[600px]">
+                    <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-3 sm:gap-4 h-full md:h-[600px]">
                         {/* Main Narrative Card - Spans 2x2 */}
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}

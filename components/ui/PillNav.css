@@ -196,12 +196,26 @@
   }
 
   .pill-nav {
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
   }
 
   .pill-logo img {
-    height: 48px;
-    margin: -8px 0;
+    height: 70px;
+    margin: -12px 0;
+  }
+
+  .mobile-menu-button {
+    padding: 0.5rem;
+    gap: 5px;
+  }
+
+  .hamburger-line {
+    width: 28px;
+    height: 3px;
+  }
+
+  .mobile-menu-popover {
+    top: 70px;
   }
 }
 
