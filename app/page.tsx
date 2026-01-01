@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 
 import Footer from '@/components/ui/Footer';
 import CountUp from '@/components/ui/CountUp';
+import { FiGlobe, FiAward, FiUsers, FiMusic, FiHeart, FiTrendingUp } from "react-icons/fi";
 
 const HomePage = () => {
     const [posterItems, setPosterItems] = useState<{ image: string; text: string }[]>([]);
@@ -131,143 +132,126 @@ const HomePage = () => {
                 </motion.div>
             </section>
 
-            {/* About Surabhi Section - One Page */}
-            <section className="relative z-10 w-full h-screen bg-gradient-to-b from-[#1a0000] to-[#0a0000] flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
-                <div className="max-w-6xl mx-auto w-full">
+            {/* About Surabhi Section - Bento Grid Redesign */}
+            <section className="relative z-10 w-full min-h-screen bg-[#0a0000] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-24 overflow-hidden">
+                {/* Background Noise/Gradient */}
+                <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 brightness-100 mix-blend-overlay pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-red-900/10 via-black to-black pointer-events-none" />
+
+                <div className="max-w-7xl mx-auto w-full relative z-10">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-100px" }}
                         transition={{ duration: 0.8 }}
-                        className="text-center mb-12"
+                        className="text-center mb-16"
                     >
-                        <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-4 bg-gradient-to-r from-red-500 via-rose-500 to-red-600 bg-clip-text text-transparent">
-                            About Surabhi
+                        <h2 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-red-100 to-red-200 bg-clip-text text-transparent font-[family-name:var(--font-Schibsted_Grotesk)] tracking-tight">
+                            The Cultural Phenomena
                         </h2>
-                        <div className="w-32 h-1 bg-gradient-to-r from-red-600 via-rose-500 to-red-600 mx-auto rounded-full" />
+                        <div className="flex items-center justify-center gap-4 text-red-500/60 font-[family-name:var(--font-Martian_Mono)] text-sm tracking-widest uppercase">
+                            <span className="w-12 h-[1px] bg-red-800" />
+                            Est. 2009
+                            <span className="w-12 h-[1px] bg-red-800" />
+                        </div>
                     </motion.div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                        {/* Left Side - Main Description */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4 h-full md:h-[600px]">
+                        {/* Main Narrative Card - Spans 2x2 */}
                         <motion.div
-                            initial={{ opacity: 0, x: -30 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true, margin: "-50px" }}
-                            transition={{ duration: 0.8, delay: 0.2 }}
-                            className="space-y-6"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5 }}
+                            className="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-3xl bg-zinc-900/40 border border-white/5 p-8 flex flex-col justify-between hover:border-red-500/30 transition-all duration-500"
                         >
-                            <div className="glass-effect rounded-2xl p-8 backdrop-blur-sm border border-red-600/20">
-                                <p className="text-xl sm:text-2xl text-gray-200 leading-relaxed mb-6">
-                                    Surabhi is KL University's annual <span className="text-red-500 font-semibold">international cultural festival</span>, a vibrant celebration that brings together students from diverse backgrounds to showcase their artistic talents.
+                            <div className="absolute inset-0 bg-gradient-to-br from-red-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <div className="absolute -right-20 -top-20 w-64 h-64 bg-red-600/10 rounded-full blur-3xl group-hover:bg-red-600/20 transition-all duration-500" />
+
+                            <div className="relative z-10 space-y-6">
+                                <div className="w-12 h-12 rounded-full bg-red-600/20 flex items-center justify-center text-red-500 mb-4">
+                                    <FiHeart size={24} />
+                                </div>
+                                <h3 className="text-3xl font-bold text-white font-[family-name:var(--font-Schibsted_Grotesk)]">
+                                    Where Tradition Meets Tomorrow
+                                </h3>
+                                <p className="text-gray-400 text-lg leading-relaxed">
+                                    Surabhi isn't just an event; it's the heartbeat of KL University. A kaleidoscope where
+                                    <span className="text-red-400 font-medium"> global cultures collide</span>, creating a symphony of art, music, and passion.
                                 </p>
-                                <p className="text-lg sm:text-xl text-gray-300 leading-relaxed">
-                                    This grand event serves as a platform for cultural expression, fostering unity, creativity, and appreciation for the rich tapestry of global cultures.
+                                <p className="text-gray-400 text-lg leading-relaxed">
+                                    Recognized by the <span className="text-white border-b border-red-500/50">Indian Book of Records</span>, we orchestrate the largest convergence of young talent, fostering a legacy that transcends borders.
                                 </p>
                             </div>
 
-                            {/* Stats Cards */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    whileInView={{ opacity: 1, scale: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.5, delay: 0.4 }}
-                                    className="glass-effect rounded-xl p-6 text-center border border-red-600/20"
-                                >
-                                    <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-red-500 to-rose-600 bg-clip-text text-transparent mb-2">
-                                        <CountUp from={0} to={35} duration={2} />+
-                                    </div>
-                                    <div className="text-sm sm:text-base text-gray-300">Competitions</div>
-                                </motion.div>
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    whileInView={{ opacity: 1, scale: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.5, delay: 0.5 }}
-                                    className="glass-effect rounded-xl p-6 text-center border border-red-600/20"
-                                >
-                                    <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-red-500 to-rose-600 bg-clip-text text-transparent mb-2">
-                                        <CountUp from={0} to={21} duration={2} />K+
-                                    </div>
-                                    <div className="text-sm sm:text-base text-gray-300">Participants</div>
-                                </motion.div>
+                            <div className="relative z-10 pt-8">
+                                <button className="text-sm font-[family-name:var(--font-Martian_Mono)] text-red-400 flex items-center gap-2 hover:gap-4 transition-all">
+                                    EXPLORE LEGACY <FiGlobe />
+                                </button>
                             </div>
                         </motion.div>
 
-                        {/* Right Side - Features */}
+                        {/* Stats Card 1 */}
                         <motion.div
-                            initial={{ opacity: 0, x: 30 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true, margin: "-50px" }}
-                            transition={{ duration: 0.8, delay: 0.3 }}
-                            className="space-y-4"
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            className="md:col-span-1 group relative overflow-hidden rounded-3xl bg-zinc-900/40 border border-white/5 p-6 flex flex-col justify-center items-center hover:bg-zinc-900/60 transition-all duration-300"
                         >
-                            {/* Feature Cards */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.6, delay: 0.4 }}
-                                className="glass-effect rounded-xl p-6 border border-red-600/20 hover:border-red-600/40 transition-all group"
-                            >
-                                <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-white mb-2">Diverse Performances</h3>
-                                        <p className="text-gray-300 text-sm leading-relaxed">
-                                            Singing, dancing, drama, skits, and artistic performances by talented students from various disciplines.
-                                        </p>
-                                    </div>
-                                </div>
-                            </motion.div>
+                            <FiUsers className="text-zinc-600 text-4xl mb-4 group-hover:text-red-500 transition-colors duration-300 transform group-hover:scale-110" />
+                            <h4 className="text-4xl font-bold text-white font-[family-name:var(--font-Martian_Mono)] text-center">
+                                <CountUp from={0} to={21} duration={2.5} />K+
+                            </h4>
+                            <p className="text-zinc-500 text-sm mt-2 font-medium tracking-wide uppercase">Participants</p>
+                        </motion.div>
 
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.6, delay: 0.5 }}
-                                className="glass-effect rounded-xl p-6 border border-red-600/20 hover:border-red-600/40 transition-all group"
-                            >
-                                <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-white mb-2">Hobby Clubs</h3>
-                                        <p className="text-gray-300 text-sm leading-relaxed">
-                                            Narthana (Dance), Abhinaya (Drama), Swara (Music), and Vachas (Literary) organize and perform.
-                                        </p>
-                                    </div>
-                                </div>
-                            </motion.div>
+                        {/* Stats Card 2 */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            className="md:col-span-1 group relative overflow-hidden rounded-3xl bg-zinc-900/40 border border-white/5 p-6 flex flex-col justify-center items-center hover:bg-zinc-900/60 transition-all duration-300"
+                        >
+                            <FiAward className="text-zinc-600 text-4xl mb-4 group-hover:text-orange-500 transition-colors duration-300 transform group-hover:scale-110" />
+                            <h4 className="text-4xl font-bold text-white font-[family-name:var(--font-Martian_Mono)] text-center">
+                                <CountUp from={0} to={35} duration={2.5} />+
+                            </h4>
+                            <p className="text-zinc-500 text-sm mt-2 font-medium tracking-wide uppercase">Competitions</p>
+                        </motion.div>
 
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.6, delay: 0.6 }}
-                                className="glass-effect rounded-xl p-6 border border-red-600/20 hover:border-red-600/40 transition-all group"
-                            >
-                                <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-white mb-2">National Recognition</h3>
-                                        <p className="text-gray-300 text-sm leading-relaxed">
-                                            Recognized by the Indian Book of Records for organizing India's largest cultural festival.
-                                        </p>
-                                    </div>
-                                </div>
-                            </motion.div>
+                        {/* Feature Card - Clubs */}
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: 0.3 }}
+                            className="md:col-span-1 group relative overflow-hidden rounded-3xl bg-gradient-to-b from-red-900/20 to-zinc-900/40 border border-white/5 p-6 hover:border-red-500/20 transition-all duration-300"
+                        >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full blur-2xl" />
+                            <FiMusic className="text-red-500 text-3xl mb-4" />
+                            <h4 className="text-xl font-bold text-white mb-2">Hobby Clubs</h4>
+                            <ul className="space-y-2 text-sm text-zinc-400">
+                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-500 rounded-full" /> Narthana (Dance)</li>
+                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-orange-500 rounded-full" /> Swara (Music)</li>
+                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-yellow-500 rounded-full" /> Abhinaya (Drama)</li>
+                            </ul>
+                        </motion.div>
+
+                        {/* Feature Card - Global */}
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: 0.4 }}
+                            className="md:col-span-1 group relative overflow-hidden rounded-3xl bg-zinc-900/40 border border-white/5 p-6 hover:border-red-500/20 transition-all duration-300"
+                        >
+                            <FiTrendingUp className="text-green-500 text-3xl mb-4" />
+                            <h4 className="text-xl font-bold text-white mb-2">Impact</h4>
+                            <p className="text-sm text-zinc-400 leading-relaxed">
+                                Setting benchmarks every year with record-breaking footfall and celebrity performances.
+                            </p>
                         </motion.div>
                     </div>
                 </div>
