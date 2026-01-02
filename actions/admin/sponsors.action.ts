@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { Role } from "@/lib/generated/prisma";
@@ -9,7 +9,7 @@ import { put } from "@vercel/blob";
 // Get all sponsors (public)
 export async function getAllSponsors() {
     try {
-        const sponsors = await db.sponsor.findMany({
+        const sponsors = await prisma.sponsor.findMany({
             where: { isActive: true },
             orderBy: { order: 'asc' },
         });
@@ -24,7 +24,7 @@ export async function getAllSponsors() {
 // Get single sponsor
 export async function getSponsor(id: string) {
     try {
-        const sponsor = await db.sponsor.findUnique({
+        const sponsor = await prisma.sponsor.findUnique({
             where: { id },
         });
 
@@ -58,7 +58,7 @@ export async function createSponsor(data: {
             return { success: false, error: "Unauthorized" };
         }
 
-        const sponsor = await db.sponsor.create({
+        const sponsor = await prisma.sponsor.create({
             data: {
                 name: data.name,
                 description: data.description,
@@ -101,7 +101,7 @@ export async function updateSponsor(
             return { success: false, error: "Unauthorized" };
         }
 
-        const sponsor = await db.sponsor.update({
+        const sponsor = await prisma.sponsor.update({
             where: { id },
             data,
         });
@@ -123,7 +123,7 @@ export async function deleteSponsor(id: string) {
             return { success: false, error: "Unauthorized" };
         }
 
-        await db.sponsor.delete({
+        await prisma.sponsor.delete({
             where: { id },
         });
 
