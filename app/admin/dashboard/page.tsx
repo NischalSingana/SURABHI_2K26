@@ -174,6 +174,26 @@ const page = async () => {
                         </p>
                     </div>
                 </Link>
+
+                <Link
+                    href="/admin/verify-tickets"
+                    className="bg-gradient-to-br from-red-900/40 to-orange-900/40 hover:from-red-900/60 hover:to-orange-900/60 transition-all rounded-lg p-6 border-2 border-red-600/50 shadow-lg shadow-red-600/20"
+                >
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                        <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-orange-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/40">
+                            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                            </svg>
+                        </div>
+                        <h2 className="text-xl font-semibold text-white">Verify Tickets</h2>
+                        <p className="text-gray-300 text-center text-sm font-medium">
+                            Scan QR codes to verify participant tickets
+                        </p>
+                        <div className="mt-2 px-3 py-1 bg-red-600/20 border border-red-600/50 rounded-full">
+                            <span className="text-red-400 text-xs font-bold">QUICK ACCESS</span>
+                        </div>
+                    </div>
+                </Link>
             </div>
         </div>
     );

@@ -12,7 +12,7 @@ interface TicketData {
 
 /**
  * Generate a secure QR code for ticket verification
- * Data is signed with HMAC to prevent tampering
+ * Creates a URL that opens the verification page when scanned
  */
 export async function generateTicketQR(data: TicketData): Promise<string> {
     const timestamp = new Date().toISOString();
@@ -37,8 +37,12 @@ export async function generateTicketQR(data: TicketData): Promise<string> {
         signature,
     };
 
-    // Generate QR code as data URL
-    const qrCodeDataURL = await QRCode.toDataURL(JSON.stringify(qrData), {
+    // Create verification URL
+    const baseUrl = process.env.BETTER_AUTH_URL || 'https://klsurabhi.nischalsingana.com';
+    const verificationUrl = `${baseUrl}/verify?data=${encodeURIComponent(JSON.stringify(qrData))}`;
+
+    // Generate QR code as data URL with the verification URL
+    const qrCodeDataURL = await QRCode.toDataURL(verificationUrl, {
         errorCorrectionLevel: 'H',
         type: 'image/png',
         width: 300,
