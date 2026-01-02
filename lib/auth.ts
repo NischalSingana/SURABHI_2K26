@@ -11,6 +11,11 @@ export const auth = betterAuth({
         provider: "postgresql",
 
     }),
+    account: {
+        accountLinking: {
+            enabled: true, // Allow users to link Google and Microsoft accounts
+        }
+    },
     trustedOrigins: [
         "https://klsurabhi.nischalsingana.com",
         "http://localhost:3000"
