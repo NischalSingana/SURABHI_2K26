@@ -73,6 +73,17 @@ const nextConfig: NextConfig = {
   },
   // This is required to support PostHog trailing slash API requests
   skipTrailingSlashRedirect: true,
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Fix for PDFKit in serverless environments
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        canvas: false,
+        encoding: false,
+      };
+    }
+    return config;
+  },
 };
 
 export default nextConfig;
