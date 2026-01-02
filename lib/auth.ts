@@ -14,6 +14,7 @@ export const auth = betterAuth({
     account: {
         accountLinking: {
             enabled: true, // Allow users to link Google and Microsoft accounts
+            requireEmailVerification: false, // Allow linking even if email not verified
         }
     },
     trustedOrigins: [
