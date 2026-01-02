@@ -43,9 +43,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     logo: {
-        width: 70,
-        height: 70,
-        marginBottom: 4,
+        width: 160,
+        height: 160,
+        marginBottom: 3,
     },
     brandName: {
         fontSize: 24,
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
         padding: 30,
     },
     rulesTitle: {
-        fontSize: 24,
+        fontSize: 26,
         color: '#dc2626',
         fontWeight: 'bold',
         textAlign: 'center',
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
         letterSpacing: 2,
     },
     rulesSubtitle: {
-        fontSize: 10,
+        fontSize: 12,
         color: '#9ca3af',
         textAlign: 'center',
         marginBottom: 18,
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
         marginBottom: 14,
     },
     warningTitle: {
-        fontSize: 12,
+        fontSize: 14,
         color: '#dc2626',
         fontWeight: 'bold',
         marginBottom: 6,
@@ -187,14 +187,14 @@ const styles = StyleSheet.create({
         lineHeight: 1.4,
     },
     sectionTitle: {
-        fontSize: 13,
+        fontSize: 14.5,
         color: '#ef4444',
         fontWeight: 'bold',
         marginTop: 12,
         marginBottom: 6,
     },
     bulletPoint: {
-        fontSize: 10,
+        fontSize: 11.5,
         color: '#ffffff',
         marginBottom: 4,
         paddingLeft: 10,
@@ -207,13 +207,13 @@ const styles = StyleSheet.create({
         borderTopColor: '#dc2626',
     },
     contactText: {
-        fontSize: 10,
+        fontSize: 16,
         color: '#ffffff',
         marginBottom: 3,
         textAlign: 'center',
     },
     finalNote: {
-        marginTop: 12,
+        marginTop: 13.5,
         padding: 10,
         backgroundColor: '#1a0000',
         borderRadius: 4,
@@ -350,8 +350,8 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
                 <Text style={styles.bulletPoint}>• Management reserves entry rights</Text>
 
                 <View style={styles.contactSection}>
-                    <Text style={styles.contactText}>📧 surabhi@kluniversity.in</Text>
-                    <Text style={styles.contactText}>🌐 klsurabhi.nischalsingana.com</Text>
+                    <Text style={styles.contactText}>Email: surabhi@kluniversity.in</Text>
+                    <Text style={styles.contactText}>Website: klsurabhi.in</Text>
                 </View>
 
                 <View style={styles.finalNote}>
