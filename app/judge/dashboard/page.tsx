@@ -527,7 +527,7 @@ export default function JudgeDashboard() {
                                             max="10"
                                             step="0.1"
                                             value={score}
-                                            onChange={(e) => setScore(e.target.value)}
+                                            onChange={(e) => setScore(e.target.value === "" ? "" : parseFloat(e.target.value))}
                                             className="w-full bg-[#111] border border-white/10 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-base sm:text-lg focus:outline-none focus:border-red-500 transition-colors"
                                             placeholder="0.0"
                                         />
