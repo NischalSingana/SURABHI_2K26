@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { Role } from "@/lib/generated/prisma";
-import { put } from "@vercel/blob";
+import { uploadToR2, generateUniqueFilename } from "@/lib/r2";
 
 // Get all sponsors (public)
 export async function getAllSponsors() {
@@ -149,12 +149,17 @@ export async function uploadSponsorImage(formData: FormData) {
             return { success: false, error: "No file provided" };
         }
 
-        // Upload to Vercel Blob
-        const blob = await put(`sponsors/${Date.now()}-${file.name}`, file, {
-            access: "public",
-        });
+        // Upload to R2
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const filename = `sponsors/${generateUniqueFilename(file.name)}`;
 
-        return { success: true, url: blob.url };
+        const result = await uploadToR2(buffer, filename, file.type);
+
+        if (!result.success) {
+            return { success: false, error: result.error };
+        }
+
+        return { success: true, url: result.url };
     } catch (error: any) {
         console.error("Error uploading image:", error);
         return { success: false, error: error.message };
