@@ -51,3 +51,10 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background-color: #6a6a6a;
 }
+
+/* Toast Notification Close Button - Position on Right */
+[data-sonner-toast] button[data-close-button] {
+    left: auto !important;
+    right: 8px !important;
+    top: 8px !important;
+}

@@ -50,6 +50,11 @@ export default function RootLayout({
               background: '#18181b',
               border: '1px solid #27272a',
               color: '#ffffff',
+              maxWidth: '400px',
+              minWidth: '300px',
+            },
+            classNames: {
+              closeButton: 'toast-close-button',
             },
           }}
         />
