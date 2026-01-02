@@ -25,7 +25,7 @@ interface VerificationResult {
     error?: string;
 }
 
-export default function TicketVerificationClient() {
+function VerificationContent() {
     const searchParams = useSearchParams();
     const [result, setResult] = useState<VerificationResult | null>(null);
     const [loading, setLoading] = useState(false);
@@ -53,10 +53,6 @@ export default function TicketVerificationClient() {
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleScanComplete = (qrData: string) => {
-        verifyFromURL(qrData);
     };
 
     const handleReset = () => {
@@ -212,7 +208,7 @@ export default function TicketVerificationClient() {
                 </div>
 
                 {/* QR Scanner */}
-                <QRScanner onScanComplete={handleScanComplete} />
+                <QRScanner />
 
                 {/* Instructions */}
                 <div className="mt-8 bg-zinc-900 rounded-xl border border-zinc-800 p-6">
@@ -235,4 +231,8 @@ export default function TicketVerificationClient() {
             </div>
         </div>
     );
+}
+
+export default function TicketVerificationClient() {
+    return <VerificationContent />;
 }
