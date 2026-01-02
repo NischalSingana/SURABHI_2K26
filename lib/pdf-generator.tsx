@@ -235,6 +235,10 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
                     {/* Left Panel */}
                     <View style={styles.leftPanel}>
                         <View style={styles.branding}>
+                            <Image
+                                src="/surabhi-logo.png"
+                                style={{ width: 50, height: 50, marginBottom: 8 }}
+                            />
                             <Text style={styles.brandName}>SURABHI</Text>
                             <Text style={styles.brandYear}>2026</Text>
                             <Text style={styles.brandTagline}>
