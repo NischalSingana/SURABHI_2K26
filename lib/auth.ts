@@ -25,6 +25,7 @@ export const auth = betterAuth({
             clientId: process.env.MICROSOFT_CLIENT_ID as string,
             clientSecret: process.env.MICROSOFT_CLIENT_SECRET as string,
             tenant: "organizations", // For single-tenant app - work/school accounts only
+            redirectURI: `${process.env.BETTER_AUTH_URL || "https://klsurabhi.nischalsingana.com"}/api/auth/callback/microsoft`,
         },
     },
     emailAndPassword: {
