@@ -39,19 +39,20 @@ const styles = StyleSheet.create({
     },
     branding: {
         textAlign: 'center',
-        marginTop: 5,
+        marginTop: 4,
         alignItems: 'center',
     },
     logo: {
-        width: 40,
-        height: 40,
-        marginBottom: 6,
+        width: 70,
+        height: 70,
+        marginBottom: 4,
     },
     brandName: {
         fontSize: 24,
         color: '#dc2626',
         fontWeight: 'bold',
         letterSpacing: 2,
+        marginTop: 2,
     },
     brandYear: {
         fontSize: 12,
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
     brandTagline: {
         fontSize: 6,
         color: '#9ca3af',
-        marginTop: 3,
+        marginTop: 2,
         letterSpacing: 0.8,
         lineHeight: 1.3,
     },
@@ -147,12 +148,12 @@ const styles = StyleSheet.create({
         color: '#6b7280',
         letterSpacing: 1,
     },
-    // Page 2 - Rules (Increased font sizes)
+    // Page 2 - Rules (Larger fonts for readability)
     rulesPage: {
         padding: 30,
     },
     rulesTitle: {
-        fontSize: 22,
+        fontSize: 24,
         color: '#dc2626',
         fontWeight: 'bold',
         textAlign: 'center',
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
         letterSpacing: 2,
     },
     rulesSubtitle: {
-        fontSize: 9,
+        fontSize: 10,
         color: '#9ca3af',
         textAlign: 'center',
         marginBottom: 18,
@@ -174,26 +175,26 @@ const styles = StyleSheet.create({
         marginBottom: 14,
     },
     warningTitle: {
-        fontSize: 11,
+        fontSize: 12,
         color: '#dc2626',
         fontWeight: 'bold',
         marginBottom: 6,
     },
     warningText: {
-        fontSize: 9,
+        fontSize: 10,
         color: '#ffffff',
         marginBottom: 3,
         lineHeight: 1.4,
     },
     sectionTitle: {
-        fontSize: 12,
+        fontSize: 13,
         color: '#ef4444',
         fontWeight: 'bold',
         marginTop: 12,
         marginBottom: 6,
     },
     bulletPoint: {
-        fontSize: 9,
+        fontSize: 10,
         color: '#ffffff',
         marginBottom: 4,
         paddingLeft: 10,
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
         borderTopColor: '#dc2626',
     },
     contactText: {
-        fontSize: 9,
+        fontSize: 10,
         color: '#ffffff',
         marginBottom: 3,
         textAlign: 'center',
@@ -218,7 +219,7 @@ const styles = StyleSheet.create({
         borderRadius: 4,
     },
     finalNoteText: {
-        fontSize: 9,
+        fontSize: 10,
         color: '#9ca3af',
         textAlign: 'center',
         fontWeight: 'bold',
