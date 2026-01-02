@@ -15,6 +15,7 @@ export const auth = betterAuth({
         accountLinking: {
             enabled: true, // Allow users to link Google and Microsoft accounts
             requireEmailVerification: false, // Allow linking even if email not verified
+            trustedEmails: true, // Trust emails from OAuth providers (Google, Microsoft)
         }
     },
     trustedOrigins: [
@@ -31,7 +32,7 @@ export const auth = betterAuth({
             clientId: process.env.MICROSOFT_CLIENT_ID as string,
             clientSecret: process.env.MICROSOFT_CLIENT_SECRET as string,
             tenant: "organizations", // For single-tenant app - work/school accounts only
-            redirectURI: `${process.env.BETTER_AUTH_URL || "https://klsurabhi.nischalsingana.com"}/api/auth/callback/microsoft`,
+            redirectURI: `${(process.env.BETTER_AUTH_URL || "https://klsurabhi.nischalsingana.com").replace(/\/$/, '')}/api/auth/callback/microsoft`,
         },
     },
     emailAndPassword: {
