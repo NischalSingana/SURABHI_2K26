@@ -1,6 +1,8 @@
 import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { generateTicketQR } from './qr-generator';
+import fs from 'fs';
+import path from 'path';
 
 interface UserTicketData {
     userId: string;
@@ -28,7 +30,7 @@ const styles = StyleSheet.create({
     leftPanel: {
         width: '30%',
         backgroundColor: '#1a0000',
-        padding: 12,
+        padding: 10,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
@@ -37,38 +39,44 @@ const styles = StyleSheet.create({
     },
     branding: {
         textAlign: 'center',
-        marginTop: 8,
+        marginTop: 5,
+        alignItems: 'center',
+    },
+    logo: {
+        width: 40,
+        height: 40,
+        marginBottom: 6,
     },
     brandName: {
-        fontSize: 28,
+        fontSize: 24,
         color: '#dc2626',
         fontWeight: 'bold',
         letterSpacing: 2,
     },
     brandYear: {
-        fontSize: 13,
+        fontSize: 12,
         color: '#ef4444',
-        marginTop: 3,
+        marginTop: 2,
     },
     brandTagline: {
-        fontSize: 6.5,
+        fontSize: 6,
         color: '#9ca3af',
-        marginTop: 4,
+        marginTop: 3,
         letterSpacing: 0.8,
         lineHeight: 1.3,
     },
     qrSection: {
         alignItems: 'center',
-        marginBottom: 8,
+        marginBottom: 6,
     },
     qrCode: {
-        width: 100,
-        height: 100,
+        width: 90,
+        height: 90,
     },
     qrLabel: {
-        fontSize: 6.5,
+        fontSize: 6,
         color: '#6b7280',
-        marginTop: 4,
+        marginTop: 3,
     },
     // Right Panel (70%)
     rightPanel: {
@@ -227,6 +235,11 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
         isApproved: userData.isApproved,
     });
 
+    // Read logo as base64
+    const logoPath = path.join(process.cwd(), 'public', 'images', 'surabhi_white_logo.png');
+    const logoBuffer = fs.readFileSync(logoPath);
+    const logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+
     const TicketDocument = (
         <Document>
             {/* Page 1: Entry Pass */}
@@ -235,10 +248,7 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
                     {/* Left Panel */}
                     <View style={styles.leftPanel}>
                         <View style={styles.branding}>
-                            <Image
-                                src="/surabhi-logo.png"
-                                style={{ width: 50, height: 50, marginBottom: 8 }}
-                            />
+                            <Image src={logoBase64} style={styles.logo} />
                             <Text style={styles.brandName}>SURABHI</Text>
                             <Text style={styles.brandYear}>2026</Text>
                             <Text style={styles.brandTagline}>
