@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     leftPanel: {
         width: '30%',
         backgroundColor: '#1a0000',
-        padding: 15,
+        padding: 12,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
@@ -37,37 +37,38 @@ const styles = StyleSheet.create({
     },
     branding: {
         textAlign: 'center',
-        marginTop: 10,
+        marginTop: 8,
     },
     brandName: {
-        fontSize: 32,
+        fontSize: 28,
         color: '#dc2626',
         fontWeight: 'bold',
-        letterSpacing: 3,
+        letterSpacing: 2,
     },
     brandYear: {
-        fontSize: 14,
+        fontSize: 13,
         color: '#ef4444',
         marginTop: 3,
     },
     brandTagline: {
-        fontSize: 7,
+        fontSize: 6.5,
         color: '#9ca3af',
-        marginTop: 5,
-        letterSpacing: 1,
+        marginTop: 4,
+        letterSpacing: 0.8,
+        lineHeight: 1.3,
     },
     qrSection: {
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: 8,
     },
     qrCode: {
-        width: 110,
-        height: 110,
+        width: 100,
+        height: 100,
     },
     qrLabel: {
-        fontSize: 7,
+        fontSize: 6.5,
         color: '#6b7280',
-        marginTop: 5,
+        marginTop: 4,
     },
     // Right Panel (70%)
     rightPanel: {
@@ -138,78 +139,78 @@ const styles = StyleSheet.create({
         color: '#6b7280',
         letterSpacing: 1,
     },
-    // Page 2 - Rules
+    // Page 2 - Rules (Increased font sizes)
     rulesPage: {
-        padding: 25,
+        padding: 30,
     },
     rulesTitle: {
-        fontSize: 20,
+        fontSize: 22,
         color: '#dc2626',
         fontWeight: 'bold',
         textAlign: 'center',
-        marginBottom: 6,
+        marginBottom: 8,
         letterSpacing: 2,
     },
     rulesSubtitle: {
-        fontSize: 8,
+        fontSize: 9,
         color: '#9ca3af',
         textAlign: 'center',
-        marginBottom: 15,
+        marginBottom: 18,
     },
     warningBox: {
         backgroundColor: '#dc262620',
         borderWidth: 2,
         borderColor: '#dc2626',
         borderRadius: 6,
-        padding: 10,
-        marginBottom: 12,
+        padding: 12,
+        marginBottom: 14,
     },
     warningTitle: {
-        fontSize: 10,
+        fontSize: 11,
         color: '#dc2626',
         fontWeight: 'bold',
-        marginBottom: 5,
+        marginBottom: 6,
     },
     warningText: {
-        fontSize: 8,
-        color: '#ffffff',
-        marginBottom: 2,
-        lineHeight: 1.3,
-    },
-    sectionTitle: {
-        fontSize: 11,
-        color: '#ef4444',
-        fontWeight: 'bold',
-        marginTop: 10,
-        marginBottom: 5,
-    },
-    bulletPoint: {
-        fontSize: 8,
+        fontSize: 9,
         color: '#ffffff',
         marginBottom: 3,
-        paddingLeft: 8,
-        lineHeight: 1.2,
+        lineHeight: 1.4,
+    },
+    sectionTitle: {
+        fontSize: 12,
+        color: '#ef4444',
+        fontWeight: 'bold',
+        marginTop: 12,
+        marginBottom: 6,
+    },
+    bulletPoint: {
+        fontSize: 9,
+        color: '#ffffff',
+        marginBottom: 4,
+        paddingLeft: 10,
+        lineHeight: 1.3,
     },
     contactSection: {
-        marginTop: 12,
-        paddingTop: 10,
+        marginTop: 14,
+        paddingTop: 12,
         borderTopWidth: 1,
         borderTopColor: '#dc2626',
     },
     contactText: {
-        fontSize: 8,
+        fontSize: 9,
         color: '#ffffff',
-        marginBottom: 2,
+        marginBottom: 3,
         textAlign: 'center',
     },
     finalNote: {
-        marginTop: 10,
-        padding: 8,
+        marginTop: 12,
+        padding: 10,
         backgroundColor: '#1a0000',
         borderRadius: 4,
     },
     finalNoteText: {
-        fontSize: 8,
+        fontSize: 9,
         color: '#9ca3af',
         textAlign: 'center',
         fontWeight: 'bold',
@@ -299,7 +300,7 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
                 </View>
             </Page>
 
-            {/* Page 2: Rules */}
+            {/* Page 2: Rules (Larger fonts) */}
             <Page size="A4" style={[styles.page, styles.rulesPage]}>
                 <Text style={styles.rulesTitle}>ENTRY REQUIREMENTS</Text>
                 <Text style={styles.rulesSubtitle}>Please read before attending</Text>
@@ -342,7 +343,7 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
                     <Text style={styles.finalNoteText}>
                         We look forward to seeing you at Surabhi 2026!
                     </Text>
-                    <Text style={[styles.finalNoteText, { fontSize: 7, marginTop: 4 }]}>
+                    <Text style={[styles.finalNoteText, { fontSize: 8, marginTop: 4 }]}>
                         KL University • Student Activity Center • Vijayawada
                     </Text>
                 </View>
