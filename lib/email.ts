@@ -5,9 +5,14 @@ export interface EmailOptions {
   subject: string;
   html: string;
   text?: string;
+  attachments?: Array<{
+    filename: string;
+    content: Buffer;
+    contentType: string;
+  }>;
 }
 
-export async function sendEmail({ to, subject, html, text }: EmailOptions) {
+export async function sendEmail({ to, subject, html, text, attachments }: EmailOptions) {
   try {
     // Create transporter dynamically to ensure env vars are loaded
     const transporter = nodemailer.createTransport({
@@ -30,6 +35,7 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions) {
       subject,
       html,
       text: text || html.replace(/<[^>]*>/g, ""), // Strip HTML for text version
+      attachments: attachments || [],
     });
 
     console.log("Email sent: %s", info.messageId);

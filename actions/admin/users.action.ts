@@ -90,8 +90,14 @@ export async function approveUser(userId: string) {
         const user = await prisma.user.findUnique({
             where: { id: userId },
             select: {
+                id: true,
                 name: true,
                 email: true,
+                phone: true,
+                collage: true,
+                collageId: true,
+                transactionId: true,
+                paymentStatus: true,
             },
         });
 
@@ -104,16 +110,38 @@ export async function approveUser(userId: string) {
             data: { isApproved: true },
         });
 
-        // Send approval email
+        // Generate PDF ticket
+        const { generateTicketPDF } = await import("@/lib/pdf-generator");
+        const pdfBuffer = await generateTicketPDF({
+            userId: user.id,
+            name: user.name || "Participant",
+            email: user.email,
+            phone: user.phone,
+            collage: user.collage,
+            collageId: user.collageId,
+            transactionId: user.transactionId,
+            paymentStatus: user.paymentStatus,
+            isApproved: true,
+        });
+
+        // Send approval email with PDF attachment
         const emailTemplate = emailTemplates.userApproved(user.name || "", user.email);
         await sendEmail({
             to: user.email,
             subject: emailTemplate.subject,
             html: emailTemplate.html,
+            attachments: [
+                {
+                    filename: `surabhi-2026-ticket-${user.name?.replace(/\s+/g, '-') || 'participant'}.pdf`,
+                    content: pdfBuffer,
+                    contentType: 'application/pdf',
+                },
+            ],
         });
 
-        return { success: true, message: "User approved successfully and email sent" };
+        return { success: true, message: "User approved successfully and ticket sent via email" };
     } catch (error: any) {
+        console.error("Error approving user:", error);
         return { success: false, error: error.message };
     }
 }
