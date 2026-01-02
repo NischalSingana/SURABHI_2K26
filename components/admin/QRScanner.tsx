@@ -115,19 +115,21 @@ export default function QRScanner() {
                     </motion.button>
                 )}
 
+                {/* Always render qr-reader div, just hide it */}
+                <div
+                    id="qr-reader"
+                    className={`rounded-lg overflow-hidden border-2 border-red-600 ${scanning ? "block" : "hidden"
+                        }`}
+                ></div>
+
                 {scanning && (
-                    <div className="relative">
-                        <div
-                            id="qr-reader"
-                            className="rounded-lg overflow-hidden border-2 border-red-600"
-                        ></div>
-                        <button
-                            onClick={stopScanning}
-                            className="absolute top-4 right-4 p-2 bg-red-600 hover:bg-red-700 text-white rounded-full transition-colors"
-                        >
-                            <FiX size={20} />
-                        </button>
-                    </div>
+                    <button
+                        onClick={stopScanning}
+                        className="mt-4 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                    >
+                        <FiX size={20} />
+                        Stop Scanning
+                    </button>
                 )}
             </div>
 
