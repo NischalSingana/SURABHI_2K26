@@ -83,7 +83,8 @@ const Footer = () => {
                         <ul className="space-y-3">
                             {[
                                 { name: 'Events', href: '/events' },
-                                { name: 'Gallery', href: '/events#gallery' },
+                                { name: 'Gallery', href: '/gallery' },
+                                { name: 'Accommodation', href: '/accommodation' },
                                 { name: 'Sponsors', href: '/sponsors' },
                                 { name: 'Contact Us', href: '/contact' },
                             ].map((link) => (

@@ -24,7 +24,7 @@ export const auth = betterAuth({
         microsoft: {
             clientId: process.env.MICROSOFT_CLIENT_ID as string,
             clientSecret: process.env.MICROSOFT_CLIENT_SECRET as string,
-            tenant: "common", // Allows both personal and work/school accounts
+            tenant: "organizations", // For single-tenant app - work/school accounts only
         },
     },
     emailAndPassword: {
