@@ -32,6 +32,13 @@ export default function QRScanner() {
 
     const startScanning = async () => {
         try {
+            // Check if element exists
+            const element = document.getElementById("qr-reader");
+            if (!element) {
+                toast.error("Scanner element not found. Please refresh the page.");
+                return;
+            }
+
             const html5QrCode = new Html5Qrcode("qr-reader");
             scannerRef.current = html5QrCode;
 
@@ -72,9 +79,9 @@ export default function QRScanner() {
             );
 
             setScanning(true);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error starting scanner:", error);
-            toast.error("Failed to start camera");
+            toast.error(error?.message || "Failed to start camera. Please check camera permissions.");
         }
     };
 
@@ -132,8 +139,8 @@ export default function QRScanner() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         className={`p-6 rounded-lg border-2 ${result.valid
-                                ? "bg-green-500/10 border-green-500"
-                                : "bg-red-500/10 border-red-500"
+                            ? "bg-green-500/10 border-green-500"
+                            : "bg-red-500/10 border-red-500"
                             }`}
                     >
                         {/* Status Header */}
@@ -197,8 +204,8 @@ export default function QRScanner() {
                                         <span className="text-zinc-400">Payment Status</span>
                                         <span
                                             className={`px-3 py-1 rounded-full text-sm font-semibold ${result.user.isApproved
-                                                    ? "bg-green-500/20 text-green-500"
-                                                    : "bg-yellow-500/20 text-yellow-500"
+                                                ? "bg-green-500/20 text-green-500"
+                                                : "bg-yellow-500/20 text-yellow-500"
                                                 }`}
                                         >
                                             {result.user.isApproved ? "APPROVED" : "PENDING"}
