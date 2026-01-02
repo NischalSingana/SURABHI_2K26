@@ -40,7 +40,19 @@ export default function RootLayout({
       <body
         className={`${schibstedGrotesk.variable} ${martianMono.variable} ${lexend.variable} bg-[#0a0e1a] min-h-screen`}
       >
-        <Toaster position="top-right" richColors />
+        <Toaster
+          position="top-right"
+          richColors
+          closeButton
+          duration={4000}
+          toastOptions={{
+            style: {
+              background: '#18181b',
+              border: '1px solid #27272a',
+              color: '#ffffff',
+            },
+          }}
+        />
         <LenisProvider>
           <ClickSpark
             sparkColor='#ff8c42'
