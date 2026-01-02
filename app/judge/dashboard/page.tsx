@@ -163,37 +163,12 @@ export default function JudgeDashboard() {
 
     const getDisplayParticipants = (event: Event): ParticipantDisplay[] => {
         const list: ParticipantDisplay[] = [];
-        const seenUserIds = new Set<string>();
+        const groupMemberIds = new Set<string>(); // Track all users who are part of groups
 
-        // 1. Individual Registrants
-        event.registeredStudents.forEach(user => {
-            if (seenUserIds.has(user.id)) return; // Skip if already added as group leader
-            seenUserIds.add(user.id);
-
-            const evaluation = getEvaluation(event.id, user.id);
-            list.push({
-                id: `individual-${user.id}`,
-                type: "INDIVIDUAL",
-                displayName: user.name || "Unknown User",
-                subtitle: user.collageId || "No ID",
-                members: undefined,
-                isEvaluated: !!evaluation,
-                score: evaluation?.score,
-                remarks: evaluation?.remarks,
-                actualUserId: user.id // For evaluation purposes
-            });
-        });
-
-        // 2. Group Registrations
+        // 1. Process Group Registrations FIRST
         event.groupRegistrations.forEach((reg, index) => {
-            if (seenUserIds.has(reg.user.id)) {
-                // Remove the individual entry and replace with group
-                const individualIndex = list.findIndex(p => p.actualUserId === reg.user.id);
-                if (individualIndex !== -1) {
-                    list.splice(individualIndex, 1);
-                }
-            }
-            seenUserIds.add(reg.user.id);
+            // Add group leader to the set
+            groupMemberIds.add(reg.user.id);
 
             const evaluation = getEvaluation(event.id, reg.user.id);
             // Parse members if it's a string, though it should be JSON object from Prisma
@@ -213,6 +188,15 @@ export default function JudgeDashboard() {
                 console.error("Error parsing members", e);
             }
 
+            // Add all team member IDs to the set (if they have userId field)
+            if (Array.isArray(membersList)) {
+                membersList.forEach((member: any) => {
+                    if (member.userId) {
+                        groupMemberIds.add(member.userId);
+                    }
+                });
+            }
+
             list.push({
                 id: `group-${reg.user.id}-${index}`,
                 type: "GROUP",
@@ -223,6 +207,25 @@ export default function JudgeDashboard() {
                 score: evaluation?.score,
                 remarks: evaluation?.remarks,
                 actualUserId: reg.user.id // For evaluation purposes
+            });
+        });
+
+        // 2. Process Individual Registrants (excluding group members)
+        event.registeredStudents.forEach(user => {
+            // Skip if this user is part of any group (leader or member)
+            if (groupMemberIds.has(user.id)) return;
+
+            const evaluation = getEvaluation(event.id, user.id);
+            list.push({
+                id: `individual-${user.id}`,
+                type: "INDIVIDUAL",
+                displayName: user.name || "Unknown User",
+                subtitle: user.collageId || "No ID",
+                members: undefined,
+                isEvaluated: !!evaluation,
+                score: evaluation?.score,
+                remarks: evaluation?.remarks,
+                actualUserId: user.id // For evaluation purposes
             });
         });
 
@@ -356,99 +359,157 @@ export default function JudgeDashboard() {
                                 <motion.div
                                     key={participant.id}
                                     layout
-                                    className={`bg-[#161616] border-t-2 ${participant.type === 'GROUP' ? 'border-t-red-500/50' : 'border-t-blue-500/50'} border-x border-b ${participant.isEvaluated ? 'border-green-500/20' : 'border-white/5'} rounded-xl p-4 sm:p-5 hover:border-white/20 transition-all ${index > 0 ? 'mt-0' : ''}`}
+                                    className={`bg-[#161616] border ${participant.isEvaluated ? 'border-green-500/20' : 'border-white/10'} rounded-xl overflow-hidden hover:border-white/20 transition-all`}
                                 >
-                                    <div className="mb-4">
-                                        <div className="flex items-center gap-2 sm:gap-3 mb-2">
-                                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-xs sm:text-sm font-bold shrink-0">
-                                                {participant.displayName?.[0]?.toUpperCase()}
+                                    {/* Group/Individual Header - Rectangular Component */}
+                                    <div className={`p-4 sm:p-5 ${participant.type === 'GROUP' ? 'bg-gradient-to-r from-red-950/30 to-red-900/10 border-l-4 border-red-500' : 'bg-gradient-to-r from-blue-950/30 to-blue-900/10 border-l-4 border-blue-500'}`}>
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg ${participant.type === 'GROUP' ? 'bg-gradient-to-br from-red-600 to-red-800' : 'bg-gradient-to-br from-blue-600 to-blue-800'} flex items-center justify-center text-sm sm:text-base font-bold shrink-0 shadow-lg`}>
+                                                    {participant.displayName?.[0]?.toUpperCase()}
+                                                </div>
+                                                <div className="overflow-hidden flex-1">
+                                                    <h3 className="font-bold truncate text-base sm:text-lg" title={participant.displayName || ""}>
+                                                        {participant.displayName}
+                                                    </h3>
+                                                    <p className="text-xs sm:text-sm text-gray-400 truncate">
+                                                        {participant.subtitle}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div className="overflow-hidden flex-1">
-                                                <h3 className="font-semibold truncate text-sm sm:text-base" title={participant.displayName || ""}>{participant.displayName}</h3>
-                                                <p className="text-xs text-gray-500 truncate">{participant.subtitle || ""}</p>
+
+                                            {/* Status Badge */}
+                                            <div className="shrink-0">
+                                                {participant.isEvaluated ? (
+                                                    <span className="bg-green-500/20 text-green-400 text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 font-medium border border-green-500/30">
+                                                        <FiCheckCircle size={14} /> {participant.score}/10
+                                                    </span>
+                                                ) : (
+                                                    <span className="bg-yellow-500/20 text-yellow-400 text-xs px-3 py-1.5 rounded-full font-medium border border-yellow-500/30">
+                                                        Pending
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
-
-                                        {participant.type === "GROUP" && participant.members && participant.members.length > 0 ? (
-                                            <div className="mb-3">
-                                                <button
-                                                    onClick={() => {
-                                                        const newExpanded = new Set(expandedTeams);
-                                                        if (newExpanded.has(participant.id)) {
-                                                            newExpanded.delete(participant.id);
-                                                        } else {
-                                                            newExpanded.add(participant.id);
-                                                        }
-                                                        setExpandedTeams(newExpanded);
-                                                    }}
-                                                    className="w-full flex items-center justify-between bg-black/20 p-2.5 sm:p-3 rounded-lg text-xs border-l-2 border-red-500/30 hover:bg-black/30 transition-colors"
-                                                >
-                                                    <span className="text-gray-400 font-medium">
-                                                        {participant.members.length + 1} Members (incl. leader)
-                                                    </span>
-                                                    <FiChevronDown
-                                                        className={`w-4 h-4 text-gray-500 transition-transform ${expandedTeams.has(participant.id) ? 'rotate-180' : ''
-                                                            }`}
-                                                    />
-                                                </button>
-
-                                                <AnimatePresence>
-                                                    {expandedTeams.has(participant.id) && (
-                                                        <motion.div
-                                                            initial={{ height: 0, opacity: 0 }}
-                                                            animate={{ height: 'auto', opacity: 1 }}
-                                                            exit={{ height: 0, opacity: 0 }}
-                                                            transition={{ duration: 0.2 }}
-                                                            className="overflow-hidden"
-                                                        >
-                                                            <div className="mt-2 bg-black/20 p-2.5 sm:p-3 rounded-lg text-xs border-l-2 border-red-500/30">
-                                                                <ul className="space-y-1.5 text-gray-400 max-h-32 overflow-y-auto">
-                                                                    {/* Show leader first */}
-                                                                    <li className="flex justify-between items-center pb-1.5 border-b border-white/5">
-                                                                        <div className="flex items-center gap-1.5">
-                                                                            <span className="text-[10px] bg-red-600/20 text-red-400 px-1.5 py-0.5 rounded">LEADER</span>
-                                                                            <span className="text-white font-medium">{participant.subtitle?.replace('Leader: ', '')}</span>
-                                                                        </div>
-                                                                    </li>
-                                                                    {/* Show other members */}
-                                                                    {participant.members.map((m: any, idx: number) => (
-                                                                        <li key={idx} className="flex justify-between pl-2">
-                                                                            <span>{m.name || m}</span>
-                                                                            {m.rollNo && <span className="opacity-50 text-[10px]">{m.rollNo}</span>}
-                                                                        </li>
-                                                                    ))}
-                                                                </ul>
-                                                            </div>
-                                                        </motion.div>
-                                                    )}
-                                                </AnimatePresence>
-                                            </div>
-                                        ) : null}
-
-                                        {participant.isEvaluated && (
-                                            <span className="bg-green-500/10 text-green-500 text-[10px] sm:text-xs px-2 py-1 rounded-full flex items-center gap-1 w-fit">
-                                                <FiCheckCircle size={10} /> Graded: {participant.score}/10
-                                            </span>
-                                        )}
                                     </div>
 
-                                    <button
-                                        onClick={() => {
-                                            setEvaluatingParticipant({
-                                                id: participant.actualUserId || participant.id,
-                                                name: participant.displayName,
-                                                email: "", // Not needed for display
-                                                collageId: null,
-                                                image: null
-                                            });
-                                            const scoreVal = participant.score;
-                                            setScore(scoreVal !== undefined && scoreVal !== null ? scoreVal : "");
-                                            setRemarks(participant.remarks || "");
-                                        }}
-                                        className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm font-medium transition-colors border border-white/5"
-                                    >
-                                        {participant.isEvaluated ? "Edit Evaluation" : "Evaluate"}
-                                    </button>
+                                    {/* Team Members Dropdown (Only for Groups) */}
+                                    {participant.type === "GROUP" && participant.members && participant.members.length > 0 && (
+                                        <div className="border-t border-white/5">
+                                            <button
+                                                onClick={() => {
+                                                    const newExpanded = new Set(expandedTeams);
+                                                    if (newExpanded.has(participant.id)) {
+                                                        newExpanded.delete(participant.id);
+                                                    } else {
+                                                        newExpanded.add(participant.id);
+                                                    }
+                                                    setExpandedTeams(newExpanded);
+                                                }}
+                                                className="w-full flex items-center justify-between px-4 sm:px-5 py-3 bg-black/20 hover:bg-black/30 transition-colors"
+                                            >
+                                                <span className="text-sm text-gray-300 font-medium flex items-center gap-2">
+                                                    <FiUsers className="w-4 h-4" />
+                                                    {participant.members.length + 1} Team Members
+                                                </span>
+                                                <FiChevronDown
+                                                    className={`w-5 h-5 text-gray-400 transition-transform ${expandedTeams.has(participant.id) ? 'rotate-180' : ''}`}
+                                                />
+                                            </button>
+
+                                            <AnimatePresence>
+                                                {expandedTeams.has(participant.id) && (
+                                                    <motion.div
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: 'auto', opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        transition={{ duration: 0.2 }}
+                                                        className="overflow-hidden"
+                                                    >
+                                                        <div className="px-4 sm:px-5 py-3 bg-black/10">
+                                                            <div className="space-y-2">
+                                                                {/* Team Leader with Evaluate Button */}
+                                                                <div className="p-3 bg-red-950/20 rounded-lg border border-red-500/20">
+                                                                    <div className="flex items-center justify-between mb-2">
+                                                                        <div className="flex items-center gap-2 flex-1">
+                                                                            <span className="text-[10px] bg-red-600/30 text-red-300 px-2 py-0.5 rounded font-bold uppercase">Leader</span>
+                                                                            <span className="text-white font-medium text-sm">{participant.subtitle?.replace('Leader: ', '')}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setEvaluatingParticipant({
+                                                                                id: participant.actualUserId || participant.id,
+                                                                                name: participant.subtitle?.replace('Leader: ', '') || participant.displayName,
+                                                                                email: "",
+                                                                                collageId: null,
+                                                                                image: null
+                                                                            });
+                                                                            const scoreVal = participant.score;
+                                                                            setScore(scoreVal !== undefined && scoreVal !== null ? scoreVal : "");
+                                                                            setRemarks(participant.remarks || "");
+                                                                        }}
+                                                                        className="w-full py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg text-xs font-semibold transition-all"
+                                                                    >
+                                                                        {participant.isEvaluated ? "Edit Evaluation" : "Evaluate"}
+                                                                    </button>
+                                                                </div>
+
+                                                                {/* Other Members with Evaluate Buttons */}
+                                                                {participant.members.map((m: any, idx: number) => (
+                                                                    <div key={idx} className="p-3 bg-white/5 rounded-lg border border-white/10">
+                                                                        <div className="flex items-center justify-between mb-2">
+                                                                            <span className="text-gray-300 text-sm font-medium">{m.name || m}</span>
+                                                                            {m.rollNo && <span className="text-gray-500 text-xs">{m.rollNo}</span>}
+                                                                        </div>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setEvaluatingParticipant({
+                                                                                    id: m.userId || `member-${idx}`,
+                                                                                    name: m.name || m,
+                                                                                    email: m.email || "",
+                                                                                    collageId: m.rollNo || null,
+                                                                                    image: null
+                                                                                });
+                                                                                setScore("");
+                                                                                setRemarks("");
+                                                                            }}
+                                                                            className="w-full py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg text-xs font-semibold transition-all"
+                                                                        >
+                                                                            Evaluate
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                    )}
+
+                                    {/* Evaluate Button - Only for Individual Events */}
+                                    {participant.type !== "GROUP" && (
+                                        <div className="p-4 sm:p-5 border-t border-white/5">
+                                            <button
+                                                onClick={() => {
+                                                    setEvaluatingParticipant({
+                                                        id: participant.actualUserId || participant.id,
+                                                        name: participant.displayName,
+                                                        email: "", // Not needed for display
+                                                        collageId: null,
+                                                        image: null
+                                                    });
+                                                    const scoreVal = participant.score;
+                                                    setScore(scoreVal !== undefined && scoreVal !== null ? scoreVal : "");
+                                                    setRemarks(participant.remarks || "");
+                                                }}
+                                                className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg text-sm sm:text-base font-semibold transition-all shadow-lg hover:shadow-red-500/20"
+                                            >
+                                                {participant.isEvaluated ? "Edit Evaluation" : "Evaluate"}
+                                            </button>
+                                        </div>
+                                    )}
                                 </motion.div>
                             ))}
                         </div>

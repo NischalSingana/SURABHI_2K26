@@ -143,12 +143,29 @@ const Footer = () => {
                     viewport={{ once: true }}
                     className="border-t border-zinc-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-4"
                 >
-                    <p className="text-zinc-600 text-sm text-center md:text-left">
-                        © {currentYear} Surabhi International Cultural Fest. All rights reserved.
-                    </p>
+                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-sm text-zinc-600">
+                        <span>© {currentYear} KLEF -</span>
+                        <a
+                            href="https://sac.kluniversity.in/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-zinc-400 font-semibold hover:text-white transition-colors"
+                        >
+                            Student Activity Center
+                        </a>
+                    </div>
 
-                    <div className="flex items-center gap-2 text-sm font-medium text-zinc-600">
+                    <div className="flex flex-wrap items-center justify-center gap-2 text-sm font-medium text-zinc-600">
                         <span>Developed by</span>
+                        <a
+                            href="https://www.linkedin.com/in/singananischal/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-zinc-400 font-semibold hover:text-white transition-colors"
+                        >
+                            Nischal Singana
+                        </a>
+                        <span>/</span>
                         <a
                             href="https://instagram.com/zeroonedevs"
                             target="_blank"
