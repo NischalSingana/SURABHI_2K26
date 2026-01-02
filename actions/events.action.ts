@@ -182,9 +182,14 @@ export async function createEvent(eventData: EventData) {
       headers: headersList,
     });
 
+    console.log("[createEvent] Session:", session?.user?.id, "Role:", session?.user?.role);
+
     if (!session || session.user.role !== Role.ADMIN) {
+      console.log("[createEvent] Unauthorized - No session or not admin");
       return { success: false, error: "Unauthorized" };
     }
+
+    console.log("[createEvent] Creating event:", eventData.name, "Category:", eventData.categoryId);
 
     const event = await prisma.event.create({
       data: {
@@ -209,12 +214,16 @@ export async function createEvent(eventData: EventData) {
       },
     });
 
+    console.log("[createEvent] Event created successfully:", event.id);
+
     revalidatePath("/admin/events");
     revalidatePath("/events");
     return { success: true, data: event };
   } catch (error) {
-    console.error("Error creating event:", error);
-    return { success: false, error: "Failed to create event" };
+    console.error("[createEvent] Error creating event:", error);
+    console.error("[createEvent] Error stack:", error instanceof Error ? error.stack : "No stack");
+    console.error("[createEvent] Event data:", JSON.stringify(eventData, null, 2));
+    return { success: false, error: error instanceof Error ? error.message : "Failed to create event" };
   }
 }
 

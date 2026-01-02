@@ -92,7 +92,8 @@ export default function ProfileClient({
     await signOut({
       fetchOptions: {
         onSuccess: () => {
-          router.push("/login");
+          // Use window.location for immediate redirect and full page refresh
+          window.location.href = "/";
         },
       },
     });
