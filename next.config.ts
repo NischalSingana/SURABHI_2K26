@@ -65,7 +65,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "script-src 'self' 'unsafe-eval' 'unsafe-inline'; object-src 'none';",
+            value: "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://static.cloudflareinsights.com https://us-assets.i.posthog.com https://us.i.posthog.com https://*.googleusercontent.com https://accounts.google.com https://login.microsoftonline.com; object-src 'none';",
           },
         ],
       },
