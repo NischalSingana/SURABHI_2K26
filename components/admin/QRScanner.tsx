@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiCamera, FiCheckCircle, FiXCircle, FiX } from "react-icons/fi";
+import { FiCamera, FiCheckCircle, FiXCircle } from "react-icons/fi";
 import { toast } from "sonner";
 
 interface VerificationResult {
@@ -29,8 +29,20 @@ export default function QRScanner() {
     const [scanning, setScanning] = useState(false);
     const [result, setResult] = useState<VerificationResult | null>(null);
     const scannerRef = useRef<Html5Qrcode | null>(null);
+    const [cameraError, setCameraError] = useState<string | null>(null);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (scannerRef.current) {
+                scannerRef.current.stop().catch(console.error);
+            }
+        };
+    }, []);
 
     const startScanning = async () => {
+        setCameraError(null);
+
         try {
             // Check if element exists
             const element = document.getElementById("qr-reader");
@@ -42,59 +54,91 @@ export default function QRScanner() {
             const html5QrCode = new Html5Qrcode("qr-reader");
             scannerRef.current = html5QrCode;
 
+            // Start scanning with rear camera
             await html5QrCode.start(
                 { facingMode: "environment" },
                 {
                     fps: 10,
                     qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0,
                 },
                 async (decodedText) => {
-                    // Stop scanning
-                    await stopScanning();
+                    console.log("QR Code detected:", decodedText);
+
+                    // Stop scanning immediately
+                    try {
+                        await html5QrCode.stop();
+                        await html5QrCode.clear();
+                        setScanning(false);
+                    } catch (error) {
+                        console.error("Error stopping scanner:", error);
+                    }
 
                     // Verify QR code
-                    try {
-                        const response = await fetch("/api/ticket/verify", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ qrData: decodedText }),
-                        });
-
-                        const data = await response.json();
-                        setResult(data);
-
-                        if (data.valid) {
-                            toast.success("Ticket verified successfully!");
-                        } else {
-                            toast.error(data.error || "Invalid ticket");
-                        }
-                    } catch (error) {
-                        toast.error("Failed to verify ticket");
-                        setResult({ valid: false, error: "Verification failed" });
-                    }
+                    await verifyQRCode(decodedText);
                 },
                 (errorMessage) => {
-                    // Ignore scanning errors (they happen frequently)
+                    // Ignore frequent scanning errors
+                    // console.log("Scan error:", errorMessage);
                 }
             );
 
             setScanning(true);
+            toast.success("Camera started! Point at QR code to scan");
         } catch (error: any) {
             console.error("Error starting scanner:", error);
-            toast.error(error?.message || "Failed to start camera. Please check camera permissions.");
+            const errorMsg = error?.message || "Failed to start camera";
+            setCameraError(errorMsg);
+
+            if (errorMsg.includes("Permission")) {
+                toast.error("Camera permission denied. Please allow camera access.");
+            } else if (errorMsg.includes("NotFound")) {
+                toast.error("No camera found on this device.");
+            } else {
+                toast.error("Failed to start camera. " + errorMsg);
+            }
+            setScanning(false);
         }
     };
 
-    const stopScanning = async () => {
-        if (scannerRef.current) {
-            try {
-                await scannerRef.current.stop();
-                scannerRef.current.clear();
-            } catch (error) {
-                console.error("Error stopping scanner:", error);
+    const verifyQRCode = async (qrData: string) => {
+        try {
+            // Extract QR data from URL if it's a URL
+            let dataToVerify = qrData;
+
+            // If it's a URL, extract the qr parameter
+            if (qrData.startsWith('http')) {
+                const url = new URL(qrData);
+                const qrParam = url.searchParams.get('qr');
+                if (qrParam) {
+                    dataToVerify = qrParam;
+                }
             }
+
+            const response = await fetch("/api/ticket/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ qrData: dataToVerify }),
+            });
+
+            const data = await response.json();
+            setResult(data);
+
+            if (data.valid) {
+                toast.success("Ticket verified successfully!");
+            } else {
+                toast.error(data.error || "Invalid ticket");
+            }
+        } catch (error) {
+            console.error("Verification error:", error);
+            toast.error("Failed to verify ticket");
+            setResult({ valid: false, error: "Verification failed" });
         }
-        setScanning(false);
+    };
+
+    const resetScanner = () => {
+        setResult(null);
+        setCameraError(null);
     };
 
     return (
@@ -123,13 +167,17 @@ export default function QRScanner() {
                 ></div>
 
                 {scanning && (
-                    <button
-                        onClick={stopScanning}
-                        className="mt-4 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                        <FiX size={20} />
-                        Stop Scanning
-                    </button>
+                    <div className="mt-4 text-center">
+                        <p className="text-gray-300 text-sm animate-pulse">
+                            Point camera at QR code...
+                        </p>
+                    </div>
+                )}
+
+                {cameraError && (
+                    <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                        <p className="text-red-400 text-sm">{cameraError}</p>
+                    </div>
                 )}
             </div>
 
@@ -141,8 +189,8 @@ export default function QRScanner() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         className={`p-6 rounded-lg border-2 ${result.valid
-                            ? "bg-green-500/10 border-green-500"
-                            : "bg-red-500/10 border-red-500"
+                                ? "bg-green-500/10 border-green-500"
+                                : "bg-red-500/10 border-red-500"
                             }`}
                     >
                         {/* Status Header */}
@@ -206,8 +254,8 @@ export default function QRScanner() {
                                         <span className="text-zinc-400">Payment Status</span>
                                         <span
                                             className={`px-3 py-1 rounded-full text-sm font-semibold ${result.user.isApproved
-                                                ? "bg-green-500/20 text-green-500"
-                                                : "bg-yellow-500/20 text-yellow-500"
+                                                    ? "bg-green-500/20 text-green-500"
+                                                    : "bg-yellow-500/20 text-yellow-500"
                                                 }`}
                                         >
                                             {result.user.isApproved ? "APPROVED" : "PENDING"}
@@ -225,7 +273,7 @@ export default function QRScanner() {
                         {/* Scan Again Button */}
                         <button
                             onClick={() => {
-                                setResult(null);
+                                resetScanner();
                                 startScanning();
                             }}
                             className="mt-6 w-full px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors"
