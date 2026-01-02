@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Schibsted_Grotesk, Martian_Mono } from "next/font/google";
+import { Schibsted_Grotesk, Martian_Mono, Lexend } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { Suspense } from "react";
@@ -18,6 +18,11 @@ const martianMono = Martian_Mono({
   subsets: ["latin"],
 });
 
+const lexend = Lexend({
+  variable: "--font-Lexend",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "Surabhi",
   description:
@@ -33,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${schibstedGrotesk.variable} ${martianMono.variable} bg-[#0a0e1a] min-h-screen`}
+        className={`${schibstedGrotesk.variable} ${martianMono.variable} ${lexend.variable} bg-[#0a0e1a] min-h-screen`}
       >
         <Toaster position="top-right" richColors />
         <LenisProvider>

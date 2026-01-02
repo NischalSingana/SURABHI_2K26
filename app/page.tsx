@@ -146,7 +146,7 @@ const HomePage = () => {
                         transition={{ duration: 0.8 }}
                         className="text-center mb-16"
                     >
-                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-white via-red-100 to-red-200 bg-clip-text text-transparent font-[family-name:var(--font-Schibsted_Grotesk)] tracking-tight">
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-white via-red-100 to-red-200 bg-clip-text text-transparent font-[family-name:var(--font-Lexend)] tracking-tight">
                             About Surabhi
                         </h2>
                         <div className="flex items-center justify-center gap-4 text-red-500/60 font-[family-name:var(--font-Martian_Mono)] text-sm tracking-widest uppercase">
@@ -169,16 +169,16 @@ const HomePage = () => {
                             <div className="absolute -right-20 -top-20 w-64 h-64 bg-red-600/10 rounded-full blur-3xl group-hover:bg-red-600/20 transition-all duration-500" />
 
                             <div className="relative z-10 space-y-6">
-                                <h3 className="text-3xl font-bold text-white font-[family-name:var(--font-Schibsted_Grotesk)]">
+                                <h3 className="text-3xl font-bold text-white font-[family-name:var(--font-Lexend)]">
                                     A Legacy of Artistic Excellence
                                 </h3>
-                                <p className="text-gray-400 text-lg leading-relaxed">
+                                <p className="text-gray-400 text-lg leading-relaxed font-[family-name:var(--font-Lexend)]">
                                     Surabhi is the flagship cultural festival of <span className="text-red-400 font-medium">KL University</span>, celebrated as a grand platform for artistic expression and cultural diversity. Held annually, it brings together talent from across the country, transforming the campus into a vibrant hub of creativity where tradition meets modern expression through dance, music, theatre, fine arts, and literary events.
                                 </p>
-                                <p className="text-gray-400 text-lg leading-relaxed">
+                                <p className="text-gray-400 text-lg leading-relaxed font-[family-name:var(--font-Lexend)]">
                                     What sets Surabhi apart is its student-driven spirit—planned, organized, and executed by passionate teams fostering leadership and innovation. This commitment to excellence has earned a proud place in the <span className="text-white border-b border-red-500/50">Indian Book of Records</span>.
                                 </p>
-                                <p className="text-gray-400 text-lg leading-relaxed">
+                                <p className="text-gray-400 text-lg leading-relaxed font-[family-name:var(--font-Lexend)]">
                                     Over two power-packed days, thousands unite to celebrate art, culture, and passion. From electrifying performances to breathtaking showcases, Surabhi is more than an event—it's a legacy of cultural brilliance that continues to inspire and unite diverse voices in a spectacular celebration of creativity.
                                 </p>
                             </div>
