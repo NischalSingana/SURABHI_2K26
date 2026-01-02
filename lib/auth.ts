@@ -47,8 +47,15 @@ export const auth = betterAuth({
     },
     session: {
         cookieCache: {
-            enabled: false, // Disabled to prevent session size limit errors
-            maxAge: 10 * 60,
+            enabled: true, // Enable to fix OAuth state mismatch
+            maxAge: 5 * 60, // 5 minutes for OAuth flow
+        },
+        expiresIn: 60 * 60 * 24 * 7, // 7 days
+        updateAge: 60 * 60 * 24, // 1 day
+        cookieOptions: {
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
         }
     },
     user: {
