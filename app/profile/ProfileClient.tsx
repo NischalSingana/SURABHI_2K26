@@ -193,6 +193,39 @@ export default function ProfileClient({
             </motion.button>
           )}
 
+          {!isEditing && user.isApproved && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/ticket/download');
+                  if (!response.ok) {
+                    const error = await response.json();
+                    toast.error(error.error || 'Failed to download ticket');
+                    return;
+                  }
+                  const blob = await response.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `surabhi-2026-ticket.pdf`;
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  document.body.removeChild(a);
+                  toast.success('Ticket downloaded successfully!');
+                } catch (error) {
+                  toast.error('Failed to download ticket');
+                }
+              }}
+              className="px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg shadow-red-600/20"
+            >
+              <FiCreditCard />
+              Download Ticket
+            </motion.button>
+          )}
+
           {!isEditing && (
             <motion.button
               whileHover={{ scale: 1.05 }}
