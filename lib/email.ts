@@ -11,13 +11,17 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions) {
   try {
     // Create transporter dynamically to ensure env vars are loaded
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      host: process.env.SMTP_HOST || "smtp-mail.outlook.com",
       port: parseInt(process.env.SMTP_PORT || "587"),
-      secure: false, // true for 465, false for other ports
+      secure: false, // true for 465, false for other ports (587 uses STARTTLS)
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASSWORD,
       },
+      tls: {
+        ciphers: 'SSLv3',
+        rejectUnauthorized: false
+      }
     });
 
     const info = await transporter.sendMail({
