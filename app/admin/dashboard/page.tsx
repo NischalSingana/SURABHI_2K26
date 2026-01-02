@@ -176,6 +176,23 @@ const page = async () => {
                 </Link>
 
                 <Link
+                    href="/admin/sponsors"
+                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-6 border border-gray-700"
+                >
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
+                            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h2 className="text-xl font-semibold text-white">Sponsors Management</h2>
+                        <p className="text-gray-400 text-center text-sm">
+                            Manage sponsors, upload images, and track sponsorship amounts
+                        </p>
+                    </div>
+                </Link>
+
+                <Link
                     href="/admin/verify-tickets"
                     className="bg-gradient-to-br from-red-900/40 to-orange-900/40 hover:from-red-900/60 hover:to-orange-900/60 transition-all rounded-lg p-6 border-2 border-red-600/50 shadow-lg shadow-red-600/20"
                 >

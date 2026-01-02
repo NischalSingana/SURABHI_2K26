@@ -68,6 +68,11 @@ export type FAQ = $Result.DefaultSelection<Prisma.$FAQPayload>
  * 
  */
 export type Evaluation = $Result.DefaultSelection<Prisma.$EvaluationPayload>
+/**
+ * Model Sponsor
+ * 
+ */
+export type Sponsor = $Result.DefaultSelection<Prisma.$SponsorPayload>
 
 /**
  * Enums
@@ -364,6 +369,16 @@ export class PrismaClient<
     * ```
     */
   get evaluation(): Prisma.EvaluationDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.sponsor`: Exposes CRUD operations for the **Sponsor** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Sponsors
+    * const sponsors = await prisma.sponsor.findMany()
+    * ```
+    */
+  get sponsor(): Prisma.SponsorDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -815,7 +830,8 @@ export namespace Prisma {
     AccommodationBooking: 'AccommodationBooking',
     EventSubmission: 'EventSubmission',
     FAQ: 'FAQ',
-    Evaluation: 'Evaluation'
+    Evaluation: 'Evaluation',
+    Sponsor: 'Sponsor'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -834,7 +850,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "session" | "account" | "verification" | "category" | "event" | "groupRegistration" | "accommodationBooking" | "eventSubmission" | "fAQ" | "evaluation"
+      modelProps: "user" | "session" | "account" | "verification" | "category" | "event" | "groupRegistration" | "accommodationBooking" | "eventSubmission" | "fAQ" | "evaluation" | "sponsor"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1652,6 +1668,80 @@ export namespace Prisma {
           }
         }
       }
+      Sponsor: {
+        payload: Prisma.$SponsorPayload<ExtArgs>
+        fields: Prisma.SponsorFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SponsorFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SponsorPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SponsorFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SponsorPayload>
+          }
+          findFirst: {
+            args: Prisma.SponsorFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SponsorPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SponsorFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SponsorPayload>
+          }
+          findMany: {
+            args: Prisma.SponsorFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SponsorPayload>[]
+          }
+          create: {
+            args: Prisma.SponsorCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SponsorPayload>
+          }
+          createMany: {
+            args: Prisma.SponsorCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SponsorCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SponsorPayload>[]
+          }
+          delete: {
+            args: Prisma.SponsorDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SponsorPayload>
+          }
+          update: {
+            args: Prisma.SponsorUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SponsorPayload>
+          }
+          deleteMany: {
+            args: Prisma.SponsorDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SponsorUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.SponsorUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SponsorPayload>[]
+          }
+          upsert: {
+            args: Prisma.SponsorUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SponsorPayload>
+          }
+          aggregate: {
+            args: Prisma.SponsorAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSponsor>
+          }
+          groupBy: {
+            args: Prisma.SponsorGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SponsorGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SponsorCountArgs<ExtArgs>
+            result: $Utils.Optional<SponsorCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1759,6 +1849,7 @@ export namespace Prisma {
     eventSubmission?: EventSubmissionOmit
     fAQ?: FAQOmit
     evaluation?: EvaluationOmit
+    sponsor?: SponsorOmit
   }
 
   /* Types for Logging */
@@ -14854,6 +14945,1130 @@ export namespace Prisma {
 
 
   /**
+   * Model Sponsor
+   */
+
+  export type AggregateSponsor = {
+    _count: SponsorCountAggregateOutputType | null
+    _avg: SponsorAvgAggregateOutputType | null
+    _sum: SponsorSumAggregateOutputType | null
+    _min: SponsorMinAggregateOutputType | null
+    _max: SponsorMaxAggregateOutputType | null
+  }
+
+  export type SponsorAvgAggregateOutputType = {
+    amount: number | null
+    order: number | null
+  }
+
+  export type SponsorSumAggregateOutputType = {
+    amount: number | null
+    order: number | null
+  }
+
+  export type SponsorMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    amount: number | null
+    image: string | null
+    website: string | null
+    borderColor: string | null
+    gradient: string | null
+    order: number | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SponsorMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    amount: number | null
+    image: string | null
+    website: string | null
+    borderColor: string | null
+    gradient: string | null
+    order: number | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SponsorCountAggregateOutputType = {
+    id: number
+    name: number
+    description: number
+    amount: number
+    image: number
+    website: number
+    borderColor: number
+    gradient: number
+    order: number
+    isActive: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type SponsorAvgAggregateInputType = {
+    amount?: true
+    order?: true
+  }
+
+  export type SponsorSumAggregateInputType = {
+    amount?: true
+    order?: true
+  }
+
+  export type SponsorMinAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    amount?: true
+    image?: true
+    website?: true
+    borderColor?: true
+    gradient?: true
+    order?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SponsorMaxAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    amount?: true
+    image?: true
+    website?: true
+    borderColor?: true
+    gradient?: true
+    order?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SponsorCountAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    amount?: true
+    image?: true
+    website?: true
+    borderColor?: true
+    gradient?: true
+    order?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type SponsorAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Sponsor to aggregate.
+     */
+    where?: SponsorWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Sponsors to fetch.
+     */
+    orderBy?: SponsorOrderByWithRelationInput | SponsorOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SponsorWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Sponsors from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Sponsors.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Sponsors
+    **/
+    _count?: true | SponsorCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SponsorAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SponsorSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SponsorMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SponsorMaxAggregateInputType
+  }
+
+  export type GetSponsorAggregateType<T extends SponsorAggregateArgs> = {
+        [P in keyof T & keyof AggregateSponsor]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSponsor[P]>
+      : GetScalarType<T[P], AggregateSponsor[P]>
+  }
+
+
+
+
+  export type SponsorGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SponsorWhereInput
+    orderBy?: SponsorOrderByWithAggregationInput | SponsorOrderByWithAggregationInput[]
+    by: SponsorScalarFieldEnum[] | SponsorScalarFieldEnum
+    having?: SponsorScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SponsorCountAggregateInputType | true
+    _avg?: SponsorAvgAggregateInputType
+    _sum?: SponsorSumAggregateInputType
+    _min?: SponsorMinAggregateInputType
+    _max?: SponsorMaxAggregateInputType
+  }
+
+  export type SponsorGroupByOutputType = {
+    id: string
+    name: string
+    description: string
+    amount: number
+    image: string | null
+    website: string | null
+    borderColor: string
+    gradient: string
+    order: number
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: SponsorCountAggregateOutputType | null
+    _avg: SponsorAvgAggregateOutputType | null
+    _sum: SponsorSumAggregateOutputType | null
+    _min: SponsorMinAggregateOutputType | null
+    _max: SponsorMaxAggregateOutputType | null
+  }
+
+  type GetSponsorGroupByPayload<T extends SponsorGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SponsorGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SponsorGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SponsorGroupByOutputType[P]>
+            : GetScalarType<T[P], SponsorGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SponsorSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    amount?: boolean
+    image?: boolean
+    website?: boolean
+    borderColor?: boolean
+    gradient?: boolean
+    order?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["sponsor"]>
+
+  export type SponsorSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    amount?: boolean
+    image?: boolean
+    website?: boolean
+    borderColor?: boolean
+    gradient?: boolean
+    order?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["sponsor"]>
+
+  export type SponsorSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    amount?: boolean
+    image?: boolean
+    website?: boolean
+    borderColor?: boolean
+    gradient?: boolean
+    order?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["sponsor"]>
+
+  export type SponsorSelectScalar = {
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    amount?: boolean
+    image?: boolean
+    website?: boolean
+    borderColor?: boolean
+    gradient?: boolean
+    order?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type SponsorOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "amount" | "image" | "website" | "borderColor" | "gradient" | "order" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["sponsor"]>
+
+  export type $SponsorPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Sponsor"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      description: string
+      amount: number
+      image: string | null
+      website: string | null
+      borderColor: string
+      gradient: string
+      order: number
+      isActive: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["sponsor"]>
+    composites: {}
+  }
+
+  type SponsorGetPayload<S extends boolean | null | undefined | SponsorDefaultArgs> = $Result.GetResult<Prisma.$SponsorPayload, S>
+
+  type SponsorCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<SponsorFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: SponsorCountAggregateInputType | true
+    }
+
+  export interface SponsorDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Sponsor'], meta: { name: 'Sponsor' } }
+    /**
+     * Find zero or one Sponsor that matches the filter.
+     * @param {SponsorFindUniqueArgs} args - Arguments to find a Sponsor
+     * @example
+     * // Get one Sponsor
+     * const sponsor = await prisma.sponsor.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SponsorFindUniqueArgs>(args: SelectSubset<T, SponsorFindUniqueArgs<ExtArgs>>): Prisma__SponsorClient<$Result.GetResult<Prisma.$SponsorPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Sponsor that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {SponsorFindUniqueOrThrowArgs} args - Arguments to find a Sponsor
+     * @example
+     * // Get one Sponsor
+     * const sponsor = await prisma.sponsor.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SponsorFindUniqueOrThrowArgs>(args: SelectSubset<T, SponsorFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SponsorClient<$Result.GetResult<Prisma.$SponsorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Sponsor that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SponsorFindFirstArgs} args - Arguments to find a Sponsor
+     * @example
+     * // Get one Sponsor
+     * const sponsor = await prisma.sponsor.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SponsorFindFirstArgs>(args?: SelectSubset<T, SponsorFindFirstArgs<ExtArgs>>): Prisma__SponsorClient<$Result.GetResult<Prisma.$SponsorPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Sponsor that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SponsorFindFirstOrThrowArgs} args - Arguments to find a Sponsor
+     * @example
+     * // Get one Sponsor
+     * const sponsor = await prisma.sponsor.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SponsorFindFirstOrThrowArgs>(args?: SelectSubset<T, SponsorFindFirstOrThrowArgs<ExtArgs>>): Prisma__SponsorClient<$Result.GetResult<Prisma.$SponsorPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Sponsors that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SponsorFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Sponsors
+     * const sponsors = await prisma.sponsor.findMany()
+     * 
+     * // Get first 10 Sponsors
+     * const sponsors = await prisma.sponsor.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const sponsorWithIdOnly = await prisma.sponsor.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SponsorFindManyArgs>(args?: SelectSubset<T, SponsorFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SponsorPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Sponsor.
+     * @param {SponsorCreateArgs} args - Arguments to create a Sponsor.
+     * @example
+     * // Create one Sponsor
+     * const Sponsor = await prisma.sponsor.create({
+     *   data: {
+     *     // ... data to create a Sponsor
+     *   }
+     * })
+     * 
+     */
+    create<T extends SponsorCreateArgs>(args: SelectSubset<T, SponsorCreateArgs<ExtArgs>>): Prisma__SponsorClient<$Result.GetResult<Prisma.$SponsorPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Sponsors.
+     * @param {SponsorCreateManyArgs} args - Arguments to create many Sponsors.
+     * @example
+     * // Create many Sponsors
+     * const sponsor = await prisma.sponsor.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SponsorCreateManyArgs>(args?: SelectSubset<T, SponsorCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Sponsors and returns the data saved in the database.
+     * @param {SponsorCreateManyAndReturnArgs} args - Arguments to create many Sponsors.
+     * @example
+     * // Create many Sponsors
+     * const sponsor = await prisma.sponsor.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Sponsors and only return the `id`
+     * const sponsorWithIdOnly = await prisma.sponsor.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SponsorCreateManyAndReturnArgs>(args?: SelectSubset<T, SponsorCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SponsorPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Sponsor.
+     * @param {SponsorDeleteArgs} args - Arguments to delete one Sponsor.
+     * @example
+     * // Delete one Sponsor
+     * const Sponsor = await prisma.sponsor.delete({
+     *   where: {
+     *     // ... filter to delete one Sponsor
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SponsorDeleteArgs>(args: SelectSubset<T, SponsorDeleteArgs<ExtArgs>>): Prisma__SponsorClient<$Result.GetResult<Prisma.$SponsorPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Sponsor.
+     * @param {SponsorUpdateArgs} args - Arguments to update one Sponsor.
+     * @example
+     * // Update one Sponsor
+     * const sponsor = await prisma.sponsor.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SponsorUpdateArgs>(args: SelectSubset<T, SponsorUpdateArgs<ExtArgs>>): Prisma__SponsorClient<$Result.GetResult<Prisma.$SponsorPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Sponsors.
+     * @param {SponsorDeleteManyArgs} args - Arguments to filter Sponsors to delete.
+     * @example
+     * // Delete a few Sponsors
+     * const { count } = await prisma.sponsor.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SponsorDeleteManyArgs>(args?: SelectSubset<T, SponsorDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Sponsors.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SponsorUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Sponsors
+     * const sponsor = await prisma.sponsor.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SponsorUpdateManyArgs>(args: SelectSubset<T, SponsorUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Sponsors and returns the data updated in the database.
+     * @param {SponsorUpdateManyAndReturnArgs} args - Arguments to update many Sponsors.
+     * @example
+     * // Update many Sponsors
+     * const sponsor = await prisma.sponsor.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Sponsors and only return the `id`
+     * const sponsorWithIdOnly = await prisma.sponsor.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends SponsorUpdateManyAndReturnArgs>(args: SelectSubset<T, SponsorUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SponsorPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Sponsor.
+     * @param {SponsorUpsertArgs} args - Arguments to update or create a Sponsor.
+     * @example
+     * // Update or create a Sponsor
+     * const sponsor = await prisma.sponsor.upsert({
+     *   create: {
+     *     // ... data to create a Sponsor
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Sponsor we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SponsorUpsertArgs>(args: SelectSubset<T, SponsorUpsertArgs<ExtArgs>>): Prisma__SponsorClient<$Result.GetResult<Prisma.$SponsorPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Sponsors.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SponsorCountArgs} args - Arguments to filter Sponsors to count.
+     * @example
+     * // Count the number of Sponsors
+     * const count = await prisma.sponsor.count({
+     *   where: {
+     *     // ... the filter for the Sponsors we want to count
+     *   }
+     * })
+    **/
+    count<T extends SponsorCountArgs>(
+      args?: Subset<T, SponsorCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SponsorCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Sponsor.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SponsorAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SponsorAggregateArgs>(args: Subset<T, SponsorAggregateArgs>): Prisma.PrismaPromise<GetSponsorAggregateType<T>>
+
+    /**
+     * Group by Sponsor.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SponsorGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SponsorGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SponsorGroupByArgs['orderBy'] }
+        : { orderBy?: SponsorGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SponsorGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSponsorGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Sponsor model
+   */
+  readonly fields: SponsorFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Sponsor.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SponsorClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Sponsor model
+   */
+  interface SponsorFieldRefs {
+    readonly id: FieldRef<"Sponsor", 'String'>
+    readonly name: FieldRef<"Sponsor", 'String'>
+    readonly description: FieldRef<"Sponsor", 'String'>
+    readonly amount: FieldRef<"Sponsor", 'Float'>
+    readonly image: FieldRef<"Sponsor", 'String'>
+    readonly website: FieldRef<"Sponsor", 'String'>
+    readonly borderColor: FieldRef<"Sponsor", 'String'>
+    readonly gradient: FieldRef<"Sponsor", 'String'>
+    readonly order: FieldRef<"Sponsor", 'Int'>
+    readonly isActive: FieldRef<"Sponsor", 'Boolean'>
+    readonly createdAt: FieldRef<"Sponsor", 'DateTime'>
+    readonly updatedAt: FieldRef<"Sponsor", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Sponsor findUnique
+   */
+  export type SponsorFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Sponsor
+     */
+    select?: SponsorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Sponsor
+     */
+    omit?: SponsorOmit<ExtArgs> | null
+    /**
+     * Filter, which Sponsor to fetch.
+     */
+    where: SponsorWhereUniqueInput
+  }
+
+  /**
+   * Sponsor findUniqueOrThrow
+   */
+  export type SponsorFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Sponsor
+     */
+    select?: SponsorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Sponsor
+     */
+    omit?: SponsorOmit<ExtArgs> | null
+    /**
+     * Filter, which Sponsor to fetch.
+     */
+    where: SponsorWhereUniqueInput
+  }
+
+  /**
+   * Sponsor findFirst
+   */
+  export type SponsorFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Sponsor
+     */
+    select?: SponsorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Sponsor
+     */
+    omit?: SponsorOmit<ExtArgs> | null
+    /**
+     * Filter, which Sponsor to fetch.
+     */
+    where?: SponsorWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Sponsors to fetch.
+     */
+    orderBy?: SponsorOrderByWithRelationInput | SponsorOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Sponsors.
+     */
+    cursor?: SponsorWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Sponsors from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Sponsors.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Sponsors.
+     */
+    distinct?: SponsorScalarFieldEnum | SponsorScalarFieldEnum[]
+  }
+
+  /**
+   * Sponsor findFirstOrThrow
+   */
+  export type SponsorFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Sponsor
+     */
+    select?: SponsorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Sponsor
+     */
+    omit?: SponsorOmit<ExtArgs> | null
+    /**
+     * Filter, which Sponsor to fetch.
+     */
+    where?: SponsorWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Sponsors to fetch.
+     */
+    orderBy?: SponsorOrderByWithRelationInput | SponsorOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Sponsors.
+     */
+    cursor?: SponsorWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Sponsors from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Sponsors.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Sponsors.
+     */
+    distinct?: SponsorScalarFieldEnum | SponsorScalarFieldEnum[]
+  }
+
+  /**
+   * Sponsor findMany
+   */
+  export type SponsorFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Sponsor
+     */
+    select?: SponsorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Sponsor
+     */
+    omit?: SponsorOmit<ExtArgs> | null
+    /**
+     * Filter, which Sponsors to fetch.
+     */
+    where?: SponsorWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Sponsors to fetch.
+     */
+    orderBy?: SponsorOrderByWithRelationInput | SponsorOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Sponsors.
+     */
+    cursor?: SponsorWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Sponsors from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Sponsors.
+     */
+    skip?: number
+    distinct?: SponsorScalarFieldEnum | SponsorScalarFieldEnum[]
+  }
+
+  /**
+   * Sponsor create
+   */
+  export type SponsorCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Sponsor
+     */
+    select?: SponsorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Sponsor
+     */
+    omit?: SponsorOmit<ExtArgs> | null
+    /**
+     * The data needed to create a Sponsor.
+     */
+    data: XOR<SponsorCreateInput, SponsorUncheckedCreateInput>
+  }
+
+  /**
+   * Sponsor createMany
+   */
+  export type SponsorCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Sponsors.
+     */
+    data: SponsorCreateManyInput | SponsorCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Sponsor createManyAndReturn
+   */
+  export type SponsorCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Sponsor
+     */
+    select?: SponsorSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Sponsor
+     */
+    omit?: SponsorOmit<ExtArgs> | null
+    /**
+     * The data used to create many Sponsors.
+     */
+    data: SponsorCreateManyInput | SponsorCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Sponsor update
+   */
+  export type SponsorUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Sponsor
+     */
+    select?: SponsorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Sponsor
+     */
+    omit?: SponsorOmit<ExtArgs> | null
+    /**
+     * The data needed to update a Sponsor.
+     */
+    data: XOR<SponsorUpdateInput, SponsorUncheckedUpdateInput>
+    /**
+     * Choose, which Sponsor to update.
+     */
+    where: SponsorWhereUniqueInput
+  }
+
+  /**
+   * Sponsor updateMany
+   */
+  export type SponsorUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Sponsors.
+     */
+    data: XOR<SponsorUpdateManyMutationInput, SponsorUncheckedUpdateManyInput>
+    /**
+     * Filter which Sponsors to update
+     */
+    where?: SponsorWhereInput
+    /**
+     * Limit how many Sponsors to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Sponsor updateManyAndReturn
+   */
+  export type SponsorUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Sponsor
+     */
+    select?: SponsorSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Sponsor
+     */
+    omit?: SponsorOmit<ExtArgs> | null
+    /**
+     * The data used to update Sponsors.
+     */
+    data: XOR<SponsorUpdateManyMutationInput, SponsorUncheckedUpdateManyInput>
+    /**
+     * Filter which Sponsors to update
+     */
+    where?: SponsorWhereInput
+    /**
+     * Limit how many Sponsors to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Sponsor upsert
+   */
+  export type SponsorUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Sponsor
+     */
+    select?: SponsorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Sponsor
+     */
+    omit?: SponsorOmit<ExtArgs> | null
+    /**
+     * The filter to search for the Sponsor to update in case it exists.
+     */
+    where: SponsorWhereUniqueInput
+    /**
+     * In case the Sponsor found by the `where` argument doesn't exist, create a new Sponsor with this data.
+     */
+    create: XOR<SponsorCreateInput, SponsorUncheckedCreateInput>
+    /**
+     * In case the Sponsor was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SponsorUpdateInput, SponsorUncheckedUpdateInput>
+  }
+
+  /**
+   * Sponsor delete
+   */
+  export type SponsorDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Sponsor
+     */
+    select?: SponsorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Sponsor
+     */
+    omit?: SponsorOmit<ExtArgs> | null
+    /**
+     * Filter which Sponsor to delete.
+     */
+    where: SponsorWhereUniqueInput
+  }
+
+  /**
+   * Sponsor deleteMany
+   */
+  export type SponsorDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Sponsors to delete
+     */
+    where?: SponsorWhereInput
+    /**
+     * Limit how many Sponsors to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Sponsor without action
+   */
+  export type SponsorDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Sponsor
+     */
+    select?: SponsorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Sponsor
+     */
+    omit?: SponsorOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -15046,6 +16261,24 @@ export namespace Prisma {
   };
 
   export type EvaluationScalarFieldEnum = (typeof EvaluationScalarFieldEnum)[keyof typeof EvaluationScalarFieldEnum]
+
+
+  export const SponsorScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    description: 'description',
+    amount: 'amount',
+    image: 'image',
+    website: 'website',
+    borderColor: 'borderColor',
+    gradient: 'gradient',
+    order: 'order',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type SponsorScalarFieldEnum = (typeof SponsorScalarFieldEnum)[keyof typeof SponsorScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -16222,6 +17455,95 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"Evaluation"> | Date | string
   }
 
+  export type SponsorWhereInput = {
+    AND?: SponsorWhereInput | SponsorWhereInput[]
+    OR?: SponsorWhereInput[]
+    NOT?: SponsorWhereInput | SponsorWhereInput[]
+    id?: StringFilter<"Sponsor"> | string
+    name?: StringFilter<"Sponsor"> | string
+    description?: StringFilter<"Sponsor"> | string
+    amount?: FloatFilter<"Sponsor"> | number
+    image?: StringNullableFilter<"Sponsor"> | string | null
+    website?: StringNullableFilter<"Sponsor"> | string | null
+    borderColor?: StringFilter<"Sponsor"> | string
+    gradient?: StringFilter<"Sponsor"> | string
+    order?: IntFilter<"Sponsor"> | number
+    isActive?: BoolFilter<"Sponsor"> | boolean
+    createdAt?: DateTimeFilter<"Sponsor"> | Date | string
+    updatedAt?: DateTimeFilter<"Sponsor"> | Date | string
+  }
+
+  export type SponsorOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    amount?: SortOrder
+    image?: SortOrderInput | SortOrder
+    website?: SortOrderInput | SortOrder
+    borderColor?: SortOrder
+    gradient?: SortOrder
+    order?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SponsorWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: SponsorWhereInput | SponsorWhereInput[]
+    OR?: SponsorWhereInput[]
+    NOT?: SponsorWhereInput | SponsorWhereInput[]
+    name?: StringFilter<"Sponsor"> | string
+    description?: StringFilter<"Sponsor"> | string
+    amount?: FloatFilter<"Sponsor"> | number
+    image?: StringNullableFilter<"Sponsor"> | string | null
+    website?: StringNullableFilter<"Sponsor"> | string | null
+    borderColor?: StringFilter<"Sponsor"> | string
+    gradient?: StringFilter<"Sponsor"> | string
+    order?: IntFilter<"Sponsor"> | number
+    isActive?: BoolFilter<"Sponsor"> | boolean
+    createdAt?: DateTimeFilter<"Sponsor"> | Date | string
+    updatedAt?: DateTimeFilter<"Sponsor"> | Date | string
+  }, "id">
+
+  export type SponsorOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    amount?: SortOrder
+    image?: SortOrderInput | SortOrder
+    website?: SortOrderInput | SortOrder
+    borderColor?: SortOrder
+    gradient?: SortOrder
+    order?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: SponsorCountOrderByAggregateInput
+    _avg?: SponsorAvgOrderByAggregateInput
+    _max?: SponsorMaxOrderByAggregateInput
+    _min?: SponsorMinOrderByAggregateInput
+    _sum?: SponsorSumOrderByAggregateInput
+  }
+
+  export type SponsorScalarWhereWithAggregatesInput = {
+    AND?: SponsorScalarWhereWithAggregatesInput | SponsorScalarWhereWithAggregatesInput[]
+    OR?: SponsorScalarWhereWithAggregatesInput[]
+    NOT?: SponsorScalarWhereWithAggregatesInput | SponsorScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Sponsor"> | string
+    name?: StringWithAggregatesFilter<"Sponsor"> | string
+    description?: StringWithAggregatesFilter<"Sponsor"> | string
+    amount?: FloatWithAggregatesFilter<"Sponsor"> | number
+    image?: StringNullableWithAggregatesFilter<"Sponsor"> | string | null
+    website?: StringNullableWithAggregatesFilter<"Sponsor"> | string | null
+    borderColor?: StringWithAggregatesFilter<"Sponsor"> | string
+    gradient?: StringWithAggregatesFilter<"Sponsor"> | string
+    order?: IntWithAggregatesFilter<"Sponsor"> | number
+    isActive?: BoolWithAggregatesFilter<"Sponsor"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"Sponsor"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Sponsor"> | Date | string
+  }
+
   export type UserCreateInput = {
     id: string
     createdAt?: Date | string
@@ -17299,6 +18621,111 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type SponsorCreateInput = {
+    id?: string
+    name: string
+    description: string
+    amount: number
+    image?: string | null
+    website?: string | null
+    borderColor?: string
+    gradient?: string
+    order?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SponsorUncheckedCreateInput = {
+    id?: string
+    name: string
+    description: string
+    amount: number
+    image?: string | null
+    website?: string | null
+    borderColor?: string
+    gradient?: string
+    order?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SponsorUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    amount?: FloatFieldUpdateOperationsInput | number
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    website?: NullableStringFieldUpdateOperationsInput | string | null
+    borderColor?: StringFieldUpdateOperationsInput | string
+    gradient?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SponsorUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    amount?: FloatFieldUpdateOperationsInput | number
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    website?: NullableStringFieldUpdateOperationsInput | string | null
+    borderColor?: StringFieldUpdateOperationsInput | string
+    gradient?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SponsorCreateManyInput = {
+    id?: string
+    name: string
+    description: string
+    amount: number
+    image?: string | null
+    website?: string | null
+    borderColor?: string
+    gradient?: string
+    order?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SponsorUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    amount?: FloatFieldUpdateOperationsInput | number
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    website?: NullableStringFieldUpdateOperationsInput | string | null
+    borderColor?: StringFieldUpdateOperationsInput | string
+    gradient?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SponsorUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    amount?: FloatFieldUpdateOperationsInput | number
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    website?: NullableStringFieldUpdateOperationsInput | string | null
+    borderColor?: StringFieldUpdateOperationsInput | string
+    gradient?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -18319,6 +19746,61 @@ export namespace Prisma {
     _sum?: NestedFloatFilter<$PrismaModel>
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
+  }
+
+  export type SponsorCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    amount?: SortOrder
+    image?: SortOrder
+    website?: SortOrder
+    borderColor?: SortOrder
+    gradient?: SortOrder
+    order?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SponsorAvgOrderByAggregateInput = {
+    amount?: SortOrder
+    order?: SortOrder
+  }
+
+  export type SponsorMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    amount?: SortOrder
+    image?: SortOrder
+    website?: SortOrder
+    borderColor?: SortOrder
+    gradient?: SortOrder
+    order?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SponsorMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    amount?: SortOrder
+    image?: SortOrder
+    website?: SortOrder
+    borderColor?: SortOrder
+    gradient?: SortOrder
+    order?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SponsorSumOrderByAggregateInput = {
+    amount?: SortOrder
+    order?: SortOrder
   }
 
   export type AccountCreateNestedManyWithoutUserInput = {
