@@ -32,7 +32,17 @@ export async function GET(request: NextRequest) {
         }
 
         const contentType = response.headers.get("content-type") || "application/octet-stream";
-        const contentDisposition = `attachment; filename="schedule-image.${contentType.split('/')[1] || 'jpg'}"`;
+
+        // Get extension from content-type or default to jpg
+        const extension = contentType.split('/')[1] || 'jpg';
+
+        // Use provided filename or default
+        const filenameParam = request.nextUrl.searchParams.get("filename");
+        const filename = filenameParam
+            ? (filenameParam.endsWith(`.${extension}`) ? filenameParam : `${filenameParam}.${extension}`)
+            : `schedule-image.${extension}`;
+
+        const contentDisposition = `attachment; filename="${filename}"`;
 
         return new NextResponse(response.body, {
             headers: {

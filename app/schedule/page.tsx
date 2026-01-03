@@ -32,30 +32,21 @@ export default function SchedulePage() {
     const handleDownload = async (imageUrl: string, id: string) => {
         if (downloading) return;
         setDownloading(true);
-        const toastId = toast.loading("Downloading...");
+        const toastId = toast.loading("Starting download...");
 
         try {
-            const response = await fetch(`/api/schedule/download?url=${encodeURIComponent(imageUrl)}`);
+            // Direct navigation download - most reliable for mobile
+            const filename = `schedule-${id}`;
+            const downloadUrl = `/api/schedule/download?url=${encodeURIComponent(imageUrl)}&filename=${encodeURIComponent(filename)}`;
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || "Download failed");
-            }
+            // Artificial delay to show toast (optional, but helps UX)
+            await new Promise(resolve => setTimeout(resolve, 500));
 
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `schedule-${id}.jpg`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-
-            toast.success("Schedule downloaded successfully!", { id: toastId });
+            window.location.href = downloadUrl;
+            toast.success("Download started!", { id: toastId });
         } catch (error) {
             console.error('Download failed:', error);
-            toast.error("Failed to download schedule", { id: toastId });
+            toast.error("Failed to start download", { id: toastId });
         } finally {
             setDownloading(false);
         }
