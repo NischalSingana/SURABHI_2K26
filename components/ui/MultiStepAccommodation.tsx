@@ -135,14 +135,14 @@ const MultiStepAccommodation = () => {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center relative overflow-hidden p-6">
         <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 pointer-events-none" />
-        <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-green-500/10 rounded-full blur-[120px]" />
+        <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-red-900/10 rounded-full blur-[120px]" />
 
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-md w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center relative z-10"
         >
-          <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/20">
             <FiCheck className="text-4xl text-green-500" />
           </div>
           <h2 className="text-3xl font-bold text-white mb-4">You're All Set!</h2>
@@ -163,8 +163,8 @@ const MultiStepAccommodation = () => {
     <div className="min-h-screen bg-black text-white flex flex-col lg:flex-row relative overflow-hidden pt-20 lg:pt-24">
       {/* Background Gradients */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[10%] right-[-5%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[100px]" />
+        <div className="absolute top-[10%] left-[-10%] w-[40%] h-[40%] bg-red-900/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[10%] right-[-5%] w-[40%] h-[40%] bg-red-800/5 rounded-full blur-[100px]" />
       </div>
 
       {/* Left Panel - Info & Value Props */}
@@ -175,7 +175,7 @@ const MultiStepAccommodation = () => {
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-4 mb-10"
           >
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-purple-600/20">
+            <div className="w-12 h-12 bg-gradient-to-br from-red-600 to-red-900 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-red-600/20 border border-red-500/20">
               <FiHome className="text-white text-2xl" />
             </div>
             <div>
@@ -190,16 +190,13 @@ const MultiStepAccommodation = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 p-6 rounded-2xl border border-zinc-700/50 relative overflow-hidden group"
+              className="bg-gradient-to-br from-zinc-900/80 to-black p-6 rounded-2xl border border-zinc-800 relative overflow-hidden group hover:border-red-500/20 transition-all"
             >
-              <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                <FiGift size={64} />
-              </div>
-              <h3 className="font-semibold text-white text-lg mb-1">100% Free Stay</h3>
+              <h3 className="font-semibold text-white text-lg mb-2">100% Free Stay</h3>
               <p className="text-zinc-400 text-sm leading-relaxed mb-4">
                 We provide free accommodation for all out-station participants registered for Surabhi events.
               </p>
-              <span className="inline-block px-3 py-1 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/20">
+              <span className="inline-block px-3 py-1 bg-green-500/10 text-green-400 text-xs font-bold rounded-full border border-green-500/20">
                 ZERO COST
               </span>
             </motion.div>
@@ -209,12 +206,9 @@ const MultiStepAccommodation = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 p-6 rounded-2xl border border-zinc-700/50 relative overflow-hidden group"
+              className="bg-gradient-to-br from-zinc-900/80 to-black p-6 rounded-2xl border border-zinc-800 relative overflow-hidden group hover:border-red-500/20 transition-all"
             >
-              <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                <FiCoffee size={64} />
-              </div>
-              <h3 className="font-semibold text-white text-lg mb-1">Complimentary Food</h3>
+              <h3 className="font-semibold text-white text-lg mb-2">Complimentary Food</h3>
               <p className="text-zinc-400 text-sm leading-relaxed">
                 Delicious breakfast, lunch, and dinner is on us. Enjoy a comfortable stay with full hospitality.
               </p>
@@ -225,22 +219,22 @@ const MultiStepAccommodation = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-zinc-800/30 p-5 rounded-2xl border border-zinc-700/30"
+              className="bg-zinc-900/50 p-5 rounded-2xl border border-zinc-800"
             >
               <h3 className="font-semibold text-zinc-300 mb-3 flex items-center gap-2">
-                <FiShield className="text-purple-400" /> Key Guidelines
+                <FiShield className="text-red-500" /> Key Guidelines
               </h3>
               <ul className="space-y-3 text-zinc-400 text-sm">
                 <li className="flex items-start gap-3">
-                  <span className="mt-1.5 w-1.5 h-1.5 bg-purple-500 rounded-full shrink-0" />
+                  <span className="mt-1.5 w-1.5 h-1.5 bg-red-500 rounded-full shrink-0" />
                   Separate hostels for Boys and Girls.
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="mt-1.5 w-1.5 h-1.5 bg-purple-500 rounded-full shrink-0" />
+                  <span className="mt-1.5 w-1.5 h-1.5 bg-red-500 rounded-full shrink-0" />
                   Strictly no mixed-gender groups.
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="mt-1.5 w-1.5 h-1.5 bg-purple-500 rounded-full shrink-0" />
+                  <span className="mt-1.5 w-1.5 h-1.5 bg-red-500 rounded-full shrink-0" />
                   Carry valid college ID card.
                 </li>
               </ul>
@@ -260,7 +254,7 @@ const MultiStepAccommodation = () => {
           <div className="flex justify-between items-center relative px-2">
             <div className="absolute left-0 top-1/2 w-full h-0.5 bg-zinc-800 -z-10 rounded-full" />
             <div
-              className="absolute left-0 top-1/2 h-0.5 bg-gradient-to-r from-purple-600 to-blue-600 -z-10 transition-all duration-500 rounded-full"
+              className="absolute left-0 top-1/2 h-0.5 bg-gradient-to-r from-red-600 to-red-900 -z-10 transition-all duration-500 rounded-full"
               style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
             />
 
@@ -269,9 +263,9 @@ const MultiStepAccommodation = () => {
                 <div
                   onClick={() => step.number < currentStep && setCurrentStep(step.number)}
                   className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 border-4 bg-black ${currentStep === step.number
-                    ? "border-purple-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)] scale-110"
+                    ? "border-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.3)] scale-110"
                     : step.number < currentStep
-                      ? "border-purple-500 text-purple-500 cursor-pointer"
+                      ? "border-red-600 text-red-500 cursor-pointer"
                       : "border-zinc-800 text-zinc-600"
                     }`}
                 >
@@ -305,8 +299,8 @@ const MultiStepAccommodation = () => {
                   <button
                     onClick={() => handleGenderSelect("MALE")}
                     className={`relative p-6 rounded-2xl border-2 transition-all duration-300 hover:scale-[1.02] group text-left h-48 flex flex-col justify-between ${formData.gender === "MALE"
-                      ? "border-blue-500 bg-blue-500/10 shadow-[0_0_30px_rgba(59,130,246,0.15)]"
-                      : "border-zinc-800 bg-zinc-900 hover:border-blue-500/50"
+                      ? "border-blue-500 bg-blue-500/10 shadow-[0_0_30px_rgba(59,130,246,0.1)]"
+                      : "border-zinc-800 bg-zinc-900 hover:border-blue-500/30"
                       }`}
                   >
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${formData.gender === "MALE" ? "bg-blue-500 text-white" : "bg-zinc-800 text-zinc-500 group-hover:bg-blue-500/20 group-hover:text-blue-400"}`}>
@@ -322,8 +316,8 @@ const MultiStepAccommodation = () => {
                   <button
                     onClick={() => handleGenderSelect("FEMALE")}
                     className={`relative p-6 rounded-2xl border-2 transition-all duration-300 hover:scale-[1.02] group text-left h-48 flex flex-col justify-between ${formData.gender === "FEMALE"
-                      ? "border-pink-500 bg-pink-500/10 shadow-[0_0_30px_rgba(236,72,153,0.15)]"
-                      : "border-zinc-800 bg-zinc-900 hover:border-pink-500/50"
+                      ? "border-pink-500 bg-pink-500/10 shadow-[0_0_30px_rgba(236,72,153,0.1)]"
+                      : "border-zinc-800 bg-zinc-900 hover:border-pink-500/30"
                       }`}
                   >
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${formData.gender === "FEMALE" ? "bg-pink-500 text-white" : "bg-zinc-800 text-zinc-500 group-hover:bg-pink-500/20 group-hover:text-pink-400"}`}>
@@ -357,7 +351,7 @@ const MultiStepAccommodation = () => {
                     <button
                       onClick={() => handleBookingTypeSelect("INDIVIDUAL")}
                       className={`py-3 rounded-lg font-medium transition-all duration-300 ${formData.bookingType === "INDIVIDUAL"
-                        ? "bg-zinc-800 text-white shadow-lg"
+                        ? "bg-zinc-800 text-white shadow-lg border border-zinc-700"
                         : "text-zinc-500 hover:text-zinc-300"
                         }`}
                     >
@@ -366,7 +360,7 @@ const MultiStepAccommodation = () => {
                     <button
                       onClick={() => handleBookingTypeSelect("GROUP")}
                       className={`py-3 rounded-lg font-medium transition-all duration-300 ${formData.bookingType === "GROUP"
-                        ? "bg-zinc-800 text-white shadow-lg"
+                        ? "bg-zinc-800 text-white shadow-lg border border-zinc-700"
                         : "text-zinc-500 hover:text-zinc-300"
                         }`}
                     >
@@ -377,35 +371,35 @@ const MultiStepAccommodation = () => {
                   {/* Inputs */}
                   <div className="space-y-4">
                     <div className="relative group">
-                      <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-purple-500 transition-colors" />
+                      <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-red-500 transition-colors" />
                       <input
                         type="text"
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder:text-zinc-700"
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/50 transition-all placeholder:text-zinc-700"
                         placeholder="Full Name"
                       />
                     </div>
                     <div className="relative group">
-                      <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-purple-500 transition-colors" />
+                      <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-red-500 transition-colors" />
                       <input
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder:text-zinc-700"
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/50 transition-all placeholder:text-zinc-700"
                         placeholder="Email Address"
                       />
                     </div>
                     <div className="relative group">
-                      <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-purple-500 transition-colors" />
+                      <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-red-500 transition-colors" />
                       <input
                         type="tel"
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder:text-zinc-700"
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/50 transition-all placeholder:text-zinc-700"
                         placeholder="Phone Number"
                       />
                     </div>
@@ -431,13 +425,13 @@ const MultiStepAccommodation = () => {
                             max="10"
                             value={formData.numberOfGuests}
                             onChange={(e) => setFormData({ ...formData, numberOfGuests: parseInt(e.target.value) })}
-                            className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                            className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-red-600"
                           />
                           <p className="text-xs text-zinc-500 text-right">Max 10 guests allowed per group</p>
 
                           <div className="pt-2 border-t border-zinc-800/50 mt-4">
                             <label className="flex items-start gap-3 cursor-pointer group">
-                              <div className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center shrink-0 transition-all ${formData.genderConfirmed ? "bg-purple-500 border-purple-500" : "border-zinc-600 bg-zinc-800"}`}>
+                              <div className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center shrink-0 transition-all ${formData.genderConfirmed ? "bg-red-600 border-red-600" : "border-zinc-600 bg-zinc-800"}`}>
                                 {formData.genderConfirmed && <FiCheck size={14} className="text-white" />}
                               </div>
                               <input
@@ -492,7 +486,7 @@ const MultiStepAccommodation = () => {
                   <div className="p-6">
                     <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4">Guest Details</h3>
                     <div className="flex items-center gap-4 mb-4">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${formData.gender === 'MALE' ? 'bg-blue-500/10 text-blue-500' : 'bg-pink-500/10 text-pink-500'}`}>
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${formData.gender === 'MALE' ? 'bg-zinc-800 text-zinc-400' : 'bg-zinc-800 text-zinc-400'}`}>
                         <FiUser size={24} />
                       </div>
                       <div>
@@ -541,7 +535,7 @@ const MultiStepAccommodation = () => {
                   <button
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold transition-all shadow-lg shadow-purple-600/25 flex items-center justify-center gap-3"
+                    className="flex-1 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold transition-all shadow-lg shadow-red-600/25 flex items-center justify-center gap-3"
                   >
                     {isSubmitting ? (
                       <>
