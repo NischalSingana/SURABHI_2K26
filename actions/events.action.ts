@@ -29,9 +29,21 @@ export async function getCategories() {
         Event: {
           select: {
             id: true,
-            image: true,
             name: true,
+            slug: true,
             description: true,
+            image: true,
+            date: true,
+            venue: true,
+            startTime: true,
+            endTime: true,
+            participantLimit: true,
+            isGroupEvent: true,
+            minTeamSize: true,
+            maxTeamSize: true,
+            registrationLink: true,
+            termsandconditions: true,
+            categoryId: true,
           },
           orderBy: {
             date: "asc",

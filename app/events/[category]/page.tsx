@@ -100,22 +100,14 @@ function CategoryPageContent() {
     }
 
     const result = await getPublicEvents();
-    console.log("[fetchEvents] API Result:", result);
 
     if (result.success && result.data) {
-      console.log("[fetchEvents] Category Name (Param):", categoryName);
-      console.log("[fetchEvents] First Event Category:", result.data[0]?.Category?.name);
-
       const filtered = result.data.filter(
         (event) => {
           const match = event.Category.name.toLowerCase() === categoryName.toLowerCase();
-          if (!match && event.Category.name.trim().toLowerCase() === categoryName.trim().toLowerCase()) {
-            console.log("Trim match found! Case/Space mismatch might be issue.");
-          }
           return event.Category.name.toLowerCase() === categoryName.toLowerCase();
         }
       );
-      console.log("[fetchEvents] Filtered Events:", filtered.length);
       setEvents(filtered);
 
       // Check registration status

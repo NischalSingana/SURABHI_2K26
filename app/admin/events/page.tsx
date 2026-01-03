@@ -49,7 +49,7 @@ interface Category {
   video?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
-  Event: (Event | { id: string; image: string; name: string; description: string })[];
+  Event: Event[];
 }
 
 interface Schedule {
@@ -156,7 +156,6 @@ export default function EventsManagement() {
       const formData = new FormData();
       formData.append("file", scheduleImage);
       const uploadResult = await uploadCategoryImage(formData);
-      console.log("[handleUploadSchedule] Upload Result:", uploadResult);
 
       if (!uploadResult.success || !uploadResult.url) {
         toast.error(uploadResult.error || "Failed to upload image");

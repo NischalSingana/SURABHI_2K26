@@ -171,18 +171,16 @@ function EventDetailPageContent() {
   };
 
   const handleGroupRegister = async () => {
-    console.log("handleGroupRegister started", { groupName, teamSize, teamMembers, event });
+    // Validation for Group events
 
     if (!event) return;
 
     // Basic validation
     if (!groupName.trim()) {
       toast.error("Please enter a group name");
-      console.log("Validation failed: No group name");
       return;
     }
     const requiredMembers = Math.max(0, teamSize - 1);
-    console.log("Required members:", requiredMembers, "Current members:", teamMembers.length);
     if (teamMembers.length < requiredMembers) {
       toast.error(`Please add details for all ${requiredMembers} additional members`);
       return;
@@ -190,9 +188,7 @@ function EventDetailPageContent() {
 
     setRegistering(true);
     try {
-      console.log("Calling registerGroupEvent action...");
       const result = await registerGroupEvent(event.id, groupName, teamMembers, mentorName, mentorPhone);
-      console.log("Action result:", result);
 
       if (result.success) {
         toast.success("Team registered successfully!");

@@ -142,31 +142,32 @@ export default function SchedulePage() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setSelectedSchedule(null)}
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 md:p-8"
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 md:p-8"
                     >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="relative w-full max-w-5xl max-h-[90vh] flex flex-col items-center"
+                        {/* Close Button - Fixed to top right of screen for easy access */}
+                        <button
+                            onClick={() => setSelectedSchedule(null)}
+                            className="fixed top-6 right-6 z-[110] bg-zinc-900/80 hover:bg-zinc-800 text-white p-3 rounded-full border border-zinc-700 transition-all hover:scale-110 backdrop-blur-sm group"
                         >
-                            {/* Close Button */}
-                            <button
-                                onClick={() => setSelectedSchedule(null)}
-                                className="absolute -top-12 right-0 bg-zinc-800 hover:bg-zinc-700 text-white p-2 rounded-full transition-colors z-50"
-                            >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
+                            <svg className="w-6 h-6 group-hover:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="relative w-full max-w-6xl max-h-[90vh] flex flex-col items-center"
+                        >
 
                             {/* Image Container */}
-                            <div className="relative w-full max-h-[85vh] bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 flex items-center justify-center">
+                            <div className="relative w-full max-h-[80vh] flex items-center justify-center overflow-auto">
                                 <img
                                     src={selectedSchedule.image}
                                     alt="Schedule Full View"
-                                    className="max-w-full max-h-[85vh] object-contain"
+                                    className="w-auto h-auto max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
                                 />
                             </div>
 

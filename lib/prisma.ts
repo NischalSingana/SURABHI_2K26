@@ -17,7 +17,7 @@ const prismaClientSingleton = () => {
           }
         }
       };
-      console.log("Applying dev DB connection limits");
+      // console.log("Applying dev DB connection limits");
     }
   }
 
