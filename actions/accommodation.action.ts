@@ -73,9 +73,8 @@ export async function createAccommodationBooking(
     // Calculate total members
     const totalMembers = bookingData.numberOfGuests;
 
-    // Calculate amount (₹500 per person - can be adjusted)
-    const pricePerPerson = 500;
-    const amount = totalMembers * pricePerPerson;
+    // Free accommodation for participants
+    const amount = 0;
 
     // Create booking in database
     const booking = await prisma.accommodationBooking.create({
@@ -87,10 +86,10 @@ export async function createAccommodationBooking(
         primaryEmail: bookingData.email,
         primaryPhone: bookingData.phone,
         totalMembers: totalMembers,
-        groupMembers: undefined, // No longer storing individual member details
+        groupMembers: undefined,
         amount: amount,
-        paymentStatus: "PENDING",
-        status: "PENDING",
+        paymentStatus: "APPROVED", // Free booking is auto-approved
+        status: "CONFIRMED", // Auto-confirm free bookings
       },
     });
 
@@ -100,7 +99,7 @@ export async function createAccommodationBooking(
 
     return {
       success: true,
-      message: "Accommodation booking created successfully! Payment gateway will be integrated soon.",
+      message: "Accommodation booked successfully! Your stay is confirmed.",
       data: {
         bookingId: booking.id,
         totalMembers,
