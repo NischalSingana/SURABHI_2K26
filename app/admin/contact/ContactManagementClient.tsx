@@ -2,285 +2,514 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { FAQ, createFaq, updateFaq, deleteFaq } from "@/actions/faq.action";
+import {
+    createContactCategory,
+    updateContactCategory,
+    deleteContactCategory,
+    createCoordinator,
+    updateCoordinator,
+    deleteCoordinator,
+} from "@/actions/contact.action";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiSave } from "react-icons/fi";
+import {
+    FiPlus,
+    FiEdit2,
+    FiTrash2,
+    FiX,
+    FiSave,
+    FiChevronDown,
+    FiChevronUp,
+    FiUser,
+    FiPhone,
+    FiMail,
+} from "react-icons/fi";
+
+interface Coordinator {
+    id: string;
+    name: string;
+    phone: string;
+    email: string;
+    image: string | null;
+    order: number;
+    categoryId: string;
+}
+
+interface Category {
+    id: string;
+    name: string;
+    order: number;
+    coordinators: Coordinator[];
+}
 
 interface ContactManagementClientProps {
-    initialFaqs: FAQ[];
+    initialCategories: Category[];
 }
 
 export default function ContactManagementClient({
-    initialFaqs,
+    initialCategories,
 }: ContactManagementClientProps) {
-    const [faqs, setFaqs] = useState<FAQ[]>(initialFaqs);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isDeleting, setIsDeleting] = useState<string | null>(null);
-    const [editingFaq, setEditingFaq] = useState<FAQ | null>(null);
-    const [formData, setFormData] = useState({
-        question: "",
-        answer: "",
-        category: "",
-        order: 0,
-    });
+    const [categories, setCategories] = useState<Category[]>(initialCategories);
     const router = useRouter();
 
-    const handleOpenModal = (faq?: FAQ) => {
-        if (faq) {
-            setEditingFaq(faq);
-            setFormData({
-                question: faq.question,
-                answer: faq.answer,
-                category: faq.category || "",
-                order: faq.order,
-            });
+    // Category Modal State
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+    const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+    const [categoryFormData, setCategoryFormData] = useState({ name: "", order: 0 });
+
+    // Coordinator Modal State
+    const [isCoordinatorModalOpen, setIsCoordinatorModalOpen] = useState(false);
+    const [editingCoordinator, setEditingCoordinator] = useState<Coordinator | null>(
+        null
+    );
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+    const [coordinatorFormData, setCoordinatorFormData] = useState({
+        name: "",
+        phone: "",
+        email: "",
+        order: 0,
+    });
+
+    const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+        new Set(initialCategories.map((c) => c.id))
+    );
+
+    const toggleCategory = (id: string) => {
+        const newSet = new Set(expandedCategories);
+        if (newSet.has(id)) {
+            newSet.delete(id);
         } else {
-            setEditingFaq(null);
-            setFormData({
-                question: "",
-                answer: "",
-                category: "",
-                order: faqs.length + 1,
-            });
+            newSet.add(id);
         }
-        setIsModalOpen(true);
+        setExpandedCategories(newSet);
     };
 
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setEditingFaq(null);
+    // --- Category Handlers ---
+
+    const openCategoryModal = (category?: Category) => {
+        if (category) {
+            setEditingCategory(category);
+            setCategoryFormData({ name: category.name, order: category.order });
+        } else {
+            setEditingCategory(null);
+            setCategoryFormData({ name: "", order: categories.length + 1 });
+        }
+        setIsCategoryModalOpen(true);
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleCategorySubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            if (editingFaq) {
-                const result = await updateFaq(editingFaq.id, formData);
-                if (result.success && result.data) {
-                    setFaqs(faqs.map((f) => (f.id === editingFaq.id ? result.data! : f)));
-                    toast.success("FAQ updated successfully");
-                    handleCloseModal();
+            if (editingCategory) {
+                const result = await updateContactCategory(
+                    editingCategory.id,
+                    categoryFormData.name,
+                    categoryFormData.order
+                );
+                if (result.success) {
+                    toast.success("Category updated");
+                    router.refresh();
                 } else {
-                    toast.error(result.error || "Failed to update FAQ");
+                    toast.error("Failed to update category");
                 }
             } else {
-                const result = await createFaq(formData);
-                if (result.success && result.data) {
-                    setFaqs([...faqs, result.data]);
-                    toast.success("FAQ created successfully");
-                    handleCloseModal();
+                const result = await createContactCategory(
+                    categoryFormData.name,
+                    categoryFormData.order
+                );
+                if (result.success) {
+                    toast.success("Category created");
+                    router.refresh();
                 } else {
-                    toast.error(result.error || "Failed to create FAQ");
+                    toast.error("Failed to create category");
                 }
             }
-            router.refresh();
+            setIsCategoryModalOpen(false);
         } catch (error) {
             toast.error("An error occurred");
         }
     };
 
-    const handleDelete = async (id: string) => {
+    const handleDeleteCategory = async (id: string) => {
+        if (!confirm("Delete this category and all its coordinators?")) return;
         try {
-            setIsDeleting(id);
-            const result = await deleteFaq(id);
+            const result = await deleteContactCategory(id);
             if (result.success) {
-                setFaqs(faqs.filter((f) => f.id !== id));
-                toast.success("FAQ deleted successfully");
+                toast.success("Category deleted");
                 router.refresh();
             } else {
-                toast.error(result.error || "Failed to delete FAQ");
+                toast.error("Failed to delete category");
             }
         } catch (error) {
-            toast.error("An error occurred during deletion");
-        } finally {
-            setIsDeleting(null);
+            toast.error("An error occurred");
+        }
+    };
+
+    // --- Coordinator Handlers ---
+
+    const openCoordinatorModal = (categoryId: string, coordinator?: Coordinator) => {
+        setSelectedCategoryId(categoryId);
+        if (coordinator) {
+            setEditingCoordinator(coordinator);
+            setCoordinatorFormData({
+                name: coordinator.name,
+                phone: coordinator.phone,
+                email: coordinator.email,
+                order: coordinator.order,
+            });
+        } else {
+            setEditingCoordinator(null);
+            setCoordinatorFormData({
+                name: "",
+                phone: "",
+                email: "",
+                order: 0,
+            });
+        }
+        setIsCoordinatorModalOpen(true);
+    };
+
+    const handleCoordinatorSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedCategoryId && !editingCoordinator) return;
+
+        try {
+            if (editingCoordinator) {
+                const result = await updateCoordinator(editingCoordinator.id, coordinatorFormData);
+                if (result.success) {
+                    toast.success("Coordinator updated");
+                    router.refresh();
+                } else {
+                    toast.error("Failed to update coordinator");
+                }
+            } else {
+                const result = await createCoordinator(selectedCategoryId!, coordinatorFormData);
+                if (result.success) {
+                    toast.success("Coordinator added");
+                    router.refresh();
+                } else {
+                    toast.error("Failed to add coordinator");
+                }
+            }
+            setIsCoordinatorModalOpen(false);
+        } catch (error) {
+            toast.error("An error occurred");
+        }
+    };
+
+    const handleDeleteCoordinator = async (id: string) => {
+        if (!confirm("Delete this coordinator?")) return;
+        try {
+            const result = await deleteCoordinator(id);
+            if (result.success) {
+                toast.success("Coordinator deleted");
+                router.refresh();
+            } else {
+                toast.error("Failed to delete coordinator");
+            }
+        } catch (error) {
+            toast.error("An error occurred");
         }
     };
 
     return (
         <div className="space-y-8">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h2 className="text-2xl font-bold text-white mb-2">FAQ Management</h2>
-                    <p className="text-gray-400">Manage frequently asked questions displayed on the contact page.</p>
-                </div>
+            <div className="flex justify-between items-center">
+                <h2 className="text-xl text-zinc-400">Manage Categories & Coordinators</h2>
                 <button
-                    onClick={() => handleOpenModal()}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium shadow-lg shadow-red-600/20"
+                    onClick={() => openCategoryModal()}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
                 >
-                    <FiPlus size={20} />
-                    <span>Add New FAQ</span>
+                    <FiPlus /> Add Category
                 </button>
             </div>
 
-            {/* FAQ List */}
-            <div className="grid gap-4">
-                {faqs.length === 0 ? (
-                    <div className="text-center py-12 bg-white/5 rounded-xl border border-white/10">
-                        <p className="text-gray-400">No FAQs found. Create one to get started.</p>
-                    </div>
-                ) : (
-                    faqs.map((faq) => (
-                        <motion.div
-                            key={faq.id}
-                            layout
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:border-white/20 transition-all group"
+            <div className="space-y-6">
+                {categories.map((category) => (
+                    <motion.div
+                        key={category.id}
+                        layout
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden"
+                    >
+                        <div
+                            className="p-4 bg-zinc-800/50 flex justify-between items-center cursor-pointer hover:bg-zinc-800 transition-colors"
+                            onClick={() => toggleCategory(category.id)}
                         >
-                            <div className="flex justify-between items-start gap-4">
-                                <div className="space-y-2 flex-grow">
-                                    <div className="flex items-center gap-3 mb-1">
-                                        <span className="text-xs font-mono bg-white/10 text-gray-400 px-2 py-1 rounded">
-                                            Order: {faq.order}
-                                        </span>
-                                        {faq.category && (
-                                            <span className="text-xs font-medium bg-red-500/10 text-red-400 px-2 py-1 rounded border border-red-500/20">
-                                                {faq.category}
-                                            </span>
+                            <div className="flex items-center gap-3">
+                                {expandedCategories.has(category.id) ? (
+                                    <FiChevronUp className="text-zinc-500" />
+                                ) : (
+                                    <FiChevronDown className="text-zinc-500" />
+                                )}
+                                <h3 className="text-lg font-bold text-white uppercase tracking-wider">
+                                    {category.name}
+                                </h3>
+                                <span className="text-xs text-zinc-500 bg-zinc-900 px-2 py-1 rounded">
+                                    Order: {category.order}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        openCategoryModal(category);
+                                    }}
+                                    className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg"
+                                >
+                                    <FiEdit2 />
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteCategory(category.id);
+                                    }}
+                                    className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg"
+                                >
+                                    <FiTrash2 />
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        openCoordinatorModal(category.id);
+                                    }}
+                                    className="ml-2 flex items-center gap-1 px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-white text-sm rounded-lg"
+                                >
+                                    <FiPlus /> Add Person
+                                </button>
+                            </div>
+                        </div>
+
+                        <AnimatePresence>
+                            {expandedCategories.has(category.id) && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="p-4 grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                                        {category.coordinators.length === 0 ? (
+                                            <p className="text-zinc-500 text-sm italic col-span-full text-center py-4">
+                                                No coordinators added yet.
+                                            </p>
+                                        ) : (
+                                            category.coordinators.map((coordinator) => (
+                                                <div
+                                                    key={coordinator.id}
+                                                    className="bg-zinc-950 p-4 rounded-lg border border-zinc-800 relative group"
+                                                >
+                                                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button
+                                                            onClick={() => openCoordinatorModal(category.id, coordinator)}
+                                                            className="p-1.5 text-blue-400 hover:bg-blue-500/10 rounded"
+                                                        >
+                                                            <FiEdit2 size={14} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteCoordinator(coordinator.id)}
+                                                            className="p-1.5 text-red-400 hover:bg-red-500/10 rounded"
+                                                        >
+                                                            <FiTrash2 size={14} />
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center shrink-0">
+                                                            <FiUser className="text-zinc-500" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-bold text-white">{coordinator.name}</p>
+                                                            <div className="mt-2 space-y-1">
+                                                                <a
+                                                                    href={`tel:${coordinator.phone}`}
+                                                                    className="flex items-center gap-2 text-xs text-zinc-400 hover:text-red-400 transition-colors"
+                                                                >
+                                                                    <FiPhone size={12} /> {coordinator.phone}
+                                                                </a>
+                                                                <a
+                                                                    href={`mailto:${coordinator.email}`}
+                                                                    className="flex items-center gap-2 text-xs text-zinc-400 hover:text-red-400 transition-colors"
+                                                                >
+                                                                    <FiMail size={12} /> {coordinator.email}
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
                                         )}
                                     </div>
-                                    <h3 className="text-lg font-semibold text-white">{faq.question}</h3>
-                                    <p className="text-gray-300 text-sm whitespace-pre-line">{faq.answer}</p>
-                                </div>
-
-                                <div className="flex items-center gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button
-                                        onClick={() => handleOpenModal(faq)}
-                                        className="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
-                                        title="Edit"
-                                    >
-                                        <FiEdit2 size={18} />
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            if (confirm("Are you sure you want to delete this FAQ?")) {
-                                                handleDelete(faq.id);
-                                            }
-                                        }}
-                                        disabled={isDeleting === faq.id}
-                                        className="p-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors disabled:opacity-50"
-                                        title="Delete"
-                                    >
-                                        {isDeleting === faq.id ? (
-                                            <div className="w-4.5 h-4.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                                        ) : (
-                                            <FiTrash2 size={18} />
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))
-                )}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
+                ))}
             </div>
 
-            {/* Modal */}
+            {/* Category Modal */}
             <AnimatePresence>
-                {isModalOpen && (
-                    <>
+                {isCategoryModalOpen && (
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                         <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={handleCloseModal}
-                            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
-                        />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="fixed inset-0 m-auto w-full max-w-lg h-fit max-h-[90vh] overflow-y-auto bg-[#1a0f0f] border border-red-500/20 rounded-2xl shadow-2xl z-50 p-6"
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 w-full max-w-md"
                         >
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-bold text-white">
-                                    {editingFaq ? "Edit FAQ" : "Create New FAQ"}
+                                    {editingCategory ? "Edit Category" : "New Category"}
                                 </h3>
-                                <button
-                                    onClick={handleCloseModal}
-                                    className="p-2 hover:bg-white/5 rounded-full text-gray-400 hover:text-white transition-colors"
-                                >
-                                    <FiX size={24} />
+                                <button onClick={() => setIsCategoryModalOpen(false)}>
+                                    <FiX className="text-zinc-500 hover:text-white" />
                                 </button>
                             </div>
-
-                            <form onSubmit={handleSubmit} className="space-y-4">
+                            <form onSubmit={handleCategorySubmit} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Question
-                                    </label>
+                                    <label className="block text-sm text-zinc-400 mb-1">Name</label>
                                     <input
                                         type="text"
                                         required
-                                        value={formData.question}
-                                        onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-                                        className="w-full px-4 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-white placeholder-gray-500"
-                                        placeholder="e.g., How do I register?"
+                                        value={categoryFormData.name}
+                                        onChange={(e) =>
+                                            setCategoryFormData({ ...categoryFormData, name: e.target.value })
+                                        }
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white"
                                     />
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                                        Answer
-                                    </label>
-                                    <textarea
-                                        required
-                                        rows={4}
-                                        value={formData.answer}
-                                        onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
-                                        className="w-full px-4 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-white placeholder-gray-500"
-                                        placeholder="Enter the detailed answer..."
+                                    <label className="block text-sm text-zinc-400 mb-1">Order</label>
+                                    <input
+                                        type="number"
+                                        value={categoryFormData.order}
+                                        onChange={(e) =>
+                                            setCategoryFormData({
+                                                ...categoryFormData,
+                                                order: parseInt(e.target.value),
+                                            })
+                                        }
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white"
                                     />
                                 </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-1">
-                                            Category (Optional)
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={formData.category}
-                                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                            className="w-full px-4 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-white placeholder-gray-500"
-                                            placeholder="e.g., Registration"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-1">
-                                            Order
-                                        </label>
-                                        <input
-                                            type="number"
-                                            value={formData.order}
-                                            onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
-                                            className="w-full px-4 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-white placeholder-gray-500"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="flex justify-end gap-3 mt-8">
+                                <div className="flex justify-end gap-2 mt-6">
                                     <button
                                         type="button"
-                                        onClick={handleCloseModal}
-                                        className="px-4 py-2 text-gray-300 hover:bg-white/5 rounded-lg transition-colors"
+                                        onClick={() => setIsCategoryModalOpen(false)}
+                                        className="px-4 py-2 text-zinc-400 hover:text-white"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
-                                        className="flex items-center gap-2 px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all shadow-lg shadow-red-600/20"
+                                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center gap-2"
                                     >
-                                        <FiSave size={18} />
-                                        {editingFaq ? "Save Changes" : "Create FAQ"}
+                                        <FiSave /> Save
                                     </button>
                                 </div>
                             </form>
                         </motion.div>
-                    </>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Coordinator Modal */}
+            <AnimatePresence>
+                {isCoordinatorModalOpen && (
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 w-full max-w-md"
+                        >
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-bold text-white">
+                                    {editingCoordinator ? "Edit Coordinator" : "Add Coordinator"}
+                                </h3>
+                                <button onClick={() => setIsCoordinatorModalOpen(false)}>
+                                    <FiX className="text-zinc-500 hover:text-white" />
+                                </button>
+                            </div>
+                            <form onSubmit={handleCoordinatorSubmit} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm text-zinc-400 mb-1">Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={coordinatorFormData.name}
+                                        onChange={(e) =>
+                                            setCoordinatorFormData({
+                                                ...coordinatorFormData,
+                                                name: e.target.value,
+                                            })
+                                        }
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-zinc-400 mb-1">Phone</label>
+                                    <input
+                                        type="tel"
+                                        required
+                                        value={coordinatorFormData.phone}
+                                        onChange={(e) =>
+                                            setCoordinatorFormData({
+                                                ...coordinatorFormData,
+                                                phone: e.target.value,
+                                            })
+                                        }
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-zinc-400 mb-1">Email</label>
+                                    <input
+                                        type="email"
+                                        required
+                                        value={coordinatorFormData.email}
+                                        onChange={(e) =>
+                                            setCoordinatorFormData({
+                                                ...coordinatorFormData,
+                                                email: e.target.value,
+                                            })
+                                        }
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-zinc-400 mb-1">Order</label>
+                                    <input
+                                        type="number"
+                                        value={coordinatorFormData.order}
+                                        onChange={(e) =>
+                                            setCoordinatorFormData({
+                                                ...coordinatorFormData,
+                                                order: parseInt(e.target.value),
+                                            })
+                                        }
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white"
+                                    />
+                                </div>
+                                <div className="flex justify-end gap-2 mt-6">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsCoordinatorModalOpen(false)}
+                                        className="px-4 py-2 text-zinc-400 hover:text-white"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center gap-2"
+                                    >
+                                        <FiSave /> Save
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
         </div>
