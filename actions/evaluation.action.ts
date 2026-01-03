@@ -43,6 +43,16 @@ export async function getEvaluations() {
                         score: 'desc'
                     }
                 },
+                groupRegistrations: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true
+                            }
+                        }
+                    }
+                },
                 Category: {
                     select: {
                         name: true

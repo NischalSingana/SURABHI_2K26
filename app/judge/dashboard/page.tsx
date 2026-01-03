@@ -414,7 +414,7 @@ export default function JudgeDashboard() {
                                             <div className="shrink-0">
                                                 {participant.isEvaluated ? (
                                                     <span className={`text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 font-medium border ${getScoreColor(participant.score || 0)}`}>
-                                                        <FiCheckCircle size={14} /> {participant.score}/10
+                                                        <FiCheckCircle size={14} /> {participant.type === 'GROUP' ? 'Avg: ' : ''}{participant.score}/10
                                                     </span>
                                                 ) : (
                                                     <span className="bg-yellow-500/20 text-yellow-400 text-xs px-3 py-1.5 rounded-full font-medium border border-yellow-500/30">
