@@ -156,9 +156,15 @@ export async function getUserAccommodationBookings() {
       orderBy: { createdAt: "desc" },
     });
 
+    // Serialize Decimal types for client component
+    const serializedBookings = bookings.map(booking => ({
+      ...booking,
+      amount: booking.amount ? Number(booking.amount) : 0,
+    }));
+
     return {
       success: true,
-      data: bookings,
+      data: serializedBookings,
     };
   } catch (error) {
     console.error("Error fetching accommodation bookings:", error);

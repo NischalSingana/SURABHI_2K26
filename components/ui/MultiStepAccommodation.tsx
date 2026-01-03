@@ -15,6 +15,8 @@ import {
   FiClock,
   FiXCircle,
   FiGift,
+  FiMinus,
+  FiPlus,
 } from "react-icons/fi";
 import { createAccommodationBooking, getUserAccommodationBookings } from "@/actions/accommodation.action";
 
@@ -562,14 +564,34 @@ const MultiStepAccommodation = () => {
                             <label className="text-sm font-semibold text-zinc-400">Number of Guests</label>
                             <span className="text-xl font-bold text-white">{formData.numberOfGuests}</span>
                           </div>
-                          <input
-                            type="range"
-                            min="2"
-                            max="10"
-                            value={formData.numberOfGuests}
-                            onChange={handleNumberOfGuestsChange}
-                            className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-red-600"
-                          />
+                          <div className="flex items-center gap-4">
+                            <button
+                              onClick={() => {
+                                const newCount = Math.max(2, formData.numberOfGuests - 1);
+                                handleNumberOfGuestsChange({ target: { value: String(newCount) } } as any);
+                              }}
+                              className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors border border-zinc-700"
+                            >
+                              <FiMinus />
+                            </button>
+                            <input
+                              type="range"
+                              min="2"
+                              max="10"
+                              value={formData.numberOfGuests}
+                              onChange={handleNumberOfGuestsChange}
+                              className="flex-1 h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-red-600"
+                            />
+                            <button
+                              onClick={() => {
+                                const newCount = Math.min(10, formData.numberOfGuests + 1);
+                                handleNumberOfGuestsChange({ target: { value: String(newCount) } } as any);
+                              }}
+                              className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors border border-zinc-700"
+                            >
+                              <FiPlus />
+                            </button>
+                          </div>
                           <p className="text-xs text-zinc-500 text-right">Max 10 guests allowed per group</p>
 
                           {/* Group Members Inputs */}

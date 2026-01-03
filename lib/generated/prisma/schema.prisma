@@ -170,6 +170,7 @@ enum BookingStatus {
   PENDING
   CONFIRMED
   CANCELLED
+  REJECTED
 }
 
 model AccommodationBooking {
