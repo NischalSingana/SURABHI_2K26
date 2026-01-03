@@ -32,11 +32,14 @@ export default function QRScanner() {
     const [cameraError, setCameraError] = useState<string | null>(null);
     const [isSecure, setIsSecure] = useState(true);
 
-    // Cleanup on unmount
+    // Global cleanup (only on unmount) handled by dependency effect logic now used for both toggle and unmount
+    // But we keep a safety check to ensure no zombie instances
     useEffect(() => {
         return () => {
             if (scannerRef.current) {
-                scannerRef.current.stop().catch(console.error);
+                // If the component unmounts while scanning (e.g. navigation away)
+                scannerRef.current.stop().catch(() => { });
+                scannerRef.current = null;
             }
         };
     }, []);
@@ -56,64 +59,91 @@ export default function QRScanner() {
         }
     }, []);
 
-    const startScanning = async () => {
+    const startScanning = () => {
         setCameraError(null);
-
         if (!isSecure) {
             toast.error("Cannot start camera: Insecure connection (HTTP)");
             return;
         }
-
-        try {
-            const element = document.getElementById("qr-reader");
-            if (!element) {
-                toast.error("Scanner element not found. Please refresh the page.");
-                return;
-            }
-
-            const html5QrCode = new Html5Qrcode("qr-reader");
-            scannerRef.current = html5QrCode;
-
-            await html5QrCode.start(
-                { facingMode: "environment" },
-                {
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 },
-                    aspectRatio: 1.0,
-                },
-                async (decodedText) => {
-                    console.log("QR Code detected:", decodedText);
-                    try {
-                        await html5QrCode.stop();
-                        await html5QrCode.clear();
-                        setScanning(false);
-                    } catch (error) {
-                        console.error("Error stopping scanner:", error);
-                    }
-                    await verifyQRCode(decodedText);
-                },
-                (errorMessage) => {
-                    // Ignore frequent scanning errors
-                }
-            );
-
-            setScanning(true);
-            toast.success("Camera started! Point at QR code to scan");
-        } catch (error: any) {
-            console.error("Error starting scanner:", error);
-            const errorMsg = error?.message || "Failed to start camera";
-            setCameraError(errorMsg);
-
-            if (errorMsg.includes("Permission")) {
-                toast.error("Camera permission denied. Please allow camera access.");
-            } else if (errorMsg.includes("NotFound")) {
-                toast.error("No camera found on this device.");
-            } else {
-                toast.error("Failed to start camera. " + errorMsg);
-            }
-            setScanning(false);
-        }
+        setScanning(true);
     };
+
+    useEffect(() => {
+        if (!scanning) return;
+
+        const initScanner = async () => {
+            try {
+                // Short delay to ensure DOM is updated
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                const element = document.getElementById("qr-reader");
+                if (!element) {
+                    throw new Error("Scanner element not found");
+                }
+
+                if (scannerRef.current) {
+                    // Already running
+                    return;
+                }
+
+                const html5QrCode = new Html5Qrcode("qr-reader");
+                scannerRef.current = html5QrCode;
+
+                await html5QrCode.start(
+                    { facingMode: "environment" },
+                    {
+                        fps: 10,
+                        qrbox: { width: 250, height: 250 },
+                        aspectRatio: 1.0,
+                    },
+                    async (decodedText) => {
+                        console.log("QR Code detected:", decodedText);
+                        try {
+                            await html5QrCode.stop();
+                            await html5QrCode.clear();
+                            setScanning(false);
+                            scannerRef.current = null;
+                        } catch (error) {
+                            console.error("Error stopping scanner:", error);
+                        }
+                        await verifyQRCode(decodedText);
+                    },
+                    (errorMessage) => {
+                        // Ignore frequent scanning errors
+                    }
+                );
+
+                toast.success("Camera started! Point at QR code to scan");
+
+            } catch (error: any) {
+                console.error("Error starting scanner:", error);
+                const errorMsg = error?.message || "Failed to start camera";
+                setCameraError(errorMsg);
+                setScanning(false);
+                scannerRef.current = null;
+
+                if (errorMsg.includes("Permission")) {
+                    toast.error("Camera permission denied. Please allow camera access.");
+                } else if (errorMsg.includes("NotFound")) {
+                    toast.error("No camera found on this device.");
+                } else {
+                    toast.error("Failed to start camera. " + errorMsg);
+                }
+            }
+        };
+
+        initScanner();
+
+        // Cleanup function for this effect
+        return () => {
+            if (scannerRef.current) {
+                scannerRef.current.stop().then(() => {
+                    scannerRef.current?.clear();
+                    scannerRef.current = null;
+                }).catch(console.error);
+            }
+        };
+    }, [scanning]);
 
     const verifyQRCode = async (qrData: string) => {
         try {
@@ -212,12 +242,7 @@ export default function QRScanner() {
                 {scanning && (
                     <div className="mt-4 text-center">
                         <button
-                            onClick={async () => {
-                                if (scannerRef.current) {
-                                    await scannerRef.current.stop();
-                                    setScanning(false);
-                                }
-                            }}
+                            onClick={() => setScanning(false)}
                             className="text-red-400 hover:text-red-300 text-sm underline"
                         >
                             Stop Scanning
