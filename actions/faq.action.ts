@@ -15,7 +15,7 @@ export type FAQ = {
 
 export async function getFaqs() {
     try {
-        const faqs = await prisma.fAQ.findMany({
+        const faqs = await prisma.chatbotFAQ.findMany({
             orderBy: {
                 order: "asc",
             },
@@ -34,7 +34,7 @@ export async function createFaq(data: {
     order?: number;
 }) {
     try {
-        const faq = await prisma.fAQ.create({
+        const faq = await prisma.chatbotFAQ.create({
             data: {
                 question: data.question,
                 answer: data.answer,
@@ -61,7 +61,7 @@ export async function updateFaq(
     }
 ) {
     try {
-        const faq = await prisma.fAQ.update({
+        const faq = await prisma.chatbotFAQ.update({
             where: { id },
             data,
         });
@@ -76,7 +76,7 @@ export async function updateFaq(
 
 export async function deleteFaq(id: string) {
     try {
-        await prisma.fAQ.delete({
+        await prisma.chatbotFAQ.delete({
             where: { id },
         });
         revalidatePath("/contact");
