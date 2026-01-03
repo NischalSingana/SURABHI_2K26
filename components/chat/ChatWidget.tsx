@@ -22,10 +22,25 @@ export default function ChatWidget() {
     const [selectedFAQ, setSelectedFAQ] = useState<FAQ | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Fetch FAQs on mount
+    const [categories, setCategories] = useState<string[]>([]);
+
+    // Fetch FAQs and Categories on mount
     useEffect(() => {
+        fetchCategories();
         fetchFAQs();
     }, []);
+
+    const fetchCategories = async () => {
+        try {
+            const res = await fetch('/api/chatbot/categories');
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                setCategories(data.map((c: any) => c.name));
+            }
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+        }
+    };
 
     const fetchFAQs = async () => {
         try {
@@ -42,9 +57,6 @@ export default function ChatWidget() {
             setFaqs([]);
         }
     };
-
-    // Get unique categories
-    const categories = Array.from(new Set(faqs.map(faq => faq.category).filter(Boolean)));
 
     // Get FAQs for selected category
     const categoryFAQs = selectedCategory
@@ -74,7 +86,7 @@ export default function ChatWidget() {
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="w-[90vw] md:w-[420px] h-[650px] max-h-[85vh] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden pointer-events-auto"
+                        className="w-[90vw] md:w-[380px] h-[550px] max-h-[80vh] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden pointer-events-auto"
                     >
                         {/* Header */}
                         <div className="p-4 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between">
@@ -83,7 +95,7 @@ export default function ChatWidget() {
                                     <FaRobot className="text-white text-2xl" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-white text-lg">Surabhi AI</h3>
+                                    <h3 className="font-bold text-white text-lg">Surabhi Assistant</h3>
                                     <p className="text-xs text-green-500 flex items-center gap-1">
                                         <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                                         Online
@@ -224,7 +236,7 @@ export default function ChatWidget() {
                                     animate={{ opacity: 1, y: 0 }}
                                     className="space-y-4"
                                 >
-                                    <div className="bg-red-600 text-white p-4 rounded-xl">
+                                    <div className="bg-red-900 text-white p-4 rounded-xl">
                                         <p className="font-semibold text-base">{selectedFAQ.question}</p>
                                     </div>
 
