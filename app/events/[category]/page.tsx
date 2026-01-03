@@ -252,6 +252,8 @@ function CategoryPageContent() {
                 fill
                 className="object-cover"
                 priority
+                sizes="(max-width: 896px) 100vw, 896px"
+                quality={75}
               />
             </div>
           </motion.div>
@@ -397,7 +399,8 @@ function CategoryPageContent() {
                                 fill
                                 sizes="(max-width: 768px) 100vw, 350px"
                                 className="object-cover rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300"
-                                quality={95}
+                                quality={75}
+                                priority
                               />
                             </div>
 

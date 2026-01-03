@@ -126,7 +126,7 @@ const HomePage = () => {
                             className="w-full h-full object-fill drop-shadow-2xl"
                             priority
                             sizes="100vw"
-                            quality={100}
+                            quality={75}
                         />
                     </div>
                 </motion.div>
@@ -179,7 +179,7 @@ const HomePage = () => {
                                     Driven by a strong student-led spirit, Surabhi is planned, organized, and executed by dedicated student teams under SAC, fostering leadership, teamwork, and innovation. This commitment to excellence has earned the fest recognition, including a place in the <span className="text-white border-b border-red-500/50">Indian Book of Records</span>.
                                 </p>
                                 <p className="text-gray-400 text-lg leading-relaxed font-[family-name:var(--font-Lexend)]">
-                                    Across two power-packed days, Surabhi unites thousands to celebrate art, culture, and passion. More than just a festival, it is a signature celebration of creativity that continues to inspire, connect, and showcase the cultural brilliance of KL University.
+                                    Across two power packed days, Surabhi unites thousands to celebrate art, culture, and passion. More than just a festival, it is a signature celebration of creativity that continues to inspire, connect, and showcase the cultural brilliance of KL University.
                                 </p>
                             </div>
                         </motion.div>
