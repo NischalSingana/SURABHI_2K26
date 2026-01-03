@@ -227,16 +227,29 @@ model EventSubmission {
   @@map("event_submissions")
 }
 
-model FAQ {
+model ChatbotCategory {
   id        String   @id @default(cuid())
-  question  String
-  answer    String
-  category  String?
+  name      String   @unique
+  image     String?
   order     Int      @default(0)
+  active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("faqs")
+  @@map("chatbot_categories")
+}
+
+model ChatbotFAQ {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String   @db.Text
+  category  String?
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("chatbot_faqs")
 }
 
 model Evaluation {

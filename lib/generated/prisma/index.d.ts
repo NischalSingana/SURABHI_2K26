@@ -59,10 +59,15 @@ export type AccommodationBooking = $Result.DefaultSelection<Prisma.$Accommodatio
  */
 export type EventSubmission = $Result.DefaultSelection<Prisma.$EventSubmissionPayload>
 /**
- * Model FAQ
+ * Model ChatbotCategory
  * 
  */
-export type FAQ = $Result.DefaultSelection<Prisma.$FAQPayload>
+export type ChatbotCategory = $Result.DefaultSelection<Prisma.$ChatbotCategoryPayload>
+/**
+ * Model ChatbotFAQ
+ * 
+ */
+export type ChatbotFAQ = $Result.DefaultSelection<Prisma.$ChatbotFAQPayload>
 /**
  * Model Evaluation
  * 
@@ -356,14 +361,24 @@ export class PrismaClient<
   get eventSubmission(): Prisma.EventSubmissionDelegate<ExtArgs, ClientOptions>;
 
   /**
-   * `prisma.fAQ`: Exposes CRUD operations for the **FAQ** model.
+   * `prisma.chatbotCategory`: Exposes CRUD operations for the **ChatbotCategory** model.
     * Example usage:
     * ```ts
-    * // Fetch zero or more FAQS
-    * const fAQS = await prisma.fAQ.findMany()
+    * // Fetch zero or more ChatbotCategories
+    * const chatbotCategories = await prisma.chatbotCategory.findMany()
     * ```
     */
-  get fAQ(): Prisma.FAQDelegate<ExtArgs, ClientOptions>;
+  get chatbotCategory(): Prisma.ChatbotCategoryDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.chatbotFAQ`: Exposes CRUD operations for the **ChatbotFAQ** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ChatbotFAQS
+    * const chatbotFAQS = await prisma.chatbotFAQ.findMany()
+    * ```
+    */
+  get chatbotFAQ(): Prisma.ChatbotFAQDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.evaluation`: Exposes CRUD operations for the **Evaluation** model.
@@ -844,7 +859,8 @@ export namespace Prisma {
     GroupRegistration: 'GroupRegistration',
     AccommodationBooking: 'AccommodationBooking',
     EventSubmission: 'EventSubmission',
-    FAQ: 'FAQ',
+    ChatbotCategory: 'ChatbotCategory',
+    ChatbotFAQ: 'ChatbotFAQ',
     Evaluation: 'Evaluation',
     Sponsor: 'Sponsor',
     Schedule: 'Schedule'
@@ -866,7 +882,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "session" | "account" | "verification" | "category" | "event" | "groupRegistration" | "accommodationBooking" | "eventSubmission" | "fAQ" | "evaluation" | "sponsor" | "schedule"
+      modelProps: "user" | "session" | "account" | "verification" | "category" | "event" | "groupRegistration" | "accommodationBooking" | "eventSubmission" | "chatbotCategory" | "chatbotFAQ" | "evaluation" | "sponsor" | "schedule"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1536,77 +1552,151 @@ export namespace Prisma {
           }
         }
       }
-      FAQ: {
-        payload: Prisma.$FAQPayload<ExtArgs>
-        fields: Prisma.FAQFieldRefs
+      ChatbotCategory: {
+        payload: Prisma.$ChatbotCategoryPayload<ExtArgs>
+        fields: Prisma.ChatbotCategoryFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.FAQFindUniqueArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$FAQPayload> | null
+            args: Prisma.ChatbotCategoryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotCategoryPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.FAQFindUniqueOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$FAQPayload>
+            args: Prisma.ChatbotCategoryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotCategoryPayload>
           }
           findFirst: {
-            args: Prisma.FAQFindFirstArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$FAQPayload> | null
+            args: Prisma.ChatbotCategoryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotCategoryPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.FAQFindFirstOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$FAQPayload>
+            args: Prisma.ChatbotCategoryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotCategoryPayload>
           }
           findMany: {
-            args: Prisma.FAQFindManyArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$FAQPayload>[]
+            args: Prisma.ChatbotCategoryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotCategoryPayload>[]
           }
           create: {
-            args: Prisma.FAQCreateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$FAQPayload>
+            args: Prisma.ChatbotCategoryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotCategoryPayload>
           }
           createMany: {
-            args: Prisma.FAQCreateManyArgs<ExtArgs>
+            args: Prisma.ChatbotCategoryCreateManyArgs<ExtArgs>
             result: BatchPayload
           }
           createManyAndReturn: {
-            args: Prisma.FAQCreateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$FAQPayload>[]
+            args: Prisma.ChatbotCategoryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotCategoryPayload>[]
           }
           delete: {
-            args: Prisma.FAQDeleteArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$FAQPayload>
+            args: Prisma.ChatbotCategoryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotCategoryPayload>
           }
           update: {
-            args: Prisma.FAQUpdateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$FAQPayload>
+            args: Prisma.ChatbotCategoryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotCategoryPayload>
           }
           deleteMany: {
-            args: Prisma.FAQDeleteManyArgs<ExtArgs>
+            args: Prisma.ChatbotCategoryDeleteManyArgs<ExtArgs>
             result: BatchPayload
           }
           updateMany: {
-            args: Prisma.FAQUpdateManyArgs<ExtArgs>
+            args: Prisma.ChatbotCategoryUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
           updateManyAndReturn: {
-            args: Prisma.FAQUpdateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$FAQPayload>[]
+            args: Prisma.ChatbotCategoryUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotCategoryPayload>[]
           }
           upsert: {
-            args: Prisma.FAQUpsertArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$FAQPayload>
+            args: Prisma.ChatbotCategoryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotCategoryPayload>
           }
           aggregate: {
-            args: Prisma.FAQAggregateArgs<ExtArgs>
-            result: $Utils.Optional<AggregateFAQ>
+            args: Prisma.ChatbotCategoryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateChatbotCategory>
           }
           groupBy: {
-            args: Prisma.FAQGroupByArgs<ExtArgs>
-            result: $Utils.Optional<FAQGroupByOutputType>[]
+            args: Prisma.ChatbotCategoryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ChatbotCategoryGroupByOutputType>[]
           }
           count: {
-            args: Prisma.FAQCountArgs<ExtArgs>
-            result: $Utils.Optional<FAQCountAggregateOutputType> | number
+            args: Prisma.ChatbotCategoryCountArgs<ExtArgs>
+            result: $Utils.Optional<ChatbotCategoryCountAggregateOutputType> | number
+          }
+        }
+      }
+      ChatbotFAQ: {
+        payload: Prisma.$ChatbotFAQPayload<ExtArgs>
+        fields: Prisma.ChatbotFAQFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ChatbotFAQFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotFAQPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ChatbotFAQFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotFAQPayload>
+          }
+          findFirst: {
+            args: Prisma.ChatbotFAQFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotFAQPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ChatbotFAQFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotFAQPayload>
+          }
+          findMany: {
+            args: Prisma.ChatbotFAQFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotFAQPayload>[]
+          }
+          create: {
+            args: Prisma.ChatbotFAQCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotFAQPayload>
+          }
+          createMany: {
+            args: Prisma.ChatbotFAQCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ChatbotFAQCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotFAQPayload>[]
+          }
+          delete: {
+            args: Prisma.ChatbotFAQDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotFAQPayload>
+          }
+          update: {
+            args: Prisma.ChatbotFAQUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotFAQPayload>
+          }
+          deleteMany: {
+            args: Prisma.ChatbotFAQDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ChatbotFAQUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ChatbotFAQUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotFAQPayload>[]
+          }
+          upsert: {
+            args: Prisma.ChatbotFAQUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ChatbotFAQPayload>
+          }
+          aggregate: {
+            args: Prisma.ChatbotFAQAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateChatbotFAQ>
+          }
+          groupBy: {
+            args: Prisma.ChatbotFAQGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ChatbotFAQGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ChatbotFAQCountArgs<ExtArgs>
+            result: $Utils.Optional<ChatbotFAQCountAggregateOutputType> | number
           }
         }
       }
@@ -1937,7 +2027,8 @@ export namespace Prisma {
     groupRegistration?: GroupRegistrationOmit
     accommodationBooking?: AccommodationBookingOmit
     eventSubmission?: EventSubmissionOmit
-    fAQ?: FAQOmit
+    chatbotCategory?: ChatbotCategoryOmit
+    chatbotFAQ?: ChatbotFAQOmit
     evaluation?: EvaluationOmit
     sponsor?: SponsorOmit
     schedule?: ScheduleOmit
@@ -12886,394 +12977,394 @@ export namespace Prisma {
 
 
   /**
-   * Model FAQ
+   * Model ChatbotCategory
    */
 
-  export type AggregateFAQ = {
-    _count: FAQCountAggregateOutputType | null
-    _avg: FAQAvgAggregateOutputType | null
-    _sum: FAQSumAggregateOutputType | null
-    _min: FAQMinAggregateOutputType | null
-    _max: FAQMaxAggregateOutputType | null
+  export type AggregateChatbotCategory = {
+    _count: ChatbotCategoryCountAggregateOutputType | null
+    _avg: ChatbotCategoryAvgAggregateOutputType | null
+    _sum: ChatbotCategorySumAggregateOutputType | null
+    _min: ChatbotCategoryMinAggregateOutputType | null
+    _max: ChatbotCategoryMaxAggregateOutputType | null
   }
 
-  export type FAQAvgAggregateOutputType = {
+  export type ChatbotCategoryAvgAggregateOutputType = {
     order: number | null
   }
 
-  export type FAQSumAggregateOutputType = {
+  export type ChatbotCategorySumAggregateOutputType = {
     order: number | null
   }
 
-  export type FAQMinAggregateOutputType = {
+  export type ChatbotCategoryMinAggregateOutputType = {
     id: string | null
-    question: string | null
-    answer: string | null
-    category: string | null
+    name: string | null
+    image: string | null
     order: number | null
+    active: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
 
-  export type FAQMaxAggregateOutputType = {
+  export type ChatbotCategoryMaxAggregateOutputType = {
     id: string | null
-    question: string | null
-    answer: string | null
-    category: string | null
+    name: string | null
+    image: string | null
     order: number | null
+    active: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
 
-  export type FAQCountAggregateOutputType = {
+  export type ChatbotCategoryCountAggregateOutputType = {
     id: number
-    question: number
-    answer: number
-    category: number
+    name: number
+    image: number
     order: number
+    active: number
     createdAt: number
     updatedAt: number
     _all: number
   }
 
 
-  export type FAQAvgAggregateInputType = {
+  export type ChatbotCategoryAvgAggregateInputType = {
     order?: true
   }
 
-  export type FAQSumAggregateInputType = {
+  export type ChatbotCategorySumAggregateInputType = {
     order?: true
   }
 
-  export type FAQMinAggregateInputType = {
+  export type ChatbotCategoryMinAggregateInputType = {
     id?: true
-    question?: true
-    answer?: true
-    category?: true
+    name?: true
+    image?: true
     order?: true
+    active?: true
     createdAt?: true
     updatedAt?: true
   }
 
-  export type FAQMaxAggregateInputType = {
+  export type ChatbotCategoryMaxAggregateInputType = {
     id?: true
-    question?: true
-    answer?: true
-    category?: true
+    name?: true
+    image?: true
     order?: true
+    active?: true
     createdAt?: true
     updatedAt?: true
   }
 
-  export type FAQCountAggregateInputType = {
+  export type ChatbotCategoryCountAggregateInputType = {
     id?: true
-    question?: true
-    answer?: true
-    category?: true
+    name?: true
+    image?: true
     order?: true
+    active?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
   }
 
-  export type FAQAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type ChatbotCategoryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Filter which FAQ to aggregate.
+     * Filter which ChatbotCategory to aggregate.
      */
-    where?: FAQWhereInput
+    where?: ChatbotCategoryWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of FAQS to fetch.
+     * Determine the order of ChatbotCategories to fetch.
      */
-    orderBy?: FAQOrderByWithRelationInput | FAQOrderByWithRelationInput[]
+    orderBy?: ChatbotCategoryOrderByWithRelationInput | ChatbotCategoryOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
      */
-    cursor?: FAQWhereUniqueInput
+    cursor?: ChatbotCategoryWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` FAQS from the position of the cursor.
+     * Take `±n` ChatbotCategories from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` FAQS.
+     * Skip the first `n` ChatbotCategories.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Count returned FAQS
+     * Count returned ChatbotCategories
     **/
-    _count?: true | FAQCountAggregateInputType
+    _count?: true | ChatbotCategoryCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
-    _avg?: FAQAvgAggregateInputType
+    _avg?: ChatbotCategoryAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to sum
     **/
-    _sum?: FAQSumAggregateInputType
+    _sum?: ChatbotCategorySumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    _min?: FAQMinAggregateInputType
+    _min?: ChatbotCategoryMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    _max?: FAQMaxAggregateInputType
+    _max?: ChatbotCategoryMaxAggregateInputType
   }
 
-  export type GetFAQAggregateType<T extends FAQAggregateArgs> = {
-        [P in keyof T & keyof AggregateFAQ]: P extends '_count' | 'count'
+  export type GetChatbotCategoryAggregateType<T extends ChatbotCategoryAggregateArgs> = {
+        [P in keyof T & keyof AggregateChatbotCategory]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateFAQ[P]>
-      : GetScalarType<T[P], AggregateFAQ[P]>
+        : GetScalarType<T[P], AggregateChatbotCategory[P]>
+      : GetScalarType<T[P], AggregateChatbotCategory[P]>
   }
 
 
 
 
-  export type FAQGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: FAQWhereInput
-    orderBy?: FAQOrderByWithAggregationInput | FAQOrderByWithAggregationInput[]
-    by: FAQScalarFieldEnum[] | FAQScalarFieldEnum
-    having?: FAQScalarWhereWithAggregatesInput
+  export type ChatbotCategoryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ChatbotCategoryWhereInput
+    orderBy?: ChatbotCategoryOrderByWithAggregationInput | ChatbotCategoryOrderByWithAggregationInput[]
+    by: ChatbotCategoryScalarFieldEnum[] | ChatbotCategoryScalarFieldEnum
+    having?: ChatbotCategoryScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    _count?: FAQCountAggregateInputType | true
-    _avg?: FAQAvgAggregateInputType
-    _sum?: FAQSumAggregateInputType
-    _min?: FAQMinAggregateInputType
-    _max?: FAQMaxAggregateInputType
+    _count?: ChatbotCategoryCountAggregateInputType | true
+    _avg?: ChatbotCategoryAvgAggregateInputType
+    _sum?: ChatbotCategorySumAggregateInputType
+    _min?: ChatbotCategoryMinAggregateInputType
+    _max?: ChatbotCategoryMaxAggregateInputType
   }
 
-  export type FAQGroupByOutputType = {
+  export type ChatbotCategoryGroupByOutputType = {
     id: string
-    question: string
-    answer: string
-    category: string | null
+    name: string
+    image: string | null
     order: number
+    active: boolean
     createdAt: Date
     updatedAt: Date
-    _count: FAQCountAggregateOutputType | null
-    _avg: FAQAvgAggregateOutputType | null
-    _sum: FAQSumAggregateOutputType | null
-    _min: FAQMinAggregateOutputType | null
-    _max: FAQMaxAggregateOutputType | null
+    _count: ChatbotCategoryCountAggregateOutputType | null
+    _avg: ChatbotCategoryAvgAggregateOutputType | null
+    _sum: ChatbotCategorySumAggregateOutputType | null
+    _min: ChatbotCategoryMinAggregateOutputType | null
+    _max: ChatbotCategoryMaxAggregateOutputType | null
   }
 
-  type GetFAQGroupByPayload<T extends FAQGroupByArgs> = Prisma.PrismaPromise<
+  type GetChatbotCategoryGroupByPayload<T extends ChatbotCategoryGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickEnumerable<FAQGroupByOutputType, T['by']> &
+      PickEnumerable<ChatbotCategoryGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof FAQGroupByOutputType))]: P extends '_count'
+          [P in ((keyof T) & (keyof ChatbotCategoryGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
               ? number
-              : GetScalarType<T[P], FAQGroupByOutputType[P]>
-            : GetScalarType<T[P], FAQGroupByOutputType[P]>
+              : GetScalarType<T[P], ChatbotCategoryGroupByOutputType[P]>
+            : GetScalarType<T[P], ChatbotCategoryGroupByOutputType[P]>
         }
       >
     >
 
 
-  export type FAQSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+  export type ChatbotCategorySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    question?: boolean
-    answer?: boolean
-    category?: boolean
+    name?: boolean
+    image?: boolean
     order?: boolean
+    active?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-  }, ExtArgs["result"]["fAQ"]>
+  }, ExtArgs["result"]["chatbotCategory"]>
 
-  export type FAQSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+  export type ChatbotCategorySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    question?: boolean
-    answer?: boolean
-    category?: boolean
+    name?: boolean
+    image?: boolean
     order?: boolean
+    active?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-  }, ExtArgs["result"]["fAQ"]>
+  }, ExtArgs["result"]["chatbotCategory"]>
 
-  export type FAQSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+  export type ChatbotCategorySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    question?: boolean
-    answer?: boolean
-    category?: boolean
+    name?: boolean
+    image?: boolean
     order?: boolean
+    active?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-  }, ExtArgs["result"]["fAQ"]>
+  }, ExtArgs["result"]["chatbotCategory"]>
 
-  export type FAQSelectScalar = {
+  export type ChatbotCategorySelectScalar = {
     id?: boolean
-    question?: boolean
-    answer?: boolean
-    category?: boolean
+    name?: boolean
+    image?: boolean
     order?: boolean
+    active?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type FAQOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "question" | "answer" | "category" | "order" | "createdAt" | "updatedAt", ExtArgs["result"]["fAQ"]>
+  export type ChatbotCategoryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "image" | "order" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["chatbotCategory"]>
 
-  export type $FAQPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    name: "FAQ"
+  export type $ChatbotCategoryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ChatbotCategory"
     objects: {}
     scalars: $Extensions.GetPayloadResult<{
       id: string
-      question: string
-      answer: string
-      category: string | null
+      name: string
+      image: string | null
       order: number
+      active: boolean
       createdAt: Date
       updatedAt: Date
-    }, ExtArgs["result"]["fAQ"]>
+    }, ExtArgs["result"]["chatbotCategory"]>
     composites: {}
   }
 
-  type FAQGetPayload<S extends boolean | null | undefined | FAQDefaultArgs> = $Result.GetResult<Prisma.$FAQPayload, S>
+  type ChatbotCategoryGetPayload<S extends boolean | null | undefined | ChatbotCategoryDefaultArgs> = $Result.GetResult<Prisma.$ChatbotCategoryPayload, S>
 
-  type FAQCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
-    Omit<FAQFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
-      select?: FAQCountAggregateInputType | true
+  type ChatbotCategoryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ChatbotCategoryFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ChatbotCategoryCountAggregateInputType | true
     }
 
-  export interface FAQDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
-    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['FAQ'], meta: { name: 'FAQ' } }
+  export interface ChatbotCategoryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ChatbotCategory'], meta: { name: 'ChatbotCategory' } }
     /**
-     * Find zero or one FAQ that matches the filter.
-     * @param {FAQFindUniqueArgs} args - Arguments to find a FAQ
+     * Find zero or one ChatbotCategory that matches the filter.
+     * @param {ChatbotCategoryFindUniqueArgs} args - Arguments to find a ChatbotCategory
      * @example
-     * // Get one FAQ
-     * const fAQ = await prisma.fAQ.findUnique({
+     * // Get one ChatbotCategory
+     * const chatbotCategory = await prisma.chatbotCategory.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findUnique<T extends FAQFindUniqueArgs>(args: SelectSubset<T, FAQFindUniqueArgs<ExtArgs>>): Prisma__FAQClient<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    findUnique<T extends ChatbotCategoryFindUniqueArgs>(args: SelectSubset<T, ChatbotCategoryFindUniqueArgs<ExtArgs>>): Prisma__ChatbotCategoryClient<$Result.GetResult<Prisma.$ChatbotCategoryPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find one FAQ that matches the filter or throw an error with `error.code='P2025'`
+     * Find one ChatbotCategory that matches the filter or throw an error with `error.code='P2025'`
      * if no matches were found.
-     * @param {FAQFindUniqueOrThrowArgs} args - Arguments to find a FAQ
+     * @param {ChatbotCategoryFindUniqueOrThrowArgs} args - Arguments to find a ChatbotCategory
      * @example
-     * // Get one FAQ
-     * const fAQ = await prisma.fAQ.findUniqueOrThrow({
+     * // Get one ChatbotCategory
+     * const chatbotCategory = await prisma.chatbotCategory.findUniqueOrThrow({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findUniqueOrThrow<T extends FAQFindUniqueOrThrowArgs>(args: SelectSubset<T, FAQFindUniqueOrThrowArgs<ExtArgs>>): Prisma__FAQClient<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    findUniqueOrThrow<T extends ChatbotCategoryFindUniqueOrThrowArgs>(args: SelectSubset<T, ChatbotCategoryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ChatbotCategoryClient<$Result.GetResult<Prisma.$ChatbotCategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find the first FAQ that matches the filter.
+     * Find the first ChatbotCategory that matches the filter.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {FAQFindFirstArgs} args - Arguments to find a FAQ
+     * @param {ChatbotCategoryFindFirstArgs} args - Arguments to find a ChatbotCategory
      * @example
-     * // Get one FAQ
-     * const fAQ = await prisma.fAQ.findFirst({
+     * // Get one ChatbotCategory
+     * const chatbotCategory = await prisma.chatbotCategory.findFirst({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findFirst<T extends FAQFindFirstArgs>(args?: SelectSubset<T, FAQFindFirstArgs<ExtArgs>>): Prisma__FAQClient<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    findFirst<T extends ChatbotCategoryFindFirstArgs>(args?: SelectSubset<T, ChatbotCategoryFindFirstArgs<ExtArgs>>): Prisma__ChatbotCategoryClient<$Result.GetResult<Prisma.$ChatbotCategoryPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find the first FAQ that matches the filter or
+     * Find the first ChatbotCategory that matches the filter or
      * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {FAQFindFirstOrThrowArgs} args - Arguments to find a FAQ
+     * @param {ChatbotCategoryFindFirstOrThrowArgs} args - Arguments to find a ChatbotCategory
      * @example
-     * // Get one FAQ
-     * const fAQ = await prisma.fAQ.findFirstOrThrow({
+     * // Get one ChatbotCategory
+     * const chatbotCategory = await prisma.chatbotCategory.findFirstOrThrow({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findFirstOrThrow<T extends FAQFindFirstOrThrowArgs>(args?: SelectSubset<T, FAQFindFirstOrThrowArgs<ExtArgs>>): Prisma__FAQClient<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    findFirstOrThrow<T extends ChatbotCategoryFindFirstOrThrowArgs>(args?: SelectSubset<T, ChatbotCategoryFindFirstOrThrowArgs<ExtArgs>>): Prisma__ChatbotCategoryClient<$Result.GetResult<Prisma.$ChatbotCategoryPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find zero or more FAQS that matches the filter.
+     * Find zero or more ChatbotCategories that matches the filter.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {FAQFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @param {ChatbotCategoryFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all FAQS
-     * const fAQS = await prisma.fAQ.findMany()
+     * // Get all ChatbotCategories
+     * const chatbotCategories = await prisma.chatbotCategory.findMany()
      * 
-     * // Get first 10 FAQS
-     * const fAQS = await prisma.fAQ.findMany({ take: 10 })
+     * // Get first 10 ChatbotCategories
+     * const chatbotCategories = await prisma.chatbotCategory.findMany({ take: 10 })
      * 
      * // Only select the `id`
-     * const fAQWithIdOnly = await prisma.fAQ.findMany({ select: { id: true } })
+     * const chatbotCategoryWithIdOnly = await prisma.chatbotCategory.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends FAQFindManyArgs>(args?: SelectSubset<T, FAQFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+    findMany<T extends ChatbotCategoryFindManyArgs>(args?: SelectSubset<T, ChatbotCategoryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatbotCategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
     /**
-     * Create a FAQ.
-     * @param {FAQCreateArgs} args - Arguments to create a FAQ.
+     * Create a ChatbotCategory.
+     * @param {ChatbotCategoryCreateArgs} args - Arguments to create a ChatbotCategory.
      * @example
-     * // Create one FAQ
-     * const FAQ = await prisma.fAQ.create({
+     * // Create one ChatbotCategory
+     * const ChatbotCategory = await prisma.chatbotCategory.create({
      *   data: {
-     *     // ... data to create a FAQ
+     *     // ... data to create a ChatbotCategory
      *   }
      * })
      * 
      */
-    create<T extends FAQCreateArgs>(args: SelectSubset<T, FAQCreateArgs<ExtArgs>>): Prisma__FAQClient<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    create<T extends ChatbotCategoryCreateArgs>(args: SelectSubset<T, ChatbotCategoryCreateArgs<ExtArgs>>): Prisma__ChatbotCategoryClient<$Result.GetResult<Prisma.$ChatbotCategoryPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Create many FAQS.
-     * @param {FAQCreateManyArgs} args - Arguments to create many FAQS.
+     * Create many ChatbotCategories.
+     * @param {ChatbotCategoryCreateManyArgs} args - Arguments to create many ChatbotCategories.
      * @example
-     * // Create many FAQS
-     * const fAQ = await prisma.fAQ.createMany({
+     * // Create many ChatbotCategories
+     * const chatbotCategory = await prisma.chatbotCategory.createMany({
      *   data: [
      *     // ... provide data here
      *   ]
      * })
      *     
      */
-    createMany<T extends FAQCreateManyArgs>(args?: SelectSubset<T, FAQCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+    createMany<T extends ChatbotCategoryCreateManyArgs>(args?: SelectSubset<T, ChatbotCategoryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Create many FAQS and returns the data saved in the database.
-     * @param {FAQCreateManyAndReturnArgs} args - Arguments to create many FAQS.
+     * Create many ChatbotCategories and returns the data saved in the database.
+     * @param {ChatbotCategoryCreateManyAndReturnArgs} args - Arguments to create many ChatbotCategories.
      * @example
-     * // Create many FAQS
-     * const fAQ = await prisma.fAQ.createManyAndReturn({
+     * // Create many ChatbotCategories
+     * const chatbotCategory = await prisma.chatbotCategory.createManyAndReturn({
      *   data: [
      *     // ... provide data here
      *   ]
      * })
      * 
-     * // Create many FAQS and only return the `id`
-     * const fAQWithIdOnly = await prisma.fAQ.createManyAndReturn({
+     * // Create many ChatbotCategories and only return the `id`
+     * const chatbotCategoryWithIdOnly = await prisma.chatbotCategory.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -13283,28 +13374,28 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends FAQCreateManyAndReturnArgs>(args?: SelectSubset<T, FAQCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+    createManyAndReturn<T extends ChatbotCategoryCreateManyAndReturnArgs>(args?: SelectSubset<T, ChatbotCategoryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatbotCategoryPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
     /**
-     * Delete a FAQ.
-     * @param {FAQDeleteArgs} args - Arguments to delete one FAQ.
+     * Delete a ChatbotCategory.
+     * @param {ChatbotCategoryDeleteArgs} args - Arguments to delete one ChatbotCategory.
      * @example
-     * // Delete one FAQ
-     * const FAQ = await prisma.fAQ.delete({
+     * // Delete one ChatbotCategory
+     * const ChatbotCategory = await prisma.chatbotCategory.delete({
      *   where: {
-     *     // ... filter to delete one FAQ
+     *     // ... filter to delete one ChatbotCategory
      *   }
      * })
      * 
      */
-    delete<T extends FAQDeleteArgs>(args: SelectSubset<T, FAQDeleteArgs<ExtArgs>>): Prisma__FAQClient<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    delete<T extends ChatbotCategoryDeleteArgs>(args: SelectSubset<T, ChatbotCategoryDeleteArgs<ExtArgs>>): Prisma__ChatbotCategoryClient<$Result.GetResult<Prisma.$ChatbotCategoryPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Update one FAQ.
-     * @param {FAQUpdateArgs} args - Arguments to update one FAQ.
+     * Update one ChatbotCategory.
+     * @param {ChatbotCategoryUpdateArgs} args - Arguments to update one ChatbotCategory.
      * @example
-     * // Update one FAQ
-     * const fAQ = await prisma.fAQ.update({
+     * // Update one ChatbotCategory
+     * const chatbotCategory = await prisma.chatbotCategory.update({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -13314,30 +13405,30 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends FAQUpdateArgs>(args: SelectSubset<T, FAQUpdateArgs<ExtArgs>>): Prisma__FAQClient<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    update<T extends ChatbotCategoryUpdateArgs>(args: SelectSubset<T, ChatbotCategoryUpdateArgs<ExtArgs>>): Prisma__ChatbotCategoryClient<$Result.GetResult<Prisma.$ChatbotCategoryPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Delete zero or more FAQS.
-     * @param {FAQDeleteManyArgs} args - Arguments to filter FAQS to delete.
+     * Delete zero or more ChatbotCategories.
+     * @param {ChatbotCategoryDeleteManyArgs} args - Arguments to filter ChatbotCategories to delete.
      * @example
-     * // Delete a few FAQS
-     * const { count } = await prisma.fAQ.deleteMany({
+     * // Delete a few ChatbotCategories
+     * const { count } = await prisma.chatbotCategory.deleteMany({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      * 
      */
-    deleteMany<T extends FAQDeleteManyArgs>(args?: SelectSubset<T, FAQDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+    deleteMany<T extends ChatbotCategoryDeleteManyArgs>(args?: SelectSubset<T, ChatbotCategoryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Update zero or more FAQS.
+     * Update zero or more ChatbotCategories.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {FAQUpdateManyArgs} args - Arguments to update one or more rows.
+     * @param {ChatbotCategoryUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many FAQS
-     * const fAQ = await prisma.fAQ.updateMany({
+     * // Update many ChatbotCategories
+     * const chatbotCategory = await prisma.chatbotCategory.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -13347,14 +13438,14 @@ export namespace Prisma {
      * })
      * 
      */
-    updateMany<T extends FAQUpdateManyArgs>(args: SelectSubset<T, FAQUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+    updateMany<T extends ChatbotCategoryUpdateManyArgs>(args: SelectSubset<T, ChatbotCategoryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Update zero or more FAQS and returns the data updated in the database.
-     * @param {FAQUpdateManyAndReturnArgs} args - Arguments to update many FAQS.
+     * Update zero or more ChatbotCategories and returns the data updated in the database.
+     * @param {ChatbotCategoryUpdateManyAndReturnArgs} args - Arguments to update many ChatbotCategories.
      * @example
-     * // Update many FAQS
-     * const fAQ = await prisma.fAQ.updateManyAndReturn({
+     * // Update many ChatbotCategories
+     * const chatbotCategory = await prisma.chatbotCategory.updateManyAndReturn({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -13363,8 +13454,8 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Update zero or more FAQS and only return the `id`
-     * const fAQWithIdOnly = await prisma.fAQ.updateManyAndReturn({
+     * // Update zero or more ChatbotCategories and only return the `id`
+     * const chatbotCategoryWithIdOnly = await prisma.chatbotCategory.updateManyAndReturn({
      *   select: { id: true },
      *   where: {
      *     // ... provide filter here
@@ -13377,56 +13468,56 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    updateManyAndReturn<T extends FAQUpdateManyAndReturnArgs>(args: SelectSubset<T, FAQUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+    updateManyAndReturn<T extends ChatbotCategoryUpdateManyAndReturnArgs>(args: SelectSubset<T, ChatbotCategoryUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatbotCategoryPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
     /**
-     * Create or update one FAQ.
-     * @param {FAQUpsertArgs} args - Arguments to update or create a FAQ.
+     * Create or update one ChatbotCategory.
+     * @param {ChatbotCategoryUpsertArgs} args - Arguments to update or create a ChatbotCategory.
      * @example
-     * // Update or create a FAQ
-     * const fAQ = await prisma.fAQ.upsert({
+     * // Update or create a ChatbotCategory
+     * const chatbotCategory = await prisma.chatbotCategory.upsert({
      *   create: {
-     *     // ... data to create a FAQ
+     *     // ... data to create a ChatbotCategory
      *   },
      *   update: {
      *     // ... in case it already exists, update
      *   },
      *   where: {
-     *     // ... the filter for the FAQ we want to update
+     *     // ... the filter for the ChatbotCategory we want to update
      *   }
      * })
      */
-    upsert<T extends FAQUpsertArgs>(args: SelectSubset<T, FAQUpsertArgs<ExtArgs>>): Prisma__FAQClient<$Result.GetResult<Prisma.$FAQPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    upsert<T extends ChatbotCategoryUpsertArgs>(args: SelectSubset<T, ChatbotCategoryUpsertArgs<ExtArgs>>): Prisma__ChatbotCategoryClient<$Result.GetResult<Prisma.$ChatbotCategoryPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
 
     /**
-     * Count the number of FAQS.
+     * Count the number of ChatbotCategories.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {FAQCountArgs} args - Arguments to filter FAQS to count.
+     * @param {ChatbotCategoryCountArgs} args - Arguments to filter ChatbotCategories to count.
      * @example
-     * // Count the number of FAQS
-     * const count = await prisma.fAQ.count({
+     * // Count the number of ChatbotCategories
+     * const count = await prisma.chatbotCategory.count({
      *   where: {
-     *     // ... the filter for the FAQS we want to count
+     *     // ... the filter for the ChatbotCategories we want to count
      *   }
      * })
     **/
-    count<T extends FAQCountArgs>(
-      args?: Subset<T, FAQCountArgs>,
+    count<T extends ChatbotCategoryCountArgs>(
+      args?: Subset<T, ChatbotCategoryCountArgs>,
     ): Prisma.PrismaPromise<
       T extends $Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
-          : GetScalarType<T['select'], FAQCountAggregateOutputType>
+          : GetScalarType<T['select'], ChatbotCategoryCountAggregateOutputType>
         : number
     >
 
     /**
-     * Allows you to perform aggregations operations on a FAQ.
+     * Allows you to perform aggregations operations on a ChatbotCategory.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {FAQAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @param {ChatbotCategoryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
      * // Where email contains prisma.io
@@ -13446,13 +13537,13 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends FAQAggregateArgs>(args: Subset<T, FAQAggregateArgs>): Prisma.PrismaPromise<GetFAQAggregateType<T>>
+    aggregate<T extends ChatbotCategoryAggregateArgs>(args: Subset<T, ChatbotCategoryAggregateArgs>): Prisma.PrismaPromise<GetChatbotCategoryAggregateType<T>>
 
     /**
-     * Group by FAQ.
+     * Group by ChatbotCategory.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {FAQGroupByArgs} args - Group by arguments.
+     * @param {ChatbotCategoryGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
      * const result = await prisma.user.groupBy({
@@ -13467,14 +13558,14 @@ export namespace Prisma {
      * 
     **/
     groupBy<
-      T extends FAQGroupByArgs,
+      T extends ChatbotCategoryGroupByArgs,
       HasSelectOrTake extends Or<
         Extends<'skip', Keys<T>>,
         Extends<'take', Keys<T>>
       >,
       OrderByArg extends True extends HasSelectOrTake
-        ? { orderBy: FAQGroupByArgs['orderBy'] }
-        : { orderBy?: FAQGroupByArgs['orderBy'] },
+        ? { orderBy: ChatbotCategoryGroupByArgs['orderBy'] }
+        : { orderBy?: ChatbotCategoryGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
@@ -13523,20 +13614,20 @@ export namespace Prisma {
             ? never
             : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
         }[OrderFields]
-    >(args: SubsetIntersection<T, FAQGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetFAQGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+    >(args: SubsetIntersection<T, ChatbotCategoryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetChatbotCategoryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
   /**
-   * Fields of the FAQ model
+   * Fields of the ChatbotCategory model
    */
-  readonly fields: FAQFieldRefs;
+  readonly fields: ChatbotCategoryFieldRefs;
   }
 
   /**
-   * The delegate class that acts as a "Promise-like" for FAQ.
+   * The delegate class that acts as a "Promise-like" for ChatbotCategory.
    * Why is this prefixed with `Prisma__`?
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__FAQClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__ChatbotCategoryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -13564,379 +13655,1447 @@ export namespace Prisma {
 
 
   /**
-   * Fields of the FAQ model
+   * Fields of the ChatbotCategory model
    */
-  interface FAQFieldRefs {
-    readonly id: FieldRef<"FAQ", 'String'>
-    readonly question: FieldRef<"FAQ", 'String'>
-    readonly answer: FieldRef<"FAQ", 'String'>
-    readonly category: FieldRef<"FAQ", 'String'>
-    readonly order: FieldRef<"FAQ", 'Int'>
-    readonly createdAt: FieldRef<"FAQ", 'DateTime'>
-    readonly updatedAt: FieldRef<"FAQ", 'DateTime'>
+  interface ChatbotCategoryFieldRefs {
+    readonly id: FieldRef<"ChatbotCategory", 'String'>
+    readonly name: FieldRef<"ChatbotCategory", 'String'>
+    readonly image: FieldRef<"ChatbotCategory", 'String'>
+    readonly order: FieldRef<"ChatbotCategory", 'Int'>
+    readonly active: FieldRef<"ChatbotCategory", 'Boolean'>
+    readonly createdAt: FieldRef<"ChatbotCategory", 'DateTime'>
+    readonly updatedAt: FieldRef<"ChatbotCategory", 'DateTime'>
   }
     
 
   // Custom InputTypes
   /**
-   * FAQ findUnique
+   * ChatbotCategory findUnique
    */
-  export type FAQFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type ChatbotCategoryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the FAQ
+     * Select specific fields to fetch from the ChatbotCategory
      */
-    select?: FAQSelect<ExtArgs> | null
+    select?: ChatbotCategorySelect<ExtArgs> | null
     /**
-     * Omit specific fields from the FAQ
+     * Omit specific fields from the ChatbotCategory
      */
-    omit?: FAQOmit<ExtArgs> | null
+    omit?: ChatbotCategoryOmit<ExtArgs> | null
     /**
-     * Filter, which FAQ to fetch.
+     * Filter, which ChatbotCategory to fetch.
      */
-    where: FAQWhereUniqueInput
+    where: ChatbotCategoryWhereUniqueInput
   }
 
   /**
-   * FAQ findUniqueOrThrow
+   * ChatbotCategory findUniqueOrThrow
    */
-  export type FAQFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type ChatbotCategoryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the FAQ
+     * Select specific fields to fetch from the ChatbotCategory
      */
-    select?: FAQSelect<ExtArgs> | null
+    select?: ChatbotCategorySelect<ExtArgs> | null
     /**
-     * Omit specific fields from the FAQ
+     * Omit specific fields from the ChatbotCategory
      */
-    omit?: FAQOmit<ExtArgs> | null
+    omit?: ChatbotCategoryOmit<ExtArgs> | null
     /**
-     * Filter, which FAQ to fetch.
+     * Filter, which ChatbotCategory to fetch.
      */
-    where: FAQWhereUniqueInput
+    where: ChatbotCategoryWhereUniqueInput
   }
 
   /**
-   * FAQ findFirst
+   * ChatbotCategory findFirst
    */
-  export type FAQFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type ChatbotCategoryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the FAQ
+     * Select specific fields to fetch from the ChatbotCategory
      */
-    select?: FAQSelect<ExtArgs> | null
+    select?: ChatbotCategorySelect<ExtArgs> | null
     /**
-     * Omit specific fields from the FAQ
+     * Omit specific fields from the ChatbotCategory
      */
-    omit?: FAQOmit<ExtArgs> | null
+    omit?: ChatbotCategoryOmit<ExtArgs> | null
     /**
-     * Filter, which FAQ to fetch.
+     * Filter, which ChatbotCategory to fetch.
      */
-    where?: FAQWhereInput
+    where?: ChatbotCategoryWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of FAQS to fetch.
+     * Determine the order of ChatbotCategories to fetch.
      */
-    orderBy?: FAQOrderByWithRelationInput | FAQOrderByWithRelationInput[]
+    orderBy?: ChatbotCategoryOrderByWithRelationInput | ChatbotCategoryOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for FAQS.
+     * Sets the position for searching for ChatbotCategories.
      */
-    cursor?: FAQWhereUniqueInput
+    cursor?: ChatbotCategoryWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` FAQS from the position of the cursor.
+     * Take `±n` ChatbotCategories from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` FAQS.
+     * Skip the first `n` ChatbotCategories.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
-     * Filter by unique combinations of FAQS.
+     * Filter by unique combinations of ChatbotCategories.
      */
-    distinct?: FAQScalarFieldEnum | FAQScalarFieldEnum[]
+    distinct?: ChatbotCategoryScalarFieldEnum | ChatbotCategoryScalarFieldEnum[]
   }
 
   /**
-   * FAQ findFirstOrThrow
+   * ChatbotCategory findFirstOrThrow
    */
-  export type FAQFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type ChatbotCategoryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the FAQ
+     * Select specific fields to fetch from the ChatbotCategory
      */
-    select?: FAQSelect<ExtArgs> | null
+    select?: ChatbotCategorySelect<ExtArgs> | null
     /**
-     * Omit specific fields from the FAQ
+     * Omit specific fields from the ChatbotCategory
      */
-    omit?: FAQOmit<ExtArgs> | null
+    omit?: ChatbotCategoryOmit<ExtArgs> | null
     /**
-     * Filter, which FAQ to fetch.
+     * Filter, which ChatbotCategory to fetch.
      */
-    where?: FAQWhereInput
+    where?: ChatbotCategoryWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of FAQS to fetch.
+     * Determine the order of ChatbotCategories to fetch.
      */
-    orderBy?: FAQOrderByWithRelationInput | FAQOrderByWithRelationInput[]
+    orderBy?: ChatbotCategoryOrderByWithRelationInput | ChatbotCategoryOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for FAQS.
+     * Sets the position for searching for ChatbotCategories.
      */
-    cursor?: FAQWhereUniqueInput
+    cursor?: ChatbotCategoryWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` FAQS from the position of the cursor.
+     * Take `±n` ChatbotCategories from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` FAQS.
+     * Skip the first `n` ChatbotCategories.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
-     * Filter by unique combinations of FAQS.
+     * Filter by unique combinations of ChatbotCategories.
      */
-    distinct?: FAQScalarFieldEnum | FAQScalarFieldEnum[]
+    distinct?: ChatbotCategoryScalarFieldEnum | ChatbotCategoryScalarFieldEnum[]
   }
 
   /**
-   * FAQ findMany
+   * ChatbotCategory findMany
    */
-  export type FAQFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type ChatbotCategoryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the FAQ
+     * Select specific fields to fetch from the ChatbotCategory
      */
-    select?: FAQSelect<ExtArgs> | null
+    select?: ChatbotCategorySelect<ExtArgs> | null
     /**
-     * Omit specific fields from the FAQ
+     * Omit specific fields from the ChatbotCategory
      */
-    omit?: FAQOmit<ExtArgs> | null
+    omit?: ChatbotCategoryOmit<ExtArgs> | null
     /**
-     * Filter, which FAQS to fetch.
+     * Filter, which ChatbotCategories to fetch.
      */
-    where?: FAQWhereInput
+    where?: ChatbotCategoryWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of FAQS to fetch.
+     * Determine the order of ChatbotCategories to fetch.
      */
-    orderBy?: FAQOrderByWithRelationInput | FAQOrderByWithRelationInput[]
+    orderBy?: ChatbotCategoryOrderByWithRelationInput | ChatbotCategoryOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for listing FAQS.
+     * Sets the position for listing ChatbotCategories.
      */
-    cursor?: FAQWhereUniqueInput
+    cursor?: ChatbotCategoryWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` FAQS from the position of the cursor.
+     * Take `±n` ChatbotCategories from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` FAQS.
+     * Skip the first `n` ChatbotCategories.
      */
     skip?: number
-    distinct?: FAQScalarFieldEnum | FAQScalarFieldEnum[]
+    distinct?: ChatbotCategoryScalarFieldEnum | ChatbotCategoryScalarFieldEnum[]
   }
 
   /**
-   * FAQ create
+   * ChatbotCategory create
    */
-  export type FAQCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type ChatbotCategoryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the FAQ
+     * Select specific fields to fetch from the ChatbotCategory
      */
-    select?: FAQSelect<ExtArgs> | null
+    select?: ChatbotCategorySelect<ExtArgs> | null
     /**
-     * Omit specific fields from the FAQ
+     * Omit specific fields from the ChatbotCategory
      */
-    omit?: FAQOmit<ExtArgs> | null
+    omit?: ChatbotCategoryOmit<ExtArgs> | null
     /**
-     * The data needed to create a FAQ.
+     * The data needed to create a ChatbotCategory.
      */
-    data: XOR<FAQCreateInput, FAQUncheckedCreateInput>
+    data: XOR<ChatbotCategoryCreateInput, ChatbotCategoryUncheckedCreateInput>
   }
 
   /**
-   * FAQ createMany
+   * ChatbotCategory createMany
    */
-  export type FAQCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type ChatbotCategoryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * The data used to create many FAQS.
+     * The data used to create many ChatbotCategories.
      */
-    data: FAQCreateManyInput | FAQCreateManyInput[]
+    data: ChatbotCategoryCreateManyInput | ChatbotCategoryCreateManyInput[]
     skipDuplicates?: boolean
   }
 
   /**
-   * FAQ createManyAndReturn
+   * ChatbotCategory createManyAndReturn
    */
-  export type FAQCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type ChatbotCategoryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the FAQ
+     * Select specific fields to fetch from the ChatbotCategory
      */
-    select?: FAQSelectCreateManyAndReturn<ExtArgs> | null
+    select?: ChatbotCategorySelectCreateManyAndReturn<ExtArgs> | null
     /**
-     * Omit specific fields from the FAQ
+     * Omit specific fields from the ChatbotCategory
      */
-    omit?: FAQOmit<ExtArgs> | null
+    omit?: ChatbotCategoryOmit<ExtArgs> | null
     /**
-     * The data used to create many FAQS.
+     * The data used to create many ChatbotCategories.
      */
-    data: FAQCreateManyInput | FAQCreateManyInput[]
+    data: ChatbotCategoryCreateManyInput | ChatbotCategoryCreateManyInput[]
     skipDuplicates?: boolean
   }
 
   /**
-   * FAQ update
+   * ChatbotCategory update
    */
-  export type FAQUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type ChatbotCategoryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the FAQ
+     * Select specific fields to fetch from the ChatbotCategory
      */
-    select?: FAQSelect<ExtArgs> | null
+    select?: ChatbotCategorySelect<ExtArgs> | null
     /**
-     * Omit specific fields from the FAQ
+     * Omit specific fields from the ChatbotCategory
      */
-    omit?: FAQOmit<ExtArgs> | null
+    omit?: ChatbotCategoryOmit<ExtArgs> | null
     /**
-     * The data needed to update a FAQ.
+     * The data needed to update a ChatbotCategory.
      */
-    data: XOR<FAQUpdateInput, FAQUncheckedUpdateInput>
+    data: XOR<ChatbotCategoryUpdateInput, ChatbotCategoryUncheckedUpdateInput>
     /**
-     * Choose, which FAQ to update.
+     * Choose, which ChatbotCategory to update.
      */
-    where: FAQWhereUniqueInput
+    where: ChatbotCategoryWhereUniqueInput
   }
 
   /**
-   * FAQ updateMany
+   * ChatbotCategory updateMany
    */
-  export type FAQUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type ChatbotCategoryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * The data used to update FAQS.
+     * The data used to update ChatbotCategories.
      */
-    data: XOR<FAQUpdateManyMutationInput, FAQUncheckedUpdateManyInput>
+    data: XOR<ChatbotCategoryUpdateManyMutationInput, ChatbotCategoryUncheckedUpdateManyInput>
     /**
-     * Filter which FAQS to update
+     * Filter which ChatbotCategories to update
      */
-    where?: FAQWhereInput
+    where?: ChatbotCategoryWhereInput
     /**
-     * Limit how many FAQS to update.
+     * Limit how many ChatbotCategories to update.
      */
     limit?: number
   }
 
   /**
-   * FAQ updateManyAndReturn
+   * ChatbotCategory updateManyAndReturn
    */
-  export type FAQUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type ChatbotCategoryUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the FAQ
+     * Select specific fields to fetch from the ChatbotCategory
      */
-    select?: FAQSelectUpdateManyAndReturn<ExtArgs> | null
+    select?: ChatbotCategorySelectUpdateManyAndReturn<ExtArgs> | null
     /**
-     * Omit specific fields from the FAQ
+     * Omit specific fields from the ChatbotCategory
      */
-    omit?: FAQOmit<ExtArgs> | null
+    omit?: ChatbotCategoryOmit<ExtArgs> | null
     /**
-     * The data used to update FAQS.
+     * The data used to update ChatbotCategories.
      */
-    data: XOR<FAQUpdateManyMutationInput, FAQUncheckedUpdateManyInput>
+    data: XOR<ChatbotCategoryUpdateManyMutationInput, ChatbotCategoryUncheckedUpdateManyInput>
     /**
-     * Filter which FAQS to update
+     * Filter which ChatbotCategories to update
      */
-    where?: FAQWhereInput
+    where?: ChatbotCategoryWhereInput
     /**
-     * Limit how many FAQS to update.
+     * Limit how many ChatbotCategories to update.
      */
     limit?: number
   }
 
   /**
-   * FAQ upsert
+   * ChatbotCategory upsert
    */
-  export type FAQUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type ChatbotCategoryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the FAQ
+     * Select specific fields to fetch from the ChatbotCategory
      */
-    select?: FAQSelect<ExtArgs> | null
+    select?: ChatbotCategorySelect<ExtArgs> | null
     /**
-     * Omit specific fields from the FAQ
+     * Omit specific fields from the ChatbotCategory
      */
-    omit?: FAQOmit<ExtArgs> | null
+    omit?: ChatbotCategoryOmit<ExtArgs> | null
     /**
-     * The filter to search for the FAQ to update in case it exists.
+     * The filter to search for the ChatbotCategory to update in case it exists.
      */
-    where: FAQWhereUniqueInput
+    where: ChatbotCategoryWhereUniqueInput
     /**
-     * In case the FAQ found by the `where` argument doesn't exist, create a new FAQ with this data.
+     * In case the ChatbotCategory found by the `where` argument doesn't exist, create a new ChatbotCategory with this data.
      */
-    create: XOR<FAQCreateInput, FAQUncheckedCreateInput>
+    create: XOR<ChatbotCategoryCreateInput, ChatbotCategoryUncheckedCreateInput>
     /**
-     * In case the FAQ was found with the provided `where` argument, update it with this data.
+     * In case the ChatbotCategory was found with the provided `where` argument, update it with this data.
      */
-    update: XOR<FAQUpdateInput, FAQUncheckedUpdateInput>
+    update: XOR<ChatbotCategoryUpdateInput, ChatbotCategoryUncheckedUpdateInput>
   }
 
   /**
-   * FAQ delete
+   * ChatbotCategory delete
    */
-  export type FAQDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type ChatbotCategoryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the FAQ
+     * Select specific fields to fetch from the ChatbotCategory
      */
-    select?: FAQSelect<ExtArgs> | null
+    select?: ChatbotCategorySelect<ExtArgs> | null
     /**
-     * Omit specific fields from the FAQ
+     * Omit specific fields from the ChatbotCategory
      */
-    omit?: FAQOmit<ExtArgs> | null
+    omit?: ChatbotCategoryOmit<ExtArgs> | null
     /**
-     * Filter which FAQ to delete.
+     * Filter which ChatbotCategory to delete.
      */
-    where: FAQWhereUniqueInput
+    where: ChatbotCategoryWhereUniqueInput
   }
 
   /**
-   * FAQ deleteMany
+   * ChatbotCategory deleteMany
    */
-  export type FAQDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type ChatbotCategoryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Filter which FAQS to delete
+     * Filter which ChatbotCategories to delete
      */
-    where?: FAQWhereInput
+    where?: ChatbotCategoryWhereInput
     /**
-     * Limit how many FAQS to delete.
+     * Limit how many ChatbotCategories to delete.
      */
     limit?: number
   }
 
   /**
-   * FAQ without action
+   * ChatbotCategory without action
    */
-  export type FAQDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type ChatbotCategoryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the FAQ
+     * Select specific fields to fetch from the ChatbotCategory
      */
-    select?: FAQSelect<ExtArgs> | null
+    select?: ChatbotCategorySelect<ExtArgs> | null
     /**
-     * Omit specific fields from the FAQ
+     * Omit specific fields from the ChatbotCategory
      */
-    omit?: FAQOmit<ExtArgs> | null
+    omit?: ChatbotCategoryOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ChatbotFAQ
+   */
+
+  export type AggregateChatbotFAQ = {
+    _count: ChatbotFAQCountAggregateOutputType | null
+    _avg: ChatbotFAQAvgAggregateOutputType | null
+    _sum: ChatbotFAQSumAggregateOutputType | null
+    _min: ChatbotFAQMinAggregateOutputType | null
+    _max: ChatbotFAQMaxAggregateOutputType | null
+  }
+
+  export type ChatbotFAQAvgAggregateOutputType = {
+    order: number | null
+  }
+
+  export type ChatbotFAQSumAggregateOutputType = {
+    order: number | null
+  }
+
+  export type ChatbotFAQMinAggregateOutputType = {
+    id: string | null
+    question: string | null
+    answer: string | null
+    category: string | null
+    order: number | null
+    active: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ChatbotFAQMaxAggregateOutputType = {
+    id: string | null
+    question: string | null
+    answer: string | null
+    category: string | null
+    order: number | null
+    active: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ChatbotFAQCountAggregateOutputType = {
+    id: number
+    question: number
+    answer: number
+    category: number
+    order: number
+    active: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ChatbotFAQAvgAggregateInputType = {
+    order?: true
+  }
+
+  export type ChatbotFAQSumAggregateInputType = {
+    order?: true
+  }
+
+  export type ChatbotFAQMinAggregateInputType = {
+    id?: true
+    question?: true
+    answer?: true
+    category?: true
+    order?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ChatbotFAQMaxAggregateInputType = {
+    id?: true
+    question?: true
+    answer?: true
+    category?: true
+    order?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ChatbotFAQCountAggregateInputType = {
+    id?: true
+    question?: true
+    answer?: true
+    category?: true
+    order?: true
+    active?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ChatbotFAQAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ChatbotFAQ to aggregate.
+     */
+    where?: ChatbotFAQWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChatbotFAQS to fetch.
+     */
+    orderBy?: ChatbotFAQOrderByWithRelationInput | ChatbotFAQOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ChatbotFAQWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChatbotFAQS from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChatbotFAQS.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ChatbotFAQS
+    **/
+    _count?: true | ChatbotFAQCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ChatbotFAQAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ChatbotFAQSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ChatbotFAQMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ChatbotFAQMaxAggregateInputType
+  }
+
+  export type GetChatbotFAQAggregateType<T extends ChatbotFAQAggregateArgs> = {
+        [P in keyof T & keyof AggregateChatbotFAQ]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateChatbotFAQ[P]>
+      : GetScalarType<T[P], AggregateChatbotFAQ[P]>
+  }
+
+
+
+
+  export type ChatbotFAQGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ChatbotFAQWhereInput
+    orderBy?: ChatbotFAQOrderByWithAggregationInput | ChatbotFAQOrderByWithAggregationInput[]
+    by: ChatbotFAQScalarFieldEnum[] | ChatbotFAQScalarFieldEnum
+    having?: ChatbotFAQScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ChatbotFAQCountAggregateInputType | true
+    _avg?: ChatbotFAQAvgAggregateInputType
+    _sum?: ChatbotFAQSumAggregateInputType
+    _min?: ChatbotFAQMinAggregateInputType
+    _max?: ChatbotFAQMaxAggregateInputType
+  }
+
+  export type ChatbotFAQGroupByOutputType = {
+    id: string
+    question: string
+    answer: string
+    category: string | null
+    order: number
+    active: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: ChatbotFAQCountAggregateOutputType | null
+    _avg: ChatbotFAQAvgAggregateOutputType | null
+    _sum: ChatbotFAQSumAggregateOutputType | null
+    _min: ChatbotFAQMinAggregateOutputType | null
+    _max: ChatbotFAQMaxAggregateOutputType | null
+  }
+
+  type GetChatbotFAQGroupByPayload<T extends ChatbotFAQGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ChatbotFAQGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ChatbotFAQGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ChatbotFAQGroupByOutputType[P]>
+            : GetScalarType<T[P], ChatbotFAQGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ChatbotFAQSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    question?: boolean
+    answer?: boolean
+    category?: boolean
+    order?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["chatbotFAQ"]>
+
+  export type ChatbotFAQSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    question?: boolean
+    answer?: boolean
+    category?: boolean
+    order?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["chatbotFAQ"]>
+
+  export type ChatbotFAQSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    question?: boolean
+    answer?: boolean
+    category?: boolean
+    order?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["chatbotFAQ"]>
+
+  export type ChatbotFAQSelectScalar = {
+    id?: boolean
+    question?: boolean
+    answer?: boolean
+    category?: boolean
+    order?: boolean
+    active?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ChatbotFAQOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "question" | "answer" | "category" | "order" | "active" | "createdAt" | "updatedAt", ExtArgs["result"]["chatbotFAQ"]>
+
+  export type $ChatbotFAQPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ChatbotFAQ"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      question: string
+      answer: string
+      category: string | null
+      order: number
+      active: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["chatbotFAQ"]>
+    composites: {}
+  }
+
+  type ChatbotFAQGetPayload<S extends boolean | null | undefined | ChatbotFAQDefaultArgs> = $Result.GetResult<Prisma.$ChatbotFAQPayload, S>
+
+  type ChatbotFAQCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ChatbotFAQFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ChatbotFAQCountAggregateInputType | true
+    }
+
+  export interface ChatbotFAQDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ChatbotFAQ'], meta: { name: 'ChatbotFAQ' } }
+    /**
+     * Find zero or one ChatbotFAQ that matches the filter.
+     * @param {ChatbotFAQFindUniqueArgs} args - Arguments to find a ChatbotFAQ
+     * @example
+     * // Get one ChatbotFAQ
+     * const chatbotFAQ = await prisma.chatbotFAQ.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ChatbotFAQFindUniqueArgs>(args: SelectSubset<T, ChatbotFAQFindUniqueArgs<ExtArgs>>): Prisma__ChatbotFAQClient<$Result.GetResult<Prisma.$ChatbotFAQPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ChatbotFAQ that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ChatbotFAQFindUniqueOrThrowArgs} args - Arguments to find a ChatbotFAQ
+     * @example
+     * // Get one ChatbotFAQ
+     * const chatbotFAQ = await prisma.chatbotFAQ.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ChatbotFAQFindUniqueOrThrowArgs>(args: SelectSubset<T, ChatbotFAQFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ChatbotFAQClient<$Result.GetResult<Prisma.$ChatbotFAQPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ChatbotFAQ that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatbotFAQFindFirstArgs} args - Arguments to find a ChatbotFAQ
+     * @example
+     * // Get one ChatbotFAQ
+     * const chatbotFAQ = await prisma.chatbotFAQ.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ChatbotFAQFindFirstArgs>(args?: SelectSubset<T, ChatbotFAQFindFirstArgs<ExtArgs>>): Prisma__ChatbotFAQClient<$Result.GetResult<Prisma.$ChatbotFAQPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ChatbotFAQ that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatbotFAQFindFirstOrThrowArgs} args - Arguments to find a ChatbotFAQ
+     * @example
+     * // Get one ChatbotFAQ
+     * const chatbotFAQ = await prisma.chatbotFAQ.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ChatbotFAQFindFirstOrThrowArgs>(args?: SelectSubset<T, ChatbotFAQFindFirstOrThrowArgs<ExtArgs>>): Prisma__ChatbotFAQClient<$Result.GetResult<Prisma.$ChatbotFAQPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ChatbotFAQS that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatbotFAQFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ChatbotFAQS
+     * const chatbotFAQS = await prisma.chatbotFAQ.findMany()
+     * 
+     * // Get first 10 ChatbotFAQS
+     * const chatbotFAQS = await prisma.chatbotFAQ.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const chatbotFAQWithIdOnly = await prisma.chatbotFAQ.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ChatbotFAQFindManyArgs>(args?: SelectSubset<T, ChatbotFAQFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatbotFAQPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ChatbotFAQ.
+     * @param {ChatbotFAQCreateArgs} args - Arguments to create a ChatbotFAQ.
+     * @example
+     * // Create one ChatbotFAQ
+     * const ChatbotFAQ = await prisma.chatbotFAQ.create({
+     *   data: {
+     *     // ... data to create a ChatbotFAQ
+     *   }
+     * })
+     * 
+     */
+    create<T extends ChatbotFAQCreateArgs>(args: SelectSubset<T, ChatbotFAQCreateArgs<ExtArgs>>): Prisma__ChatbotFAQClient<$Result.GetResult<Prisma.$ChatbotFAQPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ChatbotFAQS.
+     * @param {ChatbotFAQCreateManyArgs} args - Arguments to create many ChatbotFAQS.
+     * @example
+     * // Create many ChatbotFAQS
+     * const chatbotFAQ = await prisma.chatbotFAQ.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ChatbotFAQCreateManyArgs>(args?: SelectSubset<T, ChatbotFAQCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ChatbotFAQS and returns the data saved in the database.
+     * @param {ChatbotFAQCreateManyAndReturnArgs} args - Arguments to create many ChatbotFAQS.
+     * @example
+     * // Create many ChatbotFAQS
+     * const chatbotFAQ = await prisma.chatbotFAQ.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ChatbotFAQS and only return the `id`
+     * const chatbotFAQWithIdOnly = await prisma.chatbotFAQ.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ChatbotFAQCreateManyAndReturnArgs>(args?: SelectSubset<T, ChatbotFAQCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatbotFAQPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ChatbotFAQ.
+     * @param {ChatbotFAQDeleteArgs} args - Arguments to delete one ChatbotFAQ.
+     * @example
+     * // Delete one ChatbotFAQ
+     * const ChatbotFAQ = await prisma.chatbotFAQ.delete({
+     *   where: {
+     *     // ... filter to delete one ChatbotFAQ
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ChatbotFAQDeleteArgs>(args: SelectSubset<T, ChatbotFAQDeleteArgs<ExtArgs>>): Prisma__ChatbotFAQClient<$Result.GetResult<Prisma.$ChatbotFAQPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ChatbotFAQ.
+     * @param {ChatbotFAQUpdateArgs} args - Arguments to update one ChatbotFAQ.
+     * @example
+     * // Update one ChatbotFAQ
+     * const chatbotFAQ = await prisma.chatbotFAQ.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ChatbotFAQUpdateArgs>(args: SelectSubset<T, ChatbotFAQUpdateArgs<ExtArgs>>): Prisma__ChatbotFAQClient<$Result.GetResult<Prisma.$ChatbotFAQPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ChatbotFAQS.
+     * @param {ChatbotFAQDeleteManyArgs} args - Arguments to filter ChatbotFAQS to delete.
+     * @example
+     * // Delete a few ChatbotFAQS
+     * const { count } = await prisma.chatbotFAQ.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ChatbotFAQDeleteManyArgs>(args?: SelectSubset<T, ChatbotFAQDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ChatbotFAQS.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatbotFAQUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ChatbotFAQS
+     * const chatbotFAQ = await prisma.chatbotFAQ.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ChatbotFAQUpdateManyArgs>(args: SelectSubset<T, ChatbotFAQUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ChatbotFAQS and returns the data updated in the database.
+     * @param {ChatbotFAQUpdateManyAndReturnArgs} args - Arguments to update many ChatbotFAQS.
+     * @example
+     * // Update many ChatbotFAQS
+     * const chatbotFAQ = await prisma.chatbotFAQ.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ChatbotFAQS and only return the `id`
+     * const chatbotFAQWithIdOnly = await prisma.chatbotFAQ.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ChatbotFAQUpdateManyAndReturnArgs>(args: SelectSubset<T, ChatbotFAQUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatbotFAQPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ChatbotFAQ.
+     * @param {ChatbotFAQUpsertArgs} args - Arguments to update or create a ChatbotFAQ.
+     * @example
+     * // Update or create a ChatbotFAQ
+     * const chatbotFAQ = await prisma.chatbotFAQ.upsert({
+     *   create: {
+     *     // ... data to create a ChatbotFAQ
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ChatbotFAQ we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ChatbotFAQUpsertArgs>(args: SelectSubset<T, ChatbotFAQUpsertArgs<ExtArgs>>): Prisma__ChatbotFAQClient<$Result.GetResult<Prisma.$ChatbotFAQPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ChatbotFAQS.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatbotFAQCountArgs} args - Arguments to filter ChatbotFAQS to count.
+     * @example
+     * // Count the number of ChatbotFAQS
+     * const count = await prisma.chatbotFAQ.count({
+     *   where: {
+     *     // ... the filter for the ChatbotFAQS we want to count
+     *   }
+     * })
+    **/
+    count<T extends ChatbotFAQCountArgs>(
+      args?: Subset<T, ChatbotFAQCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ChatbotFAQCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ChatbotFAQ.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatbotFAQAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ChatbotFAQAggregateArgs>(args: Subset<T, ChatbotFAQAggregateArgs>): Prisma.PrismaPromise<GetChatbotFAQAggregateType<T>>
+
+    /**
+     * Group by ChatbotFAQ.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ChatbotFAQGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ChatbotFAQGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ChatbotFAQGroupByArgs['orderBy'] }
+        : { orderBy?: ChatbotFAQGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ChatbotFAQGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetChatbotFAQGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ChatbotFAQ model
+   */
+  readonly fields: ChatbotFAQFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ChatbotFAQ.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ChatbotFAQClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ChatbotFAQ model
+   */
+  interface ChatbotFAQFieldRefs {
+    readonly id: FieldRef<"ChatbotFAQ", 'String'>
+    readonly question: FieldRef<"ChatbotFAQ", 'String'>
+    readonly answer: FieldRef<"ChatbotFAQ", 'String'>
+    readonly category: FieldRef<"ChatbotFAQ", 'String'>
+    readonly order: FieldRef<"ChatbotFAQ", 'Int'>
+    readonly active: FieldRef<"ChatbotFAQ", 'Boolean'>
+    readonly createdAt: FieldRef<"ChatbotFAQ", 'DateTime'>
+    readonly updatedAt: FieldRef<"ChatbotFAQ", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ChatbotFAQ findUnique
+   */
+  export type ChatbotFAQFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatbotFAQ
+     */
+    select?: ChatbotFAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatbotFAQ
+     */
+    omit?: ChatbotFAQOmit<ExtArgs> | null
+    /**
+     * Filter, which ChatbotFAQ to fetch.
+     */
+    where: ChatbotFAQWhereUniqueInput
+  }
+
+  /**
+   * ChatbotFAQ findUniqueOrThrow
+   */
+  export type ChatbotFAQFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatbotFAQ
+     */
+    select?: ChatbotFAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatbotFAQ
+     */
+    omit?: ChatbotFAQOmit<ExtArgs> | null
+    /**
+     * Filter, which ChatbotFAQ to fetch.
+     */
+    where: ChatbotFAQWhereUniqueInput
+  }
+
+  /**
+   * ChatbotFAQ findFirst
+   */
+  export type ChatbotFAQFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatbotFAQ
+     */
+    select?: ChatbotFAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatbotFAQ
+     */
+    omit?: ChatbotFAQOmit<ExtArgs> | null
+    /**
+     * Filter, which ChatbotFAQ to fetch.
+     */
+    where?: ChatbotFAQWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChatbotFAQS to fetch.
+     */
+    orderBy?: ChatbotFAQOrderByWithRelationInput | ChatbotFAQOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ChatbotFAQS.
+     */
+    cursor?: ChatbotFAQWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChatbotFAQS from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChatbotFAQS.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChatbotFAQS.
+     */
+    distinct?: ChatbotFAQScalarFieldEnum | ChatbotFAQScalarFieldEnum[]
+  }
+
+  /**
+   * ChatbotFAQ findFirstOrThrow
+   */
+  export type ChatbotFAQFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatbotFAQ
+     */
+    select?: ChatbotFAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatbotFAQ
+     */
+    omit?: ChatbotFAQOmit<ExtArgs> | null
+    /**
+     * Filter, which ChatbotFAQ to fetch.
+     */
+    where?: ChatbotFAQWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChatbotFAQS to fetch.
+     */
+    orderBy?: ChatbotFAQOrderByWithRelationInput | ChatbotFAQOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ChatbotFAQS.
+     */
+    cursor?: ChatbotFAQWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChatbotFAQS from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChatbotFAQS.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ChatbotFAQS.
+     */
+    distinct?: ChatbotFAQScalarFieldEnum | ChatbotFAQScalarFieldEnum[]
+  }
+
+  /**
+   * ChatbotFAQ findMany
+   */
+  export type ChatbotFAQFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatbotFAQ
+     */
+    select?: ChatbotFAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatbotFAQ
+     */
+    omit?: ChatbotFAQOmit<ExtArgs> | null
+    /**
+     * Filter, which ChatbotFAQS to fetch.
+     */
+    where?: ChatbotFAQWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ChatbotFAQS to fetch.
+     */
+    orderBy?: ChatbotFAQOrderByWithRelationInput | ChatbotFAQOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ChatbotFAQS.
+     */
+    cursor?: ChatbotFAQWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ChatbotFAQS from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ChatbotFAQS.
+     */
+    skip?: number
+    distinct?: ChatbotFAQScalarFieldEnum | ChatbotFAQScalarFieldEnum[]
+  }
+
+  /**
+   * ChatbotFAQ create
+   */
+  export type ChatbotFAQCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatbotFAQ
+     */
+    select?: ChatbotFAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatbotFAQ
+     */
+    omit?: ChatbotFAQOmit<ExtArgs> | null
+    /**
+     * The data needed to create a ChatbotFAQ.
+     */
+    data: XOR<ChatbotFAQCreateInput, ChatbotFAQUncheckedCreateInput>
+  }
+
+  /**
+   * ChatbotFAQ createMany
+   */
+  export type ChatbotFAQCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ChatbotFAQS.
+     */
+    data: ChatbotFAQCreateManyInput | ChatbotFAQCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ChatbotFAQ createManyAndReturn
+   */
+  export type ChatbotFAQCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatbotFAQ
+     */
+    select?: ChatbotFAQSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatbotFAQ
+     */
+    omit?: ChatbotFAQOmit<ExtArgs> | null
+    /**
+     * The data used to create many ChatbotFAQS.
+     */
+    data: ChatbotFAQCreateManyInput | ChatbotFAQCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ChatbotFAQ update
+   */
+  export type ChatbotFAQUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatbotFAQ
+     */
+    select?: ChatbotFAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatbotFAQ
+     */
+    omit?: ChatbotFAQOmit<ExtArgs> | null
+    /**
+     * The data needed to update a ChatbotFAQ.
+     */
+    data: XOR<ChatbotFAQUpdateInput, ChatbotFAQUncheckedUpdateInput>
+    /**
+     * Choose, which ChatbotFAQ to update.
+     */
+    where: ChatbotFAQWhereUniqueInput
+  }
+
+  /**
+   * ChatbotFAQ updateMany
+   */
+  export type ChatbotFAQUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ChatbotFAQS.
+     */
+    data: XOR<ChatbotFAQUpdateManyMutationInput, ChatbotFAQUncheckedUpdateManyInput>
+    /**
+     * Filter which ChatbotFAQS to update
+     */
+    where?: ChatbotFAQWhereInput
+    /**
+     * Limit how many ChatbotFAQS to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ChatbotFAQ updateManyAndReturn
+   */
+  export type ChatbotFAQUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatbotFAQ
+     */
+    select?: ChatbotFAQSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatbotFAQ
+     */
+    omit?: ChatbotFAQOmit<ExtArgs> | null
+    /**
+     * The data used to update ChatbotFAQS.
+     */
+    data: XOR<ChatbotFAQUpdateManyMutationInput, ChatbotFAQUncheckedUpdateManyInput>
+    /**
+     * Filter which ChatbotFAQS to update
+     */
+    where?: ChatbotFAQWhereInput
+    /**
+     * Limit how many ChatbotFAQS to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ChatbotFAQ upsert
+   */
+  export type ChatbotFAQUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatbotFAQ
+     */
+    select?: ChatbotFAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatbotFAQ
+     */
+    omit?: ChatbotFAQOmit<ExtArgs> | null
+    /**
+     * The filter to search for the ChatbotFAQ to update in case it exists.
+     */
+    where: ChatbotFAQWhereUniqueInput
+    /**
+     * In case the ChatbotFAQ found by the `where` argument doesn't exist, create a new ChatbotFAQ with this data.
+     */
+    create: XOR<ChatbotFAQCreateInput, ChatbotFAQUncheckedCreateInput>
+    /**
+     * In case the ChatbotFAQ was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ChatbotFAQUpdateInput, ChatbotFAQUncheckedUpdateInput>
+  }
+
+  /**
+   * ChatbotFAQ delete
+   */
+  export type ChatbotFAQDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatbotFAQ
+     */
+    select?: ChatbotFAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatbotFAQ
+     */
+    omit?: ChatbotFAQOmit<ExtArgs> | null
+    /**
+     * Filter which ChatbotFAQ to delete.
+     */
+    where: ChatbotFAQWhereUniqueInput
+  }
+
+  /**
+   * ChatbotFAQ deleteMany
+   */
+  export type ChatbotFAQDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ChatbotFAQS to delete
+     */
+    where?: ChatbotFAQWhereInput
+    /**
+     * Limit how many ChatbotFAQS to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ChatbotFAQ without action
+   */
+  export type ChatbotFAQDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ChatbotFAQ
+     */
+    select?: ChatbotFAQSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ChatbotFAQ
+     */
+    omit?: ChatbotFAQOmit<ExtArgs> | null
   }
 
 
@@ -17365,17 +18524,31 @@ export namespace Prisma {
   export type EventSubmissionScalarFieldEnum = (typeof EventSubmissionScalarFieldEnum)[keyof typeof EventSubmissionScalarFieldEnum]
 
 
-  export const FAQScalarFieldEnum: {
+  export const ChatbotCategoryScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    image: 'image',
+    order: 'order',
+    active: 'active',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ChatbotCategoryScalarFieldEnum = (typeof ChatbotCategoryScalarFieldEnum)[keyof typeof ChatbotCategoryScalarFieldEnum]
+
+
+  export const ChatbotFAQScalarFieldEnum: {
     id: 'id',
     question: 'question',
     answer: 'answer',
     category: 'category',
     order: 'order',
+    active: 'active',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
 
-  export type FAQScalarFieldEnum = (typeof FAQScalarFieldEnum)[keyof typeof FAQScalarFieldEnum]
+  export type ChatbotFAQScalarFieldEnum = (typeof ChatbotFAQScalarFieldEnum)[keyof typeof ChatbotFAQScalarFieldEnum]
 
 
   export const EvaluationScalarFieldEnum: {
@@ -18471,68 +19644,137 @@ export namespace Prisma {
     notes?: StringNullableWithAggregatesFilter<"EventSubmission"> | string | null
   }
 
-  export type FAQWhereInput = {
-    AND?: FAQWhereInput | FAQWhereInput[]
-    OR?: FAQWhereInput[]
-    NOT?: FAQWhereInput | FAQWhereInput[]
-    id?: StringFilter<"FAQ"> | string
-    question?: StringFilter<"FAQ"> | string
-    answer?: StringFilter<"FAQ"> | string
-    category?: StringNullableFilter<"FAQ"> | string | null
-    order?: IntFilter<"FAQ"> | number
-    createdAt?: DateTimeFilter<"FAQ"> | Date | string
-    updatedAt?: DateTimeFilter<"FAQ"> | Date | string
+  export type ChatbotCategoryWhereInput = {
+    AND?: ChatbotCategoryWhereInput | ChatbotCategoryWhereInput[]
+    OR?: ChatbotCategoryWhereInput[]
+    NOT?: ChatbotCategoryWhereInput | ChatbotCategoryWhereInput[]
+    id?: StringFilter<"ChatbotCategory"> | string
+    name?: StringFilter<"ChatbotCategory"> | string
+    image?: StringNullableFilter<"ChatbotCategory"> | string | null
+    order?: IntFilter<"ChatbotCategory"> | number
+    active?: BoolFilter<"ChatbotCategory"> | boolean
+    createdAt?: DateTimeFilter<"ChatbotCategory"> | Date | string
+    updatedAt?: DateTimeFilter<"ChatbotCategory"> | Date | string
   }
 
-  export type FAQOrderByWithRelationInput = {
+  export type ChatbotCategoryOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    image?: SortOrderInput | SortOrder
+    order?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ChatbotCategoryWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    name?: string
+    AND?: ChatbotCategoryWhereInput | ChatbotCategoryWhereInput[]
+    OR?: ChatbotCategoryWhereInput[]
+    NOT?: ChatbotCategoryWhereInput | ChatbotCategoryWhereInput[]
+    image?: StringNullableFilter<"ChatbotCategory"> | string | null
+    order?: IntFilter<"ChatbotCategory"> | number
+    active?: BoolFilter<"ChatbotCategory"> | boolean
+    createdAt?: DateTimeFilter<"ChatbotCategory"> | Date | string
+    updatedAt?: DateTimeFilter<"ChatbotCategory"> | Date | string
+  }, "id" | "name">
+
+  export type ChatbotCategoryOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    image?: SortOrderInput | SortOrder
+    order?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ChatbotCategoryCountOrderByAggregateInput
+    _avg?: ChatbotCategoryAvgOrderByAggregateInput
+    _max?: ChatbotCategoryMaxOrderByAggregateInput
+    _min?: ChatbotCategoryMinOrderByAggregateInput
+    _sum?: ChatbotCategorySumOrderByAggregateInput
+  }
+
+  export type ChatbotCategoryScalarWhereWithAggregatesInput = {
+    AND?: ChatbotCategoryScalarWhereWithAggregatesInput | ChatbotCategoryScalarWhereWithAggregatesInput[]
+    OR?: ChatbotCategoryScalarWhereWithAggregatesInput[]
+    NOT?: ChatbotCategoryScalarWhereWithAggregatesInput | ChatbotCategoryScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ChatbotCategory"> | string
+    name?: StringWithAggregatesFilter<"ChatbotCategory"> | string
+    image?: StringNullableWithAggregatesFilter<"ChatbotCategory"> | string | null
+    order?: IntWithAggregatesFilter<"ChatbotCategory"> | number
+    active?: BoolWithAggregatesFilter<"ChatbotCategory"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"ChatbotCategory"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ChatbotCategory"> | Date | string
+  }
+
+  export type ChatbotFAQWhereInput = {
+    AND?: ChatbotFAQWhereInput | ChatbotFAQWhereInput[]
+    OR?: ChatbotFAQWhereInput[]
+    NOT?: ChatbotFAQWhereInput | ChatbotFAQWhereInput[]
+    id?: StringFilter<"ChatbotFAQ"> | string
+    question?: StringFilter<"ChatbotFAQ"> | string
+    answer?: StringFilter<"ChatbotFAQ"> | string
+    category?: StringNullableFilter<"ChatbotFAQ"> | string | null
+    order?: IntFilter<"ChatbotFAQ"> | number
+    active?: BoolFilter<"ChatbotFAQ"> | boolean
+    createdAt?: DateTimeFilter<"ChatbotFAQ"> | Date | string
+    updatedAt?: DateTimeFilter<"ChatbotFAQ"> | Date | string
+  }
+
+  export type ChatbotFAQOrderByWithRelationInput = {
     id?: SortOrder
     question?: SortOrder
     answer?: SortOrder
     category?: SortOrderInput | SortOrder
     order?: SortOrder
+    active?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
-  export type FAQWhereUniqueInput = Prisma.AtLeast<{
+  export type ChatbotFAQWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    AND?: FAQWhereInput | FAQWhereInput[]
-    OR?: FAQWhereInput[]
-    NOT?: FAQWhereInput | FAQWhereInput[]
-    question?: StringFilter<"FAQ"> | string
-    answer?: StringFilter<"FAQ"> | string
-    category?: StringNullableFilter<"FAQ"> | string | null
-    order?: IntFilter<"FAQ"> | number
-    createdAt?: DateTimeFilter<"FAQ"> | Date | string
-    updatedAt?: DateTimeFilter<"FAQ"> | Date | string
+    AND?: ChatbotFAQWhereInput | ChatbotFAQWhereInput[]
+    OR?: ChatbotFAQWhereInput[]
+    NOT?: ChatbotFAQWhereInput | ChatbotFAQWhereInput[]
+    question?: StringFilter<"ChatbotFAQ"> | string
+    answer?: StringFilter<"ChatbotFAQ"> | string
+    category?: StringNullableFilter<"ChatbotFAQ"> | string | null
+    order?: IntFilter<"ChatbotFAQ"> | number
+    active?: BoolFilter<"ChatbotFAQ"> | boolean
+    createdAt?: DateTimeFilter<"ChatbotFAQ"> | Date | string
+    updatedAt?: DateTimeFilter<"ChatbotFAQ"> | Date | string
   }, "id">
 
-  export type FAQOrderByWithAggregationInput = {
+  export type ChatbotFAQOrderByWithAggregationInput = {
     id?: SortOrder
     question?: SortOrder
     answer?: SortOrder
     category?: SortOrderInput | SortOrder
     order?: SortOrder
+    active?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    _count?: FAQCountOrderByAggregateInput
-    _avg?: FAQAvgOrderByAggregateInput
-    _max?: FAQMaxOrderByAggregateInput
-    _min?: FAQMinOrderByAggregateInput
-    _sum?: FAQSumOrderByAggregateInput
+    _count?: ChatbotFAQCountOrderByAggregateInput
+    _avg?: ChatbotFAQAvgOrderByAggregateInput
+    _max?: ChatbotFAQMaxOrderByAggregateInput
+    _min?: ChatbotFAQMinOrderByAggregateInput
+    _sum?: ChatbotFAQSumOrderByAggregateInput
   }
 
-  export type FAQScalarWhereWithAggregatesInput = {
-    AND?: FAQScalarWhereWithAggregatesInput | FAQScalarWhereWithAggregatesInput[]
-    OR?: FAQScalarWhereWithAggregatesInput[]
-    NOT?: FAQScalarWhereWithAggregatesInput | FAQScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter<"FAQ"> | string
-    question?: StringWithAggregatesFilter<"FAQ"> | string
-    answer?: StringWithAggregatesFilter<"FAQ"> | string
-    category?: StringNullableWithAggregatesFilter<"FAQ"> | string | null
-    order?: IntWithAggregatesFilter<"FAQ"> | number
-    createdAt?: DateTimeWithAggregatesFilter<"FAQ"> | Date | string
-    updatedAt?: DateTimeWithAggregatesFilter<"FAQ"> | Date | string
+  export type ChatbotFAQScalarWhereWithAggregatesInput = {
+    AND?: ChatbotFAQScalarWhereWithAggregatesInput | ChatbotFAQScalarWhereWithAggregatesInput[]
+    OR?: ChatbotFAQScalarWhereWithAggregatesInput[]
+    NOT?: ChatbotFAQScalarWhereWithAggregatesInput | ChatbotFAQScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ChatbotFAQ"> | string
+    question?: StringWithAggregatesFilter<"ChatbotFAQ"> | string
+    answer?: StringWithAggregatesFilter<"ChatbotFAQ"> | string
+    category?: StringNullableWithAggregatesFilter<"ChatbotFAQ"> | string | null
+    order?: IntWithAggregatesFilter<"ChatbotFAQ"> | number
+    active?: BoolWithAggregatesFilter<"ChatbotFAQ"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"ChatbotFAQ"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ChatbotFAQ"> | Date | string
   }
 
   export type EvaluationWhereInput = {
@@ -19711,72 +20953,149 @@ export namespace Prisma {
     notes?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
-  export type FAQCreateInput = {
+  export type ChatbotCategoryCreateInput = {
+    id?: string
+    name: string
+    image?: string | null
+    order?: number
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ChatbotCategoryUncheckedCreateInput = {
+    id?: string
+    name: string
+    image?: string | null
+    order?: number
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ChatbotCategoryUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChatbotCategoryUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChatbotCategoryCreateManyInput = {
+    id?: string
+    name: string
+    image?: string | null
+    order?: number
+    active?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ChatbotCategoryUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChatbotCategoryUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    active?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ChatbotFAQCreateInput = {
     id?: string
     question: string
     answer: string
     category?: string | null
     order?: number
+    active?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
-  export type FAQUncheckedCreateInput = {
+  export type ChatbotFAQUncheckedCreateInput = {
     id?: string
     question: string
     answer: string
     category?: string | null
     order?: number
+    active?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
-  export type FAQUpdateInput = {
+  export type ChatbotFAQUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     question?: StringFieldUpdateOperationsInput | string
     answer?: StringFieldUpdateOperationsInput | string
     category?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
+    active?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type FAQUncheckedUpdateInput = {
+  export type ChatbotFAQUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     question?: StringFieldUpdateOperationsInput | string
     answer?: StringFieldUpdateOperationsInput | string
     category?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
+    active?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type FAQCreateManyInput = {
+  export type ChatbotFAQCreateManyInput = {
     id?: string
     question: string
     answer: string
     category?: string | null
     order?: number
+    active?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
-  export type FAQUpdateManyMutationInput = {
+  export type ChatbotFAQUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     question?: StringFieldUpdateOperationsInput | string
     answer?: StringFieldUpdateOperationsInput | string
     category?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
+    active?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type FAQUncheckedUpdateManyInput = {
+  export type ChatbotFAQUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     question?: StringFieldUpdateOperationsInput | string
     answer?: StringFieldUpdateOperationsInput | string
     category?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
+    active?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -20931,41 +22250,82 @@ export namespace Prisma {
     notes?: SortOrder
   }
 
-  export type FAQCountOrderByAggregateInput = {
+  export type ChatbotCategoryCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    image?: SortOrder
+    order?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ChatbotCategoryAvgOrderByAggregateInput = {
+    order?: SortOrder
+  }
+
+  export type ChatbotCategoryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    image?: SortOrder
+    order?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ChatbotCategoryMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    image?: SortOrder
+    order?: SortOrder
+    active?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ChatbotCategorySumOrderByAggregateInput = {
+    order?: SortOrder
+  }
+
+  export type ChatbotFAQCountOrderByAggregateInput = {
     id?: SortOrder
     question?: SortOrder
     answer?: SortOrder
     category?: SortOrder
     order?: SortOrder
+    active?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
-  export type FAQAvgOrderByAggregateInput = {
+  export type ChatbotFAQAvgOrderByAggregateInput = {
     order?: SortOrder
   }
 
-  export type FAQMaxOrderByAggregateInput = {
+  export type ChatbotFAQMaxOrderByAggregateInput = {
     id?: SortOrder
     question?: SortOrder
     answer?: SortOrder
     category?: SortOrder
     order?: SortOrder
+    active?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
-  export type FAQMinOrderByAggregateInput = {
+  export type ChatbotFAQMinOrderByAggregateInput = {
     id?: SortOrder
     question?: SortOrder
     answer?: SortOrder
     category?: SortOrder
     order?: SortOrder
+    active?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
-  export type FAQSumOrderByAggregateInput = {
+  export type ChatbotFAQSumOrderByAggregateInput = {
     order?: SortOrder
   }
 

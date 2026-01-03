@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import LenisProvider from "@/components/providers/LenisProvider";
 import ConditionalNavbar from "./ConditionalNavbar";
 import ClickSpark from "@/components/ui/ClickSpark";
+import ChatWidget from "@/components/chat/ChatWidget";
 
 const schibstedGrotesk = Schibsted_Grotesk({
   variable: "--font-Schibsted_Grotesk",
@@ -70,6 +71,7 @@ export default function RootLayout({
               <ConditionalNavbar />
             </Suspense>
             {children}
+            <ChatWidget />
           </ClickSpark>
         </LenisProvider>
       </body>
