@@ -205,10 +205,10 @@ const MultiStepAccommodation = () => {
         >
           <div className="flex flex-col md:flex-row items-center gap-4 mb-8">
             <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-lg shrink-0 ${existingBooking.status === 'APPROVED' || existingBooking.status === 'CONFIRMED'
-                ? 'bg-green-500/10 text-green-500 shadow-green-500/20'
-                : existingBooking.status === 'REJECTED'
-                  ? 'bg-red-500/10 text-red-500 shadow-red-500/20'
-                  : 'bg-yellow-500/10 text-yellow-500 shadow-yellow-500/20'
+              ? 'bg-green-500/10 text-green-500 shadow-green-500/20'
+              : existingBooking.status === 'REJECTED'
+                ? 'bg-red-500/10 text-red-500 shadow-red-500/20'
+                : 'bg-yellow-500/10 text-yellow-500 shadow-yellow-500/20'
               }`}>
               {existingBooking.status === 'APPROVED' || existingBooking.status === 'CONFIRMED' ? <FiCheck /> : existingBooking.status === 'REJECTED' ? <FiXCircle /> : <FiClock />}
             </div>
@@ -218,13 +218,21 @@ const MultiStepAccommodation = () => {
             </div>
             <div className="md:ml-auto">
               <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold border ${existingBooking.status === 'APPROVED' || existingBooking.status === 'CONFIRMED'
-                  ? 'bg-green-500/10 border-green-500/20 text-green-500'
-                  : existingBooking.status === 'REJECTED'
-                    ? 'bg-red-500/10 border-red-500/20 text-red-500'
-                    : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500'
+                ? 'bg-green-500/10 border-green-500/20 text-green-500'
+                : existingBooking.status === 'REJECTED'
+                  ? 'bg-red-500/10 border-red-500/20 text-red-500'
+                  : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500'
                 }`}>
                 {existingBooking.status === 'APPROVED' || existingBooking.status === 'CONFIRMED' ? 'CONFIRMED' : existingBooking.status === 'REJECTED' ? 'REJECTED' : 'PENDING APPROVAL'}
               </div>
+              {existingBooking.status === 'REJECTED' && (
+                <button
+                  onClick={() => setExistingBooking(null)}
+                  className="ml-4 text-xs text-red-400 hover:text-red-300 underline underline-offset-4"
+                >
+                  Submit New Request
+                </button>
+              )}
             </div>
           </div>
 

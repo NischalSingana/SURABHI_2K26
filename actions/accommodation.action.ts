@@ -79,10 +79,19 @@ export async function createAccommodationBooking(
     });
 
     if (existingBooking) {
-      return {
-        success: false,
-        error: "You already have an accommodation booking. Please cancel it first to create a new one.",
-      };
+      if (existingBooking.status === "REJECTED" || existingBooking.status === "CANCELLED") {
+        // If booking was rejected or cancelled, delete it to allow new booking
+        // (Since schema enforces unique userId, we must remove the old one or update it. 
+        // Deleting is cleaner for a fresh start)
+        await prisma.accommodationBooking.delete({
+          where: { id: existingBooking.id },
+        });
+      } else {
+        return {
+          success: false,
+          error: "You already have an active accommodation booking.",
+        };
+      }
     }
 
     // Calculate total members
