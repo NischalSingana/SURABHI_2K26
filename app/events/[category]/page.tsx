@@ -405,27 +405,27 @@ function CategoryPageContent() {
                             </div>
 
                             {/* Event Details - Stacked Layout */}
-                            <div className="flex-1 flex flex-col justify-between py-2">
+                            <div className="flex-1 flex flex-col justify-between py-2" onClick={(e) => e.stopPropagation()}>
                               <div className="space-y-6">
-                                <p className="text-zinc-300 text-lg leading-relaxed">
+                                <p className="text-zinc-300 text-lg leading-loose">
                                   {event.description}
                                 </p>
 
-                                <div className="flex flex-col space-y-4 bg-zinc-800/30 p-6 rounded-xl border border-zinc-800">
+                                <div className="flex flex-col space-y-3 bg-zinc-800/30 p-5 rounded-xl border border-zinc-800">
                                   <div className="flex items-center text-zinc-200">
-                                    <div className="w-10 h-10 rounded-lg bg-red-600/10 flex items-center justify-center mr-4 shrink-0">
-                                      <FiMapPin className="text-red-500" size={20} />
+                                    <div className="w-8 h-8 rounded-lg bg-red-600/10 flex items-center justify-center mr-3 shrink-0">
+                                      <FiMapPin className="text-red-500" size={16} />
                                     </div>
-                                    <span className="text-base font-medium">{event.venue}</span>
+                                    <span className="text-sm font-medium">{event.venue}</span>
                                   </div>
 
-                                  <div className="w-full h-px bg-zinc-800" />
+                                  <div className="w-full h-px bg-zinc-800/50" />
 
                                   <div className="flex items-center text-zinc-200">
-                                    <div className="w-10 h-10 rounded-lg bg-red-600/10 flex items-center justify-center mr-4 shrink-0">
-                                      <FiCalendar className="text-red-500" size={20} />
+                                    <div className="w-8 h-8 rounded-lg bg-red-600/10 flex items-center justify-center mr-3 shrink-0">
+                                      <FiCalendar className="text-red-500" size={16} />
                                     </div>
-                                    <span className="text-base font-medium">
+                                    <span className="text-sm font-medium">
                                       {new Date(event.date).toLocaleDateString("en-US", {
                                         weekday: "long",
                                         month: "long",
@@ -435,24 +435,13 @@ function CategoryPageContent() {
                                     </span>
                                   </div>
 
-                                  <div className="w-full h-px bg-zinc-800" />
+                                  <div className="w-full h-px bg-zinc-800/50" />
 
                                   <div className="flex items-center text-zinc-200">
-                                    <div className="w-10 h-10 rounded-lg bg-red-600/10 flex items-center justify-center mr-4 shrink-0">
-                                      <FiClock className="text-red-500" size={20} />
+                                    <div className="w-8 h-8 rounded-lg bg-red-600/10 flex items-center justify-center mr-3 shrink-0">
+                                      <FiClock className="text-red-500" size={16} />
                                     </div>
-                                    <span className="text-base font-medium">{event.startTime} - {event.endTime}</span>
-                                  </div>
-
-                                  <div className="w-full h-px bg-zinc-800" />
-
-                                  <div className="flex items-center text-zinc-200">
-                                    <div className="w-10 h-10 rounded-lg bg-red-600/10 flex items-center justify-center mr-4 shrink-0">
-                                      <FiUsers className="text-red-500" size={20} />
-                                    </div>
-                                    <span className="text-base font-medium">
-                                      {event._count.registeredStudents} / {event.participantLimit} registered
-                                    </span>
+                                    <span className="text-sm font-medium">{event.startTime} - {event.endTime}</span>
                                   </div>
                                 </div>
                               </div>
