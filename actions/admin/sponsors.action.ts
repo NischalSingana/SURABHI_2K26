@@ -149,6 +149,12 @@ export async function uploadSponsorImage(formData: FormData) {
             return { success: false, error: "No file provided" };
         }
 
+        // Validate file size (10MB max)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+            return { success: false, error: "File size too large. Maximum size is 10MB." };
+        }
+
         // Upload to R2
         const buffer = Buffer.from(await file.arrayBuffer());
         const filename = `sponsors/${generateUniqueFilename(file.name)}`;

@@ -8,22 +8,30 @@ import { revalidatePath } from "next/cache";
 
 const EVENT_FULL_ERROR = "EVENT_FULL";
 
+// Helper to generate slug
+function generateSlug(text: string) {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w\-]+/g, "")
+    .replace(/\-\-+/g, "-")
+    .replace(/^-+/, "")
+    .replace(/-+$/, "");
+}
+
 
 export async function getCategories() {
   try {
     const categories = await prisma.category.findMany({
       include: {
         Event: {
-          include: {
-            registeredStudents: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                phone: true,
-                collage: true,
-              },
-            },
+          select: {
+            id: true,
+            image: true,
+            name: true,
+            description: true,
           },
           orderBy: {
             date: "asc",
@@ -41,6 +49,7 @@ export async function getCategories() {
     return { success: false, error: "Failed to fetch categories" };
   }
 }
+
 
 
 export async function createCategory(name: string, image?: string, video?: string) {
@@ -62,6 +71,7 @@ export async function createCategory(name: string, image?: string, video?: strin
       data: {
         id: crypto.randomUUID(),
         name: name.trim(),
+        slug: generateSlug(name),
         image: image || null,
         video: video || null,
         updatedAt: new Date(),
@@ -96,6 +106,7 @@ export async function updateCategory(id: string, name: string, image?: string, v
       where: { id },
       data: {
         name: name.trim(),
+        slug: generateSlug(name),
         image: image || null,
         video: video || null,
         updatedAt: new Date(),
@@ -198,6 +209,7 @@ export async function createEvent(eventData: EventData) {
           connect: { id: eventData.categoryId },
         },
         name: eventData.name,
+        slug: generateSlug(eventData.name),
         description: eventData.description,
         date: new Date(eventData.date),
         image: eventData.image,
@@ -269,6 +281,7 @@ export async function updateEvent({ id, eventData }: EventUpdateData) {
           connect: { id: eventData.categoryId },
         },
         name: eventData.name,
+        slug: generateSlug(eventData.name),
         description: eventData.description,
         date: new Date(eventData.date),
         image: eventData.image,
@@ -517,6 +530,32 @@ export async function registerGroupEvent(
   }
 }
 
+// Helper to get Event by Slug
+export async function getEventBySlug(slug: string) {
+  try {
+    const event = await prisma.event.findUnique({
+      where: { slug },
+      include: {
+        Category: true,
+        _count: {
+          select: {
+            registeredStudents: true,
+          },
+        },
+      },
+    });
+
+    if (!event) {
+      return { success: false, error: "Event not found" };
+    }
+
+    return { success: true, data: event };
+  } catch (error) {
+    console.error("Error fetching event by slug:", error);
+    return { success: false, error: "Failed to fetch event" };
+  }
+}
+
 export async function getPublicEvents() {
   try {
     const events = await prisma.event.findMany({
@@ -674,6 +713,38 @@ export async function checkEventRegistration(eventId: string) {
   } catch (error) {
     console.error("Error checking registration:", error);
     return { success: false, error: "Failed to check registration" };
+  }
+}
+
+export async function getUserRegistrations() {
+  try {
+    const headersList = await headers();
+    const session = await auth.api.getSession({
+      headers: headersList,
+    });
+
+    if (!session || !session.user) {
+      return { success: true, registeredEventIds: [], isApproved: false };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        isApproved: true,
+        registeredEvents: {
+          select: { id: true }
+        }
+      }
+    });
+
+    return {
+      success: true,
+      registeredEventIds: user?.registeredEvents.map(e => e.id) || [],
+      isApproved: !!user?.isApproved
+    };
+  } catch (error) {
+    console.error("Error fetching user registrations:", error);
+    return { success: false, error: "Failed to fetch registrations" };
   }
 }
 
