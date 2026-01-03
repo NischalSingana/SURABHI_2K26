@@ -195,8 +195,8 @@ const MultiStepAccommodation = () => {
           </div>
         </div>
 
-        <div className="hidden md:block">
-          <p className="text-zinc-500 text-xs">For support contact: <span className="text-white">help@surabhi.com</span></p>
+        <div className="hidden md:block pl-16">
+          <p className="text-zinc-500 text-xs">For support contact: <span className="text-white">surabhi@kluniversity.in</span></p>
         </div>
       </div>
 
