@@ -192,11 +192,12 @@ const HomePage = () => {
                             transition={{ duration: 0.5, delay: 0.1 }}
                             className="md:col-span-1 group relative overflow-hidden rounded-3xl bg-zinc-900/40 border border-white/5 p-6 flex flex-col justify-center items-center hover:bg-zinc-900/60 transition-all duration-300"
                         >
-                            <FiUsers className="text-zinc-600 text-4xl mb-4 group-hover:text-red-500 transition-colors duration-300 transform group-hover:scale-110" />
+                            <FiUsers className="text-zinc-600 text-4xl mb-2 group-hover:text-red-500 transition-colors duration-300 transform group-hover:scale-110" />
+                            <span className="text-zinc-600 text-[10px] uppercase tracking-widest mb-1 font-medium">Till Date</span>
                             <h4 className="text-4xl font-bold text-white font-[family-name:var(--font-Martian_Mono)] text-center">
                                 <CountUp from={0} to={21} duration={2.5} />K+
                             </h4>
-                            <p className="text-zinc-500 text-sm mt-2 font-medium tracking-wide uppercase">Participants</p>
+                            <p className="text-zinc-500 text-sm mt-1 font-medium tracking-wide uppercase">Participants</p>
                         </motion.div>
 
                         {/* Stats Card 2 */}
@@ -207,11 +208,12 @@ const HomePage = () => {
                             transition={{ duration: 0.5, delay: 0.2 }}
                             className="md:col-span-1 group relative overflow-hidden rounded-3xl bg-zinc-900/40 border border-white/5 p-6 flex flex-col justify-center items-center hover:bg-zinc-900/60 transition-all duration-300"
                         >
-                            <FiAward className="text-zinc-600 text-4xl mb-4 group-hover:text-orange-500 transition-colors duration-300 transform group-hover:scale-110" />
+                            <FiAward className="text-zinc-600 text-4xl mb-2 group-hover:text-orange-500 transition-colors duration-300 transform group-hover:scale-110" />
+                            <span className="text-zinc-600 text-[10px] uppercase tracking-widest mb-1 font-medium">Till Date</span>
                             <h4 className="text-4xl font-bold text-white font-[family-name:var(--font-Martian_Mono)] text-center">
                                 <CountUp from={0} to={35} duration={2.5} />+
                             </h4>
-                            <p className="text-zinc-500 text-sm mt-2 font-medium tracking-wide uppercase">Competitions</p>
+                            <p className="text-zinc-500 text-sm mt-1 font-medium tracking-wide uppercase">Competitions</p>
                         </motion.div>
 
                         {/* Liberal Arts Clubs - Spans 2 cols */}
