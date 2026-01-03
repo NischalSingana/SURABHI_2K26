@@ -98,6 +98,8 @@ const PillNav: React.FC<PillNavProps> = ({
   }, [ease, initialLoadAnimation]);
 
 
+  const backdropRef = useRef<HTMLDivElement | null>(null);
+
   // Auto-close mobile menu when pathname changes (user navigates)
   useEffect(() => {
     // Only close if menu is open AND pathname has actually changed
@@ -107,6 +109,7 @@ const PillNav: React.FC<PillNavProps> = ({
         setIsMobileMenuOpen(false);
         const hamburger = hamburgerRef.current;
         const menu = mobileMenuRef.current;
+        const backdrop = backdropRef.current;
 
         if (hamburger) {
           const lines = hamburger.querySelectorAll('.hamburger-line');
@@ -116,12 +119,21 @@ const PillNav: React.FC<PillNavProps> = ({
 
         if (menu) {
           gsap.to(menu, {
-            opacity: 0,
-            y: 10,
-            duration: 0.2,
-            ease,
+            x: '-100%',
+            duration: 0.4,
+            ease: 'power3.inOut',
             onComplete: () => {
               gsap.set(menu, { visibility: 'hidden' });
+            }
+          });
+        }
+
+        if (backdrop) {
+          gsap.to(backdrop, {
+            opacity: 0,
+            duration: 0.3,
+            onComplete: () => {
+              gsap.set(backdrop, { visibility: 'hidden' });
             }
           });
         }
@@ -157,6 +169,7 @@ const PillNav: React.FC<PillNavProps> = ({
 
     const hamburger = hamburgerRef.current;
     const menu = mobileMenuRef.current;
+    const backdrop = backdropRef.current;
 
     if (hamburger) {
       const lines = hamburger.querySelectorAll('.hamburger-line');
@@ -169,31 +182,41 @@ const PillNav: React.FC<PillNavProps> = ({
       }
     }
 
-    if (menu) {
+    if (menu && backdrop) {
       if (newState) {
-        gsap.set(menu, { visibility: 'visible' });
-        gsap.fromTo(
-          menu,
-          { opacity: 0, y: 10, scaleY: 1 },
-          {
-            opacity: 1,
-            y: 0,
-            scaleY: 1,
-            duration: 0.3,
-            ease,
-            transformOrigin: 'top center'
-          }
-        );
-      } else {
+        // Open
+        gsap.set(menu, { visibility: 'visible', x: '-100%' });
+        gsap.set(backdrop, { visibility: 'visible', opacity: 0 });
+
         gsap.to(menu, {
-          opacity: 0,
-          y: 10,
-          scaleY: 1,
-          duration: 0.2,
-          ease,
-          transformOrigin: 'top center',
+          x: '0%',
+          duration: 0.5,
+          ease: 'power3.out'
+        });
+
+        gsap.to(backdrop, {
+          opacity: 1,
+          duration: 0.5,
+          ease: 'power2.out'
+        });
+
+      } else {
+        // Close
+        gsap.to(menu, {
+          x: '-100%',
+          duration: 0.4,
+          ease: 'power3.inOut',
           onComplete: () => {
             gsap.set(menu, { visibility: 'hidden' });
+          }
+        });
+
+        gsap.to(backdrop, {
+          opacity: 0,
+          duration: 0.4,
+          ease: 'power2.inOut',
+          onComplete: () => {
+            gsap.set(backdrop, { visibility: 'hidden' });
           }
         });
       }
@@ -319,6 +342,12 @@ const PillNav: React.FC<PillNavProps> = ({
           <span className="hamburger-line" />
         </button>
       </nav>
+
+      <div
+        className="mobile-menu-backdrop mobile-only"
+        ref={backdropRef}
+        onClick={toggleMobileMenu}
+      />
 
       <div className="mobile-menu-popover mobile-only" ref={mobileMenuRef} style={cssVars}>
         <ul className="mobile-menu-list">
