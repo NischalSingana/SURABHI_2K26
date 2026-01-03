@@ -114,18 +114,23 @@ const Footer = () => {
                                 </div>
                             </a>
 
-                            <div className="flex items-start gap-4 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
-                                <div className="p-2.5 bg-zinc-800 rounded-lg text-red-500">
+                            <a
+                                href="https://www.google.com/maps/search/?api=1&query=KL+University+Vaddeswaram"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group flex items-start gap-4 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-red-500/30 transition-all cursor-pointer"
+                            >
+                                <div className="p-2.5 bg-zinc-800 rounded-lg text-red-500 group-hover:bg-red-500 group-hover:text-white transition-colors">
                                     <FaMapMarkerAlt size={18} />
                                 </div>
                                 <div>
                                     <p className="text-sm text-zinc-500 mb-0.5">Visit Us</p>
-                                    <p className="text-zinc-300 font-medium">
+                                    <p className="text-zinc-300 font-medium group-hover:text-white transition-colors">
                                         KL University, Vaddeswaram,<br />
                                         Guntur, Andhra Pradesh 522302
                                     </p>
                                 </div>
-                            </div>
+                            </a>
                         </div>
                     </motion.div>
                 </motion.div>
