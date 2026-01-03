@@ -214,41 +214,42 @@ const HomePage = () => {
                             <p className="text-zinc-500 text-sm mt-2 font-medium tracking-wide uppercase">Competitions</p>
                         </motion.div>
 
-                        {/* Feature Card - Clubs */}
+                        {/* Liberal Arts Clubs - Spans 2 cols */}
                         <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: 0.3 }}
-                            className="md:col-span-1 group relative overflow-hidden rounded-3xl bg-gradient-to-b from-red-900/20 to-zinc-900/40 border border-white/5 p-6 hover:border-red-500/20 transition-all duration-300"
+                            className="md:col-span-2 group relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-900/60 to-black border border-white/5 p-8 flex flex-col justify-center hover:border-red-500/30 transition-all duration-500"
                         >
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full blur-2xl" />
-                            <FiMusic className="text-red-500 text-3xl mb-4" />
-                            <h4 className="text-xl font-bold text-white mb-2">Hobby Clubs</h4>
-                            <ul className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-zinc-400">
-                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-red-500 rounded-full" /> Nrithya (Dance)</li>
-                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-orange-500 rounded-full" /> Raaga (Music)</li>
-                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-yellow-500 rounded-full" /> Natyaka (Drama)</li>
-                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-500 rounded-full" /> Chitrakala (Arts)</li>
-                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full" /> Sahithya (Lit)</li>
-                                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-purple-500 rounded-full" /> Vastra (Fashion)</li>
-                                <li className="flex items-center gap-2 col-span-2"><span className="w-1.5 h-1.5 bg-pink-500 rounded-full" /> Chitramela (Filmmaking)</li>
-                            </ul>
-                        </motion.div>
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="p-3 bg-red-600/10 rounded-xl">
+                                    <FiMusic className="text-red-500 text-2xl" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-white font-[family-name:var(--font-Lexend)]">
+                                    Liberal Arts Clubs
+                                </h3>
+                            </div>
 
-                        {/* Feature Card - Global */}
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: 0.4 }}
-                            className="md:col-span-1 group relative overflow-hidden rounded-3xl bg-zinc-900/40 border border-white/5 p-6 hover:border-red-500/20 transition-all duration-300"
-                        >
-                            <FiTrendingUp className="text-green-500 text-3xl mb-4" />
-                            <h4 className="text-xl font-bold text-white mb-2">Impact</h4>
-                            <p className="text-sm text-zinc-400 leading-relaxed">
-                                Setting benchmarks every year with record-breaking footfall and celebrity performances.
-                            </p>
+                            <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                                {[
+                                    { name: "Fusion", type: "Dance", color: "bg-red-500" },
+                                    { name: "Swara", type: "Music", color: "bg-orange-500" },
+                                    { name: "MovieMakers", type: "Film Making", color: "bg-yellow-500" },
+                                    { name: "Vachas", type: "Literature", color: "bg-green-500" },
+                                    { name: "Esports", type: "Gaming", color: "bg-blue-500" },
+                                    { name: "Vastraa", type: "Fashion", color: "bg-purple-500" },
+                                    { name: "Abhinaya", type: "Dramatics", color: "bg-pink-500" },
+                                ].map((club, idx) => (
+                                    <div key={idx} className="flex items-center gap-3 group/item">
+                                        <div className={`w-2 h-2 rounded-full ${club.color} group-hover/item:scale-125 transition-transform`} />
+                                        <span className="text-zinc-300 font-medium font-[family-name:var(--font-Lexend)] group-hover/item:text-white transition-colors">
+                                            {club.name}
+                                            <span className="text-zinc-600 ml-1 text-sm font-normal">({club.type})</span>
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
                         </motion.div>
                     </div>
                 </div>
