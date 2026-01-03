@@ -246,8 +246,8 @@ export default function AdminEvaluationsPage() {
                                                                             {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`}
                                                                         </td>
                                                                         <td className="py-4">
-                                                                            <div className="font-medium text-white">{entry.name}</div>
-                                                                            <div className="text-xs text-gray-500">{entry.subtitle}</div>
+                                                                            <div className="font-bold text-lg text-white">{entry.name}</div>
+                                                                            <div className="text-sm font-medium text-gray-400 mt-1">{entry.subtitle}</div>
                                                                         </td>
                                                                         <td className="py-4 font-bold text-lg text-red-500">
                                                                             {entry.score}
@@ -322,8 +322,8 @@ export default function AdminEvaluationsPage() {
                                     {selectedTeam.individualEvaluations?.map((ev, idx) => (
                                         <div key={idx} className="bg-black/40 border border-zinc-800 rounded-xl p-4 flex justify-between items-center">
                                             <div>
-                                                <p className="font-medium text-white">{ev.participant.name}</p>
-                                                <p className="text-xs text-gray-500">{ev.participant.collageId || "No ID"}</p>
+                                                <p className="font-bold text-base text-white">{ev.participant.name}</p>
+                                                <p className="text-sm text-gray-400">{ev.participant.collageId || "No ID"}</p>
                                                 {ev.remarks && <p className="text-xs text-gray-400 mt-2 italic">"{ev.remarks}"</p>}
                                                 <p className="text-[10px] text-gray-600 mt-1">Judge: {ev.judge.name}</p>
                                             </div>
