@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
     createContactCategory,
@@ -51,6 +51,10 @@ export default function ContactManagementClient({
 }: ContactManagementClientProps) {
     const [categories, setCategories] = useState<Category[]>(initialCategories);
     const router = useRouter();
+
+    useEffect(() => {
+        setCategories(initialCategories);
+    }, [initialCategories]);
 
     // Category Modal State
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -104,7 +108,7 @@ export default function ContactManagementClient({
                 const result = await updateContactCategory(
                     editingCategory.id,
                     categoryFormData.name,
-                    categoryFormData.order
+                    isNaN(categoryFormData.order) ? 0 : categoryFormData.order
                 );
                 if (result.success) {
                     toast.success("Category updated");
@@ -115,7 +119,7 @@ export default function ContactManagementClient({
             } else {
                 const result = await createContactCategory(
                     categoryFormData.name,
-                    categoryFormData.order
+                    isNaN(categoryFormData.order) ? 0 : categoryFormData.order
                 );
                 if (result.success) {
                     toast.success("Category created");
@@ -175,7 +179,10 @@ export default function ContactManagementClient({
 
         try {
             if (editingCoordinator) {
-                const result = await updateCoordinator(editingCoordinator.id, coordinatorFormData);
+                const result = await updateCoordinator(editingCoordinator.id, {
+                    ...coordinatorFormData,
+                    order: isNaN(coordinatorFormData.order) ? 0 : coordinatorFormData.order,
+                });
                 if (result.success) {
                     toast.success("Coordinator updated");
                     router.refresh();
@@ -183,7 +190,10 @@ export default function ContactManagementClient({
                     toast.error("Failed to update coordinator");
                 }
             } else {
-                const result = await createCoordinator(selectedCategoryId!, coordinatorFormData);
+                const result = await createCoordinator(selectedCategoryId!, {
+                    ...coordinatorFormData,
+                    order: isNaN(coordinatorFormData.order) ? 0 : coordinatorFormData.order,
+                });
                 if (result.success) {
                     toast.success("Coordinator added");
                     router.refresh();
@@ -383,7 +393,7 @@ export default function ContactManagementClient({
                                     <label className="block text-sm text-zinc-400 mb-1">Order</label>
                                     <input
                                         type="number"
-                                        value={categoryFormData.order}
+                                        value={isNaN(categoryFormData.order) ? "" : categoryFormData.order}
                                         onChange={(e) =>
                                             setCategoryFormData({
                                                 ...categoryFormData,
@@ -482,7 +492,7 @@ export default function ContactManagementClient({
                                     <label className="block text-sm text-zinc-400 mb-1">Order</label>
                                     <input
                                         type="number"
-                                        value={coordinatorFormData.order}
+                                        value={isNaN(coordinatorFormData.order) ? "" : coordinatorFormData.order}
                                         onChange={(e) =>
                                             setCoordinatorFormData({
                                                 ...coordinatorFormData,
