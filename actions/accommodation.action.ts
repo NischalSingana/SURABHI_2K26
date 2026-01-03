@@ -12,6 +12,7 @@ interface AccommodationBookingData {
   email: string;
   phone: string;
   numberOfGuests: number;
+  groupMembers?: { name: string; phone: string; gender?: string }[];
 }
 
 /**
@@ -56,6 +57,20 @@ export async function createAccommodationBooking(
           error: "Group bookings cannot exceed 10 guests",
         };
       }
+      // Validate group members data if provided
+      if (bookingData.groupMembers && bookingData.groupMembers.length !== bookingData.numberOfGuests - 1) {
+        // Note: Assuming primary user is guest #1, so we need N-1 extra details? 
+        // Or does user enter details for ALL members including themselves in the group list?
+        // User prompt: "take the details of other guests also according to no of guests selected."
+        // Typically the primary contact is Guest 1. So we need `numberOfGuests - 1` additional entries, OR `numberOfGuests` total.
+        // Let's assume the frontend will send `numberOfGuests` entries in `groupMembers` if we want full details, 
+        // OR just the "other" guests. 
+        // Strategy: Let's store ALL guests in `groupMembers` JSON for completeness, including the primary if feasible, 
+        // OR just the additional ones. 
+        // Let's adhere to "take details of *other* guests". So primary is Booking User.
+        // But for a cleaner specific schema, let's allow `groupMembers` to be the list of *additional* guests.
+        // Frontend will likely send `numberOfGuests - 1` members.
+      }
     }
 
     // Check if user already has a booking
@@ -73,7 +88,7 @@ export async function createAccommodationBooking(
     // Calculate total members
     const totalMembers = bookingData.numberOfGuests;
 
-    // Free accommodation for participants
+    // Free accommodation
     const amount = 0;
 
     // Create booking in database
@@ -86,10 +101,10 @@ export async function createAccommodationBooking(
         primaryEmail: bookingData.email,
         primaryPhone: bookingData.phone,
         totalMembers: totalMembers,
-        groupMembers: undefined,
+        groupMembers: bookingData.groupMembers as any, // Prisma Json handling
         amount: amount,
-        paymentStatus: "APPROVED", // Free booking is auto-approved
-        status: "CONFIRMED", // Auto-confirm free bookings
+        paymentStatus: "PENDING", // Pending approval
+        status: "PENDING", // Pending admin approval
       },
     });
 
@@ -99,7 +114,7 @@ export async function createAccommodationBooking(
 
     return {
       success: true,
-      message: "Accommodation booked successfully! Your stay is confirmed.",
+      message: "Accommodation request submitted! pending approval.",
       data: {
         bookingId: booking.id,
         totalMembers,

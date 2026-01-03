@@ -1,26 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
   FiUser,
   FiMail,
   FiPhone,
-  FiUsers,
   FiChevronRight,
   FiChevronLeft,
   FiCheck,
   FiShield,
-  FiInfo,
   FiHome,
+  FiClock,
+  FiXCircle,
   FiGift,
-  FiCoffee,
 } from "react-icons/fi";
-import { createAccommodationBooking } from "@/actions/accommodation.action";
+import { createAccommodationBooking, getUserAccommodationBookings } from "@/actions/accommodation.action";
 
 type Gender = "MALE" | "FEMALE" | "";
 type BookingType = "INDIVIDUAL" | "GROUP" | "";
+
+interface GroupMember {
+  name: string;
+  phone: string;
+}
 
 interface AccommodationData {
   gender: Gender;
@@ -30,12 +34,14 @@ interface AccommodationData {
   phone: string;
   numberOfGuests: number;
   genderConfirmed: boolean;
+  groupMembers: GroupMember[];
 }
 
 const MultiStepAccommodation = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [existingBooking, setExistingBooking] = useState<any>(null);
 
   const [formData, setFormData] = useState<AccommodationData>({
     gender: "",
@@ -45,7 +51,28 @@ const MultiStepAccommodation = () => {
     phone: "",
     numberOfGuests: 1,
     genderConfirmed: false,
+    groupMembers: [],
   });
+
+  useEffect(() => {
+    const fetchBooking = async () => {
+      try {
+        const result = await getUserAccommodationBookings();
+        if (result.success && result.data && result.data.length > 0) {
+          // Take the latest booking that isn't cancelled
+          const activeBooking = result.data.find((b: any) => b.status !== "CANCELLED") || result.data[0];
+          if (activeBooking && activeBooking.status !== "CANCELLED") {
+            setExistingBooking(activeBooking);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch booking", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchBooking();
+  }, []);
 
   const handleGenderSelect = (gender: Gender) => {
     setFormData({ ...formData, gender, genderConfirmed: false });
@@ -58,6 +85,7 @@ const MultiStepAccommodation = () => {
       bookingType,
       numberOfGuests: bookingType === "INDIVIDUAL" ? 1 : 2,
       genderConfirmed: false,
+      groupMembers: bookingType === "INDIVIDUAL" ? [] : [{ name: "", phone: "" }],
     };
     setFormData(newFormData);
   };
@@ -77,11 +105,32 @@ const MultiStepAccommodation = () => {
     }
     const numValue = parseInt(value);
     if (!isNaN(numValue)) {
+      const clampedValue = Math.max(2, Math.min(10, numValue));
+
+      // Update group members array size (clampedValue - 1)
+      const currentMembers = [...formData.groupMembers];
+      const requiredMembers = clampedValue - 1;
+
+      if (currentMembers.length < requiredMembers) {
+        for (let i = currentMembers.length; i < requiredMembers; i++) {
+          currentMembers.push({ name: "", phone: "" });
+        }
+      } else if (currentMembers.length > requiredMembers) {
+        currentMembers.splice(requiredMembers);
+      }
+
       setFormData({
         ...formData,
-        numberOfGuests: Math.max(2, Math.min(10, numValue)),
+        numberOfGuests: clampedValue,
+        groupMembers: currentMembers,
       });
     }
+  };
+
+  const handleGroupMemberChange = (index: number, field: keyof GroupMember, value: string) => {
+    const updatedMembers = [...formData.groupMembers];
+    updatedMembers[index] = { ...updatedMembers[index], [field]: value };
+    setFormData({ ...formData, groupMembers: updatedMembers });
   };
 
   const handleGenderConfirmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,6 +144,9 @@ const MultiStepAccommodation = () => {
     if (formData.bookingType === "GROUP") {
       if (!formData.genderConfirmed) return false;
       if (formData.numberOfGuests < 2) return false;
+
+      const allMembersFilled = formData.groupMembers.every(m => m.name.trim() !== "" && m.phone.trim() !== "");
+      if (!allMembersFilled) return false;
     }
 
     return true;
@@ -110,11 +162,12 @@ const MultiStepAccommodation = () => {
         email: formData.email,
         phone: formData.phone,
         numberOfGuests: formData.numberOfGuests,
+        groupMembers: formData.groupMembers,
       });
 
       if (result.success) {
-        setIsSuccess(true);
-        toast.success("Accommodation confirmed!");
+        toast.success("Requests submitted successfully!");
+        window.location.reload();
       } else {
         toast.error(result.error || "Failed to submit bookings");
       }
@@ -131,29 +184,111 @@ const MultiStepAccommodation = () => {
     { number: 3, title: "Confirm" },
   ];
 
-  if (isSuccess) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center relative overflow-hidden p-6">
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (existingBooking) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center relative overflow-hidden p-6 pt-24">
         <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 pointer-events-none" />
         <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-red-900/10 rounded-full blur-[120px]" />
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center relative z-10"
+          className="max-w-3xl w-full bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 rounded-2xl p-8 relative z-10"
         >
-          <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/20">
-            <FiCheck className="text-4xl text-green-500" />
+          <div className="flex flex-col md:flex-row items-center gap-4 mb-8">
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-lg shrink-0 ${existingBooking.status === 'APPROVED' || existingBooking.status === 'CONFIRMED'
+                ? 'bg-green-500/10 text-green-500 shadow-green-500/20'
+                : existingBooking.status === 'REJECTED'
+                  ? 'bg-red-500/10 text-red-500 shadow-red-500/20'
+                  : 'bg-yellow-500/10 text-yellow-500 shadow-yellow-500/20'
+              }`}>
+              {existingBooking.status === 'APPROVED' || existingBooking.status === 'CONFIRMED' ? <FiCheck /> : existingBooking.status === 'REJECTED' ? <FiXCircle /> : <FiClock />}
+            </div>
+            <div className="text-center md:text-left">
+              <h1 className="text-2xl font-bold text-white">Booking Status</h1>
+              <p className="text-zinc-400 text-sm">Application ID: <span className="font-mono text-zinc-300">{existingBooking.id.slice(-8).toUpperCase()}</span></p>
+            </div>
+            <div className="md:ml-auto">
+              <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold border ${existingBooking.status === 'APPROVED' || existingBooking.status === 'CONFIRMED'
+                  ? 'bg-green-500/10 border-green-500/20 text-green-500'
+                  : existingBooking.status === 'REJECTED'
+                    ? 'bg-red-500/10 border-red-500/20 text-red-500'
+                    : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500'
+                }`}>
+                {existingBooking.status === 'APPROVED' || existingBooking.status === 'CONFIRMED' ? 'CONFIRMED' : existingBooking.status === 'REJECTED' ? 'REJECTED' : 'PENDING APPROVAL'}
+              </div>
+            </div>
           </div>
-          <h2 className="text-3xl font-bold text-white mb-4">You're All Set!</h2>
-          <p className="text-zinc-400 mb-8 leading-relaxed">
-            Your accommodation has been successfully confirmed. We look forward to hosting you at Surabhi 2026.
-          </p>
-          <div className="p-4 bg-zinc-800/50 rounded-xl mb-6 border border-zinc-800">
-            <p className="text-sm text-green-400 font-medium flex items-center justify-center gap-2">
-              <FiGift /> Complimentary Food Included
-            </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="space-y-4">
+              <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800">
+                <p className="text-zinc-500 text-xs uppercase tracking-wider font-semibold mb-2">Primary Guest</p>
+                <p className="text-lg font-bold text-white">{existingBooking.primaryName}</p>
+                <p className="text-zinc-400 text-sm">{existingBooking.primaryEmail}</p>
+                <p className="text-zinc-400 text-sm">{existingBooking.primaryPhone}</p>
+              </div>
+              <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800">
+                <p className="text-zinc-500 text-xs uppercase tracking-wider font-semibold mb-2">Accommodation Type</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-white font-medium">{existingBooking.gender === 'MALE' ? 'Male Hostel' : 'Female Hostel'}</span>
+                  <span className="text-zinc-600">•</span>
+                  <span className="text-white font-medium">{existingBooking.bookingType === 'INDIVIDUAL' ? 'Individual' : 'Group'} Booking</span>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800 h-full flex flex-col">
+                <p className="text-zinc-500 text-xs uppercase tracking-wider font-semibold mb-2">Booking Summary</p>
+                <div className="text-3xl font-bold text-white mb-1">{existingBooking.totalMembers} <span className="text-lg text-zinc-500 font-normal">Guests</span></div>
+                <p className="text-sm text-zinc-400 mb-4">Total payable: <span className="text-green-500 font-bold">Free</span></p>
+
+                <div className="mt-auto">
+                  {existingBooking.status === 'PENDING' && (
+                    <div className="p-3 bg-yellow-500/5 rounded-lg border border-yellow-500/10">
+                      <p className="text-xs text-yellow-500/80 leading-relaxed">
+                        Your request is under review. You will receive an email once approved.
+                      </p>
+                    </div>
+                  )}
+                  {(existingBooking.status === 'APPROVED' || existingBooking.status === 'CONFIRMED') && (
+                    <div className="p-3 bg-green-500/5 rounded-lg border border-green-500/10">
+                      <p className="text-xs text-green-500/80 leading-relaxed">
+                        Accommodation confirmed! Check your email for details.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
+
+          {Array.isArray(existingBooking.groupMembers) && existingBooking.groupMembers.length > 0 && (
+            <div className="border-t border-zinc-800 pt-6">
+              <h3 className="text-white font-bold mb-4">Additional Guests</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {existingBooking.groupMembers.map((member: any, idx: number) => (
+                  <div key={idx} className="p-3 bg-zinc-900/50 rounded-lg border border-zinc-800 flex justify-between items-center">
+                    <div>
+                      <p className="text-zinc-300 font-medium text-sm">{member.name}</p>
+                      <p className="text-zinc-500 text-xs">{member.phone}</p>
+                    </div>
+                    <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500 text-xs font-bold">
+                      {idx + 2}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </motion.div>
       </div>
     );
@@ -424,10 +559,38 @@ const MultiStepAccommodation = () => {
                             min="2"
                             max="10"
                             value={formData.numberOfGuests}
-                            onChange={(e) => setFormData({ ...formData, numberOfGuests: parseInt(e.target.value) })}
+                            onChange={handleNumberOfGuestsChange}
                             className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-red-600"
                           />
                           <p className="text-xs text-zinc-500 text-right">Max 10 guests allowed per group</p>
+
+                          {/* Group Members Inputs */}
+                          <div className="space-y-4 mt-6">
+                            <h4 className="text-sm font-semibold text-zinc-300">Guest Details <span className="text-zinc-600 font-normal ml-2">(Guest 1 is you)</span></h4>
+                            <div className="space-y-3">
+                              {formData.groupMembers.map((member, idx) => (
+                                <div key={idx} className="p-3 bg-black/40 border border-zinc-800 rounded-lg">
+                                  <div className="text-xs text-zinc-500 font-bold mb-2 uppercase tracking-wider">Guest {idx + 2}</div>
+                                  <div className="flex flex-col sm:flex-row gap-3">
+                                    <input
+                                      type="text"
+                                      placeholder="Full Name"
+                                      value={member.name}
+                                      onChange={(e) => handleGroupMemberChange(idx, 'name', e.target.value)}
+                                      className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-red-500 transition-all"
+                                    />
+                                    <input
+                                      type="tel"
+                                      placeholder="Phone"
+                                      value={member.phone}
+                                      onChange={(e) => handleGroupMemberChange(idx, 'phone', e.target.value)}
+                                      className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-red-500 transition-all"
+                                    />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
 
                           <div className="pt-2 border-t border-zinc-800/50 mt-4">
                             <label className="flex items-start gap-3 cursor-pointer group">
@@ -506,6 +669,21 @@ const MultiStepAccommodation = () => {
                     </div>
                   </div>
 
+                  {/* Group Members Review */}
+                  {formData.groupMembers.length > 0 && (
+                    <div className="p-6 bg-zinc-900/50">
+                      <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4">Other Guests</h4>
+                      <div className="grid grid-cols-1 gap-3">
+                        {formData.groupMembers.map((m, i) => (
+                          <div key={i} className="flex justify-between items-center text-sm">
+                            <span className="text-zinc-400">Guest {i + 2}: </span>
+                            <span className="text-white font-medium">{m.name} <span className="text-zinc-600 mx-1">|</span> {m.phone}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="p-6 bg-gradient-to-br from-zinc-900 to-black">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-zinc-400">Accommodation Fee</span>
@@ -544,7 +722,7 @@ const MultiStepAccommodation = () => {
                       </>
                     ) : (
                       <>
-                        Confirm Booking <FiCheck />
+                        Confirm Booking <FiClock />
                       </>
                     )}
                   </button>
