@@ -45,10 +45,10 @@ export async function generateTicketQR(data: TicketData): Promise<string> {
     const qrCodeDataURL = await QRCode.toDataURL(verificationUrl, {
         errorCorrectionLevel: 'H',
         type: 'image/png',
-        width: 300,
+        width: 400,
         margin: 2,
         color: {
-            dark: '#dc2626', // Red color for QR code
+            dark: '#000000', // Black for better scannability
             light: '#ffffff', // White background
         },
     });

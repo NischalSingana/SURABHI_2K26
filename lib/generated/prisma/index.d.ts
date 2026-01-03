@@ -2239,6 +2239,8 @@ export namespace Prisma {
     year: number | null
     isApproved: boolean | null
     paymentStatus: $Enums.PaymentStatus | null
+    ticketScanned: boolean | null
+    ticketScannedAt: Date | null
     phone: string | null
     password: string | null
     role: $Enums.Role | null
@@ -2261,6 +2263,8 @@ export namespace Prisma {
     year: number | null
     isApproved: boolean | null
     paymentStatus: $Enums.PaymentStatus | null
+    ticketScanned: boolean | null
+    ticketScannedAt: Date | null
     phone: string | null
     password: string | null
     role: $Enums.Role | null
@@ -2283,6 +2287,8 @@ export namespace Prisma {
     year: number
     isApproved: number
     paymentStatus: number
+    ticketScanned: number
+    ticketScannedAt: number
     phone: number
     password: number
     role: number
@@ -2315,6 +2321,8 @@ export namespace Prisma {
     year?: true
     isApproved?: true
     paymentStatus?: true
+    ticketScanned?: true
+    ticketScannedAt?: true
     phone?: true
     password?: true
     role?: true
@@ -2337,6 +2345,8 @@ export namespace Prisma {
     year?: true
     isApproved?: true
     paymentStatus?: true
+    ticketScanned?: true
+    ticketScannedAt?: true
     phone?: true
     password?: true
     role?: true
@@ -2359,6 +2369,8 @@ export namespace Prisma {
     year?: true
     isApproved?: true
     paymentStatus?: true
+    ticketScanned?: true
+    ticketScannedAt?: true
     phone?: true
     password?: true
     role?: true
@@ -2468,6 +2480,8 @@ export namespace Prisma {
     year: number | null
     isApproved: boolean
     paymentStatus: $Enums.PaymentStatus
+    ticketScanned: boolean
+    ticketScannedAt: Date | null
     phone: string | null
     password: string | null
     role: $Enums.Role
@@ -2509,6 +2523,8 @@ export namespace Prisma {
     year?: boolean
     isApproved?: boolean
     paymentStatus?: boolean
+    ticketScanned?: boolean
+    ticketScannedAt?: boolean
     phone?: boolean
     password?: boolean
     role?: boolean
@@ -2540,6 +2556,8 @@ export namespace Prisma {
     year?: boolean
     isApproved?: boolean
     paymentStatus?: boolean
+    ticketScanned?: boolean
+    ticketScannedAt?: boolean
     phone?: boolean
     password?: boolean
     role?: boolean
@@ -2562,6 +2580,8 @@ export namespace Prisma {
     year?: boolean
     isApproved?: boolean
     paymentStatus?: boolean
+    ticketScanned?: boolean
+    ticketScannedAt?: boolean
     phone?: boolean
     password?: boolean
     role?: boolean
@@ -2584,13 +2604,15 @@ export namespace Prisma {
     year?: boolean
     isApproved?: boolean
     paymentStatus?: boolean
+    ticketScanned?: boolean
+    ticketScannedAt?: boolean
     phone?: boolean
     password?: boolean
     role?: boolean
     assignedCategoryId?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "email" | "emailVerified" | "name" | "image" | "collage" | "collageId" | "branch" | "transactionId" | "paymentProof" | "year" | "isApproved" | "paymentStatus" | "phone" | "password" | "role" | "assignedCategoryId", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "email" | "emailVerified" | "name" | "image" | "collage" | "collageId" | "branch" | "transactionId" | "paymentProof" | "year" | "isApproved" | "paymentStatus" | "ticketScanned" | "ticketScannedAt" | "phone" | "password" | "role" | "assignedCategoryId", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     accounts?: boolean | User$accountsArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
@@ -2633,6 +2655,8 @@ export namespace Prisma {
       year: number | null
       isApproved: boolean
       paymentStatus: $Enums.PaymentStatus
+      ticketScanned: boolean
+      ticketScannedAt: Date | null
       phone: string | null
       password: string | null
       role: $Enums.Role
@@ -3083,6 +3107,8 @@ export namespace Prisma {
     readonly year: FieldRef<"User", 'Int'>
     readonly isApproved: FieldRef<"User", 'Boolean'>
     readonly paymentStatus: FieldRef<"User", 'PaymentStatus'>
+    readonly ticketScanned: FieldRef<"User", 'Boolean'>
+    readonly ticketScannedAt: FieldRef<"User", 'DateTime'>
     readonly phone: FieldRef<"User", 'String'>
     readonly password: FieldRef<"User", 'String'>
     readonly role: FieldRef<"User", 'Role'>
@@ -17197,6 +17223,8 @@ export namespace Prisma {
     year: 'year',
     isApproved: 'isApproved',
     paymentStatus: 'paymentStatus',
+    ticketScanned: 'ticketScanned',
+    ticketScannedAt: 'ticketScannedAt',
     phone: 'phone',
     password: 'password',
     role: 'role',
@@ -17628,6 +17656,8 @@ export namespace Prisma {
     year?: IntNullableFilter<"User"> | number | null
     isApproved?: BoolFilter<"User"> | boolean
     paymentStatus?: EnumPaymentStatusFilter<"User"> | $Enums.PaymentStatus
+    ticketScanned?: BoolFilter<"User"> | boolean
+    ticketScannedAt?: DateTimeNullableFilter<"User"> | Date | string | null
     phone?: StringNullableFilter<"User"> | string | null
     password?: StringNullableFilter<"User"> | string | null
     role?: EnumRoleFilter<"User"> | $Enums.Role
@@ -17658,6 +17688,8 @@ export namespace Prisma {
     year?: SortOrderInput | SortOrder
     isApproved?: SortOrder
     paymentStatus?: SortOrder
+    ticketScanned?: SortOrder
+    ticketScannedAt?: SortOrderInput | SortOrder
     phone?: SortOrderInput | SortOrder
     password?: SortOrderInput | SortOrder
     role?: SortOrder
@@ -17691,6 +17723,8 @@ export namespace Prisma {
     year?: IntNullableFilter<"User"> | number | null
     isApproved?: BoolFilter<"User"> | boolean
     paymentStatus?: EnumPaymentStatusFilter<"User"> | $Enums.PaymentStatus
+    ticketScanned?: BoolFilter<"User"> | boolean
+    ticketScannedAt?: DateTimeNullableFilter<"User"> | Date | string | null
     phone?: StringNullableFilter<"User"> | string | null
     password?: StringNullableFilter<"User"> | string | null
     role?: EnumRoleFilter<"User"> | $Enums.Role
@@ -17721,6 +17755,8 @@ export namespace Prisma {
     year?: SortOrderInput | SortOrder
     isApproved?: SortOrder
     paymentStatus?: SortOrder
+    ticketScanned?: SortOrder
+    ticketScannedAt?: SortOrderInput | SortOrder
     phone?: SortOrderInput | SortOrder
     password?: SortOrderInput | SortOrder
     role?: SortOrder
@@ -17751,6 +17787,8 @@ export namespace Prisma {
     year?: IntNullableWithAggregatesFilter<"User"> | number | null
     isApproved?: BoolWithAggregatesFilter<"User"> | boolean
     paymentStatus?: EnumPaymentStatusWithAggregatesFilter<"User"> | $Enums.PaymentStatus
+    ticketScanned?: BoolWithAggregatesFilter<"User"> | boolean
+    ticketScannedAt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     phone?: StringNullableWithAggregatesFilter<"User"> | string | null
     password?: StringNullableWithAggregatesFilter<"User"> | string | null
     role?: EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
@@ -18728,6 +18766,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -18758,6 +18798,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -18788,6 +18830,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -18818,6 +18862,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -18848,6 +18894,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -18870,6 +18918,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -18892,6 +18942,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -20021,6 +20073,17 @@ export namespace Prisma {
     not?: NestedEnumPaymentStatusFilter<$PrismaModel> | $Enums.PaymentStatus
   }
 
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
   export type EnumRoleFilter<$PrismaModel = never> = {
     equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
     in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
@@ -20119,6 +20182,8 @@ export namespace Prisma {
     year?: SortOrder
     isApproved?: SortOrder
     paymentStatus?: SortOrder
+    ticketScanned?: SortOrder
+    ticketScannedAt?: SortOrder
     phone?: SortOrder
     password?: SortOrder
     role?: SortOrder
@@ -20145,6 +20210,8 @@ export namespace Prisma {
     year?: SortOrder
     isApproved?: SortOrder
     paymentStatus?: SortOrder
+    ticketScanned?: SortOrder
+    ticketScannedAt?: SortOrder
     phone?: SortOrder
     password?: SortOrder
     role?: SortOrder
@@ -20167,6 +20234,8 @@ export namespace Prisma {
     year?: SortOrder
     isApproved?: SortOrder
     paymentStatus?: SortOrder
+    ticketScanned?: SortOrder
+    ticketScannedAt?: SortOrder
     phone?: SortOrder
     password?: SortOrder
     role?: SortOrder
@@ -20261,6 +20330,20 @@ export namespace Prisma {
     _max?: NestedEnumPaymentStatusFilter<$PrismaModel>
   }
 
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
   export type EnumRoleWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
     in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
@@ -20309,17 +20392,6 @@ export namespace Prisma {
     userId?: SortOrder
   }
 
-  export type DateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
-  }
-
   export type AccountCountOrderByAggregateInput = {
     id?: SortOrder
     createdAt?: SortOrder
@@ -20366,20 +20438,6 @@ export namespace Prisma {
     scope?: SortOrder
     password?: SortOrder
     userId?: SortOrder
-  }
-
-  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type VerificationCountOrderByAggregateInput = {
@@ -21199,6 +21257,10 @@ export namespace Prisma {
     set?: $Enums.PaymentStatus
   }
 
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
+  }
+
   export type EnumRoleFieldUpdateOperationsInput = {
     set?: $Enums.Role
   }
@@ -21443,10 +21505,6 @@ export namespace Prisma {
     create?: XOR<UserCreateWithoutAccountsInput, UserUncheckedCreateWithoutAccountsInput>
     connectOrCreate?: UserCreateOrConnectWithoutAccountsInput
     connect?: UserWhereUniqueInput
-  }
-
-  export type NullableDateTimeFieldUpdateOperationsInput = {
-    set?: Date | string | null
   }
 
   export type UserUpdateOneRequiredWithoutAccountsNestedInput = {
@@ -21887,6 +21945,17 @@ export namespace Prisma {
     not?: NestedEnumPaymentStatusFilter<$PrismaModel> | $Enums.PaymentStatus
   }
 
+  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
   export type NestedEnumRoleFilter<$PrismaModel = never> = {
     equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
     in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
@@ -21998,27 +22067,6 @@ export namespace Prisma {
     _max?: NestedEnumPaymentStatusFilter<$PrismaModel>
   }
 
-  export type NestedEnumRoleWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
-    in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
-    notIn?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
-    not?: NestedEnumRoleWithAggregatesFilter<$PrismaModel> | $Enums.Role
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumRoleFilter<$PrismaModel>
-    _max?: NestedEnumRoleFilter<$PrismaModel>
-  }
-
-  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
-  }
-
   export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
@@ -22031,6 +22079,16 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type NestedEnumRoleWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumRoleWithAggregatesFilter<$PrismaModel> | $Enums.Role
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRoleFilter<$PrismaModel>
+    _max?: NestedEnumRoleFilter<$PrismaModel>
   }
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
@@ -22751,6 +22809,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -22780,6 +22840,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -22825,6 +22887,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -22854,6 +22918,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -22883,6 +22949,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -22912,6 +22980,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -22957,6 +23027,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -22986,6 +23058,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -23114,6 +23188,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -23143,6 +23219,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -23317,6 +23395,8 @@ export namespace Prisma {
     year?: IntNullableFilter<"User"> | number | null
     isApproved?: BoolFilter<"User"> | boolean
     paymentStatus?: EnumPaymentStatusFilter<"User"> | $Enums.PaymentStatus
+    ticketScanned?: BoolFilter<"User"> | boolean
+    ticketScannedAt?: DateTimeNullableFilter<"User"> | Date | string | null
     phone?: StringNullableFilter<"User"> | string | null
     password?: StringNullableFilter<"User"> | string | null
     role?: EnumRoleFilter<"User"> | $Enums.Role
@@ -23440,6 +23520,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -23469,6 +23551,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -23573,6 +23657,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -23602,6 +23688,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -23631,6 +23719,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -23660,6 +23750,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -23705,6 +23797,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -23734,6 +23828,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -23763,6 +23859,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -23792,6 +23890,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -23890,6 +23990,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -23919,6 +24021,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -24007,6 +24111,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -24036,6 +24142,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -24123,6 +24231,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -24152,6 +24262,8 @@ export namespace Prisma {
     year?: number | null
     isApproved?: boolean
     paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
     phone?: string | null
     password?: string | null
     role?: $Enums.Role
@@ -24197,6 +24309,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -24226,6 +24340,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -24325,6 +24441,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -24354,6 +24472,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -24898,6 +25018,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -24927,6 +25049,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
@@ -24956,6 +25080,8 @@ export namespace Prisma {
     year?: NullableIntFieldUpdateOperationsInput | number | null
     isApproved?: BoolFieldUpdateOperationsInput | boolean
     paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role

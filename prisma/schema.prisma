@@ -24,6 +24,8 @@ model User {
   year             Int?
   isApproved       Boolean       @default(false)
   paymentStatus    PaymentStatus @default(PENDING)
+  ticketScanned    Boolean       @default(false)
+  ticketScannedAt  DateTime?
   phone            String?
   password         String?
   role             Role          @default(USER)

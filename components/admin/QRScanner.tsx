@@ -128,6 +128,10 @@ export default function QRScanner() {
                 toast.success("Ticket verified successfully!");
             } else {
                 toast.error(data.error || "Invalid ticket");
+                // If it's "Already captured", we might want to sound a different alert or visual
+                if (data.error && data.error.includes("captured")) {
+                    setResult({ ...data, valid: false }); // Ensure result is set to show the red box
+                }
             }
         } catch (error) {
             console.error("Verification error:", error);
@@ -189,8 +193,8 @@ export default function QRScanner() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         className={`p-6 rounded-lg border-2 ${result.valid
-                                ? "bg-green-500/10 border-green-500"
-                                : "bg-red-500/10 border-red-500"
+                            ? "bg-green-500/10 border-green-500"
+                            : "bg-red-500/10 border-red-500"
                             }`}
                     >
                         {/* Status Header */}
@@ -254,8 +258,8 @@ export default function QRScanner() {
                                         <span className="text-zinc-400">Payment Status</span>
                                         <span
                                             className={`px-3 py-1 rounded-full text-sm font-semibold ${result.user.isApproved
-                                                    ? "bg-green-500/20 text-green-500"
-                                                    : "bg-yellow-500/20 text-yellow-500"
+                                                ? "bg-green-500/20 text-green-500"
+                                                : "bg-yellow-500/20 text-yellow-500"
                                                 }`}
                                         >
                                             {result.user.isApproved ? "APPROVED" : "PENDING"}
@@ -267,7 +271,11 @@ export default function QRScanner() {
 
                         {/* Error Message */}
                         {!result.valid && (
-                            <p className="text-red-400 mt-2">{result.error}</p>
+                            <div className="mt-6 bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+                                <p className="text-red-400 font-semibold">
+                                    {result.error || "Invalid or expired ticket"}
+                                </p>
+                            </div>
                         )}
 
                         {/* Scan Again Button */}

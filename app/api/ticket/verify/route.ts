@@ -59,6 +59,8 @@ export async function POST(request: NextRequest) {
                 transactionId: true,
                 paymentStatus: true,
                 isApproved: true,
+                ticketScanned: true,
+                ticketScannedAt: true,
                 createdAt: true,
             },
         });
@@ -72,6 +74,33 @@ export async function POST(request: NextRequest) {
                 { status: 404 }
             );
         }
+
+        // Check if already scanned
+        if (user.ticketScanned) {
+            return NextResponse.json({
+                valid: false,
+                error: `Ticket already captured at ${new Date(user.ticketScannedAt!).toLocaleString()}`,
+                user: {
+                    name: user.name,
+                    email: user.email,
+                    phone: user.phone,
+                    // Return user data even if invalid (for info)
+                    college: user.collage,
+                    transactionId: user.transactionId,
+                    paymentStatus: user.paymentStatus,
+                    isApproved: user.isApproved,
+                }
+            }, { status: 400 });
+        }
+
+        // MARK AS SCANNED
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                ticketScanned: true,
+                ticketScannedAt: new Date(),
+            }
+        });
 
         // Return verification result
         return NextResponse.json({
@@ -87,7 +116,7 @@ export async function POST(request: NextRequest) {
                 transactionId: user.transactionId,
                 paymentStatus: user.paymentStatus,
                 isApproved: user.isApproved,
-                registeredAt: user.createdAt,
+                registeredAt: user.createdAt, // corrected field name from user select logic above
             },
             verifiedAt: new Date().toISOString(),
         });
