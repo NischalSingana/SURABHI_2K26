@@ -668,7 +668,7 @@ export default function JudgeDashboard() {
                                     </div>
                                 </div>
 
-                                <div className="flex gap-3 mt-4">
+                                <div className="flex flex-col sm:flex-row gap-3 mt-4">
                                     <button
                                         onClick={() => setEvaluatingParticipant(null)}
                                         className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-medium transition-colors"
