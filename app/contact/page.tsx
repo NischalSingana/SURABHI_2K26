@@ -14,10 +14,7 @@ import {
   FiTwitter,
   FiLinkedin,
   FiFacebook,
-  FiPlus,
-  FiMinus,
 } from "react-icons/fi";
-import { getFaqs } from "@/actions/faq.action";
 
 interface ContactFormData {
   name: string;
@@ -27,12 +24,7 @@ interface ContactFormData {
   message: string;
 }
 
-interface FAQ {
-  id: string;
-  question: string;
-  answer: string;
-  category: string;
-}
+
 
 const Contact = () => {
   const [formData, setFormData] = useState<ContactFormData>({
@@ -43,31 +35,7 @@ const Contact = () => {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [faqs, setFaqs] = useState<FAQ[]>([]);
-  const [activeAccordion, setActiveAccordion] = useState<string | null>(null);
-  const [isLoadingFaqs, setIsLoadingFaqs] = useState(true);
 
-  useEffect(() => {
-    const fetchFaqs = async () => {
-      try {
-        const { success, data } = await getFaqs();
-        if (success && data) {
-          // Transform dates to strings if necessary or just use the data if compatible
-          // The data from server action has Date objects, but for display we just need strings for text
-          // However, JSON serialization might happen if passed to props, but here we set state directly.
-          // State expects FAQ interface which matches except date types if defined.
-          // Let's ensure the local FAQ interface matches or casts.
-          setFaqs(data as unknown as FAQ[]);
-        }
-      } catch (error) {
-        console.error("Failed to fetch FAQs", error);
-      } finally {
-        setIsLoadingFaqs(false);
-      }
-    };
-
-    fetchFaqs();
-  }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -103,9 +71,7 @@ const Contact = () => {
     );
   };
 
-  const toggleAccordion = (id: string) => {
-    setActiveAccordion(activeAccordion === id ? null : id);
-  };
+
 
   const contactInfo = [
     {
@@ -128,12 +94,7 @@ const Contact = () => {
     },
   ];
 
-  const socialLinks = [
-    { icon: FiInstagram, link: "#", label: "Instagram" },
-    { icon: FiTwitter, link: "#", label: "Twitter" },
-    { icon: FiFacebook, link: "#", label: "Facebook" },
-    { icon: FiLinkedin, link: "#", label: "LinkedIn" },
-  ];
+
 
   return (
     <div className="w-full min-h-screen bg-black relative overflow-hidden pt-20">
@@ -351,67 +312,7 @@ const Contact = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="lg:col-span-5 space-y-6"
           >
-            {/* FAQ Section */}
-            <div className="bg-zinc-900/40 backdrop-blur-md rounded-3xl p-8 border border-zinc-800 h-fit">
-              <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                <span className="w-2 h-8 bg-red-500 rounded-full" />
-                Common Questions
-              </h3>
 
-              {isLoadingFaqs ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="h-16 bg-zinc-800/50 rounded-xl animate-pulse"
-                    />
-                  ))}
-                </div>
-              ) : faqs.length > 0 ? (
-                <div className="space-y-3">
-                  {faqs.map((faq) => (
-                    <div
-                      key={faq.id}
-                      className="border border-zinc-800 rounded-xl overflow-hidden bg-black/20"
-                    >
-                      <button
-                        onClick={() => toggleAccordion(faq.id)}
-                        className="w-full flex items-center justify-between p-4 text-left hover:bg-zinc-800/30 transition-colors"
-                      >
-                        <span className="text-zinc-200 font-medium pr-4">
-                          {faq.question}
-                        </span>
-                        <span className="text-red-500 shrink-0">
-                          {activeAccordion === faq.id ? (
-                            <FiMinus size={20} />
-                          ) : (
-                            <FiPlus size={20} />
-                          )}
-                        </span>
-                      </button>
-                      <AnimatePresence>
-                        {activeAccordion === faq.id && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <div className="px-4 pb-4 pt-0 text-zinc-400 text-sm leading-relaxed border-t border-zinc-800/50 mt-2 whitespace-pre-line">
-                              {faq.answer}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-zinc-500 text-center py-6">
-                  No FAQs available at the moment.
-                </div>
-              )}
-            </div>
 
             {/* Social Media */}
             <div className="bg-zinc-900/40 backdrop-blur-md rounded-3xl p-8 border border-zinc-800">
@@ -421,20 +322,18 @@ const Contact = () => {
                 behind-the-scenes action.
               </p>
               <div className="flex gap-4">
-                {socialLinks.map((social, index) => (
-                  <motion.a
-                    key={index}
-                    href={social.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.1, y: -4 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center text-white hover:shadow-lg hover:shadow-red-600/30 transition-all duration-300"
-                    aria-label={social.label}
-                  >
-                    <social.icon size={20} />
-                  </motion.a>
-                ))}
+                <motion.a
+                  href="https://instagram.com/klsurabhi"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.05, y: -4 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="h-12 px-6 rounded-xl bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center text-white hover:shadow-lg hover:shadow-red-600/30 transition-all duration-300 gap-3"
+                  aria-label="Instagram"
+                >
+                  <FiInstagram size={20} />
+                  <span className="font-semibold">@klsurabhi</span>
+                </motion.a>
               </div>
             </div>
           </motion.div>

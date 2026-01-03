@@ -7,11 +7,7 @@ import { FaInstagram, FaEnvelope, FaMapMarkerAlt, FaYoutube, FaFacebook } from '
 const Footer = () => {
     const currentYear = 2026;
 
-    const socialLinks = [
-        { icon: FaInstagram, href: "https://instagram.com/klsurabhi", label: "Instagram" },
-        { icon: FaYoutube, href: "https://www.youtube.com/@KLUSurabhiFest", label: "Youtube" },
-        { icon: FaFacebook, href: "#", label: "Facebook" },
-    ];
+
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -62,18 +58,16 @@ const Footer = () => {
                         </p>
 
                         <div className="flex gap-4 pt-4">
-                            {socialLinks.map((social, idx) => (
-                                <motion.a
-                                    key={idx}
-                                    href={social.href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    whileHover={{ y: -4, scale: 1.1 }}
-                                    className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:border-red-500/50 hover:bg-red-500/10 transition-all duration-300"
-                                >
-                                    <social.icon size={18} />
-                                </motion.a>
-                            ))}
+                            <motion.a
+                                href="https://instagram.com/klsurabhi"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                whileHover={{ y: -4, scale: 1.05 }}
+                                className="px-5 py-2.5 rounded-full bg-zinc-900 border border-zinc-800 flex items-center gap-3 text-zinc-400 hover:text-white hover:border-red-500/50 hover:bg-red-500/10 transition-all duration-300 group"
+                            >
+                                <FaInstagram size={20} className="group-hover:text-red-500 transition-colors" />
+                                <span className="font-medium">@klsurabhi</span>
+                            </motion.a>
                         </div>
                     </motion.div>
 
