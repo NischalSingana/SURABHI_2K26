@@ -148,10 +148,10 @@ export default function UsersPage() {
                                             handlePaymentStatusChange(user.id, e.target.value as PaymentStatus)
                                         }
                                         className={`text-xs px-2 py-1 rounded-full border ${user.paymentStatus === "APPROVED"
-                                                ? "bg-green-900/20 text-green-400 border-green-700"
-                                                : user.paymentStatus === "REJECTED"
-                                                    ? "bg-red-900/20 text-red-400 border-red-700"
-                                                    : "bg-yellow-900/20 text-yellow-400 border-yellow-700"
+                                            ? "bg-green-900/20 text-green-400 border-green-700"
+                                            : user.paymentStatus === "REJECTED"
+                                                ? "bg-red-900/20 text-red-400 border-red-700"
+                                                : "bg-yellow-900/20 text-yellow-400 border-yellow-700"
                                             }`}
                                     >
                                         <option value="PENDING">Pending</option>
@@ -179,8 +179,8 @@ export default function UsersPage() {
                                 <td className="px-4 py-4 whitespace-nowrap">
                                     <span
                                         className={`inline-flex text-xs px-2 py-1 rounded-full ${user.isApproved
-                                                ? "bg-green-900/20 text-green-400"
-                                                : "bg-red-900/20 text-red-400"
+                                            ? "bg-green-900/20 text-green-400"
+                                            : "bg-red-900/20 text-red-400"
                                             }`}
                                     >
                                         {user.isApproved ? "Approved" : "Not Approved"}
@@ -276,12 +276,12 @@ export default function UsersPage() {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <button
                     onClick={() => setActiveTab("kl")}
                     className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${activeTab === "kl"
-                            ? "bg-red-600 text-white shadow-lg shadow-red-600/20"
-                            : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                        ? "bg-red-600 text-white shadow-lg shadow-red-600/20"
+                        : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                         }`}
                 >
                     <FiUsers />
@@ -294,8 +294,8 @@ export default function UsersPage() {
                 <button
                     onClick={() => setActiveTab("other")}
                     className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${activeTab === "other"
-                            ? "bg-red-600 text-white shadow-lg shadow-red-600/20"
-                            : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                        ? "bg-red-600 text-white shadow-lg shadow-red-600/20"
+                        : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                         }`}
                 >
                     <FiGlobe />
