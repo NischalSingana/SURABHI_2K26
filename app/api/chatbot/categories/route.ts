@@ -11,7 +11,6 @@ export async function GET() {
             select: {
                 id: true,
                 name: true,
-                image: true,
                 order: true,
             }
         });
@@ -33,26 +32,37 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { name, image, order } = body;
+        const { name, order } = body;
 
         if (!name || !name.trim()) {
             return NextResponse.json({ error: "Category name is required" }, { status: 400 });
         }
 
-        // Check if category already exists
-        const existing = await prisma.chatbotCategory.findUnique({
+        // Check if category name already exists
+        const existingName = await prisma.chatbotCategory.findUnique({
             where: { name: name.trim() }
         });
 
-        if (existing) {
+        if (existingName) {
             return NextResponse.json({ error: "Category already exists" }, { status: 400 });
+        }
+
+        // Check if order number is already taken
+        const finalOrder = order !== undefined ? parseInt(order) : 0;
+        const existingOrder = await prisma.chatbotCategory.findFirst({
+            where: { order: finalOrder }
+        });
+
+        if (existingOrder) {
+            return NextResponse.json({
+                error: `Order number ${finalOrder} is already taken by category "${existingOrder.name}"`
+            }, { status: 400 });
         }
 
         const category = await prisma.chatbotCategory.create({
             data: {
                 name: name.trim(),
-                image: image || null,
-                order: order || 0,
+                order: finalOrder,
                 active: true,
             }
         });
@@ -74,18 +84,34 @@ export async function PUT(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { id, name, image, order, active } = body;
+        const { id, name, order, active } = body;
 
         if (!id) {
             return NextResponse.json({ error: "Category ID is required" }, { status: 400 });
+        }
+
+        // Check if order is being updated and is unique
+        if (order !== undefined) {
+            const newOrder = parseInt(order);
+            const existingOrder = await prisma.chatbotCategory.findFirst({
+                where: {
+                    order: newOrder,
+                    NOT: { id: id }
+                }
+            });
+
+            if (existingOrder) {
+                return NextResponse.json({
+                    error: `Order number ${newOrder} is already taken by category "${existingOrder.name}"`
+                }, { status: 400 });
+            }
         }
 
         const category = await prisma.chatbotCategory.update({
             where: { id },
             data: {
                 ...(name !== undefined && { name: name.trim() }),
-                ...(image !== undefined && { image }),
-                ...(order !== undefined && { order }),
+                ...(order !== undefined && { order: parseInt(order) }),
                 ...(active !== undefined && { active }),
             }
         });

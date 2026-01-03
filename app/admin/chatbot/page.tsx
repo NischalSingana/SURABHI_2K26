@@ -1,14 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiUpload } from "react-icons/fi";
-import { uploadCategoryImage } from "@/actions/upload.action";
+import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX } from "react-icons/fi";
 import { toast } from "sonner";
 
 interface Category {
     id: string;
     name: string;
-    image?: string;
     order: number;
     active?: boolean;
 }
@@ -29,11 +27,8 @@ export default function ChatbotAdminPage() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [isAddingCategory, setIsAddingCategory] = useState(false);
     const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
-    const [categoryImage, setCategoryImage] = useState<File | null>(null);
-    const [uploadingImage, setUploadingImage] = useState(false);
     const [categoryFormData, setCategoryFormData] = useState({
         name: "",
-        image: "",
         order: 0
     });
 
@@ -75,29 +70,6 @@ export default function ChatbotAdminPage() {
         }
 
         try {
-            let imageUrl = categoryFormData.image || "";
-
-            // Upload image if selected
-            if (categoryImage) {
-                // Validate file size (10MB max)
-                if (categoryImage.size > 10 * 1024 * 1024) {
-                    alert('Image size must be less than 10MB');
-                    return;
-                }
-
-                setUploadingImage(true);
-                const formData = new FormData();
-                formData.append('file', categoryImage);
-                const uploadResult = await uploadCategoryImage(formData);
-                setUploadingImage(false);
-
-                if (!uploadResult.success || !uploadResult.url) {
-                    toast.error(uploadResult.error || 'Failed to upload image');
-                    return;
-                }
-                imageUrl = uploadResult.url;
-            }
-
             const url = '/api/chatbot/categories';
             const method = editingCategoryId ? 'PUT' : 'POST';
 
@@ -106,12 +78,8 @@ export default function ChatbotAdminPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(editingCategoryId ? {
                     id: editingCategoryId,
-                    ...categoryFormData,
-                    image: imageUrl
-                } : {
-                    ...categoryFormData,
-                    image: imageUrl
-                })
+                    ...categoryFormData
+                } : categoryFormData)
             });
 
             const data = await res.json();
@@ -126,8 +94,6 @@ export default function ChatbotAdminPage() {
         } catch (error) {
             console.error('Error saving category:', error);
             alert('Error saving category');
-        } finally {
-            setUploadingImage(false);
         }
     };
 
@@ -155,20 +121,16 @@ export default function ChatbotAdminPage() {
         setEditingCategoryId(category.id);
         setCategoryFormData({
             name: category.name,
-            image: category.image || "",
             order: category.order
         });
-        setCategoryImage(null);
         setIsAddingCategory(true);
     };
 
     const resetCategoryForm = () => {
         setEditingCategoryId(null);
         setIsAddingCategory(false);
-        setCategoryImage(null);
         setCategoryFormData({
             name: "",
-            image: "",
             order: 0
         });
     };
@@ -327,33 +289,17 @@ export default function ChatbotAdminPage() {
                                             />
                                         </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm mb-2">
-                                            Category Image (Optional)
-                                            <span className="text-xs text-zinc-500 ml-2">Max 10MB</span>
-                                        </label>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={(e) => setCategoryImage(e.target.files?.[0] || null)}
-                                            className="w-full bg-zinc-800 border border-zinc-700 rounded px-4 py-2 text-sm"
-                                        />
-                                        {categoryFormData.image && !categoryImage && (
-                                            <p className="text-xs text-green-500 mt-1">Current: {categoryFormData.image.substring(0, 50)}...</p>
-                                        )}
-                                    </div>
+
                                     <div className="flex gap-2">
                                         <button
                                             onClick={handleSaveCategory}
-                                            disabled={uploadingImage}
-                                            className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded flex items-center gap-2 disabled:opacity-50"
+                                            className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded flex items-center gap-2"
                                         >
-                                            <FiSave /> {uploadingImage ? 'Uploading...' : 'Save'}
+                                            <FiSave /> Save
                                         </button>
                                         <button
                                             onClick={resetCategoryForm}
-                                            disabled={uploadingImage}
-                                            className="bg-zinc-700 hover:bg-zinc-600 px-4 py-2 rounded flex items-center gap-2 disabled:opacity-50"
+                                            className="bg-zinc-700 hover:bg-zinc-600 px-4 py-2 rounded flex items-center gap-2"
                                         >
                                             <FiX /> Cancel
                                         </button>
@@ -553,6 +499,6 @@ export default function ChatbotAdminPage() {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }
