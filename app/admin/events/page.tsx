@@ -12,6 +12,7 @@ import {
   deleteEvent,
 } from "@/actions/events.action";
 import { uploadCategoryImage } from "@/actions/upload.action";
+import { createSchedule, getSchedules, deleteSchedule } from "@/actions/schedule.action";
 import MultiStepEventForm from "@/components/ui/MultiStepEventForm";
 
 interface Event {
@@ -48,10 +49,16 @@ interface Category {
   video?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
-  Event: Event[];
+  Event: (Event | { id: string; image: string; name: string; description: string })[];
+}
+
+interface Schedule {
+  id: string;
+  image: string;
 }
 
 export default function EventsManagement() {
+  const [statusMessage, setStatusMessage] = useState<string>("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -81,6 +88,13 @@ export default function EventsManagement() {
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
+  // Schedule modal states
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [scheduleImage, setScheduleImage] = useState<File | null>(null);
+  const [scheduleImagePreview, setScheduleImagePreview] = useState("");
+  const [uploadingSchedule, setUploadingSchedule] = useState(false);
+
   // Expanded categories state
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set()
@@ -99,6 +113,84 @@ export default function EventsManagement() {
       toast.error(result.error || "Failed to fetch categories");
     }
     setLoading(false);
+  };
+
+  const fetchSchedules = async () => {
+    const result = await getSchedules();
+    if (result.success && result.data) {
+      setSchedules(result.data);
+    }
+  };
+
+  // Lock body scroll when any modal is open
+  useEffect(() => {
+    if (showCategoryModal || showDeleteCategoryModal || showScheduleModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showCategoryModal, showDeleteCategoryModal, showScheduleModal]);
+
+  const handleScheduleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setScheduleImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setScheduleImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadSchedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!scheduleImage) return;
+
+    setUploadingSchedule(true);
+    setStatusMessage("Uploading to Storage...");
+    try {
+      const formData = new FormData();
+      formData.append("file", scheduleImage);
+      const uploadResult = await uploadCategoryImage(formData);
+      console.log("[handleUploadSchedule] Upload Result:", uploadResult);
+
+      if (!uploadResult.success || !uploadResult.url) {
+        toast.error(uploadResult.error || "Failed to upload image");
+        setUploadingSchedule(false);
+        setStatusMessage("");
+        return;
+      }
+
+      setStatusMessage("Saving to Database...");
+      const result = await createSchedule(uploadResult.url);
+      if (result.success) {
+        toast.success("Schedule uploaded successfully");
+        setScheduleImage(null);
+        setScheduleImagePreview("");
+        fetchSchedules();
+      } else {
+        toast.error(result.error || "Failed to create schedule entry");
+      }
+    } catch (error) {
+      toast.error("An error occurred while uploading schedule");
+    } finally {
+      setUploadingSchedule(false);
+      setStatusMessage("");
+    }
+  };
+
+  const handleDeleteSchedule = async (id: string) => {
+    const result = await deleteSchedule(id);
+    if (result.success) {
+      toast.success("Schedule deleted successfully");
+      fetchSchedules();
+    } else {
+      toast.error(result.error || "Failed to delete schedule");
+    }
   };
 
   const toggleCategory = (categoryId: string) => {
@@ -284,6 +376,20 @@ export default function EventsManagement() {
           </svg>
           Add Category
         </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => {
+            setShowScheduleModal(true);
+            fetchSchedules();
+          }}
+          className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg ml-4"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          Manage Schedule
+        </motion.button>
       </div>
 
       {/* Categories with nested events - Branch Structure */}
@@ -414,7 +520,7 @@ export default function EventsManagement() {
                           <div className="w-32 h-32 rounded-lg overflow-hidden bg-zinc-900 border border-zinc-700 relative">
                             <Image
                               src={event.image || "https://via.placeholder.com/128x128?text=No+Image"}
-                              alt={event.name}
+                              alt={event.name || "Event Image"}
                               fill
                               className="object-cover"
                               unoptimized
@@ -798,11 +904,6 @@ export default function EventsManagement() {
                                   {student.phone}
                                 </p>
                               )}
-                              {student.collage && (
-                                <p className="text-zinc-500 text-xs mt-1">
-                                  {student.collage}
-                                </p>
-                              )}
                             </div>
                           </div>
                         </div>
@@ -812,45 +913,109 @@ export default function EventsManagement() {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <svg
-                    className="w-16 h-16 text-zinc-600 mx-auto mb-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    No Registrations Yet
-                  </h3>
-                  <p className="text-zinc-400">
-                    No students have registered for this event
-                  </p>
+                  <p className="text-zinc-400">No registrations yet</p>
                 </div>
               )}
-            </div>
-
-            {/* Footer */}
-            <div className="px-8 py-4 border-t border-zinc-800 shrink-0">
-              <button
-                onClick={() => {
-                  setShowRegistrationsModal(false);
-                  setSelectedEventForRegistrations(null);
-                }}
-                className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors"
-              >
-                Close
-              </button>
             </div>
           </motion.div>
         </div>
       )}
 
+      {/* Schedule Management Modal */}
+      {showScheduleModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-zinc-900 rounded-xl w-full max-w-4xl border border-zinc-800 shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
+          >
+            <div className="px-8 py-6 border-b border-zinc-800 flex items-center justify-between shrink-0">
+              <h2 className="text-2xl font-bold text-white">Manage Schedule</h2>
+              <button
+                onClick={() => setShowScheduleModal(false)}
+                className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="px-8 py-6 overflow-y-auto flex-1">
+              {/* Upload Form */}
+              <div className="mb-8 bg-zinc-800/50 p-6 rounded-xl border border-zinc-700">
+                <h3 className="text-lg font-semibold text-white mb-4">Add New Schedule Image</h3>
+                <form onSubmit={handleUploadSchedule}>
+                  <div className="flex gap-4 items-end">
+                    <div className="flex-1">
+                      <label className="block text-zinc-400 mb-2 text-sm">Upload Image</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleScheduleImageSelect}
+                        className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-red-600 file:text-white hover:file:bg-red-700 file:cursor-pointer"
+                        required
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={!scheduleImage || uploadingSchedule}
+                      className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {uploadingSchedule ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Uploading...
+                        </>
+                      ) : (
+                        "Upload"
+                      )}
+                    </button>
+                  </div>
+                  {scheduleImagePreview && (
+                    <div className="mt-4 w-full h-48 bg-zinc-950 rounded-lg overflow-hidden border border-zinc-700 relative">
+                      <img src={scheduleImagePreview} alt="Preview" className="w-full h-full object-contain" />
+                    </div>
+                  )}
+                </form>
+              </div>
+
+              {/* Existing Schedules */}
+              <h3 className="text-lg font-semibold text-white mb-4">Current Schedules</h3>
+              {schedules.length === 0 ? (
+                <p className="text-zinc-400 text-center py-8">No schedule images uploaded yet.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {schedules.map((schedule) => (
+                    <div key={schedule.id} className="bg-zinc-800 rounded-lg border border-zinc-700 overflow-hidden group relative">
+                      <div className="aspect-[3/4] relative">
+                        <Image
+                          src={schedule.image}
+                          alt="Schedule"
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex justify-center">
+                          <button
+                            onClick={() => handleDeleteSchedule(schedule.id)}
+                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
       {/* Multi-Step Event Form Modal */}
       {showEventForm && (
         <MultiStepEventForm
