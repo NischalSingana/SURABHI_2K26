@@ -31,6 +31,7 @@ export default function AdminLayoutWrapper({
     { href: "/admin/analytics", label: "Analytics" },
     { href: "/admin/judges", label: "Judges" },
     { href: "/admin/evaluations", label: "Evaluations" },
+    { href: "/admin/chatbot", label: "Chatbot FAQs" },
   ];
 
   return (
