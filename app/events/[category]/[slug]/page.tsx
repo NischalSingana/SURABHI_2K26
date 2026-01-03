@@ -50,7 +50,7 @@ interface Event {
 function EventDetailPageContent() {
   const params = useParams();
   const router = useRouter();
-  const eventId = params.eventId as string;
+  const slug = params.slug as string;
   const categoryName = decodeURIComponent(params.category as string);
 
   const [event, setEvent] = useState<Event | null>(null);
@@ -84,9 +84,10 @@ function EventDetailPageContent() {
   }, [event]);
 
   useEffect(() => {
-    fetchEvent();
-    checkRegistration();
-  }, [eventId]);
+    if (slug) {
+      fetchEvent();
+    }
+  }, [slug]);
 
   // Lock body scroll when any modal is open
   useEffect(() => {
@@ -104,16 +105,25 @@ function EventDetailPageContent() {
   }, [showRegistrationModal, showGroupModal, showImageModal, showUnregisterConfirm]);
 
   const fetchEvent = async () => {
-    const result = await getPublicEvents();
-    if (result.success && result.data) {
-      const foundEvent = result.data.find((e) => e.id === eventId);
-      setEvent(foundEvent || null);
+    try {
+      const { getEventBySlug } = await import("@/actions/events.action");
+      const result = await getEventBySlug(slug);
+
+      if (result.success && result.data) {
+        setEvent(result.data as any);
+        // Check registration with ID once we have the event
+        checkRegistration(result.data.id);
+      } else {
+        console.error("Event not found");
+      }
+    } catch (e) {
+      console.error("Error fetching event", e);
     }
     setLoading(false);
   };
 
-  const checkRegistration = async () => {
-    const result = await checkEventRegistration(eventId);
+  const checkRegistration = async (id: string) => {
+    const result = await checkEventRegistration(id);
     if (result.success) {
       setIsRegistered(result.isRegistered || false);
       setIsApproved(result.isApproved);
@@ -143,7 +153,9 @@ function EventDetailPageContent() {
 
     setRegistering(true);
 
-    const result = await registerForEvent(eventId);
+    if (!event) return;
+
+    const result = await registerForEvent(event.id);
 
     if (result.success) {
       toast.success("Successfully registered for the event!");
@@ -161,6 +173,8 @@ function EventDetailPageContent() {
   const handleGroupRegister = async () => {
     console.log("handleGroupRegister started", { groupName, teamSize, teamMembers, event });
 
+    if (!event) return;
+
     // Basic validation
     if (!groupName.trim()) {
       toast.error("Please enter a group name");
@@ -173,12 +187,11 @@ function EventDetailPageContent() {
       toast.error(`Please add details for all ${requiredMembers} additional members`);
       return;
     }
-    // (removed loop, handled by state)
 
     setRegistering(true);
     try {
       console.log("Calling registerGroupEvent action...");
-      const result = await registerGroupEvent(eventId, groupName, teamMembers, mentorName, mentorPhone);
+      const result = await registerGroupEvent(event.id, groupName, teamMembers, mentorName, mentorPhone);
       console.log("Action result:", result);
 
       if (result.success) {
@@ -255,9 +268,10 @@ function EventDetailPageContent() {
   };
 
   const handleUnregister = async () => {
+    if (!event) return;
     setUnregistering(true);
 
-    const result = await unregisterFromEvent(eventId);
+    const result = await unregisterFromEvent(event.id);
 
     if (result.success) {
       toast.success("Successfully unregistered from the event!");

@@ -137,14 +137,10 @@ const Contact = () => {
 
   return (
     <div className="w-full min-h-screen bg-black relative overflow-hidden pt-20">
-      {/* Subtle gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-zinc-950 via-black to-black" />
-
-      {/* Fiery Red Ambient Background */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-red-600/10 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute top-40 right-20 w-80 h-80 bg-red-600/10 rounded-full blur-[100px] animate-pulse delay-700" />
-        <div className="absolute bottom-20 left-1/3 w-[500px] h-[500px] bg-red-800/5 rounded-full blur-[120px]" />
+      {/* Background Effects - Standardized */}
+      <div className="fixed inset-0 z-0 bg-black">
+        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-red-900/10 to-transparent pointer-events-none" />
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-16 relative z-10">

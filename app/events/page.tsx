@@ -7,7 +7,7 @@ import Image from "next/image";
 import { getCategories } from "@/actions/events.action";
 import Loader from "@/components/ui/Loader";
 
-import { FiCalendar } from "react-icons/fi";
+import { FiCalendar, FiClock } from "react-icons/fi";
 
 interface CategoryData {
   name: string;
@@ -82,6 +82,16 @@ const Events = () => {
           >
             <FiCalendar size={20} />
             My Events
+          </motion.button>
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            onClick={() => router.push("/schedule")}
+            className="inline-flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-zinc-800/50 border border-zinc-700"
+          >
+            <FiClock size={20} />
+            Schedule
           </motion.button>
         </div>
 

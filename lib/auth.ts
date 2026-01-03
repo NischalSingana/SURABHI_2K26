@@ -6,6 +6,11 @@ import { prisma } from "@/lib/prisma"
 
 import { Role } from "./generated/prisma";
 
+const isProduction = process.env.NODE_ENV === "production";
+const baseURL = isProduction
+    ? (process.env.BETTER_AUTH_URL || "https://klsurabhi.nischalsingana.com")
+    : "http://localhost:3000";
+
 export const auth = betterAuth({
     database: prismaAdapter(prisma, {
         provider: "postgresql",
@@ -22,7 +27,7 @@ export const auth = betterAuth({
         "https://klsurabhi.nischalsingana.com",
         "http://localhost:3000"
     ],
-    baseURL: process.env.BETTER_AUTH_URL || "https://klsurabhi.nischalsingana.com",
+    baseURL,
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID as string,
@@ -32,7 +37,7 @@ export const auth = betterAuth({
             clientId: process.env.MICROSOFT_CLIENT_ID as string,
             clientSecret: process.env.MICROSOFT_CLIENT_SECRET as string,
             tenant: "organizations", // For single-tenant app - work/school accounts only
-            redirectURI: `${(process.env.BETTER_AUTH_URL || "https://klsurabhi.nischalsingana.com").replace(/\/$/, '')}/api/auth/callback/microsoft`,
+            redirectURI: `${baseURL.replace(/\/$/, '')}/api/auth/callback/microsoft`,
         },
     },
     emailAndPassword: {

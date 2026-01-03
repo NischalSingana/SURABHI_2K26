@@ -690,7 +690,7 @@ export default function MultiStepEventForm({
                     <p className="text-zinc-500 text-sm">
                       {editingEvent && !selectedFile
                         ? "Upload a new image to replace the current one"
-                        : "Supported: JPG, PNG, WebP, GIF (Max 5MB)"}
+                        : "Supported: JPG, PNG, WebP, GIF (Max 10MB)"}
                     </p>
                   </div>
                 </div>

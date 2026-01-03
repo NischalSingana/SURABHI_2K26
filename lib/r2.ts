@@ -1,4 +1,5 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // Initialize R2 client
 const r2Client = new S3Client({
@@ -107,4 +108,26 @@ export function generateUniqueFilename(originalName: string): string {
     const timestamp = Date.now();
     const sanitized = originalName.replace(/\s+/g, "-").toLowerCase();
     return `${timestamp}-${sanitized}`;
+}
+
+/**
+ * Generate a signed URL for downloading a file with Content-Disposition attachment
+ * @param filename - The filename/key in the R2 bucket
+ * @returns The signed download URL
+ */
+export async function getDownloadUrl(filename: string): Promise<string> {
+    try {
+        const command = new GetObjectCommand({
+            Bucket: process.env.R2_BUCKET_NAME,
+            Key: filename,
+            ResponseContentDisposition: `attachment; filename="${filename}"`,
+        });
+
+        // Generate signed URL that expires in 1 hour
+        const url = await getSignedUrl(r2Client, command, { expiresIn: 3600 });
+        return url;
+    } catch (error) {
+        console.error("Error generating signed download URL:", error);
+        throw new Error("Failed to generate download URL");
+    }
 }

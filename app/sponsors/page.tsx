@@ -28,25 +28,11 @@ export default function SponsorsPage() {
     };
 
     return (
-        <main className="relative w-full min-h-screen bg-[#0a0000] overflow-hidden pt-20">
+        <main className="relative w-full min-h-screen bg-black overflow-hidden pt-20">
             {/* Background Effects */}
-            <div className="fixed inset-0 z-0 bg-gradient-to-br from-[#1a0000] via-[#4a0000] to-[#2a0000]">
-                <motion.div
-                    animate={{
-                        background: [
-                            "radial-gradient(circle at 20% 50%, rgba(255, 69, 0, 0.3) 0%, transparent 50%)",
-                            "radial-gradient(circle at 80% 50%, rgba(255, 140, 0, 0.3) 0%, transparent 50%)",
-                            "radial-gradient(circle at 50% 20%, rgba(255, 69, 0, 0.3) 0%, transparent 50%)",
-                            "radial-gradient(circle at 20% 50%, rgba(255, 69, 0, 0.3) 0%, transparent 50%)",
-                        ],
-                    }}
-                    transition={{
-                        duration: 8,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                    }}
-                    className="absolute inset-0"
-                />
+            <div className="fixed inset-0 z-0 bg-black">
+                <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 hover:opacity-30 transition-opacity" />
+                <div className="absolute inset-0 bg-gradient-to-b from-red-900/10 to-transparent pointer-events-none" />
             </div>
 
             <div className="relative z-10 w-full min-h-screen flex flex-col items-center px-4 sm:px-6 lg:px-8 py-12">
@@ -78,7 +64,7 @@ export default function SponsorsPage() {
                         transition={{ duration: 0.5, delay: 0.3 }}
                         className="w-full max-w-7xl"
                     >
-                        <ChromaGrid items={sponsors} radius={350} damping={0.5} />
+                        <ChromaGrid items={sponsors} />
                     </motion.div>
                 ) : (
                     <div className="flex items-center justify-center h-[60vh]">

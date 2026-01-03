@@ -197,16 +197,42 @@ export default function JudgeDashboard() {
                 });
             }
 
+            // Calculate Average Score for Team
+            let totalScore = 0;
+            let evaluatedMembersCount = 0;
+
+            // Check Leader Evaluation
+            if (evaluation) {
+                totalScore += evaluation.score;
+                evaluatedMembersCount++;
+            }
+
+            // Check Members Evaluations
+            if (Array.isArray(membersList)) {
+                membersList.forEach((member: any) => {
+                    const memberId = member.userId;
+                    if (memberId) {
+                        const memEval = getEvaluation(event.id, memberId);
+                        if (memEval) {
+                            totalScore += memEval.score;
+                            evaluatedMembersCount++;
+                        }
+                    }
+                });
+            }
+
+            const averageScore = evaluatedMembersCount > 0 ? parseFloat((totalScore / evaluatedMembersCount).toFixed(2)) : undefined;
+
             list.push({
                 id: `group-${reg.user.id}-${index}`,
                 type: "GROUP",
                 displayName: reg.groupName || `Team ${reg.user.name}`,
                 subtitle: `Leader: ${reg.user.name}`,
                 members: Array.isArray(membersList) ? membersList : [],
-                isEvaluated: !!evaluation,
-                score: evaluation?.score,
+                isEvaluated: evaluatedMembersCount > 0,
+                score: averageScore,
                 remarks: evaluation?.remarks,
-                actualUserId: reg.user.id // For evaluation purposes
+                actualUserId: reg.user.id
             });
         });
 
@@ -253,6 +279,12 @@ export default function JudgeDashboard() {
     };
 
     if (loading || isPending) return <Loader />;
+
+    const getScoreColor = (score: number) => {
+        if (score >= 7) return "bg-green-500/20 text-green-400 border-green-500/30";
+        if (score >= 4) return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
+        return "bg-red-500/20 text-red-400 border-red-500/30";
+    };
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] text-white font-[family-name:var(--font-Schibsted_Grotesk)]">
@@ -381,7 +413,7 @@ export default function JudgeDashboard() {
                                             {/* Status Badge */}
                                             <div className="shrink-0">
                                                 {participant.isEvaluated ? (
-                                                    <span className="bg-green-500/20 text-green-400 text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 font-medium border border-green-500/30">
+                                                    <span className={`text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 font-medium border ${getScoreColor(participant.score || 0)}`}>
                                                         <FiCheckCircle size={14} /> {participant.score}/10
                                                     </span>
                                                 ) : (
@@ -456,30 +488,45 @@ export default function JudgeDashboard() {
                                                                 </div>
 
                                                                 {/* Other Members with Evaluate Buttons */}
-                                                                {participant.members.map((m: any, idx: number) => (
-                                                                    <div key={idx} className="p-3 bg-white/5 rounded-lg border border-white/10">
-                                                                        <div className="flex items-center justify-between mb-2">
-                                                                            <span className="text-gray-300 text-sm font-medium">{m.name || m}</span>
-                                                                            {m.rollNo && <span className="text-gray-500 text-xs">{m.rollNo}</span>}
+                                                                {participant.members.map((m: any, idx: number) => {
+                                                                    const memberId = m.userId;
+                                                                    const memberEvaluation = memberId ? getEvaluation(selectedEvent.id, memberId) : null;
+                                                                    const isMemberEvaluated = !!memberEvaluation;
+
+                                                                    return (
+                                                                        <div key={idx} className="p-3 bg-white/5 rounded-lg border border-white/10">
+                                                                            <div className="flex items-center justify-between mb-2">
+                                                                                <span className="text-gray-300 text-sm font-medium">{m.name || m}</span>
+                                                                                {m.rollNo && <span className="text-gray-500 text-xs">{m.rollNo}</span>}
+                                                                                {isMemberEvaluated && (
+                                                                                    <span className={`text-xs px-2 py-0.5 rounded border ${getScoreColor(memberEvaluation?.score || 0)}`}>
+                                                                                        {memberEvaluation?.score}/10
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    setEvaluatingParticipant({
+                                                                                        id: m.userId || `member-${idx}`,
+                                                                                        name: m.name || m,
+                                                                                        email: m.email || "",
+                                                                                        collageId: m.rollNo || null,
+                                                                                        image: null
+                                                                                    });
+                                                                                    const scoreVal = memberEvaluation?.score;
+                                                                                    setScore(scoreVal !== undefined && scoreVal !== null ? scoreVal : "");
+                                                                                    setRemarks(memberEvaluation?.remarks || "");
+                                                                                }}
+                                                                                className={`w-full py-2 rounded-lg text-xs font-semibold transition-all ${isMemberEvaluated
+                                                                                    ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                                                                                    : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                                                                                    }`}
+                                                                            >
+                                                                                {isMemberEvaluated ? "Edit Evaluation" : "Evaluate"}
+                                                                            </button>
                                                                         </div>
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                setEvaluatingParticipant({
-                                                                                    id: m.userId || `member-${idx}`,
-                                                                                    name: m.name || m,
-                                                                                    email: m.email || "",
-                                                                                    collageId: m.rollNo || null,
-                                                                                    image: null
-                                                                                });
-                                                                                setScore("");
-                                                                                setRemarks("");
-                                                                            }}
-                                                                            className="w-full py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg text-xs font-semibold transition-all"
-                                                                        >
-                                                                            Evaluate
-                                                                        </button>
-                                                                    </div>
-                                                                ))}
+                                                                    );
+                                                                })}
                                                             </div>
                                                         </div>
                                                     </motion.div>
@@ -582,6 +629,7 @@ export default function JudgeDashboard() {
                                 <div>
                                     <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Score (out of 10)</label>
                                     <div className="relative">
+                                        <FiStar className="absolute left-4 top-1/2 -translate-y-1/2 text-yellow-500" />
                                         <input
                                             type="number"
                                             min="0"
@@ -589,10 +637,9 @@ export default function JudgeDashboard() {
                                             step="0.1"
                                             value={score}
                                             onChange={(e) => setScore(e.target.value === "" ? "" : parseFloat(e.target.value))}
-                                            className="w-full bg-[#111] border border-white/10 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-base sm:text-lg focus:outline-none focus:border-red-500 transition-colors"
+                                            className="w-full bg-[#111] border border-white/10 rounded-xl px-3 pl-12 sm:px-4 sm:pl-12 py-2.5 sm:py-3 text-white text-base sm:text-lg focus:outline-none focus:border-red-500 transition-colors"
                                             placeholder="0.0"
                                         />
-                                        <FiStar className="absolute right-4 top-1/2 -translate-y-1/2 text-yellow-500" />
                                     </div>
                                 </div>
 

@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { getPublicEvents, registerForEvent, checkEventRegistration, getCategories } from "@/actions/events.action";
+import { getPublicEvents, registerForEvent, getUserRegistrations, getCategories } from "@/actions/events.action";
 import { FiArrowLeft, FiCalendar, FiMapPin, FiClock, FiUsers } from "react-icons/fi";
 import SubmissionModal from "@/components/ui/SubmissionModal";
 import { toast } from "sonner";
@@ -80,8 +80,14 @@ function CategoryPageContent() {
     return url;
   };
 
+  /*
+   * Fetch Events implementation updated to use slugs is deferred until backend implementation is confirmed working with slugs.
+   * However, since we added 'slug' to schema, we can start using it.
+   * Ideally, this page [category] should be [slug] or we lookup category by name then get its slug.
+   * For now, let's keep fetching by category name but start linking to event slugs.
+   */
   const fetchEvents = async () => {
-    // Fetch Category Details (for video and image)
+    // Fetch Category Details
     const categoryResult = await getCategories();
     if (categoryResult.success && categoryResult.data) {
       const currentCategory = categoryResult.data.find(
@@ -94,21 +100,32 @@ function CategoryPageContent() {
     }
 
     const result = await getPublicEvents();
+    console.log("[fetchEvents] API Result:", result);
+
     if (result.success && result.data) {
+      console.log("[fetchEvents] Category Name (Param):", categoryName);
+      console.log("[fetchEvents] First Event Category:", result.data[0]?.Category?.name);
+
       const filtered = result.data.filter(
-        (event) => event.Category.name.toLowerCase() === categoryName.toLowerCase()
+        (event) => {
+          const match = event.Category.name.toLowerCase() === categoryName.toLowerCase();
+          if (!match && event.Category.name.trim().toLowerCase() === categoryName.trim().toLowerCase()) {
+            console.log("Trim match found! Case/Space mismatch might be issue.");
+          }
+          return event.Category.name.toLowerCase() === categoryName.toLowerCase();
+        }
       );
+      console.log("[fetchEvents] Filtered Events:", filtered.length);
       setEvents(filtered);
 
-      // Check registration status for all events
-      const registeredSet = new Set<string>();
-      for (const event of filtered) {
-        const regResult = await checkEventRegistration(event.id);
-        if (regResult.success && regResult.isRegistered) {
-          registeredSet.add(event.id);
-        }
+      // Check registration status
+      const regResult = await getUserRegistrations();
+      if (regResult.success && regResult.registeredEventIds) {
+        setRegisteredEvents(new Set(regResult.registeredEventIds));
       }
-      setRegisteredEvents(registeredSet);
+    } else {
+      console.error("[fetchEvents] Failed:", result.error);
+      toast.error("Failed to load events: " + result.error);
     }
     setLoading(false);
   };
@@ -122,7 +139,9 @@ function CategoryPageContent() {
 
     if (event.isGroupEvent) {
       toast.info("Redirecting to team registration...");
-      router.push(`/events/${encodeURIComponent(categoryName)}/${event.id}`);
+      // Link using slug if available, fallback to ID
+      const eventIdentifier = (event as any).slug || event.id;
+      router.push(`/events/${encodeURIComponent(categoryName)}/${eventIdentifier}`);
       return;
     }
 
