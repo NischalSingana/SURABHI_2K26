@@ -173,13 +173,13 @@ const HomePage = () => {
                                     A Legacy of Artistic Excellence
                                 </h3>
                                 <p className="text-gray-400 text-lg leading-relaxed font-[family-name:var(--font-Lexend)]">
-                                    Surabhi is the flagship cultural festival of <span className="text-red-400 font-medium">KL University</span>, celebrated as a grand platform for artistic expression and cultural diversity. Held annually, it brings together talent from across the country, transforming the campus into a vibrant hub of creativity where tradition meets modern expression through dance, music, theatre, fine arts, and literary events.
+                                    Surabhi is the flagship cultural festival of <span className="text-red-400 font-medium">KL University</span>, organized by the Student Activity Centre (SAC), serving as a vibrant platform for artistic expression and cultural diversity. Celebrated annually, the fest brings together talented students from across the country, transforming the campus into a lively space where tradition and modern creativity blend seamlessly through dance, music, theatre, fine arts, and literary events.
                                 </p>
                                 <p className="text-gray-400 text-lg leading-relaxed font-[family-name:var(--font-Lexend)]">
-                                    What sets Surabhi apart is its student-driven spirit—planned, organized, and executed by passionate teams fostering leadership and innovation. This commitment to excellence has earned a proud place in the <span className="text-white border-b border-red-500/50">Indian Book of Records</span>.
+                                    Driven by a strong student-led spirit, Surabhi is planned, organized, and executed by dedicated student teams under SAC, fostering leadership, teamwork, and innovation. This commitment to excellence has earned the fest recognition, including a place in the <span className="text-white border-b border-red-500/50">Indian Book of Records</span>.
                                 </p>
                                 <p className="text-gray-400 text-lg leading-relaxed font-[family-name:var(--font-Lexend)]">
-                                    Over two power-packed days, thousands unite to celebrate art, culture, and passion. From electrifying performances to breathtaking showcases, Surabhi is more than an event—it's a legacy of cultural brilliance that continues to inspire and unite diverse voices in a spectacular celebration of creativity.
+                                    Across two power-packed days, Surabhi unites thousands to celebrate art, culture, and passion. More than just a festival, it is a signature celebration of creativity that continues to inspire, connect, and showcase the cultural brilliance of KL University.
                                 </p>
                             </div>
                         </motion.div>
