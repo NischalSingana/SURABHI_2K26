@@ -11,6 +11,7 @@ export async function GET() {
             select: {
                 id: true,
                 name: true,
+                image: true,
                 order: true,
             }
         });
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { name, order } = body;
+        const { name, image, order } = body;
 
         if (!name || !name.trim()) {
             return NextResponse.json({ error: "Category name is required" }, { status: 400 });
@@ -50,6 +51,7 @@ export async function POST(req: NextRequest) {
         const category = await prisma.chatbotCategory.create({
             data: {
                 name: name.trim(),
+                image: image || null,
                 order: order || 0,
                 active: true,
             }
@@ -72,7 +74,7 @@ export async function PUT(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { id, name, order, active } = body;
+        const { id, name, image, order, active } = body;
 
         if (!id) {
             return NextResponse.json({ error: "Category ID is required" }, { status: 400 });
@@ -82,6 +84,7 @@ export async function PUT(req: NextRequest) {
             where: { id },
             data: {
                 ...(name !== undefined && { name: name.trim() }),
+                ...(image !== undefined && { image }),
                 ...(order !== undefined && { order }),
                 ...(active !== undefined && { active }),
             }
