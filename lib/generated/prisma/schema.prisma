@@ -298,3 +298,29 @@ model Schedule {
 
   @@map("schedules")
 }
+
+model ContactCategory {
+  id           String               @id @default(cuid())
+  name         String
+  order        Int                  @default(0)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  coordinators ContactCoordinator[]
+
+  @@map("contact_categories")
+}
+
+model ContactCoordinator {
+  id         String          @id @default(cuid())
+  name       String
+  phone      String
+  email      String
+  image      String?
+  order      Int             @default(0)
+  categoryId String
+  category   ContactCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@map("contact_coordinators")
+}

@@ -31,6 +31,7 @@ interface Event {
     name: string;
     description: string;
     venue: string;
+    date: string; // Added date field
     startTime: string;
     endTime: string | null;
     isGroupEvent: boolean;
@@ -341,9 +342,9 @@ export default function JudgeDashboard() {
                                 <div className="bg-[#161616] p-3 sm:p-4 rounded-xl border border-white/5">
                                     <p className="text-gray-500 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"><FiCalendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Event Date</p>
                                     <p className="font-medium text-xs sm:text-sm">
-                                        {formatDateShort(selectedEvent.startTime)}
-                                        {selectedEvent.endTime && selectedEvent.endTime !== selectedEvent.startTime && (
-                                            <span className="text-gray-500"> - {formatDateShort(selectedEvent.endTime)}</span>
+                                        {formatDateShort(selectedEvent.date)}
+                                        {selectedEvent.startTime && (
+                                            <span className="text-gray-500"> | {selectedEvent.startTime}</span>
                                         )}
                                     </p>
                                 </div>
@@ -467,6 +468,15 @@ export default function JudgeDashboard() {
                                                                             <span className="text-[10px] bg-red-600/30 text-red-300 px-2 py-0.5 rounded font-bold uppercase">Leader</span>
                                                                             <span className="text-white font-medium text-sm">{participant.subtitle?.replace('Leader: ', '')}</span>
                                                                         </div>
+                                                                        {participant.isEvaluated && (
+                                                                            <span className={`text-xs px-2 py-0.5 rounded border ${getScoreColor(participant.score || 0)}`}>
+                                                                                {/* If this is the group row, participant.score is average. 
+                                                                                   We need the LEADER'S individual score here.
+                                                                                   We can fetch it using getEvaluation(selectedEvent.id, participant.actualUserId)
+                                                                               */}
+                                                                                {getEvaluation(selectedEvent.id, participant.actualUserId || "")?.score}/10
+                                                                            </span>
+                                                                        )}
                                                                     </div>
                                                                     <button
                                                                         onClick={() => {
@@ -477,13 +487,14 @@ export default function JudgeDashboard() {
                                                                                 collageId: null,
                                                                                 image: null
                                                                             });
-                                                                            const scoreVal = participant.score;
-                                                                            setScore(scoreVal !== undefined && scoreVal !== null ? scoreVal : "");
-                                                                            setRemarks(participant.remarks || "");
+                                                                            // Fetch Leader's specific score, not team average
+                                                                            const leaderEval = getEvaluation(selectedEvent.id, participant.actualUserId || "");
+                                                                            setScore(leaderEval ? leaderEval.score : "");
+                                                                            setRemarks(leaderEval?.remarks || "");
                                                                         }}
                                                                         className="w-full py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg text-xs font-semibold transition-all"
                                                                     >
-                                                                        {participant.isEvaluated ? "Edit Evaluation" : "Evaluate"}
+                                                                        {getEvaluation(selectedEvent.id, participant.actualUserId || "") ? "Edit Evaluation" : "Evaluate"}
                                                                     </button>
                                                                 </div>
 
@@ -593,7 +604,7 @@ export default function JudgeDashboard() {
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span className="flex items-center gap-2"><FiCalendar /> Date</span>
-                                        <span className="text-white font-mono">{formatDateShort(event.startTime)}</span>
+                                        <span className="text-white font-mono">{formatDateShort(event.date)}</span>
                                     </div>
                                 </div>
                                 <div className="mt-6 flex items-center gap-2 text-red-500 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
