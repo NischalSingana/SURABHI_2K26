@@ -91,6 +91,7 @@ model Category {
   name      String
   image     String?
   video     String?
+  slug      String   @unique @default(cuid())
   Event     Event[]
 }
 
@@ -101,6 +102,7 @@ model Event {
   description        String
   date               DateTime
   image              String
+  slug               String   @unique @default(cuid())
 
   venue              String
   startTime          String
@@ -272,4 +274,13 @@ model Sponsor {
   updatedAt   DateTime @updatedAt
 
   @@map("sponsors")
+}
+
+model Schedule {
+  id        String   @id @default(cuid())
+  image     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("schedules")
 }
