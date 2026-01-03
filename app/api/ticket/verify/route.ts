@@ -106,6 +106,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             valid: true,
             user: {
+                id: user.id, // Added ID for approval action
                 name: user.name,
                 email: user.email,
                 phone: user.phone,
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
                 transactionId: user.transactionId,
                 paymentStatus: user.paymentStatus,
                 isApproved: user.isApproved,
-                registeredAt: user.createdAt, // corrected field name from user select logic above
+                registeredAt: user.createdAt,
             },
             verifiedAt: new Date().toISOString(),
         });

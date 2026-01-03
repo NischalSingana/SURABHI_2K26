@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiCamera, FiCheckCircle, FiXCircle } from "react-icons/fi";
+import { FiCamera, FiCheckCircle, FiXCircle, FiAlertTriangle } from "react-icons/fi";
 import { toast } from "sonner";
 
 interface VerificationResult {
@@ -30,6 +30,7 @@ export default function QRScanner() {
     const [result, setResult] = useState<VerificationResult | null>(null);
     const scannerRef = useRef<Html5Qrcode | null>(null);
     const [cameraError, setCameraError] = useState<string | null>(null);
+    const [isSecure, setIsSecure] = useState(true);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -40,11 +41,30 @@ export default function QRScanner() {
         };
     }, []);
 
+    // HTTPS Check
+    useEffect(() => {
+        if (
+            typeof window !== "undefined" &&
+            window.location.protocol !== "https:" &&
+            window.location.hostname !== "localhost" &&
+            window.location.hostname !== "127.0.0.1"
+        ) {
+            setIsSecure(false);
+            setCameraError(
+                "Camera access requires a secure connection (HTTPS). Please use HTTPS or localhost."
+            );
+        }
+    }, []);
+
     const startScanning = async () => {
         setCameraError(null);
 
+        if (!isSecure) {
+            toast.error("Cannot start camera: Insecure connection (HTTP)");
+            return;
+        }
+
         try {
-            // Check if element exists
             const element = document.getElementById("qr-reader");
             if (!element) {
                 toast.error("Scanner element not found. Please refresh the page.");
@@ -54,7 +74,6 @@ export default function QRScanner() {
             const html5QrCode = new Html5Qrcode("qr-reader");
             scannerRef.current = html5QrCode;
 
-            // Start scanning with rear camera
             await html5QrCode.start(
                 { facingMode: "environment" },
                 {
@@ -64,8 +83,6 @@ export default function QRScanner() {
                 },
                 async (decodedText) => {
                     console.log("QR Code detected:", decodedText);
-
-                    // Stop scanning immediately
                     try {
                         await html5QrCode.stop();
                         await html5QrCode.clear();
@@ -73,13 +90,10 @@ export default function QRScanner() {
                     } catch (error) {
                         console.error("Error stopping scanner:", error);
                     }
-
-                    // Verify QR code
                     await verifyQRCode(decodedText);
                 },
                 (errorMessage) => {
                     // Ignore frequent scanning errors
-                    // console.log("Scan error:", errorMessage);
                 }
             );
 
@@ -103,15 +117,17 @@ export default function QRScanner() {
 
     const verifyQRCode = async (qrData: string) => {
         try {
-            // Extract QR data from URL if it's a URL
             let dataToVerify = qrData;
-
-            // If it's a URL, extract the qr parameter
+            // Handle URL based QR codes
             if (qrData.startsWith('http')) {
-                const url = new URL(qrData);
-                const qrParam = url.searchParams.get('qr');
-                if (qrParam) {
-                    dataToVerify = qrParam;
+                try {
+                    const url = new URL(qrData);
+                    const qrParam = url.searchParams.get('qr');
+                    if (qrParam) {
+                        dataToVerify = qrParam;
+                    }
+                } catch (e) {
+                    console.error("Invalid URL in QR", e);
                 }
             }
 
@@ -143,44 +159,69 @@ export default function QRScanner() {
     const resetScanner = () => {
         setResult(null);
         setCameraError(null);
+        // Only clear heavy error, keep warning if insecure
+        if (!isSecure) {
+            setCameraError("Camera access requires a secure connection (HTTPS).");
+        }
     };
 
     return (
         <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
             <h2 className="text-2xl font-bold text-white mb-6">Verify Ticket</h2>
 
-            {/* Scanner */}
+            {/* HTTPS Warning / Camera Error */}
+            {cameraError && (
+                <div className="mb-6 bg-red-500/10 border border-red-500/30 rounded-lg p-4 flex items-start gap-3">
+                    <FiAlertTriangle className="text-red-500 text-xl mt-0.5 shrink-0" />
+                    <div>
+                        <p className="text-red-400 font-medium">Camera Error</p>
+                        <p className="text-zinc-400 text-sm mt-1">{cameraError}</p>
+                        {!isSecure && (
+                            <p className="text-zinc-500 text-xs mt-2">
+                                Try accessing this via <code>localhost</code> or a secure tunnel (like ngrok).
+                            </p>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Scanner Area */}
             <div className="mb-6">
                 {!scanning && !result && (
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={startScanning}
-                        className="w-full px-6 py-4 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 shadow-lg shadow-red-600/20"
+                        disabled={!isSecure}
+                        className={`w-full px-6 py-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 shadow-lg 
+                            ${!isSecure
+                                ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                                : "bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white shadow-red-600/20"
+                            }`}
                     >
                         <FiCamera size={20} />
                         Start Scanning
                     </motion.button>
                 )}
 
-                {/* Always render qr-reader div, just hide it */}
                 <div
                     id="qr-reader"
-                    className={`rounded-lg overflow-hidden border-2 border-red-600 ${scanning ? "block" : "hidden"
-                        }`}
+                    className={`rounded-lg overflow-hidden border-2 border-red-600 ${scanning ? "block" : "hidden"}`}
                 ></div>
 
                 {scanning && (
                     <div className="mt-4 text-center">
-                        <p className="text-gray-300 text-sm animate-pulse">
-                            Point camera at QR code...
-                        </p>
-                    </div>
-                )}
-
-                {cameraError && (
-                    <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-                        <p className="text-red-400 text-sm">{cameraError}</p>
+                        <button
+                            onClick={async () => {
+                                if (scannerRef.current) {
+                                    await scannerRef.current.stop();
+                                    setScanning(false);
+                                }
+                            }}
+                            className="text-red-400 hover:text-red-300 text-sm underline"
+                        >
+                            Stop Scanning
+                        </button>
                     </div>
                 )}
             </div>
@@ -204,36 +245,34 @@ export default function QRScanner() {
                             ) : (
                                 <FiXCircle className="text-red-500 text-3xl" />
                             )}
-                            <h3
-                                className={`text-2xl font-bold ${result.valid ? "text-green-500" : "text-red-500"
-                                    }`}
-                            >
-                                {result.valid ? "Valid Ticket" : "Invalid Ticket"}
-                            </h3>
+                            <div>
+                                <h3 className={`text-2xl font-bold ${result.valid ? "text-green-500" : "text-red-500"}`}>
+                                    {result.valid ? "Valid Ticket" : "Invalid Ticket"}
+                                </h3>
+                                {result.valid && result.user && !result.user.isApproved && (
+                                    <p className="text-yellow-500 text-sm font-semibold mt-1">
+                                        ⚠️ Payment Pending Approval
+                                    </p>
+                                )}
+                            </div>
                         </div>
 
                         {/* User Details */}
                         {result.valid && result.user && (
-                            <div className="space-y-3 text-white">
-                                <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-4 text-white">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <p className="text-zinc-400 text-sm">Name</p>
                                         <p className="font-semibold">{result.user.name}</p>
                                     </div>
                                     <div>
                                         <p className="text-zinc-400 text-sm">Email</p>
-                                        <p className="font-semibold text-sm">{result.user.email}</p>
+                                        <p className="font-semibold text-sm break-all">{result.user.email}</p>
                                     </div>
                                     {result.user.college && (
                                         <div>
                                             <p className="text-zinc-400 text-sm">College</p>
                                             <p className="font-semibold">{result.user.college}</p>
-                                        </div>
-                                    )}
-                                    {result.user.collegeId && (
-                                        <div>
-                                            <p className="text-zinc-400 text-sm">College ID</p>
-                                            <p className="font-semibold">{result.user.collegeId}</p>
                                         </div>
                                     )}
                                     {result.user.phone && (
@@ -242,43 +281,25 @@ export default function QRScanner() {
                                             <p className="font-semibold">{result.user.phone}</p>
                                         </div>
                                     )}
-                                    {result.user.transactionId && (
-                                        <div>
-                                            <p className="text-zinc-400 text-sm">Transaction ID</p>
-                                            <p className="font-semibold text-sm">
-                                                {result.user.transactionId}
-                                            </p>
-                                        </div>
-                                    )}
                                 </div>
 
-                                {/* Payment Status */}
-                                <div className="mt-4 pt-4 border-t border-zinc-700">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-zinc-400">Payment Status</span>
-                                        <span
-                                            className={`px-3 py-1 rounded-full text-sm font-semibold ${result.user.isApproved
-                                                ? "bg-green-500/20 text-green-500"
-                                                : "bg-yellow-500/20 text-yellow-500"
-                                                }`}
-                                        >
-                                            {result.user.isApproved ? "APPROVED" : "PENDING"}
-                                        </span>
-                                    </div>
+                                <div className="pt-4 border-t border-zinc-700 flex items-center justify-between">
+                                    <span className="text-zinc-400">Payment Status</span>
+                                    <span className={`px-3 py-1 rounded-full text-sm font-bold ${result.user.isApproved ? "bg-green-500/20 text-green-500" : "bg-yellow-500/20 text-yellow-500"}`}>
+                                        {result.user.isApproved ? "APPROVED" : "PENDING"}
+                                    </span>
                                 </div>
                             </div>
                         )}
 
-                        {/* Error Message */}
                         {!result.valid && (
-                            <div className="mt-6 bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+                            <div className="mt-4 bg-red-500/10 border border-red-500/30 rounded-lg p-4">
                                 <p className="text-red-400 font-semibold">
                                     {result.error || "Invalid or expired ticket"}
                                 </p>
                             </div>
                         )}
 
-                        {/* Scan Again Button */}
                         <button
                             onClick={() => {
                                 resetScanner();

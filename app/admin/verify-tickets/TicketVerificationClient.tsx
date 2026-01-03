@@ -5,10 +5,13 @@ import { useSearchParams } from "next/navigation";
 import QRScanner from "@/components/admin/QRScanner";
 import { motion } from "framer-motion";
 import { FiCheckCircle, FiXCircle } from "react-icons/fi";
+import { toast } from "sonner";
+import { approveUser } from "@/actions/admin/users.action";
 
 interface VerificationResult {
     valid: boolean;
     user?: {
+        id: string; // Added ID
         name: string;
         email: string;
         phone: string | null;
@@ -29,6 +32,7 @@ function VerificationContent() {
     const searchParams = useSearchParams();
     const [result, setResult] = useState<VerificationResult | null>(null);
     const [loading, setLoading] = useState(false);
+    const [approving, setApproving] = useState(false);
 
     useEffect(() => {
         const qrParam = searchParams.get("qr");
@@ -59,6 +63,37 @@ function VerificationContent() {
         setResult(null);
         // Clear URL parameter
         window.history.replaceState({}, '', '/admin/verify-tickets');
+    };
+
+    const handleApprove = async () => {
+        if (!result?.user?.id) return;
+
+        if (!confirm(`Are you sure you want to approve ${result.user.name}? This will send them a verified ticket.`)) {
+            return;
+        }
+
+        setApproving(true);
+        try {
+            const res = await approveUser(result.user.id);
+            if (res.success) {
+                toast.success("User approved successfully!");
+                // Update local state
+                setResult(prev => prev ? ({
+                    ...prev,
+                    user: {
+                        ...prev.user!,
+                        isApproved: true,
+                        paymentStatus: "APPROVED"
+                    }
+                }) : null);
+            } else {
+                toast.error(res.error || "Failed to approve user");
+            }
+        } catch (error) {
+            toast.error("Error approving user");
+        } finally {
+            setApproving(false);
+        }
     };
 
     if (loading) {
@@ -147,14 +182,25 @@ function VerificationContent() {
                                 {/* Payment Status */}
                                 <div className="bg-zinc-900 p-4 rounded-lg flex items-center justify-between">
                                     <span className="text-zinc-400">Payment Status</span>
-                                    <span
-                                        className={`px-4 py-2 rounded-full text-sm font-bold ${result.user.isApproved
+                                    <div className="flex items-center gap-3">
+                                        <span
+                                            className={`px-4 py-2 rounded-full text-sm font-bold ${result.user.isApproved
                                                 ? "bg-green-500/20 text-green-500"
                                                 : "bg-yellow-500/20 text-yellow-500"
-                                            }`}
-                                    >
-                                        {result.user.isApproved ? "APPROVED ✓" : "PENDING"}
-                                    </span>
+                                                }`}
+                                        >
+                                            {result.user.isApproved ? "APPROVED ✓" : "PENDING"}
+                                        </span>
+                                        {!result.user.isApproved && (
+                                            <button
+                                                onClick={handleApprove}
+                                                disabled={approving}
+                                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-full transition-colors disabled:opacity-50"
+                                            >
+                                                {approving ? "APPROVING..." : "APPROVE NOW"}
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}
