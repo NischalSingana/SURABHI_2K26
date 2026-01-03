@@ -637,6 +637,22 @@ function CategoryPageContent() {
         )}
       </AnimatePresence>
 
+      {/* Hidden Image Preloader to speed up open interaction */}
+      <div className="hidden" aria-hidden="true">
+        {events.map((event) => (
+          <div key={`preload-${event.id}`} className="relative w-[350px] h-[500px]">
+            <Image
+              src={event.image}
+              alt={event.name}
+              fill
+              sizes="(max-width: 768px) 100vw, 350px"
+              quality={75}
+              priority
+            />
+          </div>
+        ))}
+      </div>
+
       {/* Submission Modal */}
       {selectedEvent && (
         <SubmissionModal
