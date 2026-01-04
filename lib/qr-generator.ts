@@ -1,5 +1,6 @@
 import QRCode from 'qrcode';
-import crypto from 'crypto';
+import { prisma } from '@/lib/prisma';
+import { createPass } from '@/lib/pass';
 
 interface TicketData {
     userId: string;
@@ -13,87 +14,39 @@ interface TicketData {
 /**
  * Generate a secure QR code for ticket verification
  * Creates a URL that opens the verification page when scanned
+ * NOW USES DB-BACKED PASS SYSTEM
  */
 export async function generateTicketQR(data: TicketData): Promise<string> {
-    const timestamp = new Date().toISOString();
+    // 1. Find existing pass for user or create new one
+    let pass = await prisma.pass.findFirst({
+        where: { userId: data.userId },
+        orderBy: { createdAt: 'desc' }
+    });
 
-    // Create payload
-    const payload = {
-        userId: data.userId,
-        transactionId: data.transactionId,
-        timestamp,
-    };
+    if (!pass) {
+        // Create new pass if none exists
+        pass = await createPass(data.userId, {
+            passType: 'GENERAL'
+        });
+    }
 
-    // Sign the payload with HMAC
-    const secret = process.env.BETTER_AUTH_SECRET || 'fallback-secret';
-    const signature = crypto
-        .createHmac('sha256', secret)
-        .update(JSON.stringify(payload))
-        .digest('hex');
+    // 2. Construct correct verification URL
+    const baseUrl = (process.env.BETTER_AUTH_URL || 'https://klsurabhi.nischalsingana.com').replace(/\/$/, '');
+    const verificationUrl = `${baseUrl}/verify/${pass.passToken}`;
 
-    // Combine payload and signature
-    const qrData = {
-        ...payload,
-        signature,
-    };
-
-    // Create admin verification URL
-    const baseUrl = process.env.BETTER_AUTH_URL || 'https://klsurabhi.nischalsingana.com';
-    const verificationUrl = `${baseUrl}/admin/verify-tickets?qr=${encodeURIComponent(JSON.stringify(qrData))}`;
-
-    // Generate QR code as data URL with the verification URL
+    // 3. Generate QR code
     const qrCodeDataURL = await QRCode.toDataURL(verificationUrl, {
-        errorCorrectionLevel: 'H',
+        errorCorrectionLevel: 'M',
         type: 'image/png',
         width: 400,
-        margin: 2,
+        margin: 1,
         color: {
-            dark: '#000000', // Black for better scannability
-            light: '#ffffff', // White background
+            dark: '#000000',
+            light: '#ffffff',
         },
     });
 
     return qrCodeDataURL;
 }
 
-/**
- * Verify QR code signature
- */
-export function verifyQRSignature(qrData: string): {
-    valid: boolean;
-    payload?: any;
-    error?: string;
-} {
-    try {
-        const data = JSON.parse(qrData);
-        const { signature, ...payload } = data;
 
-        if (!signature) {
-            return { valid: false, error: 'Missing signature' };
-        }
-
-        // Recreate signature
-        const secret = process.env.BETTER_AUTH_SECRET || 'fallback-secret';
-        const expectedSignature = crypto
-            .createHmac('sha256', secret)
-            .update(JSON.stringify(payload))
-            .digest('hex');
-
-        if (signature !== expectedSignature) {
-            return { valid: false, error: 'Invalid signature' };
-        }
-
-        // Check timestamp (valid for 3 months / 90 days)
-        const timestamp = new Date(payload.timestamp);
-        const now = new Date();
-        const daysDiff = (now.getTime() - timestamp.getTime()) / (1000 * 60 * 60 * 24);
-
-        if (daysDiff > 90) {
-            return { valid: false, error: 'QR code expired' };
-        }
-
-        return { valid: true, payload };
-    } catch (error) {
-        return { valid: false, error: 'Invalid QR code format' };
-    }
-}

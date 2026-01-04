@@ -18,6 +18,7 @@ import {
   FiMapPin,
   FiTrash2,
   FiLogOut,
+  FiZap,
 } from "react-icons/fi";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -25,6 +26,7 @@ import { signOut } from "@/lib/auth-client";
 import { updateProfile } from "@/actions/profile.action";
 import { unregisterFromEvent } from "@/actions/events.action";
 import Image from "next/image";
+
 
 interface User {
   id: string;
@@ -260,6 +262,7 @@ export default function ProfileClient({
         >
           My Events ({registeredEvents.length})
         </button>
+
       </div>
 
       {/* Profile Tab */}
@@ -435,6 +438,7 @@ export default function ProfileClient({
                     <option value={2}>2nd Year</option>
                     <option value={3}>3rd Year</option>
                     <option value={4}>4th Year</option>
+                    <option value={5}>5th Year</option>
                   </select>
                 ) : (
                   <p className="text-white font-medium px-4 py-3 bg-zinc-800/50 rounded-lg">
@@ -549,6 +553,8 @@ export default function ProfileClient({
           )}
         </motion.div>
       )}
+
+
 
       {/* Events Tab */}
       {activeTab === "events" && (

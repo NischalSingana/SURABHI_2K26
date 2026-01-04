@@ -45,9 +45,14 @@ const BRANCHES = [
   "Electrical and Electronics Engineering",
   "Mechanical Engineering",
   "Civil Engineering",
-  "Information Technology",
-  "Artificial Intelligence and Machine Learning",
-  "Data Science",
+  "Biotechnology",
+  "BBA",
+  "MBA",
+  "BCA",
+  "M.Tech",
+  "B.Sc / B.Com / Arts",
+  "Pharmacy / Medical",
+  "Law / Architecture",
   "Other"
 ];
 
@@ -164,6 +169,16 @@ const MultiStepRegister = () => {
         setCurrentStep(1);
         setIsSubmitting(false);
         return;
+      }
+
+      // Validate KL University email domain
+      if (formData.college === "KL_UNIVERSITY") {
+        const emailDomain = formData.email.split("@")[1];
+        if (emailDomain !== "kluniversity.in") {
+          toast.error("Please login with your official KL University email ID (@kluniversity.in)");
+          setIsSubmitting(false);
+          return;
+        }
       }
 
       // Create FormData for file upload
@@ -616,6 +631,7 @@ const MultiStepRegister = () => {
                         <option value={2}>2nd Year</option>
                         <option value={3}>3rd Year</option>
                         <option value={4}>4th Year</option>
+                        <option value={5}>5th Year</option>
                       </select>
                     </div>
                   </div>

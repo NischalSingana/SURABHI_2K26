@@ -60,7 +60,7 @@ const Events = () => {
             <motion.h1
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-6xl font-bold text-white"
+              className="text-4xl md:text-6xl font-bold text-white"
             >
               Event Categories
             </motion.h1>
@@ -69,7 +69,7 @@ const Events = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-zinc-400 text-xl mb-6"
+            className="text-zinc-400 text-sm md:text-xl mb-6"
           >
             Choose a category to explore events
           </motion.p>
@@ -170,7 +170,7 @@ const Events = () => {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
             {filteredCategories.map((category, index) => (
               <motion.div
                 key={category.name}
@@ -190,7 +190,7 @@ const Events = () => {
                 className="cursor-pointer perspective-1000"
                 style={{ transformStyle: "preserve-3d" }}
               >
-                <div className="relative h-80 rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 hover:border-red-600/50 transition-all duration-300 shadow-2xl hover:shadow-red-600/20">
+                <div className="relative h-60 md:h-80 rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 hover:border-red-600/50 transition-all duration-300 shadow-2xl hover:shadow-red-600/20">
                   {/* Background Image */}
                   <div className="absolute inset-0">
                     <Image
@@ -206,13 +206,13 @@ const Events = () => {
                   </div>
 
                   {/* Content */}
-                  <div className="relative h-full flex flex-col justify-end p-6">
+                  <div className="relative h-full flex flex-col justify-end p-4 md:p-6">
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 + 0.2 }}
                     >
-                      <h2 className="text-3xl font-bold text-white mb-2 capitalize">
+                      <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 capitalize">
                         {category.name}
                       </h2>
                       <div className="flex items-center gap-2 text-red-500">
@@ -229,7 +229,7 @@ const Events = () => {
                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                           />
                         </svg>
-                        <span className="text-lg font-medium">
+                        <span className="text-base md:text-lg font-medium">
                           {category.count}{" "}
                           {category.count === 1 ? "Event" : "Events"}
                         </span>

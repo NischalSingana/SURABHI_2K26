@@ -264,7 +264,7 @@ function CategoryPageContent() {
           <motion.h1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl font-bold text-red-500 mb-4 capitalize"
+            className="text-3xl md:text-5xl font-bold text-red-500 mb-4 capitalize"
           >
             {categoryName}
           </motion.h1>
@@ -272,7 +272,7 @@ function CategoryPageContent() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-zinc-400 text-xl"
+            className="text-zinc-400 text-base md:text-xl"
           >
             {events.length} {events.length === 1 ? "event" : "events"} available
           </motion.p>
@@ -366,7 +366,7 @@ function CategoryPageContent() {
                   >
                     {/* Event Header */}
                     <div className="flex justify-between items-start">
-                      <h3 className="text-2xl font-bold text-red-500 mb-2">
+                      <h3 className="text-xl md:text-2xl font-bold text-red-500 mb-2">
                         {event.name}
                       </h3>
                       <motion.div
@@ -392,7 +392,7 @@ function CategoryPageContent() {
                         >
                           <div className="flex flex-col md:flex-row gap-8 mt-6">
                             {/* Event Image - Vertical Portrait Sizing */}
-                            <div className="w-full md:w-[350px] relative h-[500px] shrink-0">
+                            <div className="w-full md:w-[350px] relative h-[300px] md:h-[500px] shrink-0">
                               <Image
                                 src={event.image}
                                 alt={event.name}
@@ -407,7 +407,7 @@ function CategoryPageContent() {
                             {/* Event Details - Stacked Layout */}
                             <div className="flex-1 flex flex-col justify-between py-2" onClick={(e) => e.stopPropagation()}>
                               <div className="space-y-6">
-                                <p className="text-zinc-300 text-lg leading-loose">
+                                <p className="text-zinc-300 text-sm md:text-lg leading-loose">
                                   {event.description}
                                 </p>
 

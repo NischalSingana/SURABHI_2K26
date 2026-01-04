@@ -1,5 +1,4 @@
 import CarouselGallery from "@/components/ui/CarouselGallery";
-
 // Sample gallery images - Replace with your actual images
 // You can fetch this from your database or API
 // Duplicate photos for each year for demo purposes

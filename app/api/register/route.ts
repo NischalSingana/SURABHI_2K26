@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { uploadFile } from "@/lib/upload";
+import { revalidatePath } from "next/cache";
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData();
-    
+
     // Extract form fields
     const college = formData.get("college") as string;
     const collegeName = formData.get("collegeName") as string;
@@ -96,14 +97,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const message = isKLStudent 
+    // Revalidate profile page to show new data immediately
+    revalidatePath("/profile");
+
+    const message = isKLStudent
       ? "Registration successful"
       : "Registration submitted successfully. Awaiting payment verification.";
 
     return NextResponse.json(
-      { 
+      {
         message,
-        user: updatedUser 
+        user: updatedUser
       },
       { status: 200 }
     );
