@@ -5,15 +5,15 @@ const page = async () => {
         <div className="px-4 sm:px-6 py-6">
             <h1 className="text-3xl font-bold text-white mb-8">Admin Dashboard</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <Link
                     href="/admin/events"
-                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-6 border border-gray-700"
+                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
                 >
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
+                    <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
                             <svg
-                                className="w-8 h-8 text-white"
+                                className="w-7 h-7 sm:w-8 sm:h-8 text-white"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -26,8 +26,8 @@ const page = async () => {
                                 />
                             </svg>
                         </div>
-                        <h2 className="text-xl font-semibold text-white">Events Management</h2>
-                        <p className="text-gray-400 text-center text-sm">
+                        <h2 className="text-lg sm:text-xl font-semibold text-white">Events Management</h2>
+                        <p className="text-gray-400 text-center text-xs sm:text-sm">
                             Create, update, and manage event categories and events
                         </p>
                     </div>
@@ -35,12 +35,12 @@ const page = async () => {
 
                 <Link
                     href="/admin/users"
-                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-6 border border-gray-700"
+                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
                 >
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
+                    <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
                             <svg
-                                className="w-8 h-8 text-white"
+                                className="w-7 h-7 sm:w-8 sm:h-8 text-white"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -53,8 +53,8 @@ const page = async () => {
                                 />
                             </svg>
                         </div>
-                        <h2 className="text-xl font-semibold text-white">Users Management</h2>
-                        <p className="text-gray-400 text-center text-sm">
+                        <h2 className="text-lg sm:text-xl font-semibold text-white">Users Management</h2>
+                        <p className="text-gray-400 text-center text-xs sm:text-sm">
                             Manage user registrations, approvals, and payment status
                         </p>
                     </div>
@@ -62,12 +62,12 @@ const page = async () => {
 
                 <Link
                     href="/admin/accommodation"
-                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-6 border border-gray-700"
+                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
                 >
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
+                    <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
                             <svg
-                                className="w-8 h-8 text-white"
+                                className="w-7 h-7 sm:w-8 sm:h-8 text-white"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -80,8 +80,8 @@ const page = async () => {
                                 />
                             </svg>
                         </div>
-                        <h2 className="text-xl font-semibold text-white">Accommodation</h2>
-                        <p className="text-gray-400 text-center text-sm">
+                        <h2 className="text-lg sm:text-xl font-semibold text-white">Accommodation</h2>
+                        <p className="text-gray-400 text-center text-xs sm:text-sm">
                             Manage accommodation bookings and approvals
                         </p>
                     </div>
@@ -89,12 +89,12 @@ const page = async () => {
 
                 <Link
                     href="/admin/analytics"
-                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-6 border border-gray-700"
+                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
                 >
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
+                    <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
                             <svg
-                                className="w-8 h-8 text-white"
+                                className="w-7 h-7 sm:w-8 sm:h-8 text-white"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -107,8 +107,8 @@ const page = async () => {
                                 />
                             </svg>
                         </div>
-                        <h2 className="text-xl font-semibold text-white">Analytics</h2>
-                        <p className="text-gray-400 text-center text-sm">
+                        <h2 className="text-lg sm:text-xl font-semibold text-white">Analytics</h2>
+                        <p className="text-gray-400 text-center text-xs sm:text-sm">
                             View statistics, reports, and insights
                         </p>
                     </div>
@@ -116,12 +116,12 @@ const page = async () => {
 
                 <Link
                     href="/admin/contact"
-                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-6 border border-gray-700"
+                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
                 >
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
+                    <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
                             <svg
-                                className="w-8 h-8 text-white"
+                                className="w-7 h-7 sm:w-8 sm:h-8 text-white"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -134,8 +134,8 @@ const page = async () => {
                                 />
                             </svg>
                         </div>
-                        <h2 className="text-xl font-semibold text-white">Contact & FAQs</h2>
-                        <p className="text-gray-400 text-center text-sm">
+                        <h2 className="text-lg sm:text-xl font-semibold text-white">Contact & FAQs</h2>
+                        <p className="text-gray-400 text-center text-xs sm:text-sm">
                             Manage contact details and FAQs
                         </p>
                     </div>
@@ -143,16 +143,16 @@ const page = async () => {
 
                 <Link
                     href="/admin/judges"
-                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-6 border border-gray-700"
+                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
                 >
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
-                            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
+                            <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
                         </div>
-                        <h2 className="text-xl font-semibold text-white">Manage Judges</h2>
-                        <p className="text-gray-400 text-center text-sm">
+                        <h2 className="text-lg sm:text-xl font-semibold text-white">Manage Judges</h2>
+                        <p className="text-gray-400 text-center text-xs sm:text-sm">
                             Create and manage judge accounts
                         </p>
                     </div>
@@ -160,16 +160,16 @@ const page = async () => {
 
                 <Link
                     href="/admin/evaluations"
-                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-6 border border-gray-700"
+                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
                 >
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
-                            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
+                            <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                         </div>
-                        <h2 className="text-xl font-semibold text-white">Evaluations</h2>
-                        <p className="text-gray-400 text-center text-sm">
+                        <h2 className="text-lg sm:text-xl font-semibold text-white">Evaluations</h2>
+                        <p className="text-gray-400 text-center text-xs sm:text-sm">
                             View event scores and results
                         </p>
                     </div>
@@ -177,16 +177,16 @@ const page = async () => {
 
                 <Link
                     href="/admin/sponsors"
-                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-6 border border-gray-700"
+                    className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
                 >
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                        <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
-                            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
+                            <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
-                        <h2 className="text-xl font-semibold text-white">Sponsors Management</h2>
-                        <p className="text-gray-400 text-center text-sm">
+                        <h2 className="text-lg sm:text-xl font-semibold text-white">Sponsors Management</h2>
+                        <p className="text-gray-400 text-center text-xs sm:text-sm">
                             Manage sponsors, upload images, and track sponsorship amounts
                         </p>
                     </div>

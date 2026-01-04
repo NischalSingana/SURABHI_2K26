@@ -395,10 +395,10 @@ const MultiStepAccommodation = () => {
       <div className="flex-1 flex flex-col p-6 lg:p-12 z-10 overflow-y-auto">
         {/* Progress Steps */}
         <div className="max-w-2xl mx-auto w-full mb-12">
-          <div className="flex justify-between items-center relative px-2">
-            <div className="absolute left-0 top-1/2 w-full h-0.5 bg-zinc-800 -z-10 rounded-full" />
+          <div className="flex justify-between items-start relative px-2">
+            <div className="absolute left-0 top-6 -translate-y-1/2 w-full h-0.5 bg-zinc-800 -z-10 rounded-full" />
             <div
-              className="absolute left-0 top-1/2 h-0.5 bg-gradient-to-r from-red-600 to-red-900 -z-10 transition-all duration-500 rounded-full"
+              className="absolute left-0 top-6 -translate-y-1/2 h-0.5 bg-gradient-to-r from-red-600 to-red-900 -z-10 transition-all duration-500 rounded-full"
               style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
             />
 

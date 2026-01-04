@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminLayoutWrapper({
   children,
@@ -14,10 +15,16 @@ export default function AdminLayoutWrapper({
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   if (!mounted) {
     return null;
@@ -27,11 +34,11 @@ export default function AdminLayoutWrapper({
     { href: "/admin/dashboard", label: "Dashboard" },
     { href: "/admin/events", label: "Events" },
     { href: "/admin/users", label: "Users" },
-    { href: "/admin/accommodation", label: "Accommodation" },
+    { href: "/admin/accommodation", label: "Stay" },
     { href: "/admin/analytics", label: "Analytics" },
     { href: "/admin/judges", label: "Judges" },
     { href: "/admin/evaluations", label: "Evaluations" },
-    { href: "/admin/chatbot", label: "Chatbot FAQs" },
+    { href: "/admin/chatbot", label: "Chatbot" },
   ];
 
   return (
@@ -43,22 +50,28 @@ export default function AdminLayoutWrapper({
               <Link href="/admin/dashboard" className="text-white font-bold text-xl">
                 Admin Panel
               </Link>
-              <div className="ml-10 flex items-baseline space-x-4">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${pathname === link.href
-                      ? "bg-gray-900 text-white"
-                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                      }`}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+
+              {/* Desktop Menu */}
+              <div className="hidden md:block ml-10">
+                <div className="flex items-baseline space-x-4">
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${pathname === link.href
+                        ? "bg-gray-900 text-white"
+                        : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                        }`}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+
+            {/* Desktop User Info & Back Link */}
+            <div className="hidden md:flex items-center gap-4">
               <Link
                 href="/"
                 className="text-gray-300 hover:text-white text-sm transition-colors"
@@ -69,8 +82,74 @@ export default function AdminLayoutWrapper({
                 {session?.user?.name || session?.user?.email}
               </div>
             </div>
+
+            {/* Mobile Menu Button */}
+            <div className="flex md:hidden">
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              >
+                <span className="sr-only">Open main menu</span>
+                {isMobileMenuOpen ? (
+                  <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="md:hidden bg-gray-800 border-b border-gray-700 overflow-hidden"
+            >
+              <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`block px-3 py-2 rounded-md text-base font-medium ${pathname === link.href
+                      ? "bg-gray-900 text-white"
+                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                      }`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+              <div className="pt-4 pb-4 border-t border-gray-700">
+                <div className="flex items-center px-5">
+                  <div className="ml-3">
+                    <div className="text-base font-medium leading-none text-white">
+                      {session?.user?.name || "Admin User"}
+                    </div>
+                    <div className="text-sm font-medium leading-none text-gray-400 mt-1">
+                      {session?.user?.email}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 px-2 space-y-1">
+                  <Link
+                    href="/"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-400 hover:text-white hover:bg-gray-700"
+                  >
+                    ← Back to Site
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
       {/* Add padding-top to account for fixed navbar */}
       <main className="max-w-full mx-auto py-6 sm:px-6 lg:px-8 pt-20">

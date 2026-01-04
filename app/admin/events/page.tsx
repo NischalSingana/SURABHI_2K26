@@ -344,51 +344,53 @@ export default function EventsManagement() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-black px-4 py-6">
-      <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen w-full bg-black px-3 sm:px-4 py-6 pt-24 sm:pt-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-white mb-2">
+          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
             Events Management
           </h1>
-          <p className="text-zinc-400">
+          <p className="text-zinc-400 text-sm sm:text-base">
             Manage categories and events for Surabhi 2025
           </p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setShowCategoryModal(true)}
-          className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg shadow-red-600/20"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full md:w-auto">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowCategoryModal(true)}
+            className="flex-1 sm:flex-none justify-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg shadow-red-600/20"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Add Category
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => {
-            setShowScheduleModal(true);
-            fetchSchedules();
-          }}
-          className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg ml-4"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          Manage Schedule
-        </motion.button>
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add Category
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              setShowScheduleModal(true);
+              fetchSchedules();
+            }}
+            className="flex-1 sm:flex-none justify-center px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Manage Schedule
+          </motion.button>
+        </div>
       </div>
 
       {/* Categories with nested events - Branch Structure */}
@@ -401,13 +403,13 @@ export default function EventsManagement() {
             className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden hover:border-red-600/30 transition-all"
           >
             {/* Category Header */}
-            <div className="flex items-center justify-between p-4 bg-zinc-800/50">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-zinc-800/50 gap-4">
               <div className="flex items-center gap-3 flex-1">
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => toggleCategory(category.id)}
-                  className="text-zinc-400 hover:text-red-500 transition-colors"
+                  className="text-zinc-400 hover:text-red-500 transition-colors p-1"
                 >
                   <svg
                     className={`w-5 h-5 transition-transform ${expandedCategories.has(category.id) ? "rotate-90" : ""
@@ -425,7 +427,7 @@ export default function EventsManagement() {
                   </svg>
                 </motion.button>
                 {(category.image || category.Event[0]?.image) && (
-                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-zinc-900 border border-zinc-700 shrink-0 relative">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-zinc-900 border border-zinc-700 shrink-0 relative">
                     <Image
                       src={category.image || category.Event[0]?.image || ""}
                       alt={category.name}
@@ -436,20 +438,20 @@ export default function EventsManagement() {
                   </div>
                 )}
                 <div>
-                  <h2 className="text-xl font-semibold text-white">
+                  <h2 className="text-lg sm:text-xl font-semibold text-white">
                     {category.name}
                   </h2>
-                  <p className="text-zinc-400 text-sm">
+                  <p className="text-zinc-400 text-xs sm:text-sm">
                     {category.Event.length} event(s)
                   </p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 pl-9 sm:pl-0">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => openEventForm(category.id)}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-colors flex items-center gap-1 shadow-lg shadow-red-600/20"
+                  className="flex-1 sm:flex-none justify-center px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs sm:text-sm transition-colors flex items-center gap-1 shadow-lg shadow-red-600/20"
                 >
                   <svg
                     className="w-4 h-4"
@@ -470,7 +472,7 @@ export default function EventsManagement() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => startEditingCategory(category)}
-                  className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg text-sm transition-colors flex items-center gap-1 shadow-lg shadow-black/20"
+                  className="flex-1 sm:flex-none justify-center px-3 sm:px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg text-xs sm:text-sm transition-colors flex items-center gap-1 shadow-lg shadow-black/20"
                 >
                   <svg
                     className="w-4 h-4"
@@ -485,13 +487,13 @@ export default function EventsManagement() {
                       d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
                     />
                   </svg>
-                  Edit Category
+                  Edit
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => confirmDeleteCategory(category)}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-colors"
+                  className="flex-1 sm:flex-none justify-center px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs sm:text-sm transition-colors"
                 >
                   Delete
                 </motion.button>
@@ -500,7 +502,7 @@ export default function EventsManagement() {
 
             {/* Events List (shown when expanded) */}
             {expandedCategories.has(category.id) && (
-              <div className="p-4 space-y-3 bg-zinc-900">
+              <div className="p-3 sm:p-4 space-y-3 bg-zinc-900">
                 {category.Event.length === 0 ? (
                   <p className="text-zinc-400 text-center py-8">
                     No events in this category yet
@@ -511,12 +513,12 @@ export default function EventsManagement() {
                       key={event.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="p-4 bg-zinc-800 rounded-lg border-l-4 border-red-600 hover:bg-zinc-700/50 transition-all"
+                      className="p-3 sm:p-4 bg-zinc-800 rounded-lg border-l-4 border-red-600 hover:bg-zinc-700/50 transition-all"
                     >
-                      <div className="flex items-start gap-4">
+                      <div className="flex flex-col sm:flex-row items-start gap-4">
                         {/* Event Image */}
-                        <div className="shrink-0">
-                          <div className="w-32 h-32 rounded-lg overflow-hidden bg-zinc-900 border border-zinc-700 relative">
+                        <div className="shrink-0 w-full sm:w-auto">
+                          <div className="w-full sm:w-32 h-48 sm:h-32 rounded-lg overflow-hidden bg-zinc-900 border border-zinc-700 relative">
                             <Image
                               src={event.image || "https://via.placeholder.com/128x128?text=No+Image"}
                               alt={event.name || "Event Image"}
@@ -528,14 +530,14 @@ export default function EventsManagement() {
                         </div>
 
                         {/* Event Details */}
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 w-full">
                           <h3 className="text-white font-semibold text-lg">
                             {event.name}
                           </h3>
                           <p className="text-zinc-300 mt-2 text-sm line-clamp-2">
                             {event.description}
                           </p>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3 text-sm">
+                          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-3 text-sm">
                             <div>
                               <span className="text-zinc-400">Date:</span>
                               <p className="text-white">
@@ -562,7 +564,7 @@ export default function EventsManagement() {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex flex-col gap-2">
+                        <div className="flex sm:flex-col flex-row gap-2 w-full sm:w-auto mt-2 sm:mt-0">
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
@@ -570,7 +572,7 @@ export default function EventsManagement() {
                               setSelectedEventForRegistrations(event);
                               setShowRegistrationsModal(true);
                             }}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors whitespace-nowrap flex items-center gap-1"
+                            className="flex-1 sm:flex-none justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors whitespace-nowrap flex items-center gap-1"
                           >
                             <svg
                               className="w-4 h-4"
@@ -585,13 +587,14 @@ export default function EventsManagement() {
                                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                               />
                             </svg>
-                            Registrations
+                            <span className="sm:hidden lg:inline">Registrations</span>
+                            <span className="hidden sm:inline lg:hidden">Regs</span>
                           </motion.button>
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => startEditingEvent(event)}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-colors whitespace-nowrap"
+                            className="flex-1 sm:flex-none justify-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-colors whitespace-nowrap"
                           >
                             Edit
                           </motion.button>
@@ -599,7 +602,7 @@ export default function EventsManagement() {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => confirmDeleteEvent(event)}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-colors whitespace-nowrap"
+                            className="flex-1 sm:flex-none justify-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-colors whitespace-nowrap"
                           >
                             Delete
                           </motion.button>
