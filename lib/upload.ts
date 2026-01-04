@@ -1,11 +1,10 @@
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { uploadToR2 } from "./r2";
 
 /**
- * Upload a file to the public/uploads directory
+ * Upload a file to Cloudflare R2
  * @param file - The file to upload
- * @param folder - Optional subfolder within uploads
- * @returns The public URL path to the uploaded file
+ * @param folder - Optional subfolder/prefix (used as part of the filename key)
+ * @returns The public URL to the uploaded file
  */
 export async function uploadFile(
   file: File,
@@ -15,21 +14,19 @@ export async function uploadFile(
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Create unique filename with timestamp
+    // Create unique filename with timestamp and folder prefix
     const timestamp = Date.now();
     const originalName = file.name.replace(/\s+/g, "-");
-    const filename = `${timestamp}-${originalName}`;
+    // e.g. "payment-proofs/170982738-screenshot.png"
+    const filename = `${folder}/${timestamp}-${originalName}`;
 
-    // Create upload directory if it doesn't exist
-    const uploadDir = path.join(process.cwd(), "public", "uploads", folder);
-    await mkdir(uploadDir, { recursive: true });
+    const result = await uploadToR2(buffer, filename, file.type);
 
-    // Write file to disk
-    const filepath = path.join(uploadDir, filename);
-    await writeFile(filepath, buffer);
+    if (!result.success || !result.url) {
+      throw new Error(result.error || "R2 Upload failed without error message");
+    }
 
-    // Return public URL path
-    return `/uploads/${folder}/${filename}`;
+    return result.url;
   } catch (error) {
     console.error("File upload error:", error);
     throw new Error("Failed to upload file");

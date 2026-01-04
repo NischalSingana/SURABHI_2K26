@@ -19,6 +19,11 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
  */
 export type User = $Result.DefaultSelection<Prisma.$UserPayload>
 /**
+ * Model Pass
+ * 
+ */
+export type Pass = $Result.DefaultSelection<Prisma.$PassPayload>
+/**
  * Model Session
  * 
  */
@@ -290,6 +295,16 @@ export class PrismaClient<
     * ```
     */
   get user(): Prisma.UserDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.pass`: Exposes CRUD operations for the **Pass** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Passes
+    * const passes = await prisma.pass.findMany()
+    * ```
+    */
+  get pass(): Prisma.PassDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.session`: Exposes CRUD operations for the **Session** model.
@@ -882,6 +897,7 @@ export namespace Prisma {
 
   export const ModelName: {
     User: 'User',
+    Pass: 'Pass',
     Session: 'Session',
     Account: 'Account',
     Verification: 'Verification',
@@ -915,7 +931,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "session" | "account" | "verification" | "category" | "event" | "groupRegistration" | "accommodationBooking" | "eventSubmission" | "chatbotCategory" | "chatbotFAQ" | "evaluation" | "sponsor" | "schedule" | "contactCategory" | "contactCoordinator"
+      modelProps: "user" | "pass" | "session" | "account" | "verification" | "category" | "event" | "groupRegistration" | "accommodationBooking" | "eventSubmission" | "chatbotCategory" | "chatbotFAQ" | "evaluation" | "sponsor" | "schedule" | "contactCategory" | "contactCoordinator"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -990,6 +1006,80 @@ export namespace Prisma {
           count: {
             args: Prisma.UserCountArgs<ExtArgs>
             result: $Utils.Optional<UserCountAggregateOutputType> | number
+          }
+        }
+      }
+      Pass: {
+        payload: Prisma.$PassPayload<ExtArgs>
+        fields: Prisma.PassFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PassFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PassPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PassFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PassPayload>
+          }
+          findFirst: {
+            args: Prisma.PassFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PassPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PassFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PassPayload>
+          }
+          findMany: {
+            args: Prisma.PassFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PassPayload>[]
+          }
+          create: {
+            args: Prisma.PassCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PassPayload>
+          }
+          createMany: {
+            args: Prisma.PassCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PassCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PassPayload>[]
+          }
+          delete: {
+            args: Prisma.PassDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PassPayload>
+          }
+          update: {
+            args: Prisma.PassUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PassPayload>
+          }
+          deleteMany: {
+            args: Prisma.PassDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PassUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.PassUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PassPayload>[]
+          }
+          upsert: {
+            args: Prisma.PassUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PassPayload>
+          }
+          aggregate: {
+            args: Prisma.PassAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePass>
+          }
+          groupBy: {
+            args: Prisma.PassGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PassGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PassCountArgs<ExtArgs>
+            result: $Utils.Optional<PassCountAggregateOutputType> | number
           }
         }
       }
@@ -2200,6 +2290,7 @@ export namespace Prisma {
   }
   export type GlobalOmitConfig = {
     user?: UserOmit
+    pass?: PassOmit
     session?: SessionOmit
     account?: AccountOmit
     verification?: VerificationOmit
@@ -2303,6 +2394,7 @@ export namespace Prisma {
     groupRegistrations: number
     evaluationsGiven: number
     evaluationsReceived: number
+    passes: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2314,6 +2406,7 @@ export namespace Prisma {
     groupRegistrations?: boolean | UserCountOutputTypeCountGroupRegistrationsArgs
     evaluationsGiven?: boolean | UserCountOutputTypeCountEvaluationsGivenArgs
     evaluationsReceived?: boolean | UserCountOutputTypeCountEvaluationsReceivedArgs
+    passes?: boolean | UserCountOutputTypeCountPassesArgs
   }
 
   // Custom InputTypes
@@ -2381,6 +2474,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountEvaluationsReceivedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: EvaluationWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountPassesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PassWhereInput
   }
 
 
@@ -2842,6 +2942,7 @@ export namespace Prisma {
     groupRegistrations?: boolean | User$groupRegistrationsArgs<ExtArgs>
     evaluationsGiven?: boolean | User$evaluationsGivenArgs<ExtArgs>
     evaluationsReceived?: boolean | User$evaluationsReceivedArgs<ExtArgs>
+    passes?: boolean | User$passesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -2927,6 +3028,7 @@ export namespace Prisma {
     groupRegistrations?: boolean | User$groupRegistrationsArgs<ExtArgs>
     evaluationsGiven?: boolean | User$evaluationsGivenArgs<ExtArgs>
     evaluationsReceived?: boolean | User$evaluationsReceivedArgs<ExtArgs>
+    passes?: boolean | User$passesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2943,6 +3045,7 @@ export namespace Prisma {
       groupRegistrations: Prisma.$GroupRegistrationPayload<ExtArgs>[]
       evaluationsGiven: Prisma.$EvaluationPayload<ExtArgs>[]
       evaluationsReceived: Prisma.$EvaluationPayload<ExtArgs>[]
+      passes: Prisma.$PassPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -3368,6 +3471,7 @@ export namespace Prisma {
     groupRegistrations<T extends User$groupRegistrationsArgs<ExtArgs> = {}>(args?: Subset<T, User$groupRegistrationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GroupRegistrationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     evaluationsGiven<T extends User$evaluationsGivenArgs<ExtArgs> = {}>(args?: Subset<T, User$evaluationsGivenArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EvaluationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     evaluationsReceived<T extends User$evaluationsReceivedArgs<ExtArgs> = {}>(args?: Subset<T, User$evaluationsReceivedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EvaluationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    passes<T extends User$passesArgs<ExtArgs> = {}>(args?: Subset<T, User$passesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PassPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3998,6 +4102,30 @@ export namespace Prisma {
   }
 
   /**
+   * User.passes
+   */
+  export type User$passesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Pass
+     */
+    select?: PassSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Pass
+     */
+    omit?: PassOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PassInclude<ExtArgs> | null
+    where?: PassWhereInput
+    orderBy?: PassOrderByWithRelationInput | PassOrderByWithRelationInput[]
+    cursor?: PassWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PassScalarFieldEnum | PassScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4013,6 +4141,1155 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: UserInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Pass
+   */
+
+  export type AggregatePass = {
+    _count: PassCountAggregateOutputType | null
+    _min: PassMinAggregateOutputType | null
+    _max: PassMaxAggregateOutputType | null
+  }
+
+  export type PassMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    passToken: string | null
+    eventId: string | null
+    passType: string | null
+    isActive: boolean | null
+    isUsed: boolean | null
+    usedAt: Date | null
+    usedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    expiresAt: Date | null
+  }
+
+  export type PassMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    passToken: string | null
+    eventId: string | null
+    passType: string | null
+    isActive: boolean | null
+    isUsed: boolean | null
+    usedAt: Date | null
+    usedBy: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    expiresAt: Date | null
+  }
+
+  export type PassCountAggregateOutputType = {
+    id: number
+    userId: number
+    passToken: number
+    eventId: number
+    passType: number
+    isActive: number
+    isUsed: number
+    usedAt: number
+    usedBy: number
+    createdAt: number
+    updatedAt: number
+    expiresAt: number
+    _all: number
+  }
+
+
+  export type PassMinAggregateInputType = {
+    id?: true
+    userId?: true
+    passToken?: true
+    eventId?: true
+    passType?: true
+    isActive?: true
+    isUsed?: true
+    usedAt?: true
+    usedBy?: true
+    createdAt?: true
+    updatedAt?: true
+    expiresAt?: true
+  }
+
+  export type PassMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    passToken?: true
+    eventId?: true
+    passType?: true
+    isActive?: true
+    isUsed?: true
+    usedAt?: true
+    usedBy?: true
+    createdAt?: true
+    updatedAt?: true
+    expiresAt?: true
+  }
+
+  export type PassCountAggregateInputType = {
+    id?: true
+    userId?: true
+    passToken?: true
+    eventId?: true
+    passType?: true
+    isActive?: true
+    isUsed?: true
+    usedAt?: true
+    usedBy?: true
+    createdAt?: true
+    updatedAt?: true
+    expiresAt?: true
+    _all?: true
+  }
+
+  export type PassAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Pass to aggregate.
+     */
+    where?: PassWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Passes to fetch.
+     */
+    orderBy?: PassOrderByWithRelationInput | PassOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PassWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Passes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Passes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Passes
+    **/
+    _count?: true | PassCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PassMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PassMaxAggregateInputType
+  }
+
+  export type GetPassAggregateType<T extends PassAggregateArgs> = {
+        [P in keyof T & keyof AggregatePass]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePass[P]>
+      : GetScalarType<T[P], AggregatePass[P]>
+  }
+
+
+
+
+  export type PassGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PassWhereInput
+    orderBy?: PassOrderByWithAggregationInput | PassOrderByWithAggregationInput[]
+    by: PassScalarFieldEnum[] | PassScalarFieldEnum
+    having?: PassScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PassCountAggregateInputType | true
+    _min?: PassMinAggregateInputType
+    _max?: PassMaxAggregateInputType
+  }
+
+  export type PassGroupByOutputType = {
+    id: string
+    userId: string
+    passToken: string
+    eventId: string | null
+    passType: string
+    isActive: boolean
+    isUsed: boolean
+    usedAt: Date | null
+    usedBy: string | null
+    createdAt: Date
+    updatedAt: Date
+    expiresAt: Date | null
+    _count: PassCountAggregateOutputType | null
+    _min: PassMinAggregateOutputType | null
+    _max: PassMaxAggregateOutputType | null
+  }
+
+  type GetPassGroupByPayload<T extends PassGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PassGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PassGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PassGroupByOutputType[P]>
+            : GetScalarType<T[P], PassGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PassSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    passToken?: boolean
+    eventId?: boolean
+    passType?: boolean
+    isActive?: boolean
+    isUsed?: boolean
+    usedAt?: boolean
+    usedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    expiresAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["pass"]>
+
+  export type PassSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    passToken?: boolean
+    eventId?: boolean
+    passType?: boolean
+    isActive?: boolean
+    isUsed?: boolean
+    usedAt?: boolean
+    usedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    expiresAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["pass"]>
+
+  export type PassSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    passToken?: boolean
+    eventId?: boolean
+    passType?: boolean
+    isActive?: boolean
+    isUsed?: boolean
+    usedAt?: boolean
+    usedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    expiresAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["pass"]>
+
+  export type PassSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    passToken?: boolean
+    eventId?: boolean
+    passType?: boolean
+    isActive?: boolean
+    isUsed?: boolean
+    usedAt?: boolean
+    usedBy?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    expiresAt?: boolean
+  }
+
+  export type PassOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "passToken" | "eventId" | "passType" | "isActive" | "isUsed" | "usedAt" | "usedBy" | "createdAt" | "updatedAt" | "expiresAt", ExtArgs["result"]["pass"]>
+  export type PassInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type PassIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type PassIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $PassPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Pass"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      passToken: string
+      eventId: string | null
+      passType: string
+      isActive: boolean
+      isUsed: boolean
+      usedAt: Date | null
+      usedBy: string | null
+      createdAt: Date
+      updatedAt: Date
+      expiresAt: Date | null
+    }, ExtArgs["result"]["pass"]>
+    composites: {}
+  }
+
+  type PassGetPayload<S extends boolean | null | undefined | PassDefaultArgs> = $Result.GetResult<Prisma.$PassPayload, S>
+
+  type PassCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PassFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PassCountAggregateInputType | true
+    }
+
+  export interface PassDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Pass'], meta: { name: 'Pass' } }
+    /**
+     * Find zero or one Pass that matches the filter.
+     * @param {PassFindUniqueArgs} args - Arguments to find a Pass
+     * @example
+     * // Get one Pass
+     * const pass = await prisma.pass.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PassFindUniqueArgs>(args: SelectSubset<T, PassFindUniqueArgs<ExtArgs>>): Prisma__PassClient<$Result.GetResult<Prisma.$PassPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Pass that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PassFindUniqueOrThrowArgs} args - Arguments to find a Pass
+     * @example
+     * // Get one Pass
+     * const pass = await prisma.pass.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PassFindUniqueOrThrowArgs>(args: SelectSubset<T, PassFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PassClient<$Result.GetResult<Prisma.$PassPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Pass that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PassFindFirstArgs} args - Arguments to find a Pass
+     * @example
+     * // Get one Pass
+     * const pass = await prisma.pass.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PassFindFirstArgs>(args?: SelectSubset<T, PassFindFirstArgs<ExtArgs>>): Prisma__PassClient<$Result.GetResult<Prisma.$PassPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Pass that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PassFindFirstOrThrowArgs} args - Arguments to find a Pass
+     * @example
+     * // Get one Pass
+     * const pass = await prisma.pass.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PassFindFirstOrThrowArgs>(args?: SelectSubset<T, PassFindFirstOrThrowArgs<ExtArgs>>): Prisma__PassClient<$Result.GetResult<Prisma.$PassPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Passes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PassFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Passes
+     * const passes = await prisma.pass.findMany()
+     * 
+     * // Get first 10 Passes
+     * const passes = await prisma.pass.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const passWithIdOnly = await prisma.pass.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PassFindManyArgs>(args?: SelectSubset<T, PassFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PassPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Pass.
+     * @param {PassCreateArgs} args - Arguments to create a Pass.
+     * @example
+     * // Create one Pass
+     * const Pass = await prisma.pass.create({
+     *   data: {
+     *     // ... data to create a Pass
+     *   }
+     * })
+     * 
+     */
+    create<T extends PassCreateArgs>(args: SelectSubset<T, PassCreateArgs<ExtArgs>>): Prisma__PassClient<$Result.GetResult<Prisma.$PassPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Passes.
+     * @param {PassCreateManyArgs} args - Arguments to create many Passes.
+     * @example
+     * // Create many Passes
+     * const pass = await prisma.pass.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PassCreateManyArgs>(args?: SelectSubset<T, PassCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Passes and returns the data saved in the database.
+     * @param {PassCreateManyAndReturnArgs} args - Arguments to create many Passes.
+     * @example
+     * // Create many Passes
+     * const pass = await prisma.pass.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Passes and only return the `id`
+     * const passWithIdOnly = await prisma.pass.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PassCreateManyAndReturnArgs>(args?: SelectSubset<T, PassCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PassPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Pass.
+     * @param {PassDeleteArgs} args - Arguments to delete one Pass.
+     * @example
+     * // Delete one Pass
+     * const Pass = await prisma.pass.delete({
+     *   where: {
+     *     // ... filter to delete one Pass
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PassDeleteArgs>(args: SelectSubset<T, PassDeleteArgs<ExtArgs>>): Prisma__PassClient<$Result.GetResult<Prisma.$PassPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Pass.
+     * @param {PassUpdateArgs} args - Arguments to update one Pass.
+     * @example
+     * // Update one Pass
+     * const pass = await prisma.pass.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PassUpdateArgs>(args: SelectSubset<T, PassUpdateArgs<ExtArgs>>): Prisma__PassClient<$Result.GetResult<Prisma.$PassPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Passes.
+     * @param {PassDeleteManyArgs} args - Arguments to filter Passes to delete.
+     * @example
+     * // Delete a few Passes
+     * const { count } = await prisma.pass.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PassDeleteManyArgs>(args?: SelectSubset<T, PassDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Passes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PassUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Passes
+     * const pass = await prisma.pass.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PassUpdateManyArgs>(args: SelectSubset<T, PassUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Passes and returns the data updated in the database.
+     * @param {PassUpdateManyAndReturnArgs} args - Arguments to update many Passes.
+     * @example
+     * // Update many Passes
+     * const pass = await prisma.pass.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Passes and only return the `id`
+     * const passWithIdOnly = await prisma.pass.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PassUpdateManyAndReturnArgs>(args: SelectSubset<T, PassUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PassPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Pass.
+     * @param {PassUpsertArgs} args - Arguments to update or create a Pass.
+     * @example
+     * // Update or create a Pass
+     * const pass = await prisma.pass.upsert({
+     *   create: {
+     *     // ... data to create a Pass
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Pass we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PassUpsertArgs>(args: SelectSubset<T, PassUpsertArgs<ExtArgs>>): Prisma__PassClient<$Result.GetResult<Prisma.$PassPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Passes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PassCountArgs} args - Arguments to filter Passes to count.
+     * @example
+     * // Count the number of Passes
+     * const count = await prisma.pass.count({
+     *   where: {
+     *     // ... the filter for the Passes we want to count
+     *   }
+     * })
+    **/
+    count<T extends PassCountArgs>(
+      args?: Subset<T, PassCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PassCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Pass.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PassAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PassAggregateArgs>(args: Subset<T, PassAggregateArgs>): Prisma.PrismaPromise<GetPassAggregateType<T>>
+
+    /**
+     * Group by Pass.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PassGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PassGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PassGroupByArgs['orderBy'] }
+        : { orderBy?: PassGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PassGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPassGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Pass model
+   */
+  readonly fields: PassFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Pass.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PassClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Pass model
+   */
+  interface PassFieldRefs {
+    readonly id: FieldRef<"Pass", 'String'>
+    readonly userId: FieldRef<"Pass", 'String'>
+    readonly passToken: FieldRef<"Pass", 'String'>
+    readonly eventId: FieldRef<"Pass", 'String'>
+    readonly passType: FieldRef<"Pass", 'String'>
+    readonly isActive: FieldRef<"Pass", 'Boolean'>
+    readonly isUsed: FieldRef<"Pass", 'Boolean'>
+    readonly usedAt: FieldRef<"Pass", 'DateTime'>
+    readonly usedBy: FieldRef<"Pass", 'String'>
+    readonly createdAt: FieldRef<"Pass", 'DateTime'>
+    readonly updatedAt: FieldRef<"Pass", 'DateTime'>
+    readonly expiresAt: FieldRef<"Pass", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Pass findUnique
+   */
+  export type PassFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Pass
+     */
+    select?: PassSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Pass
+     */
+    omit?: PassOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PassInclude<ExtArgs> | null
+    /**
+     * Filter, which Pass to fetch.
+     */
+    where: PassWhereUniqueInput
+  }
+
+  /**
+   * Pass findUniqueOrThrow
+   */
+  export type PassFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Pass
+     */
+    select?: PassSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Pass
+     */
+    omit?: PassOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PassInclude<ExtArgs> | null
+    /**
+     * Filter, which Pass to fetch.
+     */
+    where: PassWhereUniqueInput
+  }
+
+  /**
+   * Pass findFirst
+   */
+  export type PassFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Pass
+     */
+    select?: PassSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Pass
+     */
+    omit?: PassOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PassInclude<ExtArgs> | null
+    /**
+     * Filter, which Pass to fetch.
+     */
+    where?: PassWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Passes to fetch.
+     */
+    orderBy?: PassOrderByWithRelationInput | PassOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Passes.
+     */
+    cursor?: PassWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Passes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Passes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Passes.
+     */
+    distinct?: PassScalarFieldEnum | PassScalarFieldEnum[]
+  }
+
+  /**
+   * Pass findFirstOrThrow
+   */
+  export type PassFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Pass
+     */
+    select?: PassSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Pass
+     */
+    omit?: PassOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PassInclude<ExtArgs> | null
+    /**
+     * Filter, which Pass to fetch.
+     */
+    where?: PassWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Passes to fetch.
+     */
+    orderBy?: PassOrderByWithRelationInput | PassOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Passes.
+     */
+    cursor?: PassWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Passes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Passes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Passes.
+     */
+    distinct?: PassScalarFieldEnum | PassScalarFieldEnum[]
+  }
+
+  /**
+   * Pass findMany
+   */
+  export type PassFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Pass
+     */
+    select?: PassSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Pass
+     */
+    omit?: PassOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PassInclude<ExtArgs> | null
+    /**
+     * Filter, which Passes to fetch.
+     */
+    where?: PassWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Passes to fetch.
+     */
+    orderBy?: PassOrderByWithRelationInput | PassOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Passes.
+     */
+    cursor?: PassWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Passes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Passes.
+     */
+    skip?: number
+    distinct?: PassScalarFieldEnum | PassScalarFieldEnum[]
+  }
+
+  /**
+   * Pass create
+   */
+  export type PassCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Pass
+     */
+    select?: PassSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Pass
+     */
+    omit?: PassOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PassInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Pass.
+     */
+    data: XOR<PassCreateInput, PassUncheckedCreateInput>
+  }
+
+  /**
+   * Pass createMany
+   */
+  export type PassCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Passes.
+     */
+    data: PassCreateManyInput | PassCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Pass createManyAndReturn
+   */
+  export type PassCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Pass
+     */
+    select?: PassSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Pass
+     */
+    omit?: PassOmit<ExtArgs> | null
+    /**
+     * The data used to create many Passes.
+     */
+    data: PassCreateManyInput | PassCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PassIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Pass update
+   */
+  export type PassUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Pass
+     */
+    select?: PassSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Pass
+     */
+    omit?: PassOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PassInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Pass.
+     */
+    data: XOR<PassUpdateInput, PassUncheckedUpdateInput>
+    /**
+     * Choose, which Pass to update.
+     */
+    where: PassWhereUniqueInput
+  }
+
+  /**
+   * Pass updateMany
+   */
+  export type PassUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Passes.
+     */
+    data: XOR<PassUpdateManyMutationInput, PassUncheckedUpdateManyInput>
+    /**
+     * Filter which Passes to update
+     */
+    where?: PassWhereInput
+    /**
+     * Limit how many Passes to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Pass updateManyAndReturn
+   */
+  export type PassUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Pass
+     */
+    select?: PassSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Pass
+     */
+    omit?: PassOmit<ExtArgs> | null
+    /**
+     * The data used to update Passes.
+     */
+    data: XOR<PassUpdateManyMutationInput, PassUncheckedUpdateManyInput>
+    /**
+     * Filter which Passes to update
+     */
+    where?: PassWhereInput
+    /**
+     * Limit how many Passes to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PassIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Pass upsert
+   */
+  export type PassUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Pass
+     */
+    select?: PassSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Pass
+     */
+    omit?: PassOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PassInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Pass to update in case it exists.
+     */
+    where: PassWhereUniqueInput
+    /**
+     * In case the Pass found by the `where` argument doesn't exist, create a new Pass with this data.
+     */
+    create: XOR<PassCreateInput, PassUncheckedCreateInput>
+    /**
+     * In case the Pass was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PassUpdateInput, PassUncheckedUpdateInput>
+  }
+
+  /**
+   * Pass delete
+   */
+  export type PassDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Pass
+     */
+    select?: PassSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Pass
+     */
+    omit?: PassOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PassInclude<ExtArgs> | null
+    /**
+     * Filter which Pass to delete.
+     */
+    where: PassWhereUniqueInput
+  }
+
+  /**
+   * Pass deleteMany
+   */
+  export type PassDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Passes to delete
+     */
+    where?: PassWhereInput
+    /**
+     * Limit how many Passes to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Pass without action
+   */
+  export type PassDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Pass
+     */
+    select?: PassSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Pass
+     */
+    omit?: PassOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PassInclude<ExtArgs> | null
   }
 
 
@@ -20855,6 +22132,24 @@ export namespace Prisma {
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+  export const PassScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    passToken: 'passToken',
+    eventId: 'eventId',
+    passType: 'passType',
+    isActive: 'isActive',
+    isUsed: 'isUsed',
+    usedAt: 'usedAt',
+    usedBy: 'usedBy',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    expiresAt: 'expiresAt'
+  };
+
+  export type PassScalarFieldEnum = (typeof PassScalarFieldEnum)[keyof typeof PassScalarFieldEnum]
+
+
   export const SessionScalarFieldEnum: {
     id: 'id',
     createdAt: 'createdAt',
@@ -21331,6 +22626,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationListRelationFilter
     evaluationsGiven?: EvaluationListRelationFilter
     evaluationsReceived?: EvaluationListRelationFilter
+    passes?: PassListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -21363,6 +22659,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationOrderByRelationAggregateInput
     evaluationsGiven?: EvaluationOrderByRelationAggregateInput
     evaluationsReceived?: EvaluationOrderByRelationAggregateInput
+    passes?: PassOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -21398,6 +22695,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationListRelationFilter
     evaluationsGiven?: EvaluationListRelationFilter
     evaluationsReceived?: EvaluationListRelationFilter
+    passes?: PassListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -21454,6 +22752,96 @@ export namespace Prisma {
     password?: StringNullableWithAggregatesFilter<"User"> | string | null
     role?: EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
     assignedCategoryId?: StringNullableWithAggregatesFilter<"User"> | string | null
+  }
+
+  export type PassWhereInput = {
+    AND?: PassWhereInput | PassWhereInput[]
+    OR?: PassWhereInput[]
+    NOT?: PassWhereInput | PassWhereInput[]
+    id?: StringFilter<"Pass"> | string
+    userId?: StringFilter<"Pass"> | string
+    passToken?: StringFilter<"Pass"> | string
+    eventId?: StringNullableFilter<"Pass"> | string | null
+    passType?: StringFilter<"Pass"> | string
+    isActive?: BoolFilter<"Pass"> | boolean
+    isUsed?: BoolFilter<"Pass"> | boolean
+    usedAt?: DateTimeNullableFilter<"Pass"> | Date | string | null
+    usedBy?: StringNullableFilter<"Pass"> | string | null
+    createdAt?: DateTimeFilter<"Pass"> | Date | string
+    updatedAt?: DateTimeFilter<"Pass"> | Date | string
+    expiresAt?: DateTimeNullableFilter<"Pass"> | Date | string | null
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type PassOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    passToken?: SortOrder
+    eventId?: SortOrderInput | SortOrder
+    passType?: SortOrder
+    isActive?: SortOrder
+    isUsed?: SortOrder
+    usedAt?: SortOrderInput | SortOrder
+    usedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type PassWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    passToken?: string
+    AND?: PassWhereInput | PassWhereInput[]
+    OR?: PassWhereInput[]
+    NOT?: PassWhereInput | PassWhereInput[]
+    userId?: StringFilter<"Pass"> | string
+    eventId?: StringNullableFilter<"Pass"> | string | null
+    passType?: StringFilter<"Pass"> | string
+    isActive?: BoolFilter<"Pass"> | boolean
+    isUsed?: BoolFilter<"Pass"> | boolean
+    usedAt?: DateTimeNullableFilter<"Pass"> | Date | string | null
+    usedBy?: StringNullableFilter<"Pass"> | string | null
+    createdAt?: DateTimeFilter<"Pass"> | Date | string
+    updatedAt?: DateTimeFilter<"Pass"> | Date | string
+    expiresAt?: DateTimeNullableFilter<"Pass"> | Date | string | null
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "passToken">
+
+  export type PassOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    passToken?: SortOrder
+    eventId?: SortOrderInput | SortOrder
+    passType?: SortOrder
+    isActive?: SortOrder
+    isUsed?: SortOrder
+    usedAt?: SortOrderInput | SortOrder
+    usedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    _count?: PassCountOrderByAggregateInput
+    _max?: PassMaxOrderByAggregateInput
+    _min?: PassMinOrderByAggregateInput
+  }
+
+  export type PassScalarWhereWithAggregatesInput = {
+    AND?: PassScalarWhereWithAggregatesInput | PassScalarWhereWithAggregatesInput[]
+    OR?: PassScalarWhereWithAggregatesInput[]
+    NOT?: PassScalarWhereWithAggregatesInput | PassScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Pass"> | string
+    userId?: StringWithAggregatesFilter<"Pass"> | string
+    passToken?: StringWithAggregatesFilter<"Pass"> | string
+    eventId?: StringNullableWithAggregatesFilter<"Pass"> | string | null
+    passType?: StringWithAggregatesFilter<"Pass"> | string
+    isActive?: BoolWithAggregatesFilter<"Pass"> | boolean
+    isUsed?: BoolWithAggregatesFilter<"Pass"> | boolean
+    usedAt?: DateTimeNullableWithAggregatesFilter<"Pass"> | Date | string | null
+    usedBy?: StringNullableWithAggregatesFilter<"Pass"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Pass"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Pass"> | Date | string
+    expiresAt?: DateTimeNullableWithAggregatesFilter<"Pass"> | Date | string | null
   }
 
   export type SessionWhereInput = {
@@ -22644,6 +24032,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
     evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
     evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
+    passes?: PassCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -22676,6 +24065,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
     evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
     evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
+    passes?: PassUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -22708,6 +24098,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
     evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
     evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
+    passes?: PassUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -22740,6 +24131,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
     evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
     evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
+    passes?: PassUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -22812,6 +24204,110 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type PassCreateInput = {
+    id?: string
+    passToken: string
+    eventId?: string | null
+    passType?: string
+    isActive?: boolean
+    isUsed?: boolean
+    usedAt?: Date | string | null
+    usedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    expiresAt?: Date | string | null
+    user: UserCreateNestedOneWithoutPassesInput
+  }
+
+  export type PassUncheckedCreateInput = {
+    id?: string
+    userId: string
+    passToken: string
+    eventId?: string | null
+    passType?: string
+    isActive?: boolean
+    isUsed?: boolean
+    usedAt?: Date | string | null
+    usedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    expiresAt?: Date | string | null
+  }
+
+  export type PassUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    passToken?: StringFieldUpdateOperationsInput | string
+    eventId?: NullableStringFieldUpdateOperationsInput | string | null
+    passType?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isUsed?: BoolFieldUpdateOperationsInput | boolean
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    user?: UserUpdateOneRequiredWithoutPassesNestedInput
+  }
+
+  export type PassUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    passToken?: StringFieldUpdateOperationsInput | string
+    eventId?: NullableStringFieldUpdateOperationsInput | string | null
+    passType?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isUsed?: BoolFieldUpdateOperationsInput | boolean
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PassCreateManyInput = {
+    id?: string
+    userId: string
+    passToken: string
+    eventId?: string | null
+    passType?: string
+    isActive?: boolean
+    isUsed?: boolean
+    usedAt?: Date | string | null
+    usedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    expiresAt?: Date | string | null
+  }
+
+  export type PassUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    passToken?: StringFieldUpdateOperationsInput | string
+    eventId?: NullableStringFieldUpdateOperationsInput | string | null
+    passType?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isUsed?: BoolFieldUpdateOperationsInput | boolean
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PassUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    passToken?: StringFieldUpdateOperationsInput | string
+    eventId?: NullableStringFieldUpdateOperationsInput | string | null
+    passType?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isUsed?: BoolFieldUpdateOperationsInput | boolean
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type SessionCreateInput = {
@@ -24217,6 +25713,12 @@ export namespace Prisma {
     none?: EvaluationWhereInput
   }
 
+  export type PassListRelationFilter = {
+    every?: PassWhereInput
+    some?: PassWhereInput
+    none?: PassWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -24247,6 +25749,10 @@ export namespace Prisma {
   }
 
   export type EvaluationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PassOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -24441,6 +25947,51 @@ export namespace Prisma {
   export type UserScalarRelationFilter = {
     is?: UserWhereInput
     isNot?: UserWhereInput
+  }
+
+  export type PassCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    passToken?: SortOrder
+    eventId?: SortOrder
+    passType?: SortOrder
+    isActive?: SortOrder
+    isUsed?: SortOrder
+    usedAt?: SortOrder
+    usedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    expiresAt?: SortOrder
+  }
+
+  export type PassMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    passToken?: SortOrder
+    eventId?: SortOrder
+    passType?: SortOrder
+    isActive?: SortOrder
+    isUsed?: SortOrder
+    usedAt?: SortOrder
+    usedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    expiresAt?: SortOrder
+  }
+
+  export type PassMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    passToken?: SortOrder
+    eventId?: SortOrder
+    passType?: SortOrder
+    isActive?: SortOrder
+    isUsed?: SortOrder
+    usedAt?: SortOrder
+    usedBy?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    expiresAt?: SortOrder
   }
 
   export type SessionCountOrderByAggregateInput = {
@@ -25390,6 +26941,13 @@ export namespace Prisma {
     connect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
   }
 
+  export type PassCreateNestedManyWithoutUserInput = {
+    create?: XOR<PassCreateWithoutUserInput, PassUncheckedCreateWithoutUserInput> | PassCreateWithoutUserInput[] | PassUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: PassCreateOrConnectWithoutUserInput | PassCreateOrConnectWithoutUserInput[]
+    createMany?: PassCreateManyUserInputEnvelope
+    connect?: PassWhereUniqueInput | PassWhereUniqueInput[]
+  }
+
   export type AccountUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -25443,6 +27001,13 @@ export namespace Prisma {
     connectOrCreate?: EvaluationCreateOrConnectWithoutParticipantInput | EvaluationCreateOrConnectWithoutParticipantInput[]
     createMany?: EvaluationCreateManyParticipantInputEnvelope
     connect?: EvaluationWhereUniqueInput | EvaluationWhereUniqueInput[]
+  }
+
+  export type PassUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<PassCreateWithoutUserInput, PassUncheckedCreateWithoutUserInput> | PassCreateWithoutUserInput[] | PassUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: PassCreateOrConnectWithoutUserInput | PassCreateOrConnectWithoutUserInput[]
+    createMany?: PassCreateManyUserInputEnvelope
+    connect?: PassWhereUniqueInput | PassWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -25592,6 +27157,20 @@ export namespace Prisma {
     deleteMany?: EvaluationScalarWhereInput | EvaluationScalarWhereInput[]
   }
 
+  export type PassUpdateManyWithoutUserNestedInput = {
+    create?: XOR<PassCreateWithoutUserInput, PassUncheckedCreateWithoutUserInput> | PassCreateWithoutUserInput[] | PassUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: PassCreateOrConnectWithoutUserInput | PassCreateOrConnectWithoutUserInput[]
+    upsert?: PassUpsertWithWhereUniqueWithoutUserInput | PassUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: PassCreateManyUserInputEnvelope
+    set?: PassWhereUniqueInput | PassWhereUniqueInput[]
+    disconnect?: PassWhereUniqueInput | PassWhereUniqueInput[]
+    delete?: PassWhereUniqueInput | PassWhereUniqueInput[]
+    connect?: PassWhereUniqueInput | PassWhereUniqueInput[]
+    update?: PassUpdateWithWhereUniqueWithoutUserInput | PassUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: PassUpdateManyWithWhereWithoutUserInput | PassUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: PassScalarWhereInput | PassScalarWhereInput[]
+  }
+
   export type AccountUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -25701,6 +27280,34 @@ export namespace Prisma {
     update?: EvaluationUpdateWithWhereUniqueWithoutParticipantInput | EvaluationUpdateWithWhereUniqueWithoutParticipantInput[]
     updateMany?: EvaluationUpdateManyWithWhereWithoutParticipantInput | EvaluationUpdateManyWithWhereWithoutParticipantInput[]
     deleteMany?: EvaluationScalarWhereInput | EvaluationScalarWhereInput[]
+  }
+
+  export type PassUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<PassCreateWithoutUserInput, PassUncheckedCreateWithoutUserInput> | PassCreateWithoutUserInput[] | PassUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: PassCreateOrConnectWithoutUserInput | PassCreateOrConnectWithoutUserInput[]
+    upsert?: PassUpsertWithWhereUniqueWithoutUserInput | PassUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: PassCreateManyUserInputEnvelope
+    set?: PassWhereUniqueInput | PassWhereUniqueInput[]
+    disconnect?: PassWhereUniqueInput | PassWhereUniqueInput[]
+    delete?: PassWhereUniqueInput | PassWhereUniqueInput[]
+    connect?: PassWhereUniqueInput | PassWhereUniqueInput[]
+    update?: PassUpdateWithWhereUniqueWithoutUserInput | PassUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: PassUpdateManyWithWhereWithoutUserInput | PassUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: PassScalarWhereInput | PassScalarWhereInput[]
+  }
+
+  export type UserCreateNestedOneWithoutPassesInput = {
+    create?: XOR<UserCreateWithoutPassesInput, UserUncheckedCreateWithoutPassesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPassesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutPassesNestedInput = {
+    create?: XOR<UserCreateWithoutPassesInput, UserUncheckedCreateWithoutPassesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPassesInput
+    upsert?: UserUpsertWithoutPassesInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPassesInput, UserUpdateWithoutPassesInput>, UserUncheckedUpdateWithoutPassesInput>
   }
 
   export type UserCreateNestedOneWithoutSessionsInput = {
@@ -26817,6 +28424,44 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type PassCreateWithoutUserInput = {
+    id?: string
+    passToken: string
+    eventId?: string | null
+    passType?: string
+    isActive?: boolean
+    isUsed?: boolean
+    usedAt?: Date | string | null
+    usedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    expiresAt?: Date | string | null
+  }
+
+  export type PassUncheckedCreateWithoutUserInput = {
+    id?: string
+    passToken: string
+    eventId?: string | null
+    passType?: string
+    isActive?: boolean
+    isUsed?: boolean
+    usedAt?: Date | string | null
+    usedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    expiresAt?: Date | string | null
+  }
+
+  export type PassCreateOrConnectWithoutUserInput = {
+    where: PassWhereUniqueInput
+    create: XOR<PassCreateWithoutUserInput, PassUncheckedCreateWithoutUserInput>
+  }
+
+  export type PassCreateManyUserInputEnvelope = {
+    data: PassCreateManyUserInput | PassCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type AccountUpsertWithWhereUniqueWithoutUserInput = {
     where: AccountWhereUniqueInput
     update: XOR<AccountUpdateWithoutUserInput, AccountUncheckedUpdateWithoutUserInput>
@@ -27065,6 +28710,184 @@ export namespace Prisma {
     data: XOR<EvaluationUpdateManyMutationInput, EvaluationUncheckedUpdateManyWithoutParticipantInput>
   }
 
+  export type PassUpsertWithWhereUniqueWithoutUserInput = {
+    where: PassWhereUniqueInput
+    update: XOR<PassUpdateWithoutUserInput, PassUncheckedUpdateWithoutUserInput>
+    create: XOR<PassCreateWithoutUserInput, PassUncheckedCreateWithoutUserInput>
+  }
+
+  export type PassUpdateWithWhereUniqueWithoutUserInput = {
+    where: PassWhereUniqueInput
+    data: XOR<PassUpdateWithoutUserInput, PassUncheckedUpdateWithoutUserInput>
+  }
+
+  export type PassUpdateManyWithWhereWithoutUserInput = {
+    where: PassScalarWhereInput
+    data: XOR<PassUpdateManyMutationInput, PassUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type PassScalarWhereInput = {
+    AND?: PassScalarWhereInput | PassScalarWhereInput[]
+    OR?: PassScalarWhereInput[]
+    NOT?: PassScalarWhereInput | PassScalarWhereInput[]
+    id?: StringFilter<"Pass"> | string
+    userId?: StringFilter<"Pass"> | string
+    passToken?: StringFilter<"Pass"> | string
+    eventId?: StringNullableFilter<"Pass"> | string | null
+    passType?: StringFilter<"Pass"> | string
+    isActive?: BoolFilter<"Pass"> | boolean
+    isUsed?: BoolFilter<"Pass"> | boolean
+    usedAt?: DateTimeNullableFilter<"Pass"> | Date | string | null
+    usedBy?: StringNullableFilter<"Pass"> | string | null
+    createdAt?: DateTimeFilter<"Pass"> | Date | string
+    updatedAt?: DateTimeFilter<"Pass"> | Date | string
+    expiresAt?: DateTimeNullableFilter<"Pass"> | Date | string | null
+  }
+
+  export type UserCreateWithoutPassesInput = {
+    id: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    email: string
+    emailVerified?: boolean
+    name?: string | null
+    image?: string | null
+    collage?: string | null
+    collageId?: string | null
+    branch?: string | null
+    transactionId?: string | null
+    paymentProof?: string | null
+    year?: number | null
+    isApproved?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
+    phone?: string | null
+    password?: string | null
+    role?: $Enums.Role
+    assignedCategoryId?: string | null
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    registeredEvents?: EventCreateNestedManyWithoutRegisteredStudentsInput
+    accommodationBookings?: AccommodationBookingCreateNestedManyWithoutUserInput
+    eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
+    evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
+  }
+
+  export type UserUncheckedCreateWithoutPassesInput = {
+    id: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    email: string
+    emailVerified?: boolean
+    name?: string | null
+    image?: string | null
+    collage?: string | null
+    collageId?: string | null
+    branch?: string | null
+    transactionId?: string | null
+    paymentProof?: string | null
+    year?: number | null
+    isApproved?: boolean
+    paymentStatus?: $Enums.PaymentStatus
+    ticketScanned?: boolean
+    ticketScannedAt?: Date | string | null
+    phone?: string | null
+    password?: string | null
+    role?: $Enums.Role
+    assignedCategoryId?: string | null
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    registeredEvents?: EventUncheckedCreateNestedManyWithoutRegisteredStudentsInput
+    accommodationBookings?: AccommodationBookingUncheckedCreateNestedManyWithoutUserInput
+    eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
+    groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
+    evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
+    evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
+  }
+
+  export type UserCreateOrConnectWithoutPassesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutPassesInput, UserUncheckedCreateWithoutPassesInput>
+  }
+
+  export type UserUpsertWithoutPassesInput = {
+    update: XOR<UserUpdateWithoutPassesInput, UserUncheckedUpdateWithoutPassesInput>
+    create: XOR<UserCreateWithoutPassesInput, UserUncheckedCreateWithoutPassesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutPassesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutPassesInput, UserUncheckedUpdateWithoutPassesInput>
+  }
+
+  export type UserUpdateWithoutPassesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    collage?: NullableStringFieldUpdateOperationsInput | string | null
+    collageId?: NullableStringFieldUpdateOperationsInput | string | null
+    branch?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProof?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    isApproved?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    registeredEvents?: EventUpdateManyWithoutRegisteredStudentsNestedInput
+    accommodationBookings?: AccommodationBookingUpdateManyWithoutUserNestedInput
+    eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
+    evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutPassesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    collage?: NullableStringFieldUpdateOperationsInput | string | null
+    collageId?: NullableStringFieldUpdateOperationsInput | string | null
+    branch?: NullableStringFieldUpdateOperationsInput | string | null
+    transactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentProof?: NullableStringFieldUpdateOperationsInput | string | null
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    isApproved?: BoolFieldUpdateOperationsInput | boolean
+    paymentStatus?: EnumPaymentStatusFieldUpdateOperationsInput | $Enums.PaymentStatus
+    ticketScanned?: BoolFieldUpdateOperationsInput | boolean
+    ticketScannedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    assignedCategoryId?: NullableStringFieldUpdateOperationsInput | string | null
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    registeredEvents?: EventUncheckedUpdateManyWithoutRegisteredStudentsNestedInput
+    accommodationBookings?: AccommodationBookingUncheckedUpdateManyWithoutUserNestedInput
+    eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
+    groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
+    evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
+    evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
+  }
+
   export type UserCreateWithoutSessionsInput = {
     id: string
     createdAt?: Date | string
@@ -27094,6 +28917,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
     evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
     evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
+    passes?: PassCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -27125,6 +28949,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
     evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
     evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
+    passes?: PassUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -27172,6 +28997,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
     evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
     evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
+    passes?: PassUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -27203,6 +29029,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
     evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
     evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
+    passes?: PassUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutAccountsInput = {
@@ -27234,6 +29061,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
     evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
     evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
+    passes?: PassCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -27265,6 +29093,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
     evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
     evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
+    passes?: PassUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -27312,6 +29141,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
     evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
     evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
+    passes?: PassUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -27343,6 +29173,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
     evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
     evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
+    passes?: PassUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type EventCreateWithoutCategoryInput = {
@@ -27473,6 +29304,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
     evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
     evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
+    passes?: PassCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutRegisteredEventsInput = {
@@ -27504,6 +29336,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
     evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
     evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
+    passes?: PassUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutRegisteredEventsInput = {
@@ -27805,6 +29638,7 @@ export namespace Prisma {
     eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
     evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
     evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
+    passes?: PassCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutGroupRegistrationsInput = {
@@ -27836,6 +29670,7 @@ export namespace Prisma {
     eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
     evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
     evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
+    passes?: PassUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutGroupRegistrationsInput = {
@@ -27942,6 +29777,7 @@ export namespace Prisma {
     eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
     evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
     evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
+    passes?: PassUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutGroupRegistrationsInput = {
@@ -27973,6 +29809,7 @@ export namespace Prisma {
     eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
     evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
     evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
+    passes?: PassUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutAccommodationBookingsInput = {
@@ -28004,6 +29841,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
     evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
     evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
+    passes?: PassCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAccommodationBookingsInput = {
@@ -28035,6 +29873,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
     evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
     evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
+    passes?: PassUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAccommodationBookingsInput = {
@@ -28082,6 +29921,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
     evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
     evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
+    passes?: PassUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccommodationBookingsInput = {
@@ -28113,6 +29953,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
     evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
     evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
+    passes?: PassUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutEventSubmissionsInput = {
@@ -28144,6 +29985,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
     evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
     evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
+    passes?: PassCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutEventSubmissionsInput = {
@@ -28175,6 +30017,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
     evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
     evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
+    passes?: PassUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutEventSubmissionsInput = {
@@ -28275,6 +30118,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
     evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
     evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
+    passes?: PassUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutEventSubmissionsInput = {
@@ -28306,6 +30150,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
     evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
     evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
+    passes?: PassUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type EventUpsertWithoutSubmissionsInput = {
@@ -28396,6 +30241,7 @@ export namespace Prisma {
     eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
     evaluationsReceived?: EvaluationCreateNestedManyWithoutParticipantInput
+    passes?: PassCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutEvaluationsGivenInput = {
@@ -28427,6 +30273,7 @@ export namespace Prisma {
     eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
     evaluationsReceived?: EvaluationUncheckedCreateNestedManyWithoutParticipantInput
+    passes?: PassUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutEvaluationsGivenInput = {
@@ -28516,6 +30363,7 @@ export namespace Prisma {
     eventSubmissions?: EventSubmissionCreateNestedManyWithoutUserInput
     groupRegistrations?: GroupRegistrationCreateNestedManyWithoutUserInput
     evaluationsGiven?: EvaluationCreateNestedManyWithoutJudgeInput
+    passes?: PassCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutEvaluationsReceivedInput = {
@@ -28547,6 +30395,7 @@ export namespace Prisma {
     eventSubmissions?: EventSubmissionUncheckedCreateNestedManyWithoutUserInput
     groupRegistrations?: GroupRegistrationUncheckedCreateNestedManyWithoutUserInput
     evaluationsGiven?: EvaluationUncheckedCreateNestedManyWithoutJudgeInput
+    passes?: PassUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutEvaluationsReceivedInput = {
@@ -28594,6 +30443,7 @@ export namespace Prisma {
     eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
     groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
     evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
+    passes?: PassUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutEvaluationsGivenInput = {
@@ -28625,6 +30475,7 @@ export namespace Prisma {
     eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
     evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
+    passes?: PassUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type EventUpsertWithoutEvaluationsInput = {
@@ -28726,6 +30577,7 @@ export namespace Prisma {
     eventSubmissions?: EventSubmissionUpdateManyWithoutUserNestedInput
     groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
     evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
+    passes?: PassUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutEvaluationsReceivedInput = {
@@ -28757,6 +30609,7 @@ export namespace Prisma {
     eventSubmissions?: EventSubmissionUncheckedUpdateManyWithoutUserNestedInput
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
     evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
+    passes?: PassUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ContactCoordinatorCreateWithoutCategoryInput = {
@@ -28950,6 +30803,20 @@ export namespace Prisma {
     eventId: string
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type PassCreateManyUserInput = {
+    id?: string
+    passToken: string
+    eventId?: string | null
+    passType?: string
+    isActive?: boolean
+    isUsed?: boolean
+    usedAt?: Date | string | null
+    usedBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    expiresAt?: Date | string | null
   }
 
   export type AccountUpdateWithoutUserInput = {
@@ -29267,6 +31134,48 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type PassUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    passToken?: StringFieldUpdateOperationsInput | string
+    eventId?: NullableStringFieldUpdateOperationsInput | string | null
+    passType?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isUsed?: BoolFieldUpdateOperationsInput | boolean
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PassUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    passToken?: StringFieldUpdateOperationsInput | string
+    eventId?: NullableStringFieldUpdateOperationsInput | string | null
+    passType?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isUsed?: BoolFieldUpdateOperationsInput | boolean
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PassUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    passToken?: StringFieldUpdateOperationsInput | string
+    eventId?: NullableStringFieldUpdateOperationsInput | string | null
+    passType?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isUsed?: BoolFieldUpdateOperationsInput | boolean
+    usedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    usedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type EventCreateManyCategoryInput = {
     id: string
     name: string
@@ -29414,6 +31323,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUpdateManyWithoutUserNestedInput
     evaluationsGiven?: EvaluationUpdateManyWithoutJudgeNestedInput
     evaluationsReceived?: EvaluationUpdateManyWithoutParticipantNestedInput
+    passes?: PassUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutRegisteredEventsInput = {
@@ -29445,6 +31355,7 @@ export namespace Prisma {
     groupRegistrations?: GroupRegistrationUncheckedUpdateManyWithoutUserNestedInput
     evaluationsGiven?: EvaluationUncheckedUpdateManyWithoutJudgeNestedInput
     evaluationsReceived?: EvaluationUncheckedUpdateManyWithoutParticipantNestedInput
+    passes?: PassUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateManyWithoutRegisteredEventsInput = {

@@ -7,6 +7,8 @@ import { Suspense } from "react";
 import ProfileClient from "./ProfileClient";
 import { getMyRegisteredEvents } from "@/actions/profile.action";
 
+import { prisma } from "@/lib/prisma";
+
 async function SessionData() {
   const headersList = await headers();
   const session = await auth.api.getSession({
@@ -30,6 +32,15 @@ async function SessionData() {
     );
   }
 
+  // Fetch fresh user data from database
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+  });
+
+  if (!user) {
+    return <div>User not found</div>;
+  }
+
   // Fetch registered events
   const eventsResult = await getMyRegisteredEvents();
   const registeredEvents = eventsResult.success ? eventsResult.data || [] : [];
@@ -51,7 +62,7 @@ async function SessionData() {
       {/* Main Content */}
       <div className="flex-1 w-full px-6 pb-8">
         <ProfileClient
-          user={session.user as any}
+          user={user as any}
           registeredEvents={registeredEvents as any}
           ipAddress={ipAddress}
           userAgent={userAgent}
