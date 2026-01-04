@@ -43,7 +43,6 @@ export default function ContactClient({ categories }: ContactClientProps) {
         <div className="w-full min-h-screen bg-black relative overflow-hidden pt-20 pb-20">
             {/* Background Effects */}
             <div className="fixed inset-0 z-0 pointer-events-none">
-                <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20" />
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-red-900/10 rounded-full blur-[120px]" />
                 <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-red-900/5 rounded-full blur-[120px]" />
             </div>

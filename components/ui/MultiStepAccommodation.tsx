@@ -197,7 +197,6 @@ const MultiStepAccommodation = () => {
   if (existingBooking) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center relative overflow-hidden p-6 pt-24">
-        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 pointer-events-none" />
         <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-red-900/10 rounded-full blur-[120px]" />
 
         <motion.div
