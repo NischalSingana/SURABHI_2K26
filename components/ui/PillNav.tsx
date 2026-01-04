@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import { gsap } from 'gsap';
-import { FiUser, FiLogIn } from 'react-icons/fi';
+import { FiUser, FiLogIn, FiX } from 'react-icons/fi';
 import './PillNav.css';
 
 export type PillNavItem = {
@@ -67,7 +67,7 @@ const PillNav: React.FC<PillNavProps> = ({
     // Initial load animations kept
     const menu = mobileMenuRef.current;
     if (menu) {
-      gsap.set(menu, { visibility: 'hidden', opacity: 0, scaleY: 1 });
+      gsap.set(menu, { visibility: 'hidden', scaleY: 1 });
     }
 
     if (initialLoadAnimation) {
@@ -119,7 +119,7 @@ const PillNav: React.FC<PillNavProps> = ({
 
         if (menu) {
           gsap.to(menu, {
-            x: '-100%',
+            x: '100%', // Slide out to right
             duration: 0.4,
             ease: 'power3.inOut',
             onComplete: () => {
@@ -163,9 +163,10 @@ const PillNav: React.FC<PillNavProps> = ({
     });
   };
 
-  const toggleMobileMenu = () => {
-    const newState = !isMobileMenuOpen;
-    setIsMobileMenuOpen(newState);
+  const closeMobileMenu = () => {
+    if (!isMobileMenuOpen) return;
+
+    setIsMobileMenuOpen(false);
 
     const hamburger = hamburgerRef.current;
     const menu = mobileMenuRef.current;
@@ -173,53 +174,67 @@ const PillNav: React.FC<PillNavProps> = ({
 
     if (hamburger) {
       const lines = hamburger.querySelectorAll('.hamburger-line');
-      if (newState) {
-        gsap.to(lines[0], { rotation: 45, y: 3, duration: 0.3, ease });
-        gsap.to(lines[1], { rotation: -45, y: -3, duration: 0.3, ease });
-      } else {
-        gsap.to(lines[0], { rotation: 0, y: 0, duration: 0.3, ease });
-        gsap.to(lines[1], { rotation: 0, y: 0, duration: 0.3, ease });
-      }
+      gsap.to(lines[0], { rotation: 0, y: 0, duration: 0.3, ease });
+      gsap.to(lines[1], { rotation: 0, y: 0, duration: 0.3, ease });
+    }
+
+    if (menu) {
+      gsap.to(menu, {
+        x: '100%',
+        duration: 0.4,
+        ease: 'power3.inOut',
+        onComplete: () => {
+          gsap.set(menu, { visibility: 'hidden' });
+        }
+      });
+    }
+
+    if (backdrop) {
+      gsap.to(backdrop, {
+        opacity: 0,
+        duration: 0.4,
+        ease: 'power2.inOut',
+        onComplete: () => {
+          gsap.set(backdrop, { visibility: 'hidden' });
+        }
+      });
+    }
+  };
+
+  const toggleMobileMenu = () => {
+    if (isMobileMenuOpen) {
+      closeMobileMenu();
+      return;
+    }
+
+    setIsMobileMenuOpen(true);
+
+    const hamburger = hamburgerRef.current;
+    const menu = mobileMenuRef.current;
+    const backdrop = backdropRef.current;
+
+    if (hamburger) {
+      const lines = hamburger.querySelectorAll('.hamburger-line');
+      gsap.to(lines[0], { rotation: 45, y: 3, duration: 0.3, ease });
+      gsap.to(lines[1], { rotation: -45, y: -3, duration: 0.3, ease });
     }
 
     if (menu && backdrop) {
-      if (newState) {
-        // Open
-        gsap.set(menu, { visibility: 'visible', x: '-100%' });
-        gsap.set(backdrop, { visibility: 'visible', opacity: 0 });
+      // Open
+      gsap.set(menu, { visibility: 'visible', x: '100%', opacity: 1 });
+      gsap.set(backdrop, { visibility: 'visible', opacity: 0 });
 
-        gsap.to(menu, {
-          x: '0%',
-          duration: 0.5,
-          ease: 'power3.out'
-        });
+      gsap.to(menu, {
+        x: '0%',
+        duration: 0.5,
+        ease: 'power3.out'
+      });
 
-        gsap.to(backdrop, {
-          opacity: 1,
-          duration: 0.5,
-          ease: 'power2.out'
-        });
-
-      } else {
-        // Close
-        gsap.to(menu, {
-          x: '-100%',
-          duration: 0.4,
-          ease: 'power3.inOut',
-          onComplete: () => {
-            gsap.set(menu, { visibility: 'hidden' });
-          }
-        });
-
-        gsap.to(backdrop, {
-          opacity: 0,
-          duration: 0.4,
-          ease: 'power2.inOut',
-          onComplete: () => {
-            gsap.set(backdrop, { visibility: 'hidden' });
-          }
-        });
-      }
+      gsap.to(backdrop, {
+        opacity: 1,
+        duration: 0.5,
+        ease: 'power2.out'
+      });
     }
 
     onMobileMenuClick?.();
@@ -346,10 +361,19 @@ const PillNav: React.FC<PillNavProps> = ({
       <div
         className="mobile-menu-backdrop mobile-only"
         ref={backdropRef}
-        onClick={toggleMobileMenu}
+        onClick={closeMobileMenu}
       />
 
       <div className="mobile-menu-popover mobile-only" ref={mobileMenuRef} style={cssVars}>
+        {/* Close Button Inside Menu */}
+        <button
+          className="mobile-menu-close-btn"
+          onClick={closeMobileMenu}
+          aria-label="Close menu"
+        >
+          <FiX size={24} />
+        </button>
+
         <ul className="mobile-menu-list">
           {items.map(item => (
             <li key={item.href}>
@@ -357,7 +381,7 @@ const PillNav: React.FC<PillNavProps> = ({
                 <a
                   href={item.href}
                   className={`mobile-menu-link${currentActiveHref === item.href ? ' is-active' : ''}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={closeMobileMenu}
                 >
                   {item.label}
                 </a>
@@ -365,7 +389,7 @@ const PillNav: React.FC<PillNavProps> = ({
                 <Link
                   href={item.href}
                   className={`mobile-menu-link${currentActiveHref === item.href ? ' is-active' : ''}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={closeMobileMenu}
                 >
                   {item.label}
                 </Link>
@@ -378,7 +402,7 @@ const PillNav: React.FC<PillNavProps> = ({
               <Link
                 href="/profile"
                 className="mobile-menu-link"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={closeMobileMenu}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
@@ -394,7 +418,7 @@ const PillNav: React.FC<PillNavProps> = ({
               <Link
                 href="/login"
                 className="mobile-menu-link mobile-login-button"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={closeMobileMenu}
               >
                 <FiLogIn size={20} />
                 <span>Login / Register</span>

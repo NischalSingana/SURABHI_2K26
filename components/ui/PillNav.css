@@ -3,8 +3,10 @@
   top: 0;
   left: 0;
   right: 0;
-  z-index: 9999999;
+  z-index: 999999;
   pointer-events: none;
+  width: 100%;
+  visibility: visible !important;
 }
 
 .pill-nav {
@@ -13,12 +15,15 @@
   justify-content: space-between;
   padding: 0.25rem 1.5rem;
   max-width: 100%;
+  width: 100%;
   pointer-events: auto;
-  background: rgba(26, 0, 0, 0.85);
+  background: rgba(26, 0, 0, 0.95);
   backdrop-filter: blur(15px);
   border-bottom: 1px solid rgba(255, 107, 53, 0.3);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   min-height: auto;
+  position: relative;
+  visibility: visible !important;
 }
 
 .pill-logo {
@@ -134,7 +139,13 @@
   padding: 0.25rem;
   pointer-events: auto;
   z-index: 101;
-  /* Above drawer */
+  position: relative;
+  /* Ensure button is clickable */
+  min-width: 44px;
+  min-height: 44px;
+  /* Touch-friendly size */
+  align-items: center;
+  justify-content: center;
 }
 
 .hamburger-line {
@@ -150,31 +161,48 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
-  z-index: 98;
+  z-index: 99;
   opacity: 0;
   visibility: hidden;
-  pointer-events: auto;
+  pointer-events: none;
+  touch-action: none;
+  /* Prevent scroll on backdrop */
 }
 
 .mobile-menu-popover {
   position: fixed;
   top: 0;
-  left: 0;
-  width: 80vw;
-  max-width: 320px;
-  height: 100vh;
-  background: linear-gradient(135deg, rgba(15, 5, 5, 0.98) 0%, rgba(30, 0, 0, 0.96) 100%);
+  /* left: 0; Removed to prevent conflict with right: 0 sidebar */
+  right: 0;
+  width: 85vw;
+  max-width: 300px;
+  /* Limit width */
+  height: auto;
+  /* Dynamic height based on content */
+  max-height: 85vh;
+  /* Prevent overflowing screen if content is long */
+  background: linear-gradient(180deg, rgba(20, 5, 5, 0.98) 0%, rgba(30, 0, 0, 0.96) 100%);
   backdrop-filter: blur(24px);
-  border-right: 1px solid rgba(220, 38, 38, 0.2);
-  padding: 6rem 1.5rem 2rem 1.5rem;
-  /* Top padding to clear hamburger area if needed, though hamburger is usually top-right */
+  border-left: 1px solid rgba(255, 107, 53, 0.2);
+  border-bottom: 1px solid rgba(255, 107, 53, 0.2);
+  border-bottom-left-radius: 20px;
+  /* Rounded corner for floating look */
+  padding: 5rem 1.5rem 2rem 1.5rem;
   pointer-events: auto;
-  z-index: 99;
-  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  box-shadow: -4px 10px 40px rgba(0, 0, 0, 0.6);
   overflow-y: auto;
-  transform: translateX(-100%);
-  /* Initial state, though GSAP sets this */
+  overflow-x: hidden;
+  transform: translateX(100%);
   visibility: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-menu-link:active,
+.mobile-menu-link:focus {
+  background: rgba(255, 107, 53, 0.15);
+  transform: scale(0.98);
+  transition: all 0.1s;
 }
 
 .mobile-menu-list {
@@ -221,6 +249,7 @@
   /* Ensure bottom border color applies */
 }
 
+/* Mobile Styles - Tablets and Below */
 @media (max-width: 1024px) {
   .desktop-only {
     display: none !important;
@@ -228,20 +257,134 @@
 
   .mobile-only {
     display: flex !important;
+    visibility: visible !important;
+  }
+
+  .pill-nav-container {
+    visibility: visible !important;
+    display: block !important;
   }
 
   .pill-nav {
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 1rem;
+    min-height: 80px;
+    /* Increased for professional look */
+    display: flex !important;
+    visibility: visible !important;
+    justify-content: space-between !important;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .pill-logo {
+    display: flex !important;
+    visibility: visible !important;
+    flex-shrink: 0;
   }
 
   .pill-logo img {
-    height: 50px;
+    height: 64px;
+    /* Increased size */
     margin: -8px 0;
+    visibility: visible !important;
   }
 
   .mobile-menu-button {
-    padding: 0.5rem;
+    display: flex !important;
+    padding: 10px;
     gap: 5px;
+    visibility: visible !important;
+    flex-shrink: 0;
+    margin-left: auto;
+    margin-right: 0;
+    touch-action: manipulation;
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .hamburger-line {
+    width: 26px;
+    height: 2.5px;
+  }
+
+  /* Sidebar Transformation */
+  .mobile-menu-popover {
+    /* Reset overriding full-screen styles */
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: auto;
+    /* Allow auto height */
+    height: auto;
+    /* Dynamic height */
+    max-height: 85vh;
+    width: 300px;
+    max-width: 85vw;
+    /* Reuse base backgrounds/borders or redefine if needed, but let's keep consistency */
+    background: linear-gradient(180deg, rgba(20, 5, 5, 0.98) 0%, rgba(30, 0, 0, 0.96) 100%);
+    backdrop-filter: blur(24px);
+    border-left: 1px solid rgba(255, 107, 53, 0.2);
+    border-bottom: 1px solid rgba(255, 107, 53, 0.2);
+    border-bottom-left-radius: 20px;
+    padding: 6rem 2rem 2rem 2rem;
+    /* Adjusted for taller nav */
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.7);
+    overflow-y: auto;
+    overflow-x: hidden;
+    transform: translateX(100%);
+    visibility: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-menu-close-btn {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 102;
+  }
+
+  .mobile-menu-close-btn:hover {
+    background: rgba(255, 107, 53, 0.2);
+    border-color: rgba(255, 107, 53, 0.4);
+    transform: rotate(90deg);
+  }
+
+  .mobile-menu-link {
+    font-size: 1.25rem;
+    padding: 1rem 0.5rem;
+  }
+}
+
+/* Mobile Styles - Phones */
+@media (max-width: 640px) {
+  .pill-nav {
+    padding: 0.5rem 1rem;
+    min-height: 77px;
+    /* Increased for better presence */
+  }
+
+  .pill-logo img {
+    height: 125px;
+    /* Increased size */
+    margin: -33px -8px;
+  }
+
+  .mobile-menu-button {
+    padding: 8px;
+    gap: 4px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .hamburger-line {
@@ -250,7 +393,14 @@
   }
 
   .mobile-menu-popover {
-    top: 66px;
+    width: 85vw;
+    padding: 5.5rem 1.5rem 2rem 1.5rem;
+    /* Adjusted for taller nav */
+  }
+
+  .mobile-menu-link {
+    font-size: 1.15rem;
+    padding: 0.85rem 0.5rem;
   }
 }
 

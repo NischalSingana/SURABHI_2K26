@@ -105,7 +105,7 @@ const HomePage = () => {
             </div>
 
             {/* Poster Section - Edge to Edge (left, right, bottom), top space for navbar */}
-            <section className="relative w-full h-auto md:h-screen flex items-center justify-center overflow-hidden z-10 pt-24 md:pt-16 pb-0">
+            <section className="relative w-full h-auto md:h-screen flex items-center justify-center overflow-hidden z-10 pt-16 pb-0">
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -133,7 +133,7 @@ const HomePage = () => {
             </section>
 
             {/* About Surabhi Section - Bento Grid Redesign */}
-            <section className="relative z-10 w-full min-h-screen bg-[#0a0000] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-16 md:py-20 lg:py-24 overflow-hidden">
+            <section className="relative z-10 w-full min-h-screen bg-[#0a0000] flex items-start md:items-center justify-center px-4 sm:px-6 lg:px-8 pt-12 pb-8 sm:py-16 md:py-20 lg:py-24 overflow-visible">
                 {/* Background Noise/Gradient */}
                 <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 brightness-100 mix-blend-overlay pointer-events-none" />
                 <div className="absolute inset-0 bg-gradient-to-tr from-red-900/10 via-black to-black pointer-events-none" />
@@ -258,28 +258,28 @@ const HomePage = () => {
             </section>
 
             {/* Poster Gallery Section */}
-            <section className="relative z-10 w-full h-screen bg-gradient-to-b from-[#0a0000] to-[#1a0000] overflow-hidden">
-                <div className="absolute inset-0 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
+            <section className="relative z-10 w-full h-auto min-h-[60vh] md:h-screen bg-gradient-to-b from-[#0a0000] to-[#1a0000] overflow-hidden py-10 md:py-0 flex items-center">
+                <div className="w-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-100px" }}
                         transition={{ duration: 0.8 }}
-                        className="text-center mb-8 z-10"
+                        className="text-center mb-4 md:mb-8 z-10"
                     >
-                        <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-red-500 via-rose-500 to-red-600 bg-clip-text text-transparent font-sans uppercase tracking-wider">
+                        <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-2 md:mb-4 bg-gradient-to-r from-red-500 via-rose-500 to-red-600 bg-clip-text text-transparent font-sans uppercase tracking-wider">
                             Events
                         </h2>
-                        <div className="w-32 h-1 bg-gradient-to-r from-red-600 via-rose-500 to-red-600 mx-auto rounded-full" />
+                        <div className="w-24 md:w-32 h-1 bg-gradient-to-r from-red-600 via-rose-500 to-red-600 mx-auto rounded-full" />
                     </motion.div>
 
                     {loadingPosters ? (
-                        <div className="flex items-center justify-center h-full">
+                        <div className="flex items-center justify-center h-[50vh] md:h-[80vh]">
                             <div className="text-gray-400">Loading gallery...</div>
                         </div>
                     ) : posterItems.length > 0 ? (
                         <>
-                            <div className="w-full h-[80vh]">
+                            <div className="w-full h-[50vh] md:h-[80vh]">
                                 <CircularGallery
                                     items={posterItems}
                                     bend={0}

@@ -31,7 +31,6 @@ export default function SponsorsPage() {
         <main className="relative w-full min-h-screen bg-black overflow-hidden pt-20">
             {/* Background Effects */}
             <div className="fixed inset-0 z-0 bg-black">
-                <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 hover:opacity-30 transition-opacity" />
                 <div className="absolute inset-0 bg-gradient-to-b from-red-900/10 to-transparent pointer-events-none" />
             </div>
 
