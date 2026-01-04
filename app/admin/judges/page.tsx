@@ -61,7 +61,7 @@ export default function JudgeManagementPage() {
                     <p className="text-gray-400">Create and manage accounts for event judges.</p>
                 </header>
 
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden overflow-x-auto">
                     <table className="w-full text-left">
                         <thead className="bg-zinc-800/50 text-gray-400 text-sm">
                             <tr>
