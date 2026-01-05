@@ -31,7 +31,7 @@ export async function generateTicketQR(data: TicketData): Promise<string> {
     }
 
     // 2. Construct correct verification URL
-    const baseUrl = (process.env.BETTER_AUTH_URL || 'https://klsurabhi.nischalsingana.com').replace(/\/$/, '');
+    const baseUrl = (process.env.BETTER_AUTH_URL || 'https://klusurabhi.in').replace(/\/$/, '');
     const verificationUrl = `${baseUrl}/verify/${pass.passToken}`;
 
     // 3. Generate QR code

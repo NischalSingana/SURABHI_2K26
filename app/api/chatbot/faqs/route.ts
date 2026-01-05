@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
+export const dynamic = 'force-dynamic';
+
 // GET - Fetch FAQs (Admin gets all, Public gets active only)
 export async function GET(req: NextRequest) {
     try {

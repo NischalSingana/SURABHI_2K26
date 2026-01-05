@@ -70,7 +70,7 @@ export const emailTemplates = {
                     <div style="background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMDUpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=') center/cover; padding: 50px 30px; text-align: center;">
                       <div style="background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(10px); border-radius: 12px; padding: 30px; display: inline-block;">
                         <!-- Surabhi Logo -->
-                        <img src="${process.env.NEXT_PUBLIC_APP_URL || "https://klsurabhi.nischalsingana.com"}/favicon.ico" 
+                        <img src="${process.env.NEXT_PUBLIC_APP_URL || "https://klusurabhi.in"}/favicon.ico" 
                              alt="Surabhi 2026" 
                              style="height: 140px; width: 140px; margin: 0 auto 12px auto; display: block; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5)); image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;" />
                         
@@ -204,7 +204,7 @@ export const emailTemplates = {
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 40px 0;">
                       <tr>
                         <td style="text-align: center;">
-                          <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/login" 
+                          <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://klusurabhi.in"}/login" 
                              style="display: inline-block; background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: #ffffff; padding: 18px 48px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 17px; box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4); transition: all 0.3s ease;">
                             🔐 Access Your Portal
                           </a>
@@ -290,7 +290,7 @@ export const emailTemplates = {
           </ul>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/login" 
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://klusurabhi.in"}/login" 
                style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
               🚀 Access Portal Now
             </a>

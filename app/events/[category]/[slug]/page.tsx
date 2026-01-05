@@ -1,16 +1,9 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { useState, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
-import {
-  getPublicEvents,
-  registerForEvent,
-  checkEventRegistration,
-  registerGroupEvent,
-  unregisterFromEvent,
-  getUserByEmail,
-} from "@/actions/events.action";
 import {
   FiArrowLeft,
   FiCalendar,
@@ -20,8 +13,222 @@ import {
   FiX,
   FiCheck,
   FiShare2,
+  FiLink,
+  FiCopy,
 } from "react-icons/fi";
+import { FaWhatsapp, FaTelegram, FaEnvelope } from "react-icons/fa";
 import { toast } from "sonner";
+import {
+  getPublicEvents,
+  registerForEvent,
+  checkEventRegistration,
+  registerGroupEvent,
+  unregisterFromEvent,
+  getUserByEmail,
+} from "@/actions/events.action";
+
+function ShareModal({
+  show,
+  onClose,
+  url,
+  title,
+  text,
+}: {
+  show: boolean;
+  onClose: () => void;
+  url: string;
+  title: string;
+  text: string;
+}) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  if (!mounted) return null;
+
+  const shareLinks = [
+    {
+      name: "WhatsApp",
+      icon: <FaWhatsapp size={24} />,
+      color: "bg-[#25D366] hover:bg-[#20bd5a]",
+      onClick: () =>
+        window.open(
+          `https://api.whatsapp.com/send?text=${encodeURIComponent(
+            text + " " + url
+          )}`,
+          "_blank"
+        ),
+    },
+    {
+      name: "Telegram",
+      icon: <FaTelegram size={24} />,
+      color: "bg-[#0088cc] hover:bg-[#007dbd]",
+      onClick: () =>
+        window.open(
+          `https://t.me/share/url?url=${encodeURIComponent(
+            url
+          )}&text=${encodeURIComponent(text)}`,
+          "_blank"
+        ),
+    },
+    {
+      name: "Email",
+      icon: <FaEnvelope size={24} />,
+      color: "bg-[#EA4335] hover:bg-[#d93025]",
+      onClick: () =>
+        window.open(
+          `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(
+            text + "\n" + url
+          )}`,
+          "_self"
+        ),
+    },
+    {
+      name: "Copy Link",
+      icon: <FiCopy size={24} />,
+      color: "bg-zinc-700 hover:bg-zinc-600",
+      onClick: async () => {
+        try {
+          await navigator.clipboard.writeText(url);
+          toast.success("Link copied to clipboard!");
+        } catch (err) {
+          toast.error("Failed to copy link");
+        }
+      },
+    },
+  ];
+
+  return createPortal(
+    <AnimatePresence>
+      {show && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-[999999] p-4"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 100, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 100, scale: 0.95 }}
+            className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-6 relative overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-white">Share Event</h3>
+              <button
+                onClick={onClose}
+                className="p-2 bg-zinc-800 rounded-full text-zinc-400 hover:text-white transition-colors"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-4 gap-4">
+              {shareLinks.map((link) => (
+                <button
+                  key={link.name}
+                  onClick={() => {
+                    link.onClick();
+                    onClose();
+                  }}
+                  className="flex flex-col items-center gap-3 group"
+                >
+                  <div
+                    className={`${link.color} w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-110`}
+                  >
+                    {link.icon}
+                  </div>
+                  <span className="text-xs text-zinc-400 font-medium">
+                    {link.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Link Preview */}
+            <div className="mt-6 p-3 bg-black/50 rounded-lg border border-zinc-800 flex items-center gap-3 overflow-hidden">
+              <div className="bg-zinc-800 p-2 rounded-md">
+                <FiLink className="text-zinc-400" size={16} />
+              </div>
+              <p className="text-sm text-zinc-500 truncate flex-1">{url}</p>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+}
+
+function ImageModal({
+  show,
+  onClose,
+  image,
+  name,
+  categoryName,
+}: {
+  show: boolean;
+  onClose: () => void;
+  image: string;
+  name: string;
+  categoryName: string;
+}) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      {show && (
+        <div
+          className="fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center z-[999999] p-4"
+          onClick={onClose}
+        >
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="fixed top-4 right-4 md:top-6 md:right-6 p-2 md:p-4 bg-red-600/90 hover:bg-red-600 rounded-full transition-all text-white z-[1000000] shadow-2xl shadow-red-600/40 hover:scale-110 backdrop-blur-md border border-white/10"
+          >
+            <FiX className="w-5 h-5 md:w-7 md:h-7" />
+          </button>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="relative max-w-7xl w-full flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Full Image */}
+            <img
+              src={image}
+              alt={name}
+              className="w-full h-auto max-h-[85vh] object-contain rounded-lg shadow-2xl"
+              onError={(e) => {
+                e.currentTarget.src =
+                  "https://via.placeholder.com/1920x1080?text=Event+Image";
+              }}
+            />
+
+            {/* Image Caption */}
+            <div className="mt-4 text-center">
+              <h3 className="text-2xl font-bold text-white">{name}</h3>
+              <p className="text-zinc-400 mt-2">{categoryName}</p>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+}
 
 interface Event {
   id: string;
@@ -76,6 +283,7 @@ function EventDetailPageContent() {
   const [mentorPhone, setMentorPhone] = useState("");
   const [memberEmailInput, setMemberEmailInput] = useState("");
   const [lookingUpMember, setLookingUpMember] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
     if (event && event.isGroupEvent) {
@@ -256,10 +464,33 @@ function EventDetailPageContent() {
     setTeamMembers(newMembers);
   };
 
-  const handleShare = () => {
-    if (event?.registrationLink) {
-      navigator.clipboard.writeText(event.registrationLink);
-      toast.success("Registration link copied to clipboard!");
+  const handleShare = async () => {
+    const url = window.location.href;
+    const shareData = {
+      title: event?.name || "Surabhi 2026",
+      text: `Check out ${event?.name} at Surabhi 2026!`,
+      url: url,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success("Event link copied to clipboard!");
+      }
+    } catch (err: any) {
+      // Ignore AbortError (user cancelled) or InvalidStateError (share already in progress)
+      if (err.name !== 'AbortError' && err.name !== 'InvalidStateError') {
+        console.error("Error sharing:", err);
+        // Fallback to clipboard if share failed for other reasons
+        try {
+          await navigator.clipboard.writeText(url);
+          toast.success("Event link copied to clipboard!");
+        } catch (clipboardErr) {
+          console.error("Clipboard error:", clipboardErr);
+        }
+      }
     }
   };
 
@@ -306,7 +537,14 @@ function EventDetailPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black pt-16">
+      <ShareModal
+        show={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        url={typeof window !== "undefined" ? window.location.href : ""}
+        title={event?.name || "Surabhi 2026"}
+        text={`Check out ${event?.name} at Surabhi 2026!`}
+      />
       {/* Hero Section with Image */}
       <div className="relative h-[60vh] overflow-hidden group">
         <div
@@ -355,15 +593,15 @@ function EventDetailPageContent() {
             e.stopPropagation();
             router.push(`/events/${categoryName}`);
           }}
-          className="absolute top-28 left-8 flex items-center gap-2 text-white hover:text-red-500 transition-colors bg-black/50 backdrop-blur-sm px-4 py-2 rounded-lg z-10"
+          className="absolute top-4 left-4 md:top-8 md:left-8 flex items-center gap-2 text-white hover:text-red-500 transition-colors bg-black/50 backdrop-blur-sm px-3 py-1.5 md:px-4 md:py-2 rounded-lg z-10 text-sm md:text-base"
         >
-          <FiArrowLeft size={20} />
+          <FiArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
           Back
         </motion.button>
 
         {/* Category Badge */}
-        <div className="absolute top-28 right-8 z-10">
-          <div className="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
+        <div className="absolute top-4 right-4 md:top-8 md:right-8 z-10">
+          <div className="bg-red-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium shadow-lg">
             {event.Category.name}
           </div>
         </div>
@@ -405,7 +643,7 @@ function EventDetailPageContent() {
               whileTap={{ scale: 0.95 }}
               onClick={(e) => {
                 e.stopPropagation();
-                handleShare();
+                setShowShareModal(true);
               }}
               className="lg:hidden flex items-center gap-2 bg-zinc-900/80 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg hover:bg-zinc-800 transition-colors"
             >
@@ -583,48 +821,14 @@ function EventDetailPageContent() {
         </div>
       </div>
 
-      {/* Image Modal */}
-      <AnimatePresence>
-        {showImageModal && (
-          <div
-            className="fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center z-70 p-4"
-            onClick={() => setShowImageModal(false)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="relative max-w-7xl w-full"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Close Button */}
-              <button
-                onClick={() => setShowImageModal(false)}
-                className="absolute -top-12 right-0 p-2 bg-zinc-900/80 backdrop-blur-sm hover:bg-zinc-800 rounded-lg transition-colors text-white"
-              >
-                <FiX size={24} />
-              </button>
-
-              {/* Full Image */}
-              <img
-                src={event.image}
-                alt={event.name}
-                className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
-                onError={(e) => {
-                  e.currentTarget.src =
-                    "https://via.placeholder.com/1920x1080?text=Event+Image";
-                }}
-              />
-
-              {/* Image Caption */}
-              <div className="mt-4 text-center">
-                <h3 className="text-2xl font-bold text-white">{event.name}</h3>
-                <p className="text-zinc-400 mt-2">{event.Category.name}</p>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Image Modal using Portal */}
+      <ImageModal
+        show={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        image={event.image}
+        name={event.name}
+        categoryName={event.Category.name}
+      />
 
       {/* Registration Modal */}
       <AnimatePresence>
