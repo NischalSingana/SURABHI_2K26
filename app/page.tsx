@@ -29,22 +29,15 @@ const HomePage = () => {
                 const response = await fetch('/api/poster-gallery');
                 if (!response.ok) {
                     console.error('API response not OK:', response.status, response.statusText);
-                    const errorData = await response.json().catch(() => ({}));
-                    console.error('Error data:', errorData);
                     return;
                 }
                 const data = await response.json();
-                console.log('Poster gallery API response:', data);
-
                 if (data.error) {
                     console.error('API returned error:', data.error, data.details);
                 }
 
                 if (data.items && data.items.length > 0) {
-                    console.log(`Loaded ${data.items.length} posters:`, data.items.map((item: any) => item.image));
                     setPosterItems(data.items);
-                } else {
-                    console.log('No posters found in gallery. Response:', data);
                 }
             } catch (error) {
                 console.error('Error fetching posters:', error);
@@ -135,7 +128,7 @@ const HomePage = () => {
             {/* About Surabhi Section - Bento Grid Redesign */}
             <section className="relative z-10 w-full min-h-screen bg-[#0a0000] flex items-start md:items-center justify-center px-4 sm:px-6 lg:px-8 pt-12 pb-8 sm:py-16 md:py-20 lg:py-24 overflow-visible">
                 {/* Background Noise/Gradient */}
-                <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 brightness-100 mix-blend-overlay pointer-events-none" />
+                {/* <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 brightness-100 mix-blend-overlay pointer-events-none" /> */}
                 <div className="absolute inset-0 bg-gradient-to-tr from-red-900/10 via-black to-black pointer-events-none" />
 
                 <div className="max-w-7xl mx-auto w-full relative z-10">
@@ -163,12 +156,12 @@ const HomePage = () => {
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5 }}
-                            className="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-3xl bg-zinc-900/40 border border-white/5 p-6 md:p-8 flex flex-col justify-between hover:border-red-500/30 transition-all duration-500"
+                            className="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-3xl bg-zinc-900/40 border border-white/5 p-5 md:p-6 flex flex-col justify-between hover:border-red-500/30 transition-all duration-500"
                         >
                             <div className="absolute inset-0 bg-gradient-to-br from-red-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                             <div className="absolute -right-20 -top-20 w-64 h-64 bg-red-600/10 rounded-full blur-3xl group-hover:bg-red-600/20 transition-all duration-500" />
 
-                            <div className="relative z-10 space-y-4 md:space-y-6">
+                            <div className="relative z-10 space-y-2 md:space-y-4">
                                 <h3 className="text-2xl md:text-3xl font-bold text-white font-[family-name:var(--font-Lexend)]">
                                     A Legacy of Artistic Excellence
                                 </h3>

@@ -49,7 +49,8 @@ export default function ChatWidget() {
             if (Array.isArray(data)) {
                 setFaqs(data);
             } else {
-                console.error('FAQ data is not an array:', data);
+                console.warn('FAQ data is not an array:', data);
+                // If data is empty object or invalid, default to empty array
                 setFaqs([]);
             }
         } catch (error) {

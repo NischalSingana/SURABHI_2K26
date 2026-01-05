@@ -8,7 +8,7 @@ import { Role } from "./generated/prisma";
 
 const isProduction = process.env.NODE_ENV === "production";
 const baseURL = isProduction
-    ? (process.env.BETTER_AUTH_URL || "https://klsurabhi.nischalsingana.com")
+    ? (process.env.BETTER_AUTH_URL || "https://klusurabhi.in")
     : "http://localhost:3000";
 
 export const auth = betterAuth({
@@ -24,7 +24,7 @@ export const auth = betterAuth({
         }
     },
     trustedOrigins: [
-        "https://klsurabhi.nischalsingana.com",
+        "https://klusurabhi.in",
         "http://localhost:3000"
     ],
     baseURL,
@@ -32,12 +32,17 @@ export const auth = betterAuth({
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID as string,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+            redirectURI: isProduction
+                ? "https://klusurabhi.in/api/auth/callback/google"
+                : "http://localhost:3000/api/auth/callback/google",
         },
         microsoft: {
             clientId: process.env.MICROSOFT_CLIENT_ID as string,
             clientSecret: process.env.MICROSOFT_CLIENT_SECRET as string,
             tenant: "organizations", // For single-tenant app - work/school accounts only
-            redirectURI: `${baseURL.replace(/\/$/, '')}/api/auth/callback/microsoft`,
+            redirectURI: isProduction
+                ? "https://klusurabhi.in/api/auth/callback/microsoft"
+                : "http://localhost:3000/api/auth/callback/microsoft",
         },
     },
     emailAndPassword: {

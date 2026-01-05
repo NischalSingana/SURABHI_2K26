@@ -4,7 +4,7 @@ import { PrismaClient } from '../lib/generated/prisma';
 
 // Mock headers request for auth
 const mockHeaders = new Headers();
-mockHeaders.set('host', 'localhost:3000');
+mockHeaders.set('host', 'klusurabhi.in');
 
 const prisma = new PrismaClient();
 

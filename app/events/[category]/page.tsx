@@ -104,7 +104,6 @@ function CategoryPageContent() {
     if (result.success && result.data) {
       const filtered = result.data.filter(
         (event) => {
-          const match = event.Category.name.toLowerCase() === categoryName.toLowerCase();
           return event.Category.name.toLowerCase() === categoryName.toLowerCase();
         }
       );
