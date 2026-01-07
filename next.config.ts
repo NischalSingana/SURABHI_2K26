@@ -73,8 +73,10 @@ const nextConfig: NextConfig = {
   },
   // This is required to support PostHog trailing slash API requests
   skipTrailingSlashRedirect: true,
-  // Empty turbopack config to silence webpack warning in Next.js 16
-  turbopack: {},
+  // Explicitly set the root to avoid issues with multiple lockfiles in parent directories
+  turbopack: {
+    root: process.cwd(),
+  },
 };
 
 export default nextConfig;
