@@ -49,8 +49,8 @@ function createTextTexture(
   const fontSize = getFontSize(font);
   const textHeight = Math.ceil(fontSize * 1.2);
 
-  canvas.width = textWidth + 20;
-  canvas.height = textHeight + 20;
+  canvas.width = textWidth + 5;
+  canvas.height = textHeight + 5;
 
   context.font = font;
   context.fillStyle = color;
@@ -123,10 +123,10 @@ class Title {
     });
     this.mesh = new Mesh(this.gl, { geometry, program });
     const aspect = width / height;
-    const textHeightScaled = this.plane.scale.y * 0.15;
+    const textHeightScaled = this.plane.scale.y * 0.12; // Reduced size for better look
     const textWidthScaled = textHeightScaled * aspect;
     this.mesh.scale.set(textWidthScaled, textHeightScaled, 1);
-    this.mesh.position.y = -this.plane.scale.y * 0.5 - textHeightScaled * 0.5 - 0.05;
+    this.mesh.position.y = -this.plane.scale.y * 0.5 - textHeightScaled * 0.5 - 0.03; // Slightly more padding
     this.mesh.setParent(this.plane);
   }
 }
@@ -383,7 +383,7 @@ class Media {
       }
     }
     this.scale = this.screen.height / 1500;
-    this.plane.scale.y = (this.viewport.height * (900 * this.scale)) / this.screen.height;
+    this.plane.scale.y = (this.viewport.height * (1100 * this.scale)) / this.screen.height; // Increased for full vertical content
     this.plane.scale.x = (this.viewport.width * (700 * this.scale)) / this.screen.width;
     this.plane.program.uniforms.uPlaneSizes.value = [this.plane.scale.x, this.plane.scale.y];
     this.padding = 2;
@@ -401,6 +401,7 @@ interface AppConfig {
   font?: string;
   scrollSpeed?: number;
   scrollEase?: number;
+  manualMode?: boolean;
 }
 
 class App {
@@ -434,6 +435,8 @@ class App {
   isDown: boolean = false;
   start: number = 0;
 
+  manualMode: boolean = false;
+
   constructor(
     container: HTMLElement,
     {
@@ -443,13 +446,15 @@ class App {
       borderRadius = 0,
       font = 'bold 30px Figtree',
       scrollSpeed = 2,
-      scrollEase = 0.05
+      scrollEase = 0.05,
+      manualMode = false
     }: AppConfig
   ) {
     document.documentElement.classList.remove('no-js');
     this.container = container;
     this.scrollSpeed = scrollSpeed;
     this.scroll = { ease: scrollEase, current: 0, target: 0, last: 0 };
+    this.manualMode = manualMode;
     this.onCheckDebounce = debounce(this.onCheck.bind(this), 200);
     this.createRenderer();
     this.createCamera();
@@ -601,6 +606,19 @@ class App {
     this.scroll.target = this.scroll.target < 0 ? -item : item;
   }
 
+  scrollTo(progress: number) {
+    // progress is 0 to 1
+    if (!this.medias || !this.medias[0]) return;
+    const totalWidth = this.medias[0].width * this.mediasImages.length; // Approximate total width
+
+    // We want to scroll through the entire gallery.
+    // The gallery logic seems to be infinite, but for "scroll through all posters",
+    // we can map 0-1 to 0 -> totalWidth/2 (since items are duplicated)
+
+    // Actually, let's just map it to half the full length so we see one full cycle
+    this.scroll.target = progress * (this.medias[0].width * (this.mediasImages.length / 2));
+  }
+
   onResize() {
     this.screen = {
       width: this.container.clientWidth,
@@ -632,19 +650,26 @@ class App {
 
   addEventListeners() {
     this.boundOnResize = this.onResize.bind(this);
-    this.boundOnWheel = this.onWheel.bind(this);
     this.boundOnTouchDown = this.onTouchDown.bind(this);
     this.boundOnTouchMove = this.onTouchMove.bind(this);
     this.boundOnTouchUp = this.onTouchUp.bind(this);
+    this.boundOnWheel = this.onWheel.bind(this);
+
     window.addEventListener('resize', this.boundOnResize);
-    window.addEventListener('mousewheel', this.boundOnWheel);
-    window.addEventListener('wheel', this.boundOnWheel);
+
+    // Always enable Drag/Touch interaction
     window.addEventListener('mousedown', this.boundOnTouchDown);
     window.addEventListener('mousemove', this.boundOnTouchMove);
     window.addEventListener('mouseup', this.boundOnTouchUp);
     window.addEventListener('touchstart', this.boundOnTouchDown);
     window.addEventListener('touchmove', this.boundOnTouchMove);
     window.addEventListener('touchend', this.boundOnTouchUp);
+
+    // Only enable Wheel if NOT in manual mode (avoid conflict with ScrollTrigger)
+    if (!this.manualMode) {
+      window.addEventListener('mousewheel', this.boundOnWheel);
+      window.addEventListener('wheel', this.boundOnWheel);
+    }
   }
 
   destroy() {
@@ -672,18 +697,36 @@ interface CircularGalleryProps {
   font?: string;
   scrollSpeed?: number;
   scrollEase?: number;
+  manualMode?: boolean;
 }
 
-export default function CircularGallery({
+export interface CircularGalleryHandle {
+  setProgress: (progress: number) => void;
+}
+
+import { forwardRef, useImperativeHandle } from 'react';
+
+const CircularGallery = forwardRef<CircularGalleryHandle, CircularGalleryProps>(({
   items,
   bend = 3,
   textColor = '#ffffff',
   borderRadius = 0.05,
   font = 'bold 30px Figtree',
   scrollSpeed = 2,
-  scrollEase = 0.05
-}: CircularGalleryProps) {
+  scrollEase = 0.05,
+  manualMode = false
+}, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const appRef = useRef<App | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    setProgress: (progress: number) => {
+      if (appRef.current) {
+        appRef.current.scrollTo(progress);
+      }
+    }
+  }));
+
   useEffect(() => {
     if (!containerRef.current) return;
     const app = new App(containerRef.current, {
@@ -693,12 +736,18 @@ export default function CircularGallery({
       borderRadius,
       font,
       scrollSpeed,
-      scrollEase
+      scrollEase,
+      manualMode
     });
+    appRef.current = app;
     return () => {
       app.destroy();
+      appRef.current = null;
     };
-  }, [items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase]);
+  }, [items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase, manualMode]);
+
   return <div className="circular-gallery" ref={containerRef} />;
-}
+});
+
+export default CircularGallery;
 
