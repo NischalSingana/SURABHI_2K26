@@ -3,6 +3,11 @@
   height: 100%;
   position: relative;
   overflow: hidden;
+  cursor: grab;
+}
+
+.circular-gallery:active {
+  cursor: grabbing;
 }
 
 .circular-gallery canvas {

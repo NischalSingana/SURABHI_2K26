@@ -1,19 +1,27 @@
 "use client";
 
+import Link from 'next/link';
 import { motion } from "framer-motion";
 import Image from "next/image";
 import MainPoster from "./MainPoster.png";
-import CircularGallery from "@/components/ui/CircularGallery";
-import { useEffect, useState } from "react";
+import CircularGallery, { CircularGalleryHandle } from "@/components/ui/CircularGallery";
+import { useEffect, useState, useRef } from "react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import gsap from 'gsap';
 
 import Footer from '@/components/ui/Footer';
 import CountUp from '@/components/ui/CountUp';
 import { FiGlobe, FiAward, FiUsers, FiMusic, FiHeart, FiTrendingUp } from "react-icons/fi";
 
+gsap.registerPlugin(ScrollTrigger);
+
 const HomePage = () => {
     const [posterItems, setPosterItems] = useState<{ image: string; text: string }[]>([]);
     const [loadingPosters, setLoadingPosters] = useState(true);
     const [particles, setParticles] = useState<Array<{ x: string; duration: number; delay: number }>>([]);
+
+    const galleryRef = useRef<CircularGalleryHandle>(null);
+    const competitionSectionRef = useRef<HTMLElement>(null);
 
     useEffect(() => {
         // Generate particles on client side to avoid hydration mismatch
@@ -48,6 +56,29 @@ const HomePage = () => {
 
         fetchPosters();
     }, []);
+
+    useEffect(() => {
+        if (!loadingPosters && posterItems.length > 0 && competitionSectionRef.current) {
+            const mm = gsap.matchMedia();
+
+            mm.add("(min-width: 768px)", () => {
+                ScrollTrigger.create({
+                    trigger: competitionSectionRef.current,
+                    start: "top top",
+                    end: "+=3000",
+                    pin: true,
+                    scrub: 1,
+                    onUpdate: (self) => {
+                        if (galleryRef.current) {
+                            galleryRef.current.setProgress(self.progress);
+                        }
+                    },
+                });
+            });
+
+            return () => mm.revert();
+        }
+    }, [loadingPosters, posterItems]);
 
     return (
         <main className="relative w-full">
@@ -96,7 +127,6 @@ const HomePage = () => {
                     ))}
                 </div>
             </div>
-
             {/* Poster Section - Edge to Edge (left, right, bottom), top space for navbar */}
             <section className="relative w-full h-auto md:h-screen flex items-center justify-center overflow-hidden z-10 pt-16 pb-0">
                 <motion.div
@@ -128,7 +158,6 @@ const HomePage = () => {
             {/* About Surabhi Section - Bento Grid Redesign */}
             <section className="relative z-10 w-full min-h-screen bg-[#0a0000] flex items-start md:items-center justify-center px-4 sm:px-6 lg:px-8 pt-12 pb-8 sm:py-16 md:py-20 lg:py-24 overflow-visible">
                 {/* Background Noise/Gradient */}
-                {/* <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 brightness-100 mix-blend-overlay pointer-events-none" /> */}
                 <div className="absolute inset-0 bg-gradient-to-tr from-red-900/10 via-black to-black pointer-events-none" />
 
                 <div className="max-w-7xl mx-auto w-full relative z-10">
@@ -168,8 +197,8 @@ const HomePage = () => {
                                 <p className="text-zinc-400 text-base md:text-lg leading-relaxed font-[family-name:var(--font-Lexend)]">
                                     Surabhi is the flagship cultural festival of <span className="text-red-400 font-medium">KL University</span>, organized by the Student Activity Centre (SAC), serving as a vibrant platform for artistic expression and cultural diversity. Celebrated annually, the fest brings together talented students from across the country, transforming the campus into a lively space where tradition and modern creativity blend seamlessly through dance, music, theatre, fine arts, and literary events.
                                 </p>
-                                <p className="text-zinc-400 text-base md:text-lg leading-relaxed font-[family-name:var(--font-Lexend)] hidden sm:block">
-                                    Driven by a strong student-led spirit, Surabhi is planned, organized, and executed by dedicated student teams under SAC, fostering leadership, teamwork, and innovation. This commitment to excellence has earned the fest recognition, including a place in the <span className="text-white border-b border-red-500/50">Indian Book of Records</span>.
+                                <p className="text-zinc-400 text-base md:text-lg leading-relaxed font-[family-name:var(--font-Lexend)]">
+                                    Driven by a strong student-led spirit, Surabhi is planned, organized, and executed by dedicated student teams under SAC, fostering leadership, teamwork, and innovation. This commitment to excellence has earned the fest recognition, including a place in the <a href="https://indianbookofrecords.com/kl-university-indian-world-record-holder" target="_blank" rel="noopener noreferrer" className="text-white border-b border-red-500/50 hover:text-red-400 hover:border-red-400 transition-colors">Indian Book of Records</a>.
                                 </p>
                                 <p className="text-zinc-400 text-base md:text-lg leading-relaxed font-[family-name:var(--font-Lexend)]">
                                     Across two power packed days, Surabhi unites thousands to celebrate art, culture, and passion. More than just a festival, it is a signature celebration of creativity that continues to inspire, connect, and showcase the cultural brilliance of KL University.
@@ -251,17 +280,17 @@ const HomePage = () => {
             </section>
 
             {/* Poster Gallery Section */}
-            <section className="relative z-10 w-full h-auto min-h-[60vh] md:h-screen bg-gradient-to-b from-[#0a0000] to-[#1a0000] overflow-hidden py-10 md:py-0 flex items-center">
+            <section ref={competitionSectionRef} className="relative z-30 w-full h-auto min-h-[70vh] md:h-screen bg-gradient-to-b from-[#0a0000] to-black overflow-hidden pt-10 pb-4 md:py-20 flex flex-col items-center justify-center">
                 <div className="w-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-100px" }}
                         transition={{ duration: 0.8 }}
-                        className="text-center mb-4 md:mb-8 z-10"
+                        className="text-center mb-0 z-20 relative"
                     >
                         <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-2 md:mb-4 bg-gradient-to-r from-red-500 via-rose-500 to-red-600 bg-clip-text text-transparent font-sans uppercase tracking-wider">
-                            Events
+                            Competitions
                         </h2>
                         <div className="w-24 md:w-32 h-1 bg-gradient-to-r from-red-600 via-rose-500 to-red-600 mx-auto rounded-full" />
                     </motion.div>
@@ -272,8 +301,9 @@ const HomePage = () => {
                         </div>
                     ) : posterItems.length > 0 ? (
                         <>
-                            <div className="w-full h-[50vh] md:h-[80vh]">
+                            <div className="w-full h-[50dvh] md:h-[70vh] mt-2 md:-mt-8">
                                 <CircularGallery
+                                    ref={galleryRef}
                                     items={posterItems}
                                     bend={0}
                                     textColor="#ff8c42"
@@ -281,6 +311,7 @@ const HomePage = () => {
                                     font="bold 28px sans-serif"
                                     scrollSpeed={2}
                                     scrollEase={0.05}
+                                    manualMode={true}
                                 />
                             </div>
                         </>
