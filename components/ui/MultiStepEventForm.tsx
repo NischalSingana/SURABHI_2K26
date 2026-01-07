@@ -80,6 +80,21 @@ export default function MultiStepEventForm({
     editingEvent?.image || ""
   );
 
+  // Terms list state management
+  const [termsList, setTermsList] = useState<string[]>(
+    formData.termsandconditions
+      ? formData.termsandconditions.split(/\r?\n/).filter(t => t.trim())
+      : [""]
+  );
+
+  // Sync termsList to formData
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      termsandconditions: termsList.join('\n')
+    }));
+  }, [termsList]);
+
   // Lock body scroll when modal is open
   useEffect(() => {
     // Save original body overflow
@@ -701,17 +716,45 @@ export default function MultiStepEventForm({
                   <label className="block text-sm font-medium text-zinc-300 mb-2">
                     Terms and Conditions *
                   </label>
-                  <div className="relative">
-                    <FiFileText className="absolute left-3 top-3 text-zinc-500" />
-                    <textarea
-                      name="termsandconditions"
-                      value={formData.termsandconditions}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                      rows={4}
-                      placeholder="Enter terms and conditions"
-                      required
-                    />
+                  <div className="space-y-3">
+                    {termsList.map((term, index) => (
+                      <div key={index} className="flex gap-2">
+                        <div className="relative flex-1">
+                          <div className="absolute left-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                          <input
+                            type="text"
+                            value={term}
+                            onChange={(e) => {
+                              const newTerms = [...termsList];
+                              newTerms[index] = e.target.value;
+                              setTermsList(newTerms);
+                            }}
+                            className="w-full pl-8 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                            placeholder={`Point ${index + 1}`}
+                            required={index === 0} // Only first point is strictly required
+                          />
+                        </div>
+                        {termsList.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newTerms = termsList.filter((_, i) => i !== index);
+                              setTermsList(newTerms);
+                            }}
+                            className="p-3 bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-lg border border-zinc-700 transition-all"
+                          >
+                            <FiMinus size={18} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setTermsList([...termsList, ""])}
+                      className="text-sm text-orange-500 hover:text-orange-400 font-medium flex items-center gap-2 mt-2 px-1"
+                    >
+                      <FiPlus /> Add Another Point
+                    </button>
                   </div>
                 </div>
 

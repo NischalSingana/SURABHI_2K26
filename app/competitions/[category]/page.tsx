@@ -132,7 +132,7 @@ function CategoryPageContent() {
       toast.info("Redirecting to team registration...");
       // Link using slug if available, fallback to ID
       const eventIdentifier = (event as any).slug || event.id;
-      router.push(`/events/${encodeURIComponent(categoryName)}/${eventIdentifier}`);
+      router.push(`/competitions/${encodeURIComponent(categoryName)}/${eventIdentifier}`);
       return;
     }
 
@@ -212,11 +212,11 @@ function CategoryPageContent() {
           animate={{ opacity: 1, x: 0 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => router.push("/events")}
+          onClick={() => router.push("/competitions")}
           className="mb-8 flex items-center gap-2 text-zinc-400 hover:text-red-500 transition-colors mt-20"
         >
           <FiArrowLeft size={20} />
-          Back to Categories
+          Back to Competitions
         </motion.button>
 
         {/* Category Media (Video or Image) */}
@@ -516,18 +516,63 @@ function CategoryPageContent() {
 
               <div className="mb-6">
                 <h4 className="text-lg font-semibold text-white mb-2">Terms and Conditions:</h4>
-                <div className="bg-zinc-800 p-4 rounded-md mb-4 max-h-40 overflow-y-auto text-zinc-300 text-sm">
+                <div
+                  className="bg-zinc-800 p-4 rounded-md mb-4 max-h-40 overflow-y-auto text-zinc-300 text-sm overscroll-contain relative group"
+                  data-lenis-prevent
+                  onScroll={(e) => {
+                    const element = e.currentTarget;
+                    // Allow a 10px buffer
+                    const isBottom = Math.abs(element.scrollHeight - element.scrollTop - element.clientHeight) <= 10;
+                    if (isBottom) {
+                      element.setAttribute('data-scrolled', 'true');
+                    }
+                  }}
+                  // Initialization ref to check if scroll is needed at all
+                  ref={(el) => {
+                    if (el) {
+                      // If content height <= container height, it's already "scrolled"
+                      if (el.scrollHeight <= el.clientHeight) {
+                        el.setAttribute('data-scrolled', 'true');
+                      }
+                    }
+                  }}
+                >
                   {selectedEvent.termsandconditions ? (
-                    <div dangerouslySetInnerHTML={{ __html: selectedEvent.termsandconditions }} />
+                    <div className="space-y-2">
+                      {(() => {
+                        let points = selectedEvent.termsandconditions.split(/\r?\n/).filter(line => line.trim());
+                        if (points.length === 1 && points[0].length > 50) {
+                          const sentences = points[0].split(/\.\s+/).filter(s => s.trim());
+                          if (sentences.length > 1) {
+                            points = sentences.map(s => s.trim().endsWith('.') ? s : s + '.');
+                          }
+                        }
+                        return points.map((point, index) => (
+                          <div key={index} className="flex gap-2 text-start">
+                            <span className="text-red-500 mt-1.5 min-w-[5px] h-1.5 rounded-full bg-red-500 block shrink-0" />
+                            <span>{point.replace(/^[•\-\*]\s*/, '')}</span>
+                          </div>
+                        ));
+                      })()}
+                    </div>
                   ) : (
                     <p>By registering for this event, you agree to follow all event guidelines and rules.</p>
                   )}
                 </div>
-                <label className="flex items-center gap-2 text-white cursor-pointer">
+                <label className="flex items-center gap-2 text-white cursor-pointer relative">
                   <input
                     type="checkbox"
                     checked={acceptedTerms}
-                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    onChange={(e) => {
+                      const termsBox = e.currentTarget.closest('.mb-6')?.querySelector('[data-lenis-prevent]');
+                      const hasScrolled = termsBox?.getAttribute('data-scrolled') === 'true';
+
+                      if (!hasScrolled && !acceptedTerms) {
+                        toast.error("Please scroll through all terms and conditions first");
+                        return;
+                      }
+                      setAcceptedTerms(e.target.checked);
+                    }}
                     className="rounded border-zinc-600 text-red-600 focus:ring-red-600 bg-zinc-800"
                   />
                   I accept the terms and conditions
@@ -604,7 +649,7 @@ function CategoryPageContent() {
                     Submit Your Work
                   </button>
                   <button
-                    onClick={() => router.push("/profile/events")}
+                    onClick={() => router.push("/profile/competitions")}
                     className="w-full bg-zinc-800 text-white px-6 py-2.5 rounded-md hover:bg-zinc-700 transition-all duration-300 border border-zinc-700"
                   >
                     View My Events
@@ -642,20 +687,22 @@ function CategoryPageContent() {
       </div>
 
       {/* Submission Modal */}
-      {selectedEvent && (
-        <SubmissionModal
-          event={selectedEvent}
-          isOpen={showSubmissionModal}
-          onClose={() => {
-            setShowSubmissionModal(false);
-            setSelectedEvent(null);
-          }}
-          onSuccess={() => {
-            fetchEvents();
-          }}
-        />
-      )}
-    </div>
+      {
+        selectedEvent && (
+          <SubmissionModal
+            event={selectedEvent}
+            isOpen={showSubmissionModal}
+            onClose={() => {
+              setShowSubmissionModal(false);
+              setSelectedEvent(null);
+            }}
+            onSuccess={() => {
+              fetchEvents();
+            }}
+          />
+        )
+      }
+    </div >
   );
 }
 

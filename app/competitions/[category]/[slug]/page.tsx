@@ -271,6 +271,7 @@ function EventDetailPageContent() {
   const [checkingRegistration, setCheckingRegistration] = useState(true);
   const [showImageModal, setShowImageModal] = useState(false);
   const [showUnregisterConfirm, setShowUnregisterConfirm] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
 
   // Group Registration State
   const [showGroupModal, setShowGroupModal] = useState(false);
@@ -526,10 +527,10 @@ function EventDetailPageContent() {
         <div className="text-center">
           <p className="text-white text-xl mb-4">Event not found</p>
           <button
-            onClick={() => router.push("/events")}
+            onClick={() => router.push("/competitions")}
             className="text-red-500 hover:text-red-400"
           >
-            Back to Events
+            Back to Competitions
           </button>
         </div>
       </div>
@@ -591,7 +592,7 @@ function EventDetailPageContent() {
           whileTap={{ scale: 0.95 }}
           onClick={(e) => {
             e.stopPropagation();
-            router.push(`/events/${categoryName}`);
+            router.push(`/competitions/${categoryName}`);
           }}
           className="absolute top-4 left-4 md:top-8 md:left-8 flex items-center gap-2 text-white hover:text-red-500 transition-colors bg-black/50 backdrop-blur-sm px-3 py-1.5 md:px-4 md:py-2 rounded-lg z-10 text-sm md:text-base"
         >
@@ -684,8 +685,30 @@ function EventDetailPageContent() {
               <h2 className="text-2xl font-bold text-white mb-4">
                 Terms & Conditions
               </h2>
-              <div className="text-zinc-300 leading-relaxed whitespace-pre-line">
-                {event.termsandconditions}
+              <div className="text-zinc-300 space-y-2">
+                {(() => {
+                  // First try splitting by newline
+                  let points = event.termsandconditions.split(/\r?\n/).filter(line => line.trim());
+
+                  // If only one point found (likely a paragraph), try splitting by sentences
+                  if (points.length === 1 && points[0].length > 50) {
+                    // Split by period followed by space, or period at end of string
+                    // This regex looks for a period followed by a space or end of string, 
+                    // but ignores periods in common abbreviations like "Mr.", "e.g.", etc if strictness needed,
+                    // but for T&C simple split is usually sufficient.
+                    const sentences = points[0].split(/\.\s+/).filter(s => s.trim());
+                    if (sentences.length > 1) {
+                      points = sentences.map(s => s.trim().endsWith('.') ? s : s + '.');
+                    }
+                  }
+
+                  return points.map((line, index) => (
+                    <div key={index} className="flex gap-3">
+                      <span className="text-red-500 mt-1.5 min-w-[6px] h-1.5 rounded-full bg-red-500 block" />
+                      <span>{line.replace(/^[•\-\*]\s*/, '').trim()}</span>
+                    </div>
+                  ));
+                })()}
               </div>
             </motion.div>
           </div>
@@ -866,12 +889,38 @@ function EventDetailPageContent() {
                     Terms and Conditions
                   </h3>
                   <div
-                    className="bg-zinc-800 rounded-lg p-4 max-h-64 overflow-y-auto"
+                    className="bg-zinc-800 rounded-lg p-4 max-h-64 overflow-y-auto overscroll-contain relative group"
                     data-lenis-prevent
+                    onScroll={(e) => {
+                      const element = e.currentTarget;
+                      const isBottom = Math.abs(element.scrollHeight - element.scrollTop - element.clientHeight) <= 10;
+                      if (isBottom) {
+                        setHasScrolled(true);
+                      }
+                    }}
+                    ref={(el) => {
+                      if (el && el.scrollHeight <= el.clientHeight) {
+                        setHasScrolled(true);
+                      }
+                    }}
                   >
-                    <p className="text-zinc-300 text-sm whitespace-pre-line leading-relaxed">
-                      {event.termsandconditions}
-                    </p>
+                    <div className="space-y-2">
+                      {(() => {
+                        let points = event.termsandconditions.split(/\r?\n/).filter(line => line.trim());
+                        if (points.length === 1 && points[0].length > 50) {
+                          const sentences = points[0].split(/\.\s+/).filter(s => s.trim());
+                          if (sentences.length > 1) {
+                            points = sentences.map(s => s.trim().endsWith('.') ? s : s + '.');
+                          }
+                        }
+                        return points.map((point, index) => (
+                          <div key={index} className="flex gap-2 text-start">
+                            <span className="text-red-500 mt-1.5 min-w-[5px] h-1.5 rounded-full bg-red-500 block shrink-0" />
+                            <span>{point.replace(/^[•\-\*]\s*/, '')}</span>
+                          </div>
+                        ));
+                      })()}
+                    </div>
                   </div>
                 </div>
 
@@ -881,7 +930,13 @@ function EventDetailPageContent() {
                     <input
                       type="checkbox"
                       checked={acceptedTerms}
-                      onChange={(e) => setAcceptedTerms(e.target.checked)}
+                      onChange={(e) => {
+                        if (!hasScrolled && !acceptedTerms) {
+                          toast.error("Please scroll through all terms and conditions first");
+                          return;
+                        }
+                        setAcceptedTerms(e.target.checked);
+                      }}
                       className="w-5 h-5 rounded border-2 border-zinc-700 bg-zinc-800 checked:bg-red-600 checked:border-red-600 cursor-pointer transition-all"
                     />
                     {acceptedTerms && (
@@ -1083,7 +1138,67 @@ function EventDetailPageContent() {
                   </div>
                 </div>
 
+                {/* Terms and Conditions */}
+                <div className="border-t border-zinc-800 pt-4">
+                  <h3 className="text-lg font-semibold text-white mb-2">Terms and Conditions</h3>
+                  <div
+                    className="bg-zinc-800 p-4 rounded-md mb-4 max-h-40 overflow-y-auto text-zinc-300 text-sm overscroll-contain relative group"
+                    data-lenis-prevent
+                    onScroll={(e) => {
+                      const element = e.currentTarget;
+                      const isBottom = Math.abs(element.scrollHeight - element.scrollTop - element.clientHeight) <= 10;
+                      if (isBottom) {
+                        setHasScrolled(true);
+                      }
+                    }}
+                    ref={(el) => {
+                      if (el && el.scrollHeight <= el.clientHeight) {
+                        setHasScrolled(true);
+                      }
+                    }}
+                  >
 
+                    {event?.termsandconditions ? (
+                      <div className="space-y-2">
+                        {(() => {
+                          let points = event.termsandconditions.split(/\r?\n/).filter(line => line.trim());
+                          if (points.length === 1 && points[0].length > 50) {
+                            const sentences = points[0].split(/\.\s+/).filter(s => s.trim());
+                            if (sentences.length > 1) {
+                              points = sentences.map(s => s.trim().endsWith('.') ? s : s + '.');
+                            }
+                          }
+                          return points.map((point, index) => (
+                            <div key={index} className="flex gap-2 text-start">
+                              <span className="text-red-500 mt-1.5 min-w-[5px] h-1.5 rounded-full bg-red-500 block shrink-0" />
+                              <span>{point.replace(/^[•\-\*]\s*/, '')}</span>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    ) : (
+                      <p>By registering for this event, you agree to follow all event guidelines and rules.</p>
+                    )}
+                  </div>
+                  <label className="flex items-center gap-2 text-white cursor-pointer relative">
+                    <input
+                      type="checkbox"
+                      checked={acceptedTerms}
+                      onChange={(e) => {
+                        const termsBox = e.currentTarget.closest('.border-t')?.querySelector('[data-lenis-prevent]');
+                        const hasScrolled = termsBox?.getAttribute('data-scrolled') === 'true';
+
+                        if (!hasScrolled && !acceptedTerms) {
+                          toast.error("Please scroll through all terms and conditions first");
+                          return;
+                        }
+                        setAcceptedTerms(e.target.checked);
+                      }}
+                      className="rounded border-zinc-600 text-red-600 focus:ring-red-600 bg-zinc-800"
+                    />
+                    I accept the terms and conditions
+                  </label>
+                </div>
               </div>
 
               <div className="px-8 py-6 border-t border-zinc-800 flex gap-3">
@@ -1095,7 +1210,7 @@ function EventDetailPageContent() {
                 </button>
                 <button
                   onClick={handleGroupRegister}
-                  disabled={registering || !groupName || teamSize < (event?.minTeamSize || 2) || teamSize > (event?.maxTeamSize || 5)}
+                  disabled={registering || !groupName || teamSize < (event?.minTeamSize || 2) || teamSize > (event?.maxTeamSize || 5) || !acceptedTerms}
                   className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                 >
                   {registering ? "Registering..." : "Confirm Team Registration"}
