@@ -42,7 +42,38 @@
   position: relative;
   z-index: 20;
   pointer-events: none;
+  transition: transform 0.3s ease;
   /* Ensure clicks pass to the anchor tag */
+}
+
+@keyframes logo-shake {
+  0% {
+    transform: scale(1);
+  }
+
+  20% {
+    transform: scale(1.3) rotate(-10deg);
+  }
+
+  40% {
+    transform: scale(1.3) rotate(10deg);
+  }
+
+  60% {
+    transform: scale(1.3) rotate(-6deg);
+  }
+
+  80% {
+    transform: scale(1.3) rotate(4deg);
+  }
+
+  100% {
+    transform: scale(1.3) rotate(0deg);
+  }
+}
+
+.pill-logo:hover img {
+  animation: logo-shake 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 .pill-nav-items {
@@ -64,7 +95,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
+  /* Reduced horizontal padding */
   color: var(--pill-text, #ffffff);
   text-decoration: none;
   font-weight: 500;
@@ -72,7 +104,8 @@
   letter-spacing: 0.02em;
   overflow: hidden;
   border-radius: 9999px;
-  transition: color 0.2s;
+  transition: color 0.3s ease;
+  /* Smoother text color transition */
   cursor: pointer;
 }
 
@@ -90,9 +123,11 @@
   border-radius: 9999px;
   pointer-events: none;
   z-index: -1;
-  transform: scale(0.9);
+  transform: scale(0.85);
+  /* Start slightly smaller for better pop */
   opacity: 0;
-  transition: all 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  /* Premium easing */
 }
 
 .pill:hover .hover-circle,
