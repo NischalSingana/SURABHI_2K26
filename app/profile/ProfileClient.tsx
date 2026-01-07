@@ -572,7 +572,7 @@ export default function ProfileClient({
                 You haven't registered for any events yet
               </p>
               <a
-                href="/events"
+                href="/competitions"
                 className="inline-block px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
               >
                 Browse Events

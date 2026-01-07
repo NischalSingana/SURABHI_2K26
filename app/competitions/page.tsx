@@ -62,7 +62,7 @@ const Events = () => {
               animate={{ opacity: 1, y: 0 }}
               className="text-4xl md:text-6xl font-bold text-white"
             >
-              Event Categories
+              Competition Categories
             </motion.h1>
           </div>
           <motion.p
@@ -71,17 +71,17 @@ const Events = () => {
             transition={{ delay: 0.1 }}
             className="text-zinc-400 text-sm md:text-xl mb-6"
           >
-            Choose a category to explore events
+            Choose a category to explore competitions
           </motion.p>
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            onClick={() => router.push("/profile/events")}
+            onClick={() => router.push("/profile/competitions")}
             className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-600/50"
           >
             <FiCalendar size={20} />
-            My Events
+            My Competitions
           </motion.button>
           <motion.button
             initial={{ opacity: 0, y: 20 }}
@@ -185,7 +185,7 @@ const Events = () => {
                   transition: { duration: 0.3 },
                 }}
                 onClick={() =>
-                  router.push(`/events/${encodeURIComponent(category.name)}`)
+                  router.push(`/competitions/${encodeURIComponent(category.name)}`)
                 }
                 className="cursor-pointer perspective-1000"
                 style={{ transformStyle: "preserve-3d" }}
@@ -231,7 +231,7 @@ const Events = () => {
                         </svg>
                         <span className="text-base md:text-lg font-medium">
                           {category.count}{" "}
-                          {category.count === 1 ? "Event" : "Events"}
+                          {category.count === 1 ? "Competition" : "Competitions"}
                         </span>
                       </div>
                       <div className="mt-4 flex items-center gap-2 text-white/80 text-sm">

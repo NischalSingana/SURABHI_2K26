@@ -32,7 +32,7 @@ export default function AdminLayoutWrapper({
 
   const navLinks = [
     { href: "/admin/dashboard", label: "Dashboard" },
-    { href: "/admin/events", label: "Events" },
+    { href: "/admin/competitions", label: "Competitions" },
     { href: "/admin/users", label: "Users" },
     { href: "/admin/accommodation", label: "Stay" },
     { href: "/admin/analytics", label: "Analytics" },

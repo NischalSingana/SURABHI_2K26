@@ -143,7 +143,7 @@ export default function MyEventsPage() {
                         <h3 className="text-2xl font-bold text-white mb-2">No Events Yet</h3>
                         <p className="text-zinc-400 mb-6">You haven't registered for any events</p>
                         <button
-                            onClick={() => router.push("/events")}
+                            onClick={() => router.push("/competitions")}
                             className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
                         >
                             Browse Events

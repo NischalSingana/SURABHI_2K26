@@ -7,7 +7,7 @@ const page = async () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <Link
-                    href="/admin/events"
+                    href="/admin/competitions"
                     className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
                 >
                     <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
@@ -26,9 +26,9 @@ const page = async () => {
                                 />
                             </svg>
                         </div>
-                        <h2 className="text-lg sm:text-xl font-semibold text-white">Events Management</h2>
+                        <h2 className="text-lg sm:text-xl font-semibold text-white">Competitions Management</h2>
                         <p className="text-gray-400 text-center text-xs sm:text-sm">
-                            Create, update, and manage event categories and events
+                            Create, update, and manage competition categories and competitions
                         </p>
                     </div>
                 </Link>
