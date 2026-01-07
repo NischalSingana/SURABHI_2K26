@@ -50,8 +50,7 @@ const PillNav: React.FC<PillNavProps> = ({
   const circleRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const tlRefs = useRef<Array<gsap.core.Timeline | null>>([]);
   const activeTweenRefs = useRef<Array<gsap.core.Tween | null>>([]);
-  const logoImgRef = useRef<HTMLImageElement | null>(null);
-  const logoTweenRef = useRef<gsap.core.Tween | null>(null);
+  // Removed unused logo refs
   const hamburgerRef = useRef<HTMLButtonElement | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
   const navItemsRef = useRef<HTMLDivElement | null>(null);
@@ -150,18 +149,7 @@ const PillNav: React.FC<PillNavProps> = ({
   const handleEnter = (i: number) => { };
   const handleLeave = (i: number) => { };
 
-  const handleLogoEnter = () => {
-    const img = logoImgRef.current;
-    if (!img) return;
-    logoTweenRef.current?.kill();
-    gsap.set(img, { rotate: 0 });
-    logoTweenRef.current = gsap.to(img, {
-      rotate: 360,
-      duration: 0.2,
-      ease,
-      overwrite: 'auto'
-    });
-  };
+  // handleLogoEnter removed for CSS hover effect
 
   const closeMobileMenu = () => {
     if (!isMobileMenuOpen) return;
@@ -262,13 +250,13 @@ const PillNav: React.FC<PillNavProps> = ({
           className="pill-logo"
           href="/"
           aria-label="Home"
-          onMouseEnter={handleLogoEnter}
+          onMouseEnter={undefined}
           role="menuitem"
           ref={el => {
             logoRef.current = el;
           }}
         >
-          <img src={logo} alt={logoAlt} ref={logoImgRef} />
+          <img src={logo} alt={logoAlt} />
         </Link>
 
         <div className="pill-nav-items desktop-only" ref={navItemsRef}>
