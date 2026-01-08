@@ -1,4 +1,13 @@
 import * as nodemailer from "nodemailer";
+import { SESClient, SendRawEmailCommand } from "@aws-sdk/client-ses";
+
+const ses = new SESClient({
+  region: process.env.AWS_REGION || "ap-south-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+  },
+});
 
 export interface EmailOptions {
   to: string;
@@ -15,19 +24,10 @@ export interface EmailOptions {
 export async function sendEmail({ to, subject, html, text, attachments }: EmailOptions) {
   try {
     // Create transporter dynamically to ensure env vars are loaded
+    // Create transporter using SES
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "smtp-mail.outlook.com",
-      port: parseInt(process.env.SMTP_PORT || "587"),
-      secure: false, // true for 465, false for other ports (587 uses STARTTLS)
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
-      },
-      tls: {
-        ciphers: 'SSLv3',
-        rejectUnauthorized: false
-      }
-    });
+      SES: { ses, aws: { SendRawEmailCommand } },
+    } as any);
 
     const info = await transporter.sendMail({
       from: `"Surabhi 2026" <${process.env.SMTP_USER}>`,

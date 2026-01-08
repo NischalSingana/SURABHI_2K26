@@ -39,13 +39,13 @@ const styles = StyleSheet.create({
         paddingBottom: 15,
     },
     logo: {
-        width: 80,
-        height: 80,
-        marginBottom: 10,
+        width: 140,
+        height: 140,
+        marginBottom: 15,
     },
     eventName: {
         color: '#ef4444', // Red-500
-        fontSize: 24,
+        fontSize: 32,
         fontWeight: 'black', // heavy
         letterSpacing: 2,
         marginBottom: 4,
@@ -232,7 +232,7 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
 
                 <Text style={styles.sectionHeader}>⚠️ Mandatory Requirements</Text>
                 <Text style={styles.rulesText}>1. This Entry Pass (Digital or Printed) is mandatory.</Text>
-                <Text style={styles.rulesText}>2. A valid College ID Card must be produced at the gate.</Text>
+                <Text style={styles.rulesText}>2. You must carry your Student ID Card physically or Aadhar Card.</Text>
                 <Text style={styles.rulesText}>3. Entry will be denied without these documents.</Text>
 
                 <Text style={styles.sectionHeader}>🛑 Security & Regulations</Text>
