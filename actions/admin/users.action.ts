@@ -98,6 +98,11 @@ export async function approveUser(userId: string) {
                 collageId: true,
                 transactionId: true,
                 paymentStatus: true,
+                accounts: {
+                    select: {
+                        providerId: true
+                    }
+                }
             },
         });
 
@@ -110,49 +115,58 @@ export async function approveUser(userId: string) {
             data: { isApproved: true },
         });
 
+        const hasGoogleAccount = user.accounts.some(acc => acc.providerId === 'google');
+
         let emailSent = false;
         let emailError = "";
 
-        try {
-            // Generate PDF ticket
-            const { generateTicketPDF } = await import("@/lib/pdf-generator");
-            const pdfBuffer = await generateTicketPDF({
-                userId: user.id,
-                name: user.name || "Participant",
-                email: user.email,
-                phone: user.phone,
-                collage: user.collage,
-                collageId: user.collageId,
-                transactionId: user.transactionId,
-                paymentStatus: user.paymentStatus,
-                isApproved: true,
-            });
+        if (hasGoogleAccount) {
+            try {
+                // Generate PDF ticket
+                const { generateTicketPDF } = await import("@/lib/pdf-generator");
+                const pdfBuffer = await generateTicketPDF({
+                    userId: user.id,
+                    name: user.name || "Participant",
+                    email: user.email,
+                    phone: user.phone,
+                    collage: user.collage,
+                    collageId: user.collageId,
+                    transactionId: user.transactionId,
+                    paymentStatus: user.paymentStatus,
+                    isApproved: true,
+                });
 
-            // Send approval email with PDF attachment
-            const emailTemplate = emailTemplates.userApproved(user.name || "", user.email);
-            const emailResult = await sendEmail({
-                to: user.email,
-                subject: emailTemplate.subject,
-                html: emailTemplate.html,
-                attachments: [
-                    {
-                        filename: `surabhi-2026-ticket-${user.name?.replace(/\s+/g, '-') || 'participant'}.pdf`,
-                        content: pdfBuffer,
-                        contentType: 'application/pdf',
-                    },
-                ],
-            });
+                // Send approval email with PDF attachment
+                const emailTemplate = emailTemplates.userApproved(user.name || "", user.email);
 
-            if (!emailResult.success) throw new Error(emailResult.error);
-            emailSent = true;
+                const emailOptions: any = {
+                    to: user.email,
+                    subject: emailTemplate.subject,
+                    html: emailTemplate.html,
+                    attachments: [
+                        {
+                            filename: `surabhi-2026-ticket-${user.name?.replace(/\s+/g, '-') || 'participant'}.pdf`,
+                            content: pdfBuffer,
+                            contentType: 'application/pdf',
+                        },
+                    ],
+                };
 
-        } catch (err: any) {
-            console.error("Failed to send approval email:", err);
-            emailError = err.message || "Unknown email error";
+                const emailResult = await sendEmail(emailOptions);
+
+                if (!emailResult.success) throw new Error(emailResult.error);
+                emailSent = true;
+
+            } catch (err: any) {
+                console.error("Failed to send approval email:", err);
+                emailError = err.message || "Unknown email error";
+            }
         }
 
         if (emailSent) {
             return { success: true, message: "User approved successfully and ticket sent via email" };
+        } else if (!hasGoogleAccount) {
+            return { success: true, message: "User approved automatically (No email/ticket for non-Google users)" };
         } else {
             return { success: true, message: `User approved, but failed to send email: ${emailError}` }; // Return success so UI updates
         }
