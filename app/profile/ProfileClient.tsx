@@ -63,6 +63,7 @@ interface ProfileClientProps {
   registeredEvents: Event[];
   ipAddress: string;
   userAgent: string;
+  hasGoogleAccount: boolean;
 }
 
 export default function ProfileClient({
@@ -70,6 +71,7 @@ export default function ProfileClient({
   registeredEvents,
   ipAddress,
   userAgent,
+  hasGoogleAccount,
 }: ProfileClientProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
@@ -195,7 +197,7 @@ export default function ProfileClient({
             </motion.button>
           )}
 
-          {!isEditing && user.isApproved && (
+          {!isEditing && user.isApproved && hasGoogleAccount && (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

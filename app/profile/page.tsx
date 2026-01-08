@@ -35,10 +35,31 @@ async function SessionData() {
   // Fetch fresh user data from database
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
+    include: {
+      accounts: true,
+    },
   });
 
   if (!user) {
     return <div>User not found</div>;
+  }
+
+  const hasGoogleAccount = user.accounts.some(
+    (account) => account.providerId === "google"
+  );
+
+  const hasMicrosoftAccount = user.accounts.some(
+    (account) => account.providerId === "microsoft"
+  );
+
+  // Auto-approve Microsoft users if not already approved
+  if (hasMicrosoftAccount && !user.isApproved) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { isApproved: true },
+    });
+    // Update local user object for UI
+    user.isApproved = true;
   }
 
   // Fetch registered events
@@ -66,6 +87,7 @@ async function SessionData() {
           registeredEvents={registeredEvents as any}
           ipAddress={ipAddress}
           userAgent={userAgent}
+          hasGoogleAccount={hasGoogleAccount}
         />
 
         {session.user.role === Role.ADMIN && (
