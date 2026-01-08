@@ -354,7 +354,7 @@ const MultiStepAccommodation = () => {
             >
               <h3 className="font-semibold text-white text-lg mb-2">Complimentary Food</h3>
               <p className="text-zinc-400 text-sm leading-relaxed">
-                Delicious breakfast, lunch, and dinner is on us. Enjoy a comfortable stay with full hospitality.
+                Delicious lunch is on us. Enjoy a comfortable stay with full hospitality.
               </p>
             </motion.div>
 
