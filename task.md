@@ -1,7 +1,6 @@
-# Task: Clean up Homepage and Add Landscape Poster
+# Task: Reduce Mobile Menu Width
 
 ## Status
-- [ ] Remove existing hero text, buttons, and side image from `app/page.tsx` <!-- id: 0 -->
-- [ ] Verify `Navbar` stays intact (controlled by `layout.tsx`) <!-- id: 1 -->
-- [ ] Add a responsive container for the landscape poster in `app/page.tsx` <!-- id: 2 -->
-- [ ] Advise user on Image hosting (Local vs R2) <!-- id: 3 -->
+- [x] Create implementation plan <!-- id: 0 -->
+- [x] Update `components/ui/PillNav.css` to reduce menu width <!-- id: 1 -->
+- [x] Verify changes <!-- id: 2 -->
