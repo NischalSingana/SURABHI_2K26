@@ -184,8 +184,8 @@
   top: 0;
   /* left: 0; Removed to prevent conflict with right: 0 sidebar */
   right: 0;
-  width: 85vw;
-  max-width: 300px;
+  width: 75vw;
+  max-width: 280px;
   /* Limit width */
   height: auto;
   /* Dynamic height based on content */
@@ -276,13 +276,13 @@
   }
 
   .pill-nav {
-    padding: 0.5rem 1rem;
-    min-height: 80px;
+    padding: 0.5rem 0.75rem;
+    min-height: 70px;
     /* Increased for professional look */
     display: flex !important;
     visibility: visible !important;
     justify-content: space-between !important;
-    gap: 1rem;
+    gap: 0.5rem;
     align-items: center;
   }
 
@@ -306,7 +306,8 @@
     visibility: visible !important;
     flex-shrink: 0;
     margin-left: auto;
-    margin-right: 0;
+    margin-right: 0 !important;
+    padding-right: 0;
     touch-action: manipulation;
     min-width: 48px;
     min-height: 48px;
@@ -328,15 +329,15 @@
     height: auto;
     /* Dynamic height */
     max-height: 85vh;
-    width: 300px;
-    max-width: 85vw;
+    width: 280px;
+    max-width: 75vw;
     /* Reuse base backgrounds/borders or redefine if needed, but let's keep consistency */
     background: linear-gradient(180deg, rgba(20, 5, 5, 0.98) 0%, rgba(30, 0, 0, 0.96) 100%);
     backdrop-filter: blur(24px);
     border-left: 1px solid rgba(255, 107, 53, 0.2);
     border-bottom: 1px solid rgba(255, 107, 53, 0.2);
     border-bottom-left-radius: 20px;
-    padding: 6rem 2rem 2rem 2rem;
+    padding: 5rem 2rem 2rem 2rem;
     /* Adjusted for taller nav */
     box-shadow: -10px 0 40px rgba(0, 0, 0, 0.7);
     overflow-y: auto;
@@ -379,15 +380,15 @@
 /* Mobile Styles - Phones */
 @media (max-width: 640px) {
   .pill-nav {
-    padding: 0.5rem 1rem;
-    min-height: 77px;
+    padding: 0.4rem 0.75rem;
+    min-height: 65px;
     /* Increased for better presence */
   }
 
   .pill-logo img {
-    height: 125px;
+    height: 110px;
     /* Increased size */
-    margin: -33px -8px;
+    margin: -30px -8px;
   }
 
   .mobile-menu-button {
@@ -403,8 +404,9 @@
   }
 
   .mobile-menu-popover {
-    width: 85vw;
-    padding: 5.5rem 1.5rem 2rem 1.5rem;
+    width: 75vw;
+    max-width: 280px;
+    padding: 4.5rem 1.5rem 2rem 1.5rem;
     /* Adjusted for taller nav */
   }
 

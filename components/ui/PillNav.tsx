@@ -113,7 +113,8 @@ const PillNav: React.FC<PillNavProps> = ({
         if (hamburger) {
           const lines = hamburger.querySelectorAll('.hamburger-line');
           gsap.to(lines[0], { rotation: 0, y: 0, duration: 0.3, ease });
-          gsap.to(lines[1], { rotation: 0, y: 0, duration: 0.3, ease });
+          gsap.to(lines[1], { rotation: 0, x: 0, opacity: 1, duration: 0.3, ease }); // Reset middle line
+          gsap.to(lines[2], { rotation: 0, y: 0, duration: 0.3, ease });
         }
 
         if (menu) {
@@ -163,7 +164,8 @@ const PillNav: React.FC<PillNavProps> = ({
     if (hamburger) {
       const lines = hamburger.querySelectorAll('.hamburger-line');
       gsap.to(lines[0], { rotation: 0, y: 0, duration: 0.3, ease });
-      gsap.to(lines[1], { rotation: 0, y: 0, duration: 0.3, ease });
+      gsap.to(lines[1], { rotation: 0, x: 0, opacity: 1, duration: 0.3, ease });
+      gsap.to(lines[2], { rotation: 0, y: 0, duration: 0.3, ease });
     }
 
     if (menu) {
@@ -203,8 +205,10 @@ const PillNav: React.FC<PillNavProps> = ({
 
     if (hamburger) {
       const lines = hamburger.querySelectorAll('.hamburger-line');
-      gsap.to(lines[0], { rotation: 45, y: 3, duration: 0.3, ease });
-      gsap.to(lines[1], { rotation: -45, y: -3, duration: 0.3, ease });
+      // Animate to X
+      gsap.to(lines[0], { rotation: 45, y: 7, duration: 0.3, ease });
+      gsap.to(lines[1], { opacity: 0, x: -10, duration: 0.3, ease });
+      gsap.to(lines[2], { rotation: -45, y: -7, duration: 0.3, ease });
     }
 
     if (menu && backdrop) {
@@ -341,6 +345,7 @@ const PillNav: React.FC<PillNavProps> = ({
           aria-label="Toggle menu"
           ref={hamburgerRef}
         >
+          <span className="hamburger-line" />
           <span className="hamburger-line" />
           <span className="hamburger-line" />
         </button>
