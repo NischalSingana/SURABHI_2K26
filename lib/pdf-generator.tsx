@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, Image, StyleSheet, Font } from '@react-pdf/renderer';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { generateTicketQR } from './qr-generator';
 import fs from 'fs';
@@ -16,139 +16,181 @@ interface UserTicketData {
     isApproved: boolean;
 }
 
-// BookMyShow Style Vertical Ticket Design
+// Register fonts if needed, for now standard Helvetica is fine for speed/compatibility
+// If custom fonts are needed, they can be registered here.
+
 const styles = StyleSheet.create({
     page: {
-        backgroundColor: '#0a0a0a',
+        backgroundColor: '#ffffff',
         fontFamily: 'Helvetica',
+        padding: 0,
     },
-    // Vertical Ticket (approx 4.1" x 8.3")
-    ticketPage: {
-        padding: 20,
-        display: 'flex',
-        flexDirection: 'column',
+    // PAGE 1: COVER
+    coverContainer: {
+        height: '100%',
+        backgroundColor: '#0a0a0a', // Dark background
         alignItems: 'center',
-        backgroundColor: '#000000',
+        justifyContent: 'center',
+        padding: 40,
+        position: 'relative',
     },
-    // Header Section
-    headerMetadata: {
-        width: '100%',
-        marginBottom: 20,
-        alignItems: 'center',
-        borderBottom: '1px solid #333',
-        paddingBottom: 15,
+    // Decorative lines
+    topLine: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 10,
+        backgroundColor: '#dc2626', // Red-600
     },
+    bottomLine: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 10,
+        backgroundColor: '#dc2626',
+    },
+
+    // Logo Section
     logo: {
-        width: 140,
-        height: 140,
-        marginBottom: 15,
-    },
-    eventName: {
-        color: '#ef4444', // Red-500
-        fontSize: 32,
-        fontWeight: 'black', // heavy
-        letterSpacing: 2,
-        marginBottom: 4,
-        textTransform: 'uppercase',
-    },
-    eventSubtitle: {
-        color: '#9ca3af', // Gray-400
-        fontSize: 10,
-        letterSpacing: 3,
-        textTransform: 'uppercase',
-    },
-
-    // Pass Type Badge
-    passTypeContainer: {
-        marginTop: 15,
-        marginBottom: 15,
-        backgroundColor: '#ef4444',
-        paddingVertical: 6,
-        paddingHorizontal: 20,
-        borderRadius: 4,
-    },
-    passTypeText: {
-        color: '#ffffff',
-        fontSize: 14,
-        fontWeight: 'bold',
-        letterSpacing: 1,
-    },
-
-    // Details Section
-    detailsContainer: {
-        width: '100%',
-        padding: 15,
-        backgroundColor: '#111111',
-        borderRadius: 12,
+        width: 180,
+        height: 180,
         marginBottom: 20,
-        border: '1px solid #222',
     },
-    row: {
-        marginBottom: 12,
+    title: {
+        color: '#dc2626', // Red-600
+        fontSize: 48,
+        fontWeight: 'heavy',
+        letterSpacing: 4,
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    subtitle: {
+        color: '#d4d4d8', // Zinc-300
+        fontSize: 18,
+        letterSpacing: 6,
+        marginBottom: 50,
+        textTransform: 'uppercase',
+    },
+
+    // Ticket Box
+    ticketCard: {
+        width: '100%',
+        backgroundColor: '#18181b', // Zinc-900
+        borderRadius: 20,
+        border: '1px solid #3f3f46', // Zinc-700
+        padding: 30,
+        flexDirection: 'column',
+    },
+
+    // User Info Row
+    infoRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 25,
+        borderBottom: '1px solid #27272a', // Zinc-800
+        paddingBottom: 25,
+    },
+    infoCol: {
+        flexDirection: 'column',
+        width: '48%',
     },
     label: {
-        color: '#6b7280', // Gray-500
-        fontSize: 9,
-        marginBottom: 2,
+        color: '#71717a', // Zinc-500
+        fontSize: 10,
+        marginBottom: 5,
         textTransform: 'uppercase',
+        letterSpacing: 1,
     },
     value: {
         color: '#ffffff',
-        fontSize: 12,
+        fontSize: 16,
         fontWeight: 'bold',
     },
     valueSmall: {
-        color: '#d1d5db',
-        fontSize: 10,
+        color: '#e4e4e7', // Zinc-200
+        fontSize: 12,
+    },
+    statusBadge: {
+        color: '#22c55e', // Green-500
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginTop: 5,
+        textTransform: 'uppercase',
     },
 
     // QR Section
-    qrContainer: {
+    qrSection: {
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: 15,
+        marginTop: 10,
+    },
+    qrCode: {
+        width: 150,
+        height: 150,
         backgroundColor: '#ffffff',
-        borderRadius: 12,
-        marginBottom: 15,
-        width: '100%',
-        aspectRatio: 1,
+        padding: 10,
+        borderRadius: 10,
     },
-    qrImage: {
-        width: '100%',
-        height: '100%',
-    },
-    scanText: {
+    qrText: {
         color: '#ef4444',
-        fontSize: 10,
+        fontSize: 12,
         fontWeight: 'bold',
+        marginTop: 10,
         letterSpacing: 1,
-        marginBottom: 20,
     },
 
-    // Footer
+    // Footer on Page 1
     footer: {
-        marginTop: 'auto',
+        position: 'absolute',
+        bottom: 30,
         width: '100%',
-        alignItems: 'center',
-        borderTop: '1px dashed #333',
-        paddingTop: 15,
+        textAlign: 'center',
     },
     footerText: {
-        color: '#4b5563',
-        fontSize: 9,
-        marginBottom: 3,
-    },
-    ticketId: {
-        color: '#333',
-        fontSize: 8,
-        fontFamily: 'Courier',
+        color: '#52525b', // Zinc-600
+        fontSize: 10,
     },
 
-    // Rules Page Styles (Keeping existing relevant ones)
-    rulesPage: { padding: 30 },
-    rulesTitle: { fontSize: 24, color: '#dc2626', fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
-    rulesText: { fontSize: 10, color: '#d1d5db', marginBottom: 6, lineHeight: 1.5 },
-    sectionHeader: { fontSize: 14, color: '#ffffff', marginTop: 15, marginBottom: 8, fontWeight: 'bold' },
+    // PAGE 2: RULES
+    rulesContainer: {
+        height: '100%',
+        backgroundColor: '#18181b', // Zinc-900
+        padding: 50,
+    },
+    pageTitle: {
+        color: '#dc2626',
+        fontSize: 28,
+        fontWeight: 'bold',
+        borderBottom: '2px solid #dc2626',
+        paddingBottom: 10,
+        marginBottom: 30,
+    },
+    sectionTitle: {
+        color: '#ffffff',
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginTop: 20,
+        marginBottom: 10,
+    },
+    ruleText: {
+        color: '#d4d4d8', // Zinc-300
+        fontSize: 11,
+        marginBottom: 8,
+        lineHeight: 1.6,
+    },
+    bullet: {
+        width: 3,
+        height: 3,
+        backgroundColor: '#dc2626',
+        borderRadius: 1.5,
+        marginRight: 8,
+        marginTop: 5,
+    },
+    bulletRow: {
+        flexDirection: 'row',
+        marginBottom: 6,
+    },
 });
 
 export async function generateTicketPDF(userData: UserTicketData): Promise<Buffer> {
@@ -157,98 +199,145 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
         transactionId: userData.transactionId || '',
         name: userData.name,
         email: userData.email,
+        phone: userData.phone,
+        collage: userData.collage,
         paymentStatus: userData.paymentStatus,
         isApproved: userData.isApproved,
     });
 
-    // Read logo as base64
+    // Read logo
     const logoPath = path.join(process.cwd(), 'public', 'images', 'surabhi_white_logo.png');
-    const logoBuffer = fs.readFileSync(logoPath);
-    const logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+    // Fallback if logo doesn't exist to prevent crash
+    let logoBase64 = '';
+    try {
+        if (fs.existsSync(logoPath)) {
+            const logoBuffer = fs.readFileSync(logoPath);
+            logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+        }
+    } catch (e) {
+        console.error("Logo not found or readable", e);
+    }
 
     const TicketDocument = (
         <Document>
-            {/* Page 1: Vertical Mobile Ticket */}
-            <Page size={[320, 650]} style={styles.ticketPage}>
+            {/* Page 1: Main Ticket */}
+            <Page size="A4" style={styles.page}>
+                <View style={styles.coverContainer}>
+                    <View style={styles.topLine} />
 
-                {/* Branding */}
-                <View style={styles.headerMetadata}>
-                    <Image src={logoBase64} style={styles.logo} />
-                    <Text style={styles.eventName}>SURABHI 2026</Text>
-                    <Text style={styles.eventSubtitle}>OFFICIAL ENTRY PASS</Text>
+                    {/* Logo & Header */}
+                    {logoBase64 ? <Image src={logoBase64} style={styles.logo} /> : null}
+                    <Text style={styles.title}>SURABHI-2026</Text>
+                    <Text style={styles.subtitle}>OFFICIAL ENTRY PASS</Text>
 
-                    <View style={styles.passTypeContainer}>
-                        <Text style={styles.passTypeText}>GENERAL ACCESS</Text>
-                    </View>
-                </View>
-
-                {/* User Details */}
-                <View style={styles.detailsContainer}>
-                    <View style={styles.row}>
-                        <Text style={styles.label}>ATTENDEE</Text>
-                        <Text style={styles.value}>{userData.name.toUpperCase()}</Text>
-                    </View>
-
-                    <View style={styles.row}>
-                        <Text style={styles.label}>CONTACT</Text>
-                        <Text style={styles.valueSmall}>{userData.email}</Text>
-                        {userData.phone && <Text style={styles.valueSmall}>{userData.phone}</Text>}
-                    </View>
-
-                    {(userData.collage || userData.collageId) && (
-                        <View style={styles.row}>
-                            <Text style={styles.label}>INSTITUTION</Text>
-                            <Text style={styles.value}>{userData.collage || 'N/A'}</Text>
-                            {userData.collageId && <Text style={styles.valueSmall}>ID: {userData.collageId}</Text>}
+                    {/* Ticket Card */}
+                    <View style={styles.ticketCard}>
+                        {/* Row 1: Name & ID */}
+                        <View style={styles.infoRow}>
+                            <View style={styles.infoCol}>
+                                <Text style={styles.label}>ATTENDEE NAME</Text>
+                                <Text style={styles.value}>{userData.name}</Text>
+                            </View>
+                            <View style={styles.infoCol}>
+                                <Text style={styles.label}>CONTACT</Text>
+                                <Text style={styles.valueSmall}>{userData.email}</Text>
+                                {userData.phone && <Text style={styles.valueSmall}>{userData.phone}</Text>}
+                            </View>
                         </View>
-                    )}
 
-                    <View style={styles.row}>
-                        <Text style={styles.label}>STATUS</Text>
-                        <Text style={{ ...styles.value, color: userData.isApproved ? '#10b981' : '#f59e0b' }}>
-                            {userData.isApproved ? '● CONFIRMED' : '● PENDING APPROVAL'}
-                        </Text>
+                        {/* Row 2: College & Status */}
+                        <View style={styles.infoRow}>
+                            <View style={styles.infoCol}>
+                                <Text style={styles.label}>INSTITUTION</Text>
+                                <Text style={styles.valueSmall}>{userData.collage || 'N/A'}</Text>
+                                <Text style={styles.valueSmall}>{userData.collageId ? `ID: ${userData.collageId}` : ''}</Text>
+                            </View>
+                            <View style={styles.infoCol}>
+                                <Text style={styles.label}>STATUS</Text>
+                                <Text style={{ ...styles.value, color: userData.isApproved ? '#22c55e' : '#f59e0b' }}>
+                                    {userData.isApproved ? 'CONFIRMED' : 'PENDING'}
+                                </Text>
+                            </View>
+                        </View>
+
+                        {/* Row 3: Event Details */}
+                        <View style={{ ...styles.infoRow, borderBottom: 0, paddingBottom: 0 }}>
+                            <View style={styles.infoCol}>
+                                <Text style={styles.label}>DATE & VENUE</Text>
+                                <Text style={styles.value}>FEB 2026</Text>
+                                <Text style={styles.valueSmall}>KL UNIVERSITY, VIJAYAWADA</Text>
+                            </View>
+
+                            {/* QR Code in the corner of the card or bottom? Layout asked for same page. */}
+                            <View style={styles.qrSection}>
+                                <Image src={qrCodeDataURL} style={styles.qrCode} />
+                                <Text style={styles.qrText}>SCAN AT ENTRY</Text>
+                            </View>
+                        </View>
                     </View>
-                </View>
 
-                {/* QR Code */}
-                <View style={styles.qrContainer}>
-                    <Image src={qrCodeDataURL} style={styles.qrImage} />
-                </View>
-                <Text style={styles.scanText}>SCAN AT ENTRY GATE</Text>
+                    <View style={styles.footer}>
+                        <Text style={styles.footerText}>Transaction ID: {userData.transactionId || 'N/A'} • Generated on {new Date().toLocaleDateString()}</Text>
+                    </View>
 
-                {/* Footer */}
-                <View style={styles.footer}>
-                    <Text style={styles.footerText}>KL University • Vijayawada</Text>
-                    <Text style={styles.footerText}>Feb 2026</Text>
-                    <Text style={styles.ticketId}>TXN: {userData.transactionId || 'N/A'}</Text>
+                    <View style={styles.bottomLine} />
                 </View>
-
             </Page>
 
-            {/* Page 2: Rules (A4) */}
-            <Page size="A4" style={[styles.page, styles.rulesPage]}>
-                <Text style={styles.rulesTitle}>EVENT GUIDELINES</Text>
+            {/* Page 2: Rules */}
+            <Page size="A4" style={styles.page}>
+                <View style={styles.rulesContainer}>
+                    <Text style={styles.pageTitle}>RULES & REGULATIONS</Text>
 
-                <Text style={styles.sectionHeader}>⚠️ Mandatory Requirements</Text>
-                <Text style={styles.rulesText}>1. This Entry Pass (Digital or Printed) is mandatory.</Text>
-                <Text style={styles.rulesText}>2. You must carry your Student ID Card physically or Aadhar Card.</Text>
-                <Text style={styles.rulesText}>3. Entry will be denied without these documents.</Text>
+                    <Text style={styles.sectionTitle}>MANDATORY REQUIREMENTS</Text>
+                    <View style={styles.bulletRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.ruleText}>This Entry Pass (Digital or Printed) is mandatory for admission into the event premises.</Text>
+                    </View>
+                    <View style={styles.bulletRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.ruleText}>Attendees must carry a valid Government ID (Aadhar/Driving License) or Student ID Card.</Text>
+                    </View>
+                    <View style={styles.bulletRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.ruleText}>Entry will be strictly denied without valid identification.</Text>
+                    </View>
 
-                <Text style={styles.sectionHeader}>🛑 Security & Regulations</Text>
-                <Text style={styles.rulesText}>• Alcohol, drugs, and illegal substances are strictly prohibited.</Text>
-                <Text style={styles.rulesText}>• Any misconduct will result in immediate disqualification and removal.</Text>
-                <Text style={styles.rulesText}>• Checking will be conducted at the entry.</Text>
+                    <Text style={styles.sectionTitle}>SECURITY & CONDUCT</Text>
+                    <View style={styles.bulletRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.ruleText}>Alcohol, drugs, flammable items, and weapons are strictly prohibited inside the campus.</Text>
+                    </View>
+                    <View style={styles.bulletRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.ruleText}>Any form of misconduct, harassment, or violence will result in immediate disqualification and removal from the venue.</Text>
+                    </View>
+                    <View style={styles.bulletRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.ruleText}>Security checks will be conducted at all entry points. Please cooperate with the security personnel.</Text>
+                    </View>
 
-                <Text style={styles.sectionHeader}>ℹ️ General Info</Text>
-                <Text style={styles.rulesText}>• Gates open 1 hour before the event.</Text>
-                <Text style={styles.rulesText}>• The organizers reserve the right to admission.</Text>
-                <Text style={styles.rulesText}>• For support, contact: surabhi@kluniversity.in</Text>
+                    <Text style={styles.sectionTitle}>GENERAL GUIDELINES</Text>
+                    <View style={styles.bulletRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.ruleText}>Gates will open 1 hour prior to the scheduled event time.</Text>
+                    </View>
+                    <View style={styles.bulletRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.ruleText}>The organizers reserve the right of admission and may engage security to remove anyone violating the rules.</Text>
+                    </View>
+                    <View style={styles.bulletRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.ruleText}>Surabhi 2026 is not responsible for any lost or stolen belongings. Please keep your valuables safe.</Text>
+                    </View>
 
-                <View style={{ marginTop: 50, alignItems: 'center' }}>
-                    <Image src={logoBase64} style={{ width: 60, height: 60, opacity: 0.5 }} />
-                    <Text style={{ ...styles.footerText, marginTop: 10 }}>Surabhi 2026 • Official Document</Text>
+                    <View style={{ marginTop: 'auto', borderTop: '1px solid #333', paddingTop: 20, alignItems: 'center' }}>
+                        {logoBase64 ? <Image src={logoBase64} style={{ width: 40, height: 40, opacity: 0.5, marginBottom: 10 }} /> : null}
+                        <Text style={{ color: '#52525b', fontSize: 10 }}>Surabhi 2026 • National Level Techno-Management Fest</Text>
+                        <Text style={{ color: '#52525b', fontSize: 10 }}>KL University, Green Fields, Vaddeswaram, Andhra Pradesh 522502</Text>
+                    </View>
                 </View>
+                <View style={styles.bottomLine} />
             </Page>
         </Document>
     );
