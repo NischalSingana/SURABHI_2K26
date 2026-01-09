@@ -7,6 +7,8 @@ interface TicketData {
     transactionId: string;
     name: string;
     email: string;
+    phone?: string | null;
+    collage?: string | null;
     paymentStatus: string;
     isApproved: boolean;
 }
@@ -32,7 +34,14 @@ export async function generateTicketQR(data: TicketData): Promise<string> {
 
     // 2. Construct correct verification URL
     const baseUrl = (process.env.BETTER_AUTH_URL || 'https://klusurabhi.in').replace(/\/$/, '');
-    const verificationUrl = `${baseUrl}/verify/${pass.passToken}`;
+
+    // Append details for generic scanners (URL Preview)
+    const params = new URLSearchParams();
+    if (data.name) params.append('name', String(data.name));
+    if (data.collage) params.append('college', String(data.collage));
+    if (data.phone) params.append('phone', String(data.phone));
+
+    const verificationUrl = `${baseUrl}/verify/${pass.passToken}?${params.toString()}`;
 
     // 3. Generate QR code
     const qrCodeDataURL = await QRCode.toDataURL(verificationUrl, {
