@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { getPublicEvents, registerForEvent, getUserRegistrations, getCategories } from "@/actions/events.action";
 import { FiArrowLeft, FiCalendar, FiMapPin, FiClock, FiUsers } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 import SubmissionModal from "@/components/ui/SubmissionModal";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
@@ -22,6 +23,7 @@ interface Event {
   participantLimit: number;
   termsandconditions: string;
   registrationLink: string;
+  whatsappLink?: string | null;
   Category: {
     id: string;
     name: string;
@@ -470,6 +472,22 @@ function CategoryPageContent() {
                                   </button>
                                 )}
                               </div>
+
+                              {/* WhatsApp Link */}
+                              {event.whatsappLink && (
+                                <div className="pt-2">
+                                  <a
+                                    href={event.whatsappLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-green-600/50"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <FaWhatsapp size={20} />
+                                    Join WhatsApp Group
+                                  </a>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </motion.div>
