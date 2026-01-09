@@ -42,6 +42,7 @@ export async function getCategories() {
             minTeamSize: true,
             maxTeamSize: true,
             registrationLink: true,
+            whatsappLink: true,
             termsandconditions: true,
             categoryId: true,
           },
@@ -196,6 +197,7 @@ interface EventData {
   participantLimit: string;
   termsandconditions: string;
   registrationLink: string;
+  whatsappLink?: string;
 }
 
 export async function createEvent(eventData: EventData) {
@@ -234,6 +236,7 @@ export async function createEvent(eventData: EventData) {
         participantLimit: parseInt(eventData.participantLimit),
         termsandconditions: eventData.termsandconditions,
         registrationLink: eventData.registrationLink,
+        whatsappLink: eventData.whatsappLink || null,
         updatedAt: new Date(),
       },
     });
@@ -269,6 +272,7 @@ interface EventUpdateData {
     participantLimit: string;
     termsandconditions: string;
     registrationLink: string;
+    whatsappLink?: string;
   }
 
 }
@@ -306,6 +310,7 @@ export async function updateEvent({ id, eventData }: EventUpdateData) {
         participantLimit: parseInt(eventData.participantLimit),
         termsandconditions: eventData.termsandconditions,
         registrationLink: eventData.registrationLink,
+        whatsappLink: eventData.whatsappLink || null,
         updatedAt: new Date(),
       },
     });
