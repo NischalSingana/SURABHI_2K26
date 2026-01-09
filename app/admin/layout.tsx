@@ -7,12 +7,13 @@ import AdminLayoutWrapper from "./layout-wrapper";
 
 async function AdminAuthCheck({ children }: { children: React.ReactNode }) {
   const headersList = await headers();
-  
+
   const session = await auth.api.getSession({
     headers: headersList,
   });
 
-  if (!session || session.user.role !== Role.ADMIN) {
+  const allowedRoles: Role[] = [Role.ADMIN, Role.MANAGER, Role.MASTER];
+  if (!session || !allowedRoles.includes(session.user.role as Role)) {
     return redirect("/login");
   }
 

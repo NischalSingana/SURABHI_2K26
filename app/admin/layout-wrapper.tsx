@@ -30,16 +30,18 @@ export default function AdminLayoutWrapper({
     return null;
   }
 
-  const navLinks = [
-    { href: "/admin/dashboard", label: "Dashboard" },
-    { href: "/admin/competitions", label: "Competitions" },
-    { href: "/admin/users", label: "Users" },
-    { href: "/admin/accommodation", label: "Stay" },
-    { href: "/admin/analytics", label: "Analytics" },
-    { href: "/admin/judges", label: "Judges" },
-    { href: "/admin/evaluations", label: "Evaluations" },
-    { href: "/admin/chatbot", label: "Chatbot" },
+  const allNavLinks = [
+    { href: "/admin/dashboard", label: "Dashboard", roles: ["ADMIN", "MASTER"] },
+    { href: "/admin/competitions", label: "Competitions", roles: ["ADMIN", "MANAGER", "MASTER"] },
+    { href: "/admin/users", label: "Users", roles: ["ADMIN", "MASTER"] },
+    { href: "/admin/accommodation", label: "Stay", roles: ["ADMIN", "MASTER"] },
+    { href: "/admin/analytics", label: "Analytics", roles: ["ADMIN", "MASTER"] },
+    { href: "/admin/judges", label: "Judges", roles: ["ADMIN", "MANAGER", "MASTER"] },
+    { href: "/admin/evaluations", label: "Evaluations", roles: ["ADMIN", "MANAGER", "MASTER"] },
+    { href: "/admin/chatbot", label: "Chatbot", roles: ["ADMIN", "MASTER"] },
   ];
+
+  const navLinks = allNavLinks.filter(link => link.roles.includes(session?.user?.role));
 
   return (
     <div className="min-h-screen bg-black">
