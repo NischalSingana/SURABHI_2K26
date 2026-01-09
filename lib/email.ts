@@ -30,7 +30,7 @@ export async function sendEmail({ to, subject, html, text, attachments }: EmailO
     } as any);
 
     const info = await transporter.sendMail({
-      from: `"Surabhi 2026" <${process.env.SMTP_USER}>`,
+      from: `"Surabhi 2026" <${process.env.EMAIL_FROM}>`,
       to,
       subject,
       html,
