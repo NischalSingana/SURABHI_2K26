@@ -1,10 +1,19 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { Role } from "@/lib/generated/prisma";
 import { revalidatePath } from "next/cache";
 
 export async function createSchedule(image: string) {
     try {
+        const headersList = await headers();
+        const session = await auth.api.getSession({ headers: headersList });
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+            return { success: false, error: "Unauthorized" };
+        }
+
         const schedule = await prisma.schedule.create({
             data: {
                 image,
@@ -35,6 +44,12 @@ export async function getSchedules() {
 
 export async function deleteSchedule(id: string) {
     try {
+        const headersList = await headers();
+        const session = await auth.api.getSession({ headers: headersList });
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+            return { success: false, error: "Unauthorized" };
+        }
+
         await prisma.schedule.delete({
             where: {
                 id,
