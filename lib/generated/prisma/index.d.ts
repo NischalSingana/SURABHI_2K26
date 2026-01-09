@@ -115,7 +115,9 @@ export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
 export const Role: {
   USER: 'USER',
   ADMIN: 'ADMIN',
-  JUDGE: 'JUDGE'
+  JUDGE: 'JUDGE',
+  MANAGER: 'MANAGER',
+  MASTER: 'MASTER'
 };
 
 export type Role = (typeof Role)[keyof typeof Role]
