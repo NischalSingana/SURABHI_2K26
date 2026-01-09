@@ -64,6 +64,7 @@ interface ProfileClientProps {
   ipAddress: string;
   userAgent: string;
   hasGoogleAccount: boolean;
+  hasMicrosoftAccount: boolean;
 }
 
 export default function ProfileClient({
@@ -72,6 +73,7 @@ export default function ProfileClient({
   ipAddress,
   userAgent,
   hasGoogleAccount,
+  hasMicrosoftAccount,
 }: ProfileClientProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
@@ -408,14 +410,73 @@ export default function ProfileClient({
                   Branch
                 </label>
                 {isEditing ? (
-                  <input
-                    type="text"
-                    value={formData.branch}
-                    onChange={(e) =>
-                      setFormData({ ...formData, branch: e.target.value })
-                    }
-                    className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
+                  hasMicrosoftAccount ? (
+                    <select
+                      id="branch"
+                      name="branch"
+                      value={formData.branch}
+                      onChange={(e) =>
+                        setFormData({ ...formData, branch: e.target.value })
+                      }
+                      className="w-full h-12 px-4 border border-zinc-700 bg-zinc-800 text-white rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+                    >
+                      <option value="">Select Branch</option>
+                      <option value="B.Tech AI&DS">B.Tech AI&DS</option>
+                      <option value="B.Tech CS&IT">B.Tech CS&IT</option>
+                      <option value="B.Tech ECS">B.Tech ECS</option>
+                      <option value="B.Tech IOT">B.Tech IOT</option>
+                      <option value="B.Tech ECE">B.Tech ECE</option>
+                      <option value="B.Tech CSE - 1">B.Tech CSE - 1</option>
+                      <option value="B.Tech CSE - 2">B.Tech CSE - 2</option>
+                      <option value="B.Tech CSE - 3">B.Tech CSE - 3</option>
+                      <option value="B.Tech CSE - 4">B.Tech CSE - 4</option>
+                      <option value="B.Tech CSE - Regular">B.Tech CSE - Regular</option>
+                      <option value="B.Tech BT">B.Tech BT</option>
+                      <option value="B.Tech CE">B.Tech CE</option>
+                      <option value="B.Tech EEE">B.Tech EEE</option>
+                      <option value="B.Tech ME">B.Tech ME</option>
+                      <option value="B.Sc - VC">B.Sc - VC</option>
+                      <option value="B.Sc (Animation & Gaming)">B.Sc (Animation & Gaming)</option>
+                      <option value="B.Sc (Hons.) Agriculture">B.Sc (Hons.) Agriculture</option>
+                      <option value="M.Tech - EVT">M.Tech - EVT</option>
+                      <option value="M.Tech - PE & PS">M.Tech - PE & PS</option>
+                      <option value="M.Tech - CTM">M.Tech - CTM</option>
+                      <option value="M.Tech - Machine Design">M.Tech - Machine Design</option>
+                      <option value="M.Tech - SE">M.Tech - SE</option>
+                      <option value="M.Tech - Thermal Engineering">M.Tech - Thermal Engineering</option>
+                      <option value="M.Tech - CSE">M.Tech - CSE</option>
+                      <option value="M.Sc Computational Mathematics">M.Sc Computational Mathematics</option>
+                      <option value="M.Sc Nano Science and Technology">M.Sc Nano Science and Technology</option>
+                      <option value="M.Sc Chemistry">M.Sc Chemistry</option>
+                      <option value="M.Sc Physics">M.Sc Physics</option>
+                      <option value="M.Sc - F&C">M.Sc - F&C</option>
+                      <option value="B.Com">B.Com</option>
+                      <option value="B.Com.(Hons)">B.Com.(Hons)</option>
+                      <option value="B.A">B.A</option>
+                      <option value="B.Arch">B.Arch</option>
+                      <option value="B.Pharmacy">B.Pharmacy</option>
+                      <option value="LLB">LLB</option>
+                      <option value="BBA">BBA</option>
+                      <option value="BBA- BA">BBA- BA</option>
+                      <option value="BBA-LLB">BBA-LLB</option>
+                      <option value="BCA">BCA</option>
+                      <option value="M.Pharmacy">M.Pharmacy</option>
+                      <option value="MA DH&LS">MA DH&LS</option>
+                      <option value="MA - English">MA - English</option>
+                      <option value="MBA">MBA</option>
+                      <option value="MCA">MCA</option>
+                      <option value="Pharma D">Pharma D</option>
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={formData.branch}
+                      onChange={(e) =>
+                        setFormData({ ...formData, branch: e.target.value })
+                      }
+                      className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    />
+                  )
                 ) : (
                   <p className="text-white font-medium px-4 py-3 bg-zinc-800/50 rounded-lg">
                     {user.branch || "Not provided"}
@@ -554,107 +615,110 @@ export default function ProfileClient({
             </div>
           )}
         </motion.div>
-      )}
+      )
+      }
 
 
 
       {/* Events Tab */}
-      {activeTab === "events" && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          {registeredEvents.length === 0 ? (
-            <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-12 text-center">
-              <FiCalendar className="text-6xl text-zinc-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-white mb-2">
-                No Events Registered
-              </h3>
-              <p className="text-zinc-400 mb-6">
-                You haven't registered for any events yet
-              </p>
-              <a
-                href="/competitions"
-                className="inline-block px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
-              >
-                Browse Events
-              </a>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {registeredEvents.map((event) => (
-                <motion.div
-                  key={event.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden hover:border-red-600/50 transition-all"
+      {
+        activeTab === "events" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            {registeredEvents.length === 0 ? (
+              <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-12 text-center">
+                <FiCalendar className="text-6xl text-zinc-600 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white mb-2">
+                  No Events Registered
+                </h3>
+                <p className="text-zinc-400 mb-6">
+                  You haven't registered for any events yet
+                </p>
+                <a
+                  href="/competitions"
+                  className="inline-block px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
                 >
-                  <div className="relative h-48">
-                    <img
-                      src={event.image}
-                      alt={event.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src =
-                          "https://via.placeholder.com/400x300?text=Event";
-                      }}
-                    />
-                    <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      {event.Category.name}
+                  Browse Events
+                </a>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {registeredEvents.map((event) => (
+                  <motion.div
+                    key={event.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden hover:border-red-600/50 transition-all"
+                  >
+                    <div className="relative h-48">
+                      <img
+                        src={event.image}
+                        alt={event.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src =
+                            "https://via.placeholder.com/400x300?text=Event";
+                        }}
+                      />
+                      <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                        {event.Category.name}
+                      </div>
+                      <div className="absolute top-3 left-3 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                        <FiCheckCircle size={14} />
+                        Registered
+                      </div>
                     </div>
-                    <div className="absolute top-3 left-3 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                      <FiCheckCircle size={14} />
-                      Registered
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-white mb-2">
-                      {event.name}
-                    </h3>
-                    <p className="text-zinc-400 text-sm mb-4 line-clamp-2">
-                      {event.description}
-                    </p>
+                    <div className="p-6">
+                      <h3 className="text-xl font-bold text-white mb-2">
+                        {event.name}
+                      </h3>
+                      <p className="text-zinc-400 text-sm mb-4 line-clamp-2">
+                        {event.description}
+                      </p>
 
-                    <div className="space-y-2 text-sm mb-4">
-                      <div className="flex items-center gap-2 text-zinc-300">
-                        <FiCalendar className="text-red-500" />
-                        {new Date(event.date).toLocaleDateString("en-US", {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
+                      <div className="space-y-2 text-sm mb-4">
+                        <div className="flex items-center gap-2 text-zinc-300">
+                          <FiCalendar className="text-red-500" />
+                          {new Date(event.date).toLocaleDateString("en-US", {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </div>
+                        <div className="flex items-center gap-2 text-zinc-300">
+                          <FiClock className="text-red-500" />
+                          {event.startTime} - {event.endTime}
+                        </div>
+                        <div className="flex items-center gap-2 text-zinc-300">
+                          <FiMapPin className="text-red-500" />
+                          {event.venue}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-zinc-300">
-                        <FiClock className="text-red-500" />
-                        {event.startTime} - {event.endTime}
-                      </div>
-                      <div className="flex items-center gap-2 text-zinc-300">
-                        <FiMapPin className="text-red-500" />
-                        {event.venue}
-                      </div>
-                    </div>
 
-                    {/* Unregister Button */}
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        setEventToUnregister(event);
-                        setShowUnregisterModal(true);
-                      }}
-                      className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                    >
-                      <FiTrash2 size={16} />
-                      Unregister
-                    </motion.button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </motion.div>
-      )}
+                      {/* Unregister Button */}
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => {
+                          setEventToUnregister(event);
+                          setShowUnregisterModal(true);
+                        }}
+                        className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                      >
+                        <FiTrash2 size={16} />
+                        Unregister
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )
+      }
 
       {/* Unregister Confirmation Modal */}
       <AnimatePresence>
@@ -758,6 +822,6 @@ export default function ProfileClient({
           </div>
         )}
       </AnimatePresence>
-    </div>
+    </div >
   );
 }
