@@ -139,6 +139,7 @@ model Event {
   maxTeamSize        Int                 @default(1)
   termsandconditions String
   registrationLink   String
+  whatsappLink       String?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime
   Category           Category            @relation(fields: [categoryId], references: [id])
