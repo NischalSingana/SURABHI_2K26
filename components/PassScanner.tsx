@@ -174,6 +174,9 @@ export default function PassScanner() {
                                 <strong>Email:</strong> {lastResult.pass.user.email}
                             </p>
                             <p>
+                                <strong>Phone:</strong> {lastResult.pass.user.phone || "N/A"}
+                            </p>
+                            <p>
                                 <strong>College:</strong> {lastResult.pass.user.collage} {lastResult.pass.user.collageId ? `(ID: ${lastResult.pass.user.collageId})` : ''}
                             </p>
                             <p>
