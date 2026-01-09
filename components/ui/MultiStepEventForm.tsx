@@ -37,6 +37,7 @@ interface Event {
   participantLimit: number;
   termsandconditions: string;
   registrationLink: string;
+  whatsappLink?: string | null;
 }
 
 interface MultiStepEventFormProps {
@@ -73,6 +74,7 @@ export default function MultiStepEventForm({
     participantLimit: editingEvent?.participantLimit.toString() || "",
     termsandconditions: editingEvent?.termsandconditions || "",
     registrationLink: editingEvent?.registrationLink || "",
+    whatsappLink: editingEvent?.whatsappLink || "",
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -771,6 +773,23 @@ export default function MultiStepEventForm({
                       onChange={handleInputChange}
                       className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                       placeholder="https://example.com/register"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">
+                    WhatsApp Group Link <span className="text-zinc-500 text-xs">(Optional)</span>
+                  </label>
+                  <div className="relative">
+                    <FiLink className="absolute left-3 top-1/2 -translate-y-1/2 text-green-500" />
+                    <input
+                      type="url"
+                      name="whatsappLink"
+                      value={formData.whatsappLink}
+                      onChange={handleInputChange}
+                      className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                      placeholder="https://chat.whatsapp.com/..."
                     />
                   </div>
                 </div>
