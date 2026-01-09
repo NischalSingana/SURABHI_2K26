@@ -77,12 +77,16 @@ async function SessionData() {
       <div className="w-full px-6 py-6 mt-16">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <ReturnButton href="/" label="Home" />
-          {session.user.role === Role.ADMIN && (
+          {["ADMIN", "MASTER", "MANAGER"].includes(session.user.role) && (
             <Link
               href="/admin/dashboard"
               className="px-6 py-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-300 font-medium hover:bg-amber-500/20 transition-all"
             >
-              Admin Dashboard →
+              {session.user.role === "MASTER"
+                ? "Master Dashboard"
+                : session.user.role === "MANAGER"
+                  ? "Manager Dashboard"
+                  : "Admin Dashboard"} →
             </Link>
           )}
         </div>
