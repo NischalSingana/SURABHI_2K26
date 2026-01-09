@@ -8794,6 +8794,7 @@ export namespace Prisma {
     maxTeamSize: number | null
     termsandconditions: string | null
     registrationLink: string | null
+    whatsappLink: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -8815,6 +8816,7 @@ export namespace Prisma {
     maxTeamSize: number | null
     termsandconditions: string | null
     registrationLink: string | null
+    whatsappLink: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -8836,6 +8838,7 @@ export namespace Prisma {
     maxTeamSize: number
     termsandconditions: number
     registrationLink: number
+    whatsappLink: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -8871,6 +8874,7 @@ export namespace Prisma {
     maxTeamSize?: true
     termsandconditions?: true
     registrationLink?: true
+    whatsappLink?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -8892,6 +8896,7 @@ export namespace Prisma {
     maxTeamSize?: true
     termsandconditions?: true
     registrationLink?: true
+    whatsappLink?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -8913,6 +8918,7 @@ export namespace Prisma {
     maxTeamSize?: true
     termsandconditions?: true
     registrationLink?: true
+    whatsappLink?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -9021,6 +9027,7 @@ export namespace Prisma {
     maxTeamSize: number
     termsandconditions: string
     registrationLink: string
+    whatsappLink: string | null
     createdAt: Date
     updatedAt: Date
     _count: EventCountAggregateOutputType | null
@@ -9061,6 +9068,7 @@ export namespace Prisma {
     maxTeamSize?: boolean
     termsandconditions?: boolean
     registrationLink?: boolean
+    whatsappLink?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     Category?: boolean | CategoryDefaultArgs<ExtArgs>
@@ -9088,6 +9096,7 @@ export namespace Prisma {
     maxTeamSize?: boolean
     termsandconditions?: boolean
     registrationLink?: boolean
+    whatsappLink?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     Category?: boolean | CategoryDefaultArgs<ExtArgs>
@@ -9110,6 +9119,7 @@ export namespace Prisma {
     maxTeamSize?: boolean
     termsandconditions?: boolean
     registrationLink?: boolean
+    whatsappLink?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -9152,6 +9162,7 @@ export namespace Prisma {
       maxTeamSize: number
       termsandconditions: string
       registrationLink: string
+      whatsappLink: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["event"]>
@@ -9568,6 +9579,7 @@ export namespace Prisma {
     readonly maxTeamSize: FieldRef<"Event", 'Int'>
     readonly termsandconditions: FieldRef<"Event", 'String'>
     readonly registrationLink: FieldRef<"Event", 'String'>
+    readonly whatsappLink: FieldRef<"Event", 'String'>
     readonly createdAt: FieldRef<"Event", 'DateTime'>
     readonly updatedAt: FieldRef<"Event", 'DateTime'>
   }
@@ -19911,6 +19923,7 @@ export namespace Prisma {
     maxTeamSize: 'maxTeamSize',
     termsandconditions: 'termsandconditions',
     registrationLink: 'registrationLink',
+    whatsappLink: 'whatsappLink',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -20830,6 +20843,7 @@ export namespace Prisma {
     maxTeamSize?: IntFilter<"Event"> | number
     termsandconditions?: StringFilter<"Event"> | string
     registrationLink?: StringFilter<"Event"> | string
+    whatsappLink?: StringNullableFilter<"Event"> | string | null
     createdAt?: DateTimeFilter<"Event"> | Date | string
     updatedAt?: DateTimeFilter<"Event"> | Date | string
     Category?: XOR<CategoryRelationFilter, CategoryWhereInput>
@@ -20856,6 +20870,7 @@ export namespace Prisma {
     maxTeamSize?: SortOrder
     termsandconditions?: SortOrder
     registrationLink?: SortOrder
+    whatsappLink?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     Category?: CategoryOrderByWithRelationInput
@@ -20885,6 +20900,7 @@ export namespace Prisma {
     maxTeamSize?: IntFilter<"Event"> | number
     termsandconditions?: StringFilter<"Event"> | string
     registrationLink?: StringFilter<"Event"> | string
+    whatsappLink?: StringNullableFilter<"Event"> | string | null
     createdAt?: DateTimeFilter<"Event"> | Date | string
     updatedAt?: DateTimeFilter<"Event"> | Date | string
     Category?: XOR<CategoryRelationFilter, CategoryWhereInput>
@@ -20911,6 +20927,7 @@ export namespace Prisma {
     maxTeamSize?: SortOrder
     termsandconditions?: SortOrder
     registrationLink?: SortOrder
+    whatsappLink?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: EventCountOrderByAggregateInput
@@ -20940,6 +20957,7 @@ export namespace Prisma {
     maxTeamSize?: IntWithAggregatesFilter<"Event"> | number
     termsandconditions?: StringWithAggregatesFilter<"Event"> | string
     registrationLink?: StringWithAggregatesFilter<"Event"> | string
+    whatsappLink?: StringNullableWithAggregatesFilter<"Event"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Event"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Event"> | Date | string
   }
@@ -22329,6 +22347,7 @@ export namespace Prisma {
     maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
+    whatsappLink?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
     Category: CategoryCreateNestedOneWithoutEventInput
@@ -22355,6 +22374,7 @@ export namespace Prisma {
     maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
+    whatsappLink?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
     registeredStudents?: UserUncheckedCreateNestedManyWithoutRegisteredEventsInput
@@ -22379,6 +22399,7 @@ export namespace Prisma {
     maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
+    whatsappLink?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Category?: CategoryUpdateOneRequiredWithoutEventNestedInput
@@ -22405,6 +22426,7 @@ export namespace Prisma {
     maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
+    whatsappLink?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     registeredStudents?: UserUncheckedUpdateManyWithoutRegisteredEventsNestedInput
@@ -22430,6 +22452,7 @@ export namespace Prisma {
     maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
+    whatsappLink?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
   }
@@ -22450,6 +22473,7 @@ export namespace Prisma {
     maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
+    whatsappLink?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -22471,6 +22495,7 @@ export namespace Prisma {
     maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
+    whatsappLink?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -23854,6 +23879,7 @@ export namespace Prisma {
     maxTeamSize?: SortOrder
     termsandconditions?: SortOrder
     registrationLink?: SortOrder
+    whatsappLink?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -23881,6 +23907,7 @@ export namespace Prisma {
     maxTeamSize?: SortOrder
     termsandconditions?: SortOrder
     registrationLink?: SortOrder
+    whatsappLink?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -23902,6 +23929,7 @@ export namespace Prisma {
     maxTeamSize?: SortOrder
     termsandconditions?: SortOrder
     registrationLink?: SortOrder
+    whatsappLink?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -25896,6 +25924,7 @@ export namespace Prisma {
     maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
+    whatsappLink?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
     Category: CategoryCreateNestedOneWithoutEventInput
@@ -25921,6 +25950,7 @@ export namespace Prisma {
     maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
+    whatsappLink?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
     submissions?: EventSubmissionUncheckedCreateNestedManyWithoutEventInput
@@ -26236,6 +26266,7 @@ export namespace Prisma {
     maxTeamSize?: IntFilter<"Event"> | number
     termsandconditions?: StringFilter<"Event"> | string
     registrationLink?: StringFilter<"Event"> | string
+    whatsappLink?: StringNullableFilter<"Event"> | string | null
     createdAt?: DateTimeFilter<"Event"> | Date | string
     updatedAt?: DateTimeFilter<"Event"> | Date | string
   }
@@ -26865,6 +26896,7 @@ export namespace Prisma {
     maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
+    whatsappLink?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
     registeredStudents?: UserCreateNestedManyWithoutRegisteredEventsInput
@@ -26889,6 +26921,7 @@ export namespace Prisma {
     maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
+    whatsappLink?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
     registeredStudents?: UserUncheckedCreateNestedManyWithoutRegisteredEventsInput
@@ -27245,6 +27278,7 @@ export namespace Prisma {
     maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
+    whatsappLink?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
     Category: CategoryCreateNestedOneWithoutEventInput
@@ -27270,6 +27304,7 @@ export namespace Prisma {
     maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
+    whatsappLink?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
     registeredStudents?: UserUncheckedCreateNestedManyWithoutRegisteredEventsInput
@@ -27378,6 +27413,7 @@ export namespace Prisma {
     maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
+    whatsappLink?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Category?: CategoryUpdateOneRequiredWithoutEventNestedInput
@@ -27403,6 +27439,7 @@ export namespace Prisma {
     maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
+    whatsappLink?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     registeredStudents?: UserUncheckedUpdateManyWithoutRegisteredEventsNestedInput
@@ -27714,6 +27751,7 @@ export namespace Prisma {
     maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
+    whatsappLink?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
     Category: CategoryCreateNestedOneWithoutEventInput
@@ -27739,6 +27777,7 @@ export namespace Prisma {
     maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
+    whatsappLink?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
     registeredStudents?: UserUncheckedCreateNestedManyWithoutRegisteredEventsInput
@@ -27853,6 +27892,7 @@ export namespace Prisma {
     maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
+    whatsappLink?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Category?: CategoryUpdateOneRequiredWithoutEventNestedInput
@@ -27878,6 +27918,7 @@ export namespace Prisma {
     maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
+    whatsappLink?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     registeredStudents?: UserUncheckedUpdateManyWithoutRegisteredEventsNestedInput
@@ -27970,6 +28011,7 @@ export namespace Prisma {
     maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
+    whatsappLink?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
     Category: CategoryCreateNestedOneWithoutEventInput
@@ -27995,6 +28037,7 @@ export namespace Prisma {
     maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
+    whatsappLink?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
     registeredStudents?: UserUncheckedCreateNestedManyWithoutRegisteredEventsInput
@@ -28178,6 +28221,7 @@ export namespace Prisma {
     maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
+    whatsappLink?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Category?: CategoryUpdateOneRequiredWithoutEventNestedInput
@@ -28203,6 +28247,7 @@ export namespace Prisma {
     maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
+    whatsappLink?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     registeredStudents?: UserUncheckedUpdateManyWithoutRegisteredEventsNestedInput
@@ -28583,6 +28628,7 @@ export namespace Prisma {
     maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
+    whatsappLink?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Category?: CategoryUpdateOneRequiredWithoutEventNestedInput
@@ -28608,6 +28654,7 @@ export namespace Prisma {
     maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
+    whatsappLink?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     submissions?: EventSubmissionUncheckedUpdateManyWithoutEventNestedInput
@@ -28632,6 +28679,7 @@ export namespace Prisma {
     maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
+    whatsappLink?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -28865,6 +28913,7 @@ export namespace Prisma {
     maxTeamSize?: number
     termsandconditions: string
     registrationLink: string
+    whatsappLink?: string | null
     createdAt?: Date | string
     updatedAt: Date | string
   }
@@ -28885,6 +28934,7 @@ export namespace Prisma {
     maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
+    whatsappLink?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     registeredStudents?: UserUpdateManyWithoutRegisteredEventsNestedInput
@@ -28909,6 +28959,7 @@ export namespace Prisma {
     maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
+    whatsappLink?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     registeredStudents?: UserUncheckedUpdateManyWithoutRegisteredEventsNestedInput
@@ -28933,6 +28984,7 @@ export namespace Prisma {
     maxTeamSize?: IntFieldUpdateOperationsInput | number
     termsandconditions?: StringFieldUpdateOperationsInput | string
     registrationLink?: StringFieldUpdateOperationsInput | string
+    whatsappLink?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
