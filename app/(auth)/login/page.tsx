@@ -1,5 +1,11 @@
 import ReturnButton from "@/components/ui/ReturnButton";
 import LoginFlow from "@/components/ui/LoginFlow";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Login - Surabhi 2026",
+  description: "Login to register for events and manage your profile for Surabhi International Cultural Fest.",
+};
 
 const Login = () => {
   return (

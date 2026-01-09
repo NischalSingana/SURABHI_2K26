@@ -221,13 +221,11 @@ export default function ContactClient({ categories }: ContactClientProps) {
                             <div className="bg-zinc-900/30 backdrop-blur-sm border border-zinc-800/50 rounded-3xl p-2 md:p-3 h-[400px] md:h-[500px] relative">
                                 <iframe
                                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3826.664082269267!2d80.6204059751438!3d16.44192568429546!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a35f0a2a7d81943%3A0x8ufc426a84d2f0!2sK%20L%20University!5e0!3m2!1sen!2sin!4v1709400000000!5m2!1sen!2sin"
-                                    width="100%"
-                                    height="100%"
                                     style={{ border: 0, borderRadius: '1.5rem', filter: 'grayscale(100%) invert(92%) contrast(83%)' }}
                                     allowFullScreen
                                     loading="lazy"
                                     referrerPolicy="no-referrer-when-downgrade"
-                                    className="opacity-80 hover:opacity-100 transition-opacity duration-500"
+                                    className="w-full h-full opacity-80 hover:opacity-100 transition-opacity duration-500"
                                 ></iframe>
 
                                 <a

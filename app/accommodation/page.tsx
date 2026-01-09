@@ -7,7 +7,12 @@ export const metadata: Metadata = {
 };
 
 const Accommodation = () => {
-  return <MultiStepAccommodation />;
+  return (
+    <>
+      <h1 className="sr-only">Accommodation Booking - Surabhi 2026</h1>
+      <MultiStepAccommodation />
+    </>
+  );
 };
 
 export default Accommodation;

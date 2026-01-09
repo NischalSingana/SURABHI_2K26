@@ -233,8 +233,8 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                         whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}
                         onClick={() => handleYearChange(year)}
                         className={`w-full px-6 py-3.5 text-left transition-colors flex items-center gap-3 border-t border-zinc-800/50 ${selectedYear === year
-                            ? "bg-red-600/20 text-red-500 font-semibold"
-                            : "text-white hover:bg-white/5"
+                          ? "bg-red-600/20 text-red-500 font-semibold"
+                          : "text-white hover:bg-white/5"
                           }`}
                       >
                         <FiCalendar size={16} />
@@ -267,8 +267,8 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                   handleYearChange(year);
                 }}
                 className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all backdrop-blur-sm flex items-center gap-2 ${selectedYear === year
-                    ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-600/50"
-                    : "bg-zinc-900/50 text-zinc-400 hover:bg-zinc-800 hover:text-white border border-zinc-800/50"
+                  ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-600/50"
+                  : "bg-zinc-900/50 text-zinc-400 hover:bg-zinc-800 hover:text-white border border-zinc-800/50"
                   }`}
               >
                 <FiCalendar size={14} />
@@ -422,6 +422,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                   <motion.button
                     onClick={handlePrev}
                     disabled={isTransitioning || currentItems.length <= 1}
+                    aria-label="Previous slide"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     className={styles.navButton}
@@ -431,6 +432,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                   <motion.button
                     onClick={handleNext}
                     disabled={isTransitioning || currentItems.length <= 1}
+                    aria-label="Next slide"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     className={styles.navButton}

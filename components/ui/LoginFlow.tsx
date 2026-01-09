@@ -50,17 +50,17 @@ const LoginFlow = () => {
                 onClick={() => handleCollegeSelect("KL_UNIVERSITY")}
                 className="w-full p-6 rounded-xl border-2 border-orange-500 bg-orange-500/10 hover:bg-orange-500/20 transition-all text-left"
               >
-                <div className="flex items-center justify-between">
-                  <div>
+                <span className="flex items-center justify-between w-full">
+                  <span>
                     <span className="text-lg font-semibold text-white block">
                       KL University
                     </span>
-                    <p className="text-sm text-orange-300 mt-1">
+                    <span className="text-sm text-orange-300 mt-1 block">
                       Sign in with Microsoft
-                    </p>
-                  </div>
+                    </span>
+                  </span>
                   <FiChevronRight className="text-zinc-400 text-xl" />
-                </div>
+                </span>
               </motion.button>
 
               <motion.button
@@ -69,17 +69,17 @@ const LoginFlow = () => {
                 onClick={() => handleCollegeSelect("OTHER")}
                 className="w-full p-6 rounded-xl border-2 border-zinc-700 bg-zinc-800/50 hover:bg-zinc-800 transition-all text-left"
               >
-                <div className="flex items-center justify-between">
-                  <div>
+                <span className="flex items-center justify-between w-full">
+                  <span>
                     <span className="text-lg font-semibold text-white block">
                       Other College
                     </span>
-                    <p className="text-sm text-zinc-400 mt-1">
+                    <span className="text-sm text-zinc-400 mt-1 block">
                       Sign in with Google
-                    </p>
-                  </div>
+                    </span>
+                  </span>
                   <FiChevronRight className="text-zinc-400 text-xl" />
-                </div>
+                </span>
               </motion.button>
             </div>
           </motion.div>
