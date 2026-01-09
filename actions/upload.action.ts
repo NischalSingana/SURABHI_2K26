@@ -1,9 +1,18 @@
 "use server";
 
 import { uploadToR2, isValidImageType, generateUniqueFilename } from "@/lib/r2";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { Role } from "@/lib/generated/prisma";
 
 export async function uploadEventImage(formData: FormData) {
   try {
+    const headersList = await headers();
+    const session = await auth.api.getSession({ headers: headersList });
+    if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
     const file = formData.get("file") as File;
 
     if (!file) {
@@ -40,6 +49,12 @@ export async function uploadEventImage(formData: FormData) {
 
 export async function uploadCategoryImage(formData: FormData) {
   try {
+    const headersList = await headers();
+    const session = await auth.api.getSession({ headers: headersList });
+    if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
     const file = formData.get("file") as File;
 
     if (!file) {
@@ -76,6 +91,12 @@ export async function uploadCategoryImage(formData: FormData) {
 
 export async function uploadGalleryImage(formData: FormData) {
   try {
+    const headersList = await headers();
+    const session = await auth.api.getSession({ headers: headersList });
+    if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
     const file = formData.get("file") as File;
 
     if (!file) {

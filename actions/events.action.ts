@@ -72,7 +72,7 @@ export async function createCategory(name: string, image?: string, video?: strin
       headers: headersList,
     });
 
-    if (!session || session.user.role !== Role.ADMIN) {
+    if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
       return { success: false, error: "Unauthorized" };
     }
 
@@ -107,7 +107,7 @@ export async function updateCategory(id: string, name: string, image?: string, v
       headers: headersList,
     });
 
-    if (!session || session.user.role !== Role.ADMIN) {
+    if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
       return { success: false, error: "Unauthorized" };
     }
 
@@ -142,7 +142,7 @@ export async function deleteCategory(id: string) {
       headers: headersList,
     });
 
-    if (!session || session.user.role !== Role.ADMIN) {
+    if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
       return { success: false, error: "Unauthorized" };
     }
 
@@ -209,8 +209,8 @@ export async function createEvent(eventData: EventData) {
 
     console.log("[createEvent] Session:", session?.user?.id, "Role:", session?.user?.role);
 
-    if (!session || session.user.role !== Role.ADMIN) {
-      console.log("[createEvent] Unauthorized - No session or not admin");
+    if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
+      console.log("[createEvent] Unauthorized - No session or not admin/manager");
       return { success: false, error: "Unauthorized" };
     }
 
@@ -286,7 +286,7 @@ export async function updateEvent({ id, eventData }: EventUpdateData) {
       headers: headersList,
     });
 
-    if (!session || session.user.role !== Role.ADMIN) {
+    if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
       return { success: false, error: "Unauthorized" };
     }
 
@@ -332,7 +332,7 @@ export async function deleteEvent(id: string) {
       headers: headersList,
     });
 
-    if (!session || session.user.role !== Role.ADMIN) {
+    if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
       return { success: false, error: "Unauthorized" };
     }
 
@@ -361,6 +361,15 @@ interface GroupMember {
 
 export async function getUserByEmail(email: string) {
   try {
+    const headersList = await headers();
+    const session = await auth.api.getSession({
+      headers: headersList,
+    });
+
+    if (!session || !session.user) {
+      return { success: false, error: "Unauthorized" };
+    }
+
     const user = await prisma.user.findUnique({
       where: { email },
       select: {

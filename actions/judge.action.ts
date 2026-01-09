@@ -11,7 +11,7 @@ export async function getCategoriesWithJudges() {
             headers: await headers()
         });
 
-        if (!session?.user || session.user.role !== "ADMIN") {
+        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "MASTER" && session.user.role !== "MANAGER")) {
             return { success: false, error: "Unauthorized" };
         }
 
@@ -50,7 +50,7 @@ export async function createJudgeAccount(categoryId: string, email: string, pass
             headers: await headers()
         });
 
-        if (!session?.user || session.user.role !== "ADMIN") {
+        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "MASTER" && session.user.role !== "MANAGER")) {
             return { success: false, error: "Unauthorized" };
         }
 
