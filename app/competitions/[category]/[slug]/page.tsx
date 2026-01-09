@@ -252,6 +252,7 @@ interface Event {
   isGroupEvent: boolean;
   minTeamSize: number;
   maxTeamSize: number;
+  whatsappLink?: string | null;
 }
 
 function EventDetailPageContent() {
@@ -792,6 +793,19 @@ function EventDetailPageContent() {
                 >
                   <FiLink size={20} className="group-hover:rotate-45 transition-transform duration-300" />
                   <span>Fill the form</span>
+                </a>
+              )}
+
+              {/* WhatsApp Link */}
+              {event.whatsappLink && (
+                <a
+                  href={event.whatsappLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-green-600/30 flex items-center justify-center gap-2 mt-4 group"
+                >
+                  <FaWhatsapp size={20} className="group-hover:scale-110 transition-transform duration-300" />
+                  <span>Join WhatsApp Group</span>
                 </a>
               )}
 
