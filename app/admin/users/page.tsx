@@ -91,7 +91,7 @@ export default function UsersPage() {
         }
     };
 
-    const UserTable = ({ users }: { users: User[] }) => (
+    const UserTable = ({ users, isKL }: { users: User[], isKL: boolean }) => (
         <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
             <div className="overflow-x-auto">
                 <table className="w-full">
@@ -109,15 +109,19 @@ export default function UsersPage() {
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                                 Competitions
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                Payment Status
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                Txn ID
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                Proof
-                            </th>
+                            {!isKL && (
+                                <>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                        Payment Status
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                        Txn ID
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                        Proof
+                                    </th>
+                                </>
+                            )}
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                                 Approval
                             </th>
@@ -141,41 +145,45 @@ export default function UsersPage() {
                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
                                     {user._count?.registeredEvents || 0}
                                 </td>
-                                <td className="px-4 py-4 whitespace-nowrap">
-                                    <select
-                                        value={user.paymentStatus}
-                                        onChange={(e) =>
-                                            handlePaymentStatusChange(user.id, e.target.value as PaymentStatus)
-                                        }
-                                        className={`text-xs px-2 py-1 rounded-full border ${user.paymentStatus === "APPROVED"
-                                            ? "bg-green-900/20 text-green-400 border-green-700"
-                                            : user.paymentStatus === "REJECTED"
-                                                ? "bg-red-900/20 text-red-400 border-red-700"
-                                                : "bg-yellow-900/20 text-yellow-400 border-yellow-700"
-                                            }`}
-                                    >
-                                        <option value="PENDING">Pending</option>
-                                        <option value="APPROVED">Approved</option>
-                                        <option value="REJECTED">Rejected</option>
-                                    </select>
-                                </td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
-                                    {user.transactionId || "-"}
-                                </td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm">
-                                    {user.paymentProof ? (
-                                        <a
-                                            href={user.paymentProof}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-400 hover:text-blue-300 underline"
-                                        >
-                                            View
-                                        </a>
-                                    ) : (
-                                        <span className="text-gray-500">-</span>
-                                    )}
-                                </td>
+                                {!isKL && (
+                                    <>
+                                        <td className="px-4 py-4 whitespace-nowrap">
+                                            <select
+                                                value={user.paymentStatus}
+                                                onChange={(e) =>
+                                                    handlePaymentStatusChange(user.id, e.target.value as PaymentStatus)
+                                                }
+                                                className={`text-xs px-2 py-1 rounded-full border ${user.paymentStatus === "APPROVED"
+                                                    ? "bg-green-900/20 text-green-400 border-green-700"
+                                                    : user.paymentStatus === "REJECTED"
+                                                        ? "bg-red-900/20 text-red-400 border-red-700"
+                                                        : "bg-yellow-900/20 text-yellow-400 border-yellow-700"
+                                                    }`}
+                                            >
+                                                <option value="PENDING">Pending</option>
+                                                <option value="APPROVED">Approved</option>
+                                                <option value="REJECTED">Rejected</option>
+                                            </select>
+                                        </td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
+                                            {user.transactionId || "-"}
+                                        </td>
+                                        <td className="px-4 py-4 whitespace-nowrap text-sm">
+                                            {user.paymentProof ? (
+                                                <a
+                                                    href={user.paymentProof}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-400 hover:text-blue-300 underline"
+                                                >
+                                                    View
+                                                </a>
+                                            ) : (
+                                                <span className="text-gray-500">-</span>
+                                            )}
+                                        </td>
+                                    </>
+                                )}
                                 <td className="px-4 py-4 whitespace-nowrap">
                                     <span
                                         className={`inline-flex text-xs px-2 py-1 rounded-full ${user.isApproved
@@ -332,7 +340,7 @@ export default function UsersPage() {
                     </div>
                 ) : (
                     <>
-                        <UserTable users={filteredKLUsers} />
+                        <UserTable users={filteredKLUsers} isKL={true} />
                         <div className="mt-4 text-sm text-gray-400">
                             Showing {filteredKLUsers.length} of {klUsers.length} KL University students
                         </div>
@@ -345,7 +353,7 @@ export default function UsersPage() {
                     </div>
                 ) : (
                     <>
-                        <UserTable users={filteredOtherUsers} />
+                        <UserTable users={filteredOtherUsers} isKL={false} />
                         <div className="mt-4 text-sm text-gray-400">
                             Showing {filteredOtherUsers.length} of {otherUsers.length} other college students
                         </div>
