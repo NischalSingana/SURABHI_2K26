@@ -76,7 +76,7 @@ export async function GET() {
     } catch (error) {
         console.error("Error generating ticket:", error);
         return NextResponse.json(
-            { error: "Failed to generate ticket" },
+            { error: `Failed to generate ticket: ${error instanceof Error ? error.message : String(error)}` },
             { status: 500 }
         );
     }
