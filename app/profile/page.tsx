@@ -95,6 +95,7 @@ async function SessionData() {
           registeredEvents={registeredEvents as any}
           ipAddress={ipAddress}
           userAgent={userAgent}
+          hasMicrosoftAccount={hasMicrosoftAccount}
           hasGoogleAccount={hasGoogleAccount}
         />
 
