@@ -255,7 +255,6 @@ const PillNav: React.FC<PillNavProps> = ({
           href="/"
           aria-label="Home"
           onMouseEnter={undefined}
-          role="menuitem"
           ref={el => {
             logoRef.current = el;
           }}

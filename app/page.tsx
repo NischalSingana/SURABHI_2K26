@@ -82,6 +82,7 @@ const HomePage = () => {
 
     return (
         <main className="relative w-full">
+            <h1 className="sr-only">Surabhi International Cultural Fest 2026 - KL University</h1>
             {/* Fiery Red Background - Edge to Edge */}
             <div className="fixed inset-0 z-0 bg-gradient-to-br from-[#1a0000] via-[#4a0000] to-[#2a0000]">
                 {/* Animated gradient overlay */}
@@ -129,6 +130,7 @@ const HomePage = () => {
             </div>
             {/* Poster Section - Edge to Edge (left, right, bottom), top space for navbar */}
             <section className="relative w-full h-auto md:h-screen flex items-center justify-center overflow-hidden z-10 pt-16 pb-0">
+                <h2 className="sr-only">Event Poster</h2>
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}

@@ -1,4 +1,10 @@
 import CarouselGallery from "@/components/ui/CarouselGallery";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Gallery - Surabhi 2026",
+  description: "Explore the vibrant gallery of Surabhi International Cultural Fest events and memories.",
+};
 // Sample gallery images - Replace with your actual images
 // You can fetch this from your database or API
 // Duplicate photos for each year for demo purposes
