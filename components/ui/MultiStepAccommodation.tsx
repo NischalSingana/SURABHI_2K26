@@ -451,8 +451,8 @@ const MultiStepAccommodation = () => {
                       <FiUser size={24} />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-1">Male Hostel</h3>
-                      <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium">Boys Accommodation</p>
+                      <h3 className="text-xl font-bold text-white mb-1">Male</h3>
+                      <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium">Accommodation</p>
                     </div>
                   </button>
 
@@ -468,8 +468,8 @@ const MultiStepAccommodation = () => {
                       <FiUser size={24} />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-1">Female Hostel</h3>
-                      <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium">Girls Accommodation</p>
+                      <h3 className="text-xl font-bold text-white mb-1">Female</h3>
+                      <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium">Accommodation</p>
                     </div>
                   </button>
                 </div>
