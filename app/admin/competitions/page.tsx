@@ -28,6 +28,7 @@ interface Event {
   participantLimit: number;
   termsandconditions: string;
   registrationLink: string;
+  whatsappLink?: string | null;
   isGroupEvent: boolean;
   minTeamSize: number;
   maxTeamSize: number;
