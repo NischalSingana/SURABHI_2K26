@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
             headers: await headers(),
         });
 
-        if (!session?.user || session.user.role !== "ADMIN") { // using string 'ADMIN' if enum import fails
+        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "MASTER")) {
             return NextResponse.json(
                 { error: "Unauthorized" },
                 { status: 401 }
@@ -57,9 +57,9 @@ export async function POST(request: NextRequest) {
             headers: await headers(),
         });
 
-        if (!session?.user || session.user.role !== "ADMIN") {
+        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "MASTER")) {
             return NextResponse.json(
-                { error: "Unauthorized. Admin access required." },
+                { error: "Unauthorized. Admin or Master access required." },
                 { status: 401 }
             );
         }
