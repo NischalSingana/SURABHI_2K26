@@ -246,7 +246,7 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
                                 position: 'absolute',
                                 top: 30,
                                 left: 30,
-                                width: 100,
+                                width: 180,
                                 height: 100
                             }}
                         />
