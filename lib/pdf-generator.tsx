@@ -207,9 +207,8 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
         isApproved: userData.isApproved,
     });
 
-    // Read logo
+    // Read Surabhi logo
     const logoPath = path.join(process.cwd(), 'public', 'images', 'surabhi_white_logo.png');
-    // Fallback if logo doesn't exist to prevent crash
     let logoBase64 = '';
     try {
         if (fs.existsSync(logoPath)) {
@@ -217,7 +216,19 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
             logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
         }
     } catch (e) {
-        console.error("Logo not found or readable", e);
+        console.error("Surabhi logo not found or readable", e);
+    }
+
+    // Read SAC logo
+    const sacLogoPath = path.join(process.cwd(), 'public', 'sac_logo (1).png');
+    let sacLogoBase64 = '';
+    try {
+        if (fs.existsSync(sacLogoPath)) {
+            const sacLogoBuffer = fs.readFileSync(sacLogoPath);
+            sacLogoBase64 = `data:image/png;base64,${sacLogoBuffer.toString('base64')}`;
+        }
+    } catch (e) {
+        console.error("SAC logo not found or readable", e);
     }
 
     const TicketDocument = (
@@ -227,8 +238,22 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
                 <View style={styles.coverContainer}>
                     <View style={styles.topLine} />
 
+                    {/* SAC Logo - Top Left Corner */}
+                    {sacLogoBase64 ? (
+                        <Image
+                            src={sacLogoBase64}
+                            style={{
+                                position: 'absolute',
+                                top: 30,
+                                left: 30,
+                                width: 100,
+                                height: 100
+                            }}
+                        />
+                    ) : null}
+
                     {/* Logo & Header */}
-                    {logoBase64 ? <Image src={logoBase64} style={styles.logo} /> : null}
+                    {logoBase64 ? <Image src={logoBase64} style={{ ...styles.logo, marginBottom: 10 }} /> : null}
                     <Text style={styles.title}>SURABHI-2026</Text>
                     <Text style={styles.subtitle}>OFFICIAL ENTRY PASS</Text>
 
