@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -356,4 +355,17 @@ model ContactCoordinator {
   updatedAt  DateTime        @updatedAt
 
   @@map("contact_coordinators")
+}
+
+model GalleryImage {
+  id        String   @id @default(cuid())
+  url       String   // R2 Public URL
+  year      String   // e.g. "2025"
+  title     String?  // Optional title
+  width     Int?     // For Masonry layout optimization
+  height    Int?     // For Masonry layout optimization
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("gallery_images")
 }

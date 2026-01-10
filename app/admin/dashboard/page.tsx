@@ -2,8 +2,6 @@ import Link from "next/link";
 
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { Role } from "@/lib/generated/prisma";
-
 const page = async () => {
     const headersList = await headers();
     const session = await auth.api.getSession({
@@ -11,8 +9,8 @@ const page = async () => {
     });
 
     // Admin has full access, Manager has limited access
-    const isManager = session?.user?.role === Role.MANAGER;
-    const isAdmin = session?.user?.role === Role.ADMIN || session?.user?.role === Role.MASTER;
+    const isManager = session?.user?.role === "MANAGER";
+    const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "MASTER";
 
     return (
         <div className="px-4 sm:px-6 py-6">
@@ -220,6 +218,25 @@ const page = async () => {
                         </div>
                     </Link>
                 )}
+                {(isAdmin || isManager) && (
+                    <Link
+                        href="/admin/gallery"
+                        className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
+                    >
+                        <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
+                                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <h2 className="text-lg sm:text-xl font-semibold text-white">Gallery Management</h2>
+                            <p className="text-gray-400 text-center text-xs sm:text-sm">
+                                Upload and manage gallery images
+                            </p>
+                        </div>
+                    </Link>
+                )}
+
 
 
             </div>

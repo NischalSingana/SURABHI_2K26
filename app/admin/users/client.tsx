@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getAllUsers, approveUser, rejectUser, updatePaymentStatus, updateUserRole } from "@/actions/admin/users.action";
-import { PaymentStatus, Role } from "@/lib/generated/prisma";
+import { PaymentStatus, Role } from "@prisma/client";
 import { toast } from "sonner";
 import { FiSearch, FiUsers, FiGlobe } from "react-icons/fi";
 
