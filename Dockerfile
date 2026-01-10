@@ -50,7 +50,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 # Copy Prisma files
-COPY --from=builder --chown=nextjs:nodejs /app/lib/generated/prisma ./lib/generated/prisma
+
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 # Ensure uploads directory exists with correct permissions
 RUN mkdir -p ./public/uploads && chown -R nextjs:nodejs ./public/uploads
