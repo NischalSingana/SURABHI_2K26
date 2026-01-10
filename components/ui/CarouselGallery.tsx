@@ -7,11 +7,7 @@ import styles from "./CarouselGallery.module.css";
 
 interface CarouselItem {
   image: string;
-  name: string;
-  description: string;
   year: string;
-  buttonText?: string;
-  buttonLink?: string;
 }
 
 interface CarouselGalleryProps {
@@ -327,7 +323,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
 
                       return (
                         <motion.div
-                          key={`${displayItem.name}-${displayItem.year}-${selectedYear}-${index}`}
+                          key={`${displayItem.year}-${selectedYear}-${index}`}
                           initial={{ opacity: 0, scale: 0.9, x: index > 1 ? 50 : 0 }}
                           animate={{ opacity: 1, scale: 1, x: 0 }}
                           exit={{ opacity: 0, scale: 0.9, x: index > 1 ? -50 : 0 }}
@@ -351,55 +347,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                           } : undefined}
                         >
                           {/* Content overlay for active display (index 1) */}
-                          {index === 1 && (
-                            <div className={styles.content}>
-                              <AnimatePresence mode="wait">
-                                <motion.div
-                                  key={`${displayItem.name}-${selectedYear}-name`}
-                                  initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
-                                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                                  exit={{ opacity: 0, y: -20, filter: "blur(10px)" }}
-                                  transition={{ duration: 0.6, delay: 0.2 }}
-                                  className={styles.name}
-                                >
-                                  {displayItem.name}
-                                </motion.div>
-                              </AnimatePresence>
-                              <AnimatePresence mode="wait">
-                                <motion.div
-                                  key={`${displayItem.name}-${selectedYear}-desc`}
-                                  initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
-                                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                                  exit={{ opacity: 0, y: -20, filter: "blur(10px)" }}
-                                  transition={{ duration: 0.6, delay: 0.4 }}
-                                  className={styles.des}
-                                >
-                                  {displayItem.description}
-                                </motion.div>
-                              </AnimatePresence>
-                              <AnimatePresence mode="wait">
-                                <motion.div
-                                  key={`${displayItem.name}-${selectedYear}-btn`}
-                                  initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
-                                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                                  exit={{ opacity: 0, y: -20, filter: "blur(10px)" }}
-                                  transition={{ duration: 0.6, delay: 0.6 }}
-                                >
-                                  {displayItem.buttonLink ? (
-                                    <a href={displayItem.buttonLink}>
-                                      <button className={styles.seeMoreBtn}>
-                                        {displayItem.buttonText || "See More"}
-                                      </button>
-                                    </a>
-                                  ) : (
-                                    <button className={styles.seeMoreBtn}>
-                                      {displayItem.buttonText || "See More"}
-                                    </button>
-                                  )}
-                                </motion.div>
-                              </AnimatePresence>
-                            </div>
-                          )}
+
                           {/* Preview overlay for preview items (index 2+) */}
                           {index >= 2 && (
                             <motion.div
@@ -408,7 +356,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                               whileHover={{ opacity: 1 }}
                               transition={{ duration: 0.3 }}
                             >
-                              <div className={styles.previewTitle}>{displayItem.name}</div>
+                              <div className={styles.previewTitle}></div>
                             </motion.div>
                           )}
                         </motion.div>
