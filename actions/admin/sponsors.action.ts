@@ -11,7 +11,7 @@ export async function getAllSponsors() {
     try {
         const sponsors = await prisma.sponsor.findMany({
             where: { isActive: true },
-            orderBy: { order: 'asc' },
+            orderBy: { createdAt: 'desc' },
         });
 
         return { success: true, sponsors };
@@ -43,12 +43,11 @@ export async function getSponsor(id: string) {
 export async function createSponsor(data: {
     name: string;
     description: string;
-    amount: number;
+    sponsoredFor: string;
     image?: string;
     website?: string;
     borderColor?: string;
     gradient?: string;
-    order?: number;
 }) {
     try {
         const headersList = await headers();
@@ -62,12 +61,11 @@ export async function createSponsor(data: {
             data: {
                 name: data.name,
                 description: data.description,
-                amount: data.amount,
+                sponsoredFor: data.sponsoredFor,
                 image: data.image,
                 website: data.website,
                 borderColor: data.borderColor || "#dc2626",
                 gradient: data.gradient || "linear-gradient(145deg,#dc2626,#000)",
-                order: data.order || 0,
             },
         });
 
@@ -84,12 +82,11 @@ export async function updateSponsor(
     data: {
         name?: string;
         description?: string;
-        amount?: number;
+        sponsoredFor?: string;
         image?: string;
         website?: string;
         borderColor?: string;
         gradient?: string;
-        order?: number;
         isActive?: boolean;
     }
 ) {

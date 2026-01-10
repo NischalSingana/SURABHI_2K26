@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAllUsers, approveUser, rejectUser, updatePaymentStatus } from "@/actions/admin/users.action";
+import { getAllUsers, approveUser, rejectUser, updatePaymentStatus, updateUserRole } from "@/actions/admin/users.action";
 import { PaymentStatus, Role } from "@/lib/generated/prisma";
 import { toast } from "sonner";
 import { FiSearch, FiUsers, FiGlobe } from "react-icons/fi";
@@ -94,15 +94,13 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
     };
 
     const handleRoleChange = async (userId: string, newRole: Role) => {
-        // TODO: Implement updateUserRole action
-        toast.error("Role update functionality is not yet implemented");
-        // const result = await updateUserRole(userId, newRole);
-        // if (result.success) {
-        //     toast.success(result.message);
-        //     loadUsers();
-        // } else {
-        //     toast.error(result.error);
-        // }
+        const result = await updateUserRole(userId, newRole);
+        if (result.success) {
+            toast.success(result.message);
+            loadUsers();
+        } else {
+            toast.error(result.error);
+        }
     };
 
     const UserTable = ({ users, isKL }: { users: User[], isKL: boolean }) => (

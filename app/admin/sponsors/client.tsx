@@ -10,12 +10,11 @@ interface Sponsor {
     id: string;
     name: string;
     description: string;
-    amount: number;
+    sponsoredFor: string;
     image?: string | null;
     website?: string | null;
     borderColor: string;
     gradient: string;
-    order: number;
     isActive: boolean;
 }
 
@@ -29,12 +28,11 @@ export default function AdminSponsorsPage() {
     const [formData, setFormData] = useState({
         name: "",
         description: "",
-        amount: 0,
+        sponsoredFor: "",
         image: "",
         website: "",
         borderColor: "#dc2626",
         gradient: "linear-gradient(145deg,#dc2626,#000)",
-        order: 0,
     });
 
     useEffect(() => {
@@ -112,24 +110,22 @@ export default function AdminSponsorsPage() {
             setFormData({
                 name: sponsor.name,
                 description: sponsor.description,
-                amount: sponsor.amount,
+                sponsoredFor: sponsor.sponsoredFor,
                 image: sponsor.image || "",
                 website: sponsor.website || "",
                 borderColor: sponsor.borderColor,
                 gradient: sponsor.gradient,
-                order: sponsor.order,
             });
         } else {
             setEditingSponsor(null);
             setFormData({
                 name: "",
                 description: "",
-                amount: 0,
+                sponsoredFor: "",
                 image: "",
                 website: "",
                 borderColor: "#dc2626",
                 gradient: "linear-gradient(145deg,#dc2626,#000)",
-                order: 0,
             });
         }
         setShowModal(true);
@@ -168,8 +164,7 @@ export default function AdminSponsorsPage() {
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Image</th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Name</th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Description</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Amount</th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Order</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Sponsored For</th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Actions</th>
                                 </tr>
                             </thead>
@@ -187,10 +182,9 @@ export default function AdminSponsorsPage() {
                                         </td>
                                         <td className="px-4 py-4 text-white font-semibold">{sponsor.name}</td>
                                         <td className="px-4 py-4 text-gray-300 max-w-xs truncate">{sponsor.description}</td>
-                                        <td className="px-4 py-4 text-green-400 font-semibold">
-                                            ₹{sponsor.amount.toLocaleString('en-IN')}
+                                        <td className="px-4 py-4 text-blue-400 font-semibold">
+                                            {sponsor.sponsoredFor}
                                         </td>
-                                        <td className="px-4 py-4 text-gray-300">{sponsor.order}</td>
                                         <td className="px-4 py-4">
                                             <div className="flex gap-2">
                                                 <button
@@ -259,13 +253,14 @@ export default function AdminSponsorsPage() {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">Amount (₹) *</label>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">Sponsored For *</label>
                                         <input
-                                            type="number"
+                                            type="text"
                                             required
-                                            value={formData.amount}
-                                            onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
+                                            value={formData.sponsoredFor}
+                                            onChange={(e) => setFormData({ ...formData, sponsoredFor: e.target.value })}
                                             className="w-full bg-gray-700 text-white rounded-md px-3 py-2 border border-gray-600"
+                                            placeholder="e.g., Main Event, Food Stalls, Prize Money"
                                         />
                                     </div>
 
@@ -302,26 +297,14 @@ export default function AdminSponsorsPage() {
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-300 mb-2">Border Color</label>
-                                            <input
-                                                type="color"
-                                                value={formData.borderColor}
-                                                onChange={(e) => setFormData({ ...formData, borderColor: e.target.value })}
-                                                className="w-full h-10 bg-gray-700 rounded-md border border-gray-600"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-300 mb-2">Display Order</label>
-                                            <input
-                                                type="number"
-                                                value={formData.order}
-                                                onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })}
-                                                className="w-full bg-gray-700 text-white rounded-md px-3 py-2 border border-gray-600"
-                                            />
-                                        </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">Border Color</label>
+                                        <input
+                                            type="color"
+                                            value={formData.borderColor}
+                                            onChange={(e) => setFormData({ ...formData, borderColor: e.target.value })}
+                                            className="w-full h-10 bg-gray-700 rounded-md border border-gray-600"
+                                        />
                                     </div>
 
                                     <div className="flex gap-3 pt-4">

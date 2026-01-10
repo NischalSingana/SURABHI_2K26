@@ -302,18 +302,17 @@ model Evaluation {
 }
 
 model Sponsor {
-  id          String   @id @default(cuid())
-  name        String // Company/Sponsor name
-  description String // Short description
-  amount      Float // Sponsorship amount
-  image       String? // Image URL (Cloudflare R2)
-  website     String? // Optional website URL
-  borderColor String   @default("#dc2626") // Card border color
-  gradient    String   @default("linear-gradient(145deg,#dc2626,#000)") // Card gradient
-  order       Int      @default(0) // Display order
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  name         String // Company/Sponsor name
+  description  String // Short description
+  sponsoredFor String   @default("") // What the sponsor is sponsoring for
+  image        String? // Image URL (Cloudflare R2)
+  website      String? // Optional website URL
+  borderColor  String   @default("#dc2626") // Card border color
+  gradient     String   @default("linear-gradient(145deg,#dc2626,#000)") // Card gradient
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@map("sponsors")
 }
