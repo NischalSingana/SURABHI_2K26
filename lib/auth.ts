@@ -4,7 +4,7 @@ import { nextCookies } from "better-auth/next-js"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { prisma } from "@/lib/prisma"
 
-import { Role } from "./generated/prisma";
+import { Role } from "@prisma/client";
 
 const isProduction = process.env.NODE_ENV === "production";
 const baseURL = isProduction
