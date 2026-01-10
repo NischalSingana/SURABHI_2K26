@@ -234,7 +234,7 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
 
                     {/* Ticket Card */}
                     <View style={styles.ticketCard}>
-                        {/* Row 1: Name & ID */}
+                        {/* Row 1: Name & Contact */}
                         <View style={styles.infoRow}>
                             <View style={styles.infoCol}>
                                 <Text style={styles.label}>ATTENDEE NAME</Text>
@@ -247,34 +247,34 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
                             </View>
                         </View>
 
-                        {/* Row 2: College & Status */}
-                        <View style={styles.infoRow}>
-                            <View style={styles.infoCol}>
-                                <Text style={styles.label}>INSTITUTION</Text>
-                                <Text style={styles.valueSmall}>{userData.collage || 'N/A'}</Text>
-                                <Text style={styles.valueSmall}>{userData.collageId ? `ID: ${userData.collageId}` : ''}</Text>
-                            </View>
-                            <View style={styles.infoCol}>
-                                <Text style={styles.label}>STATUS</Text>
-                                <Text style={{ ...styles.value, color: userData.isApproved ? '#22c55e' : '#f59e0b' }}>
-                                    {userData.isApproved ? 'CONFIRMED' : 'PENDING'}
-                                </Text>
-                            </View>
-                        </View>
-
-                        {/* Row 3: Event Details & QR Code */}
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <View style={{ width: '55%' }}>
-                                <Text style={styles.label}>DATE & VENUE</Text>
-                                <Text style={styles.value}>FEB 2026</Text>
-                                <Text style={styles.valueSmall}>KL UNIVERSITY, VIJAYAWADA</Text>
+                        {/* Row 2: College & Status with QR Code on the right */}
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', borderBottom: '1px solid #27272a', paddingBottom: 25, marginBottom: 25 }}>
+                            <View style={{ flexDirection: 'row', width: '60%', justifyContent: 'space-between' }}>
+                                <View style={{ width: '48%' }}>
+                                    <Text style={styles.label}>INSTITUTION</Text>
+                                    <Text style={styles.valueSmall}>{userData.collage || 'N/A'}</Text>
+                                    <Text style={styles.valueSmall}>{userData.collageId ? `ID: ${userData.collageId}` : ''}</Text>
+                                </View>
+                                <View style={{ width: '48%' }}>
+                                    <Text style={styles.label}>STATUS</Text>
+                                    <Text style={{ ...styles.value, color: userData.isApproved ? '#22c55e' : '#f59e0b' }}>
+                                        {userData.isApproved ? 'CONFIRMED' : 'PENDING'}
+                                    </Text>
+                                </View>
                             </View>
 
-                            {/* QR Code aligned to the left of its section */}
-                            <View style={styles.qrSection}>
+                            {/* QR Code aligned to the right */}
+                            <View style={{ alignItems: 'center' }}>
                                 <Image src={qrCodeDataURL} style={styles.qrCode} />
                                 <Text style={styles.qrText}>SCAN AT ENTRY</Text>
                             </View>
+                        </View>
+
+                        {/* Row 3: Event Details */}
+                        <View style={{ paddingBottom: 0 }}>
+                            <Text style={styles.label}>DATE & VENUE</Text>
+                            <Text style={styles.value}>FEB 2026</Text>
+                            <Text style={styles.valueSmall}>KL UNIVERSITY, VIJAYAWADA</Text>
                         </View>
                     </View>
 
