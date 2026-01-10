@@ -53,7 +53,7 @@ export async function createSponsor(data: {
         const headersList = await headers();
         const session = await auth.api.getSession({ headers: headersList });
 
-        if (!session || session.user.role !== Role.ADMIN) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
             return { success: false, error: "Unauthorized" };
         }
 
@@ -94,7 +94,7 @@ export async function updateSponsor(
         const headersList = await headers();
         const session = await auth.api.getSession({ headers: headersList });
 
-        if (!session || session.user.role !== Role.ADMIN) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
             return { success: false, error: "Unauthorized" };
         }
 
@@ -116,7 +116,7 @@ export async function deleteSponsor(id: string) {
         const headersList = await headers();
         const session = await auth.api.getSession({ headers: headersList });
 
-        if (!session || session.user.role !== Role.ADMIN) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
             return { success: false, error: "Unauthorized" };
         }
 
@@ -137,7 +137,7 @@ export async function uploadSponsorImage(formData: FormData) {
         const headersList = await headers();
         const session = await auth.api.getSession({ headers: headersList });
 
-        if (!session || session.user.role !== Role.ADMIN) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
             return { success: false, error: "Unauthorized" };
         }
 
