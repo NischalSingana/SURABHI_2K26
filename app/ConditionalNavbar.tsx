@@ -10,6 +10,7 @@ const navItems = [
     { label: "Competitions", href: "/competitions" },
     { label: "Accommodation", href: "/accommodation" },
     { label: "Gallery", href: "/gallery" },
+    { label: "Sponsors", href: "/sponsors" },
     { label: "Contact", href: "/contact" },
 ];
 

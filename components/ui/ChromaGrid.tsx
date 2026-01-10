@@ -7,7 +7,7 @@ export interface SponsorItem {
     image?: string;
     name: string;
     description: string;
-    amount: number;
+    sponsoredFor: string;
     website?: string;
     borderColor?: string;
     gradient?: string;
@@ -27,14 +27,6 @@ const ChromaGrid: React.FC<ChromaGridProps> = ({
     items,
     className = '',
 }) => {
-
-    const formatAmount = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            maximumFractionDigits: 0,
-        }).format(amount);
-    };
 
     const handleCardClick = (url?: string) => {
         if (url) window.open(url, '_blank', 'noopener,noreferrer');
@@ -98,7 +90,7 @@ const ChromaGrid: React.FC<ChromaGridProps> = ({
                                 className="text-lg font-bold"
                                 style={{ color: sponsor.borderColor || '#dc2626' }}
                             >
-                                {formatAmount(sponsor.amount)}
+                                {sponsor.sponsoredFor}
                             </span>
                         </div>
                     </div>
