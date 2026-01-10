@@ -11,70 +11,40 @@ export const metadata: Metadata = {
 const galleryImages = [
   // 2025 Images
   {
-    image: "https://i.ibb.co/qCkd9jS/img1.jpg",
+    image: "https://i.imghippo.com/files/CKrj2435Aqk.jpeg",
     year: "2025",
   },
   {
-    image: "https://i.ibb.co/jrRb11q/img2.jpg",
+    image: "https://i.imghippo.com/files/Ai9824zk.jpeg",
     year: "2025",
   },
   {
-    image: "https://i.ibb.co/NSwVv8D/img3.jpg",
+    image: "https://i.imghippo.com/files/hgq7235g.jpeg",
     year: "2025",
   },
   {
-    image: "https://i.ibb.co/Bq4Q0M8/img4.jpg",
+    image: "https://i.imghippo.com/files/KPyc1247to.jpeg",
     year: "2025",
   },
-  {
-    image: "https://i.ibb.co/jTQfmTq/img5.jpg",
-    year: "2025",
-  },
-  {
-    image: "https://i.ibb.co/RNkk6L0/img6.jpg",
-    year: "2025",
-  },
-  {
-    image: "https://i.ibb.co/qCkd9jS/img1.jpg",
-    year: "2025",
-  },
-  {
-    image: "https://i.ibb.co/jrRb11q/img2.jpg",
-    year: "2025",
-  },
+
   // 2024 Images
   {
     image: "https://i.imghippo.com/files/eLgR9932Ys.jpeg",
     year: "2024",
   },
   {
-    image: "https://i.ibb.co/jTQfmTq/img5.jpg",
+    image: "https://i.imghippo.com/files/Xcy8735KmY.jpeg",
     year: "2024",
   },
   {
-    image: "https://i.ibb.co/RNkk6L0/img6.jpg",
+    image: "https://i.imghippo.com/files/WYl3616TuY.jpeg",
     year: "2024",
   },
   {
-    image: "https://i.ibb.co/qCkd9jS/img1.jpg",
+    image: "https://i.imghippo.com/files/mK6266kMQ.jpeg",
     year: "2024",
   },
-  {
-    image: "https://i.ibb.co/jrRb11q/img2.jpg",
-    year: "2024",
-  },
-  {
-    image: "https://i.ibb.co/NSwVv8D/img3.jpg",
-    year: "2024",
-  },
-  {
-    image: "https://i.ibb.co/Bq4Q0M8/img4.jpg",
-    year: "2024",
-  },
-  {
-    image: "https://i.ibb.co/jTQfmTq/img5.jpg",
-    year: "2024",
-  },
+
   // 2023 Images
   {
     image: "https://i.ibb.co/qCkd9jS/img1.jpg",
