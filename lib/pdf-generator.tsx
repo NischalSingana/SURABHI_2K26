@@ -332,9 +332,9 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
                     </View>
 
                     <View style={{ marginTop: 'auto', borderTop: '1px solid #333', paddingTop: 20, alignItems: 'center' }}>
-                        {logoBase64 ? <Image src={logoBase64} style={{ width: 40, height: 40, opacity: 0.5, marginBottom: 10 }} /> : null}
-                        <Text style={{ color: '#52525b', fontSize: 10 }}>Surabhi 2026 • National Level Techno-Management Fest</Text>
-                        <Text style={{ color: '#52525b', fontSize: 10 }}>KL University, Green Fields, Vaddeswaram, Andhra Pradesh 522502</Text>
+                        {logoBase64 ? <Image src={logoBase64} style={{ width: 80, height: 80, opacity: 0.8, marginBottom: 10 }} /> : null}
+                        <Text style={{ color: '#71717a', fontSize: 12, fontWeight: 'bold' }}>Surabhi 2026 • National Level Techno-Management Fest</Text>
+                        <Text style={{ color: '#71717a', fontSize: 12 }}>KL University, Green Fields, Vaddeswaram, Andhra Pradesh 522502</Text>
                     </View>
                 </View>
                 <View style={styles.bottomLine} />
