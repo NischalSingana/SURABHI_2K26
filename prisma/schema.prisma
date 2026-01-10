@@ -315,6 +315,10 @@ model Sponsor {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  // Legacy fields (kept for safety)
+  amount      Float?
+  order       Int?     @default(0)
 
   @@map("sponsors")
 }

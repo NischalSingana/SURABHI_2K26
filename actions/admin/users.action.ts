@@ -18,7 +18,7 @@ export async function getAllUsers(filters?: {
             headers: headersList,
         });
 
-        if (!session || session.user.role !== Role.ADMIN) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
             throw new Error("Unauthorized");
         }
 
@@ -83,7 +83,7 @@ export async function approveUser(userId: string) {
             headers: headersList,
         });
 
-        if (!session || session.user.role !== Role.ADMIN) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
             throw new Error("Unauthorized");
         }
 
@@ -185,7 +185,7 @@ export async function rejectUser(userId: string) {
             headers: headersList,
         });
 
-        if (!session || session.user.role !== Role.ADMIN) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
             throw new Error("Unauthorized");
         }
 
@@ -207,7 +207,7 @@ export async function updatePaymentStatus(userId: string, status: PaymentStatus)
             headers: headersList,
         });
 
-        if (!session || session.user.role !== Role.ADMIN) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
             throw new Error("Unauthorized");
         }
 
