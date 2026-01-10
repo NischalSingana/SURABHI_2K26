@@ -10,6 +10,7 @@ import { FaWhatsapp } from "react-icons/fa";
 import SubmissionModal from "@/components/ui/SubmissionModal";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
+import { formatTime } from "@/lib/utils";
 
 interface Event {
   id: string;
@@ -130,16 +131,10 @@ function CategoryPageContent() {
   const handleRegisterClick = (event: Event, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (event.isGroupEvent) {
-      toast.info("Redirecting to team registration...");
-      // Link using slug if available, fallback to ID
-      const eventIdentifier = (event as any).slug || event.id;
-      router.push(`/competitions/${encodeURIComponent(categoryName)}/${eventIdentifier}`);
-      return;
-    }
-
-    setSelectedEvent(event);
-    setShowRegisterPopup(true);
+    toast.info("Redirecting to registration page...");
+    // Link using slug if available, fallback to ID
+    const eventIdentifier = (event as any).slug || event.id;
+    router.push(`/competitions/${encodeURIComponent(categoryName)}/${eventIdentifier}`);
   };
 
   const handleRegistrationSubmit = async () => {
@@ -442,7 +437,7 @@ function CategoryPageContent() {
                                     <div className="w-8 h-8 rounded-lg bg-red-600/10 flex items-center justify-center mr-3 shrink-0">
                                       <FiClock className="text-red-500" size={16} />
                                     </div>
-                                    <span className="text-sm font-medium">{event.startTime} - {event.endTime}</span>
+                                    <span className="text-sm font-medium">{formatTime(event.startTime)} - {formatTime(event.endTime)}</span>
                                   </div>
                                 </div>
                               </div>
@@ -528,7 +523,7 @@ function CategoryPageContent() {
                 <div className="space-y-1 text-zinc-300 text-sm">
                   <p><span className="text-zinc-400">Venue:</span> {selectedEvent.venue}</p>
                   <p><span className="text-zinc-400">Date:</span> {new Date(selectedEvent.date).toLocaleDateString()}</p>
-                  <p><span className="text-zinc-400">Time:</span> {selectedEvent.startTime} - {selectedEvent.endTime}</p>
+                  <p><span className="text-zinc-400">Time:</span> {formatTime(selectedEvent.startTime)} - {formatTime(selectedEvent.endTime)}</p>
                 </div>
               </div>
 

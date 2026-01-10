@@ -20,12 +20,10 @@ import { FaWhatsapp, FaTelegram, FaEnvelope } from "react-icons/fa";
 import { toast } from "sonner";
 import {
   getPublicEvents,
-  registerForEvent,
   checkEventRegistration,
-  registerGroupEvent,
   unregisterFromEvent,
-  getUserByEmail,
 } from "@/actions/events.action";
+import { formatTime } from "@/lib/utils";
 
 function ShareModal({
   show,
@@ -263,35 +261,15 @@ function EventDetailPageContent() {
 
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [registering, setRegistering] = useState(false);
-  const [unregistering, setUnregistering] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isApproved, setIsApproved] = useState<boolean | undefined>(undefined);
   const [checkingRegistration, setCheckingRegistration] = useState(true);
-  const [showImageModal, setShowImageModal] = useState(false);
+  const [unregistering, setUnregistering] = useState(false);
   const [showUnregisterConfirm, setShowUnregisterConfirm] = useState(false);
-  const [hasScrolled, setHasScrolled] = useState(false);
-
-  // Group Registration State
-  const [showGroupModal, setShowGroupModal] = useState(false);
-  const [teamSize, setTeamSize] = useState(0);
-  const [groupName, setGroupName] = useState("");
-  const [teamMembers, setTeamMembers] = useState<any[]>([]);
-
-  // New Group Fields
-  const [mentorName, setMentorName] = useState("");
-  const [mentorPhone, setMentorPhone] = useState("");
-  const [memberEmailInput, setMemberEmailInput] = useState("");
-  const [lookingUpMember, setLookingUpMember] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  useEffect(() => {
-    if (event && event.isGroupEvent) {
-      setTeamSize(event.minTeamSize);
-    }
-  }, [event]);
+
 
   useEffect(() => {
     if (slug) {
@@ -301,7 +279,7 @@ function EventDetailPageContent() {
 
   // Lock body scroll when any modal is open
   useEffect(() => {
-    if (showRegistrationModal || showGroupModal || showImageModal || showUnregisterConfirm) {
+    if (showImageModal || showUnregisterConfirm) {
       document.documentElement.style.overflow = "hidden";
       document.body.style.overflow = "hidden";
     } else {
@@ -312,7 +290,7 @@ function EventDetailPageContent() {
       document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     };
-  }, [showRegistrationModal, showGroupModal, showImageModal, showUnregisterConfirm]);
+  }, [showImageModal, showUnregisterConfirm]);
 
   const fetchEvent = async () => {
     try {
@@ -341,130 +319,7 @@ function EventDetailPageContent() {
     setCheckingRegistration(false);
   };
 
-  const handleRegister = async () => {
-    // Check if user is approved
-    if (isApproved === false) {
-      toast.error("Please wait till admin approves your registration.");
-      return;
-    }
-    // If undefined, maybe not loaded or not logged in. Backend handles "Please login".
-    // But backend now returns specific error for approval.
 
-    if (!acceptedTerms) {
-      toast.error("Please accept the terms and conditions");
-      return;
-    }
-
-    if (event?.isGroupEvent) {
-      setShowRegistrationModal(false);
-      setShowGroupModal(true);
-      return;
-    }
-
-    setRegistering(true);
-
-    if (!event) return;
-
-    const result = await registerForEvent(event.id);
-
-    if (result.success) {
-      toast.success("Successfully registered for the event!");
-      setIsRegistered(true);
-      setShowRegistrationModal(false);
-      setAcceptedTerms(false);
-      fetchEvent();
-    } else {
-      toast.error(result.error || "Failed to register");
-    }
-
-    setRegistering(false);
-  };
-
-  const handleGroupRegister = async () => {
-    // Validation for Group events
-
-    if (!event) return;
-
-    // Basic validation
-    if (!groupName.trim()) {
-      toast.error("Please enter a group name");
-      return;
-    }
-    const requiredMembers = Math.max(0, teamSize - 1);
-    if (teamMembers.length < requiredMembers) {
-      toast.error(`Please add details for all ${requiredMembers} additional members`);
-      return;
-    }
-
-    setRegistering(true);
-    try {
-      const result = await registerGroupEvent(event.id, groupName, teamMembers, mentorName, mentorPhone);
-
-      if (result.success) {
-        toast.success("Team registered successfully!");
-        setIsRegistered(true);
-        setShowGroupModal(false);
-        setAcceptedTerms(false);
-        fetchEvent();
-      } else {
-        toast.error(result.error || "Failed to register team");
-      }
-    } catch (err) {
-      console.error("Error in handleGroupRegister:", err);
-      toast.error("An unexpected error occurred");
-    } finally {
-      setRegistering(false);
-    }
-  };
-
-  const verifyAndAddMember = async () => {
-    if (!memberEmailInput.trim()) {
-      toast.error("Please enter an email address");
-      return;
-    }
-
-    // Check if already in list
-    if (teamMembers.some(m => m.email === memberEmailInput.trim())) {
-      toast.error("This user is already in your team list");
-      return;
-    }
-
-    // Check max size (teamSize is total including lead, so max teammates is teamSize - 1)
-    if (teamMembers.length >= (teamSize - 1)) {
-      toast.error(`You have reached the team size limit of ${teamSize} (including you).`);
-      return;
-    }
-
-    setLookingUpMember(true);
-    try {
-      const res = await getUserByEmail(memberEmailInput.trim());
-      if (res.success && res.user) {
-        setTeamMembers([...teamMembers, {
-          id: res.user.id,
-          name: res.user.name,
-          email: res.user.email,
-          college: "",
-          collegeId: "",
-          phone: ""
-        }]);
-        setMemberEmailInput("");
-        toast.success(`Added ${res.user.name} to the team!`);
-      } else {
-        toast.error("User not found. Check email or ensure they are registered.");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Error looking up user");
-    } finally {
-      setLookingUpMember(false);
-    }
-  };
-
-  const removeMember = (index: number) => {
-    const newMembers = [...teamMembers];
-    newMembers.splice(index, 1);
-    setTeamMembers(newMembers);
-  };
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -748,7 +603,7 @@ function EventDetailPageContent() {
                   <div>
                     <p className="text-zinc-400 text-sm">Time</p>
                     <p className="text-white font-medium">
-                      {event.startTime} - {event.endTime}
+                      {formatTime(event.startTime)} - {formatTime(event.endTime)}
                     </p>
                   </div>
                 </div>
@@ -853,7 +708,7 @@ function EventDetailPageContent() {
                       toast.error("Please wait till admin approves your registration.");
                       return;
                     }
-                    setShowRegistrationModal(true);
+                    router.push(`/competitions/${categoryName}/${slug}/register`);
                   }}
                   disabled={
                     event._count.registeredStudents >= event.participantLimit ||
@@ -882,373 +737,7 @@ function EventDetailPageContent() {
         categoryName={event.Category.name}
       />
 
-      {/* Registration Modal */}
-      <AnimatePresence>
-        {showRegistrationModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-zinc-900 rounded-2xl w-full max-w-2xl border border-zinc-800 shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
-            >
-              {/* Header */}
-              <div className="px-8 py-6 border-b border-zinc-800 flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-white">
-                  Register for {event.name}
-                </h2>
-                <button
-                  onClick={() => {
-                    setShowRegistrationModal(false);
-                    setAcceptedTerms(false);
-                  }}
-                  className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
-                >
-                  <FiX size={24} />
-                </button>
-              </div>
 
-              {/* Content */}
-              <div
-                className="px-8 py-6 overflow-y-auto flex-1 relative z-10"
-                data-lenis-prevent
-              >
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-white mb-3">
-                    Terms and Conditions
-                  </h3>
-                  <div
-                    className="bg-zinc-800 rounded-lg p-4 max-h-64 overflow-y-auto overscroll-contain relative group"
-                    data-lenis-prevent
-                    onScroll={(e) => {
-                      const element = e.currentTarget;
-                      const isBottom = Math.abs(element.scrollHeight - element.scrollTop - element.clientHeight) <= 10;
-                      if (isBottom) {
-                        setHasScrolled(true);
-                      }
-                    }}
-                    ref={(el) => {
-                      if (el && el.scrollHeight <= el.clientHeight) {
-                        setHasScrolled(true);
-                      }
-                    }}
-                  >
-                    <div className="space-y-2">
-                      {(() => {
-                        let points = event.termsandconditions.split(/\r?\n/).filter(line => line.trim());
-                        if (points.length === 1 && points[0].length > 50) {
-                          const sentences = points[0].split(/\.\s+/).filter(s => s.trim());
-                          if (sentences.length > 1) {
-                            points = sentences.map(s => s.trim().endsWith('.') ? s : s + '.');
-                          }
-                        }
-                        return points.map((point, index) => (
-                          <div key={index} className="flex gap-2 text-start">
-                            <span className="text-red-500 mt-1.5 min-w-[5px] h-1.5 rounded-full bg-red-500 block shrink-0" />
-                            <span>{point.replace(/^[•\-\*]\s*/, '')}</span>
-                          </div>
-                        ));
-                      })()}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Acceptance Checkbox */}
-                <label className="flex items-start gap-3 cursor-pointer group">
-                  <div className="relative flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={acceptedTerms}
-                      onChange={(e) => {
-                        if (!hasScrolled && !acceptedTerms) {
-                          toast.error("Please scroll through all terms and conditions first");
-                          return;
-                        }
-                        setAcceptedTerms(e.target.checked);
-                      }}
-                      className="w-5 h-5 rounded border-2 border-zinc-700 bg-zinc-800 checked:bg-red-600 checked:border-red-600 cursor-pointer transition-all"
-                    />
-                    {acceptedTerms && (
-                      <FiCheck
-                        className="absolute left-0.5 top-0.5 text-white pointer-events-none"
-                        size={16}
-                      />
-                    )}
-                  </div>
-                  <span className="text-zinc-300 text-sm group-hover:text-white transition-colors">
-                    I have read and accept the terms and conditions for this
-                    event
-                  </span>
-                </label>
-              </div>
-
-              {/* Footer */}
-              <div className="px-8 py-6 border-t border-zinc-800 flex gap-3">
-                <button
-                  onClick={() => {
-                    setShowRegistrationModal(false);
-                    setAcceptedTerms(false);
-                  }}
-                  className="flex-1 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleRegister}
-                  disabled={!acceptedTerms || registering}
-                  className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {registering ? "Registering..." : "Register for Event"}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Group Registration Modal */}
-      <AnimatePresence>
-        {showGroupModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-zinc-900 rounded-2xl w-full max-w-3xl border border-zinc-800 shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
-            >
-              <div className="px-8 py-6 border-b border-zinc-800 flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-white">
-                  Team Registration
-                </h2>
-                <button
-                  onClick={() => setShowGroupModal(false)}
-                  className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
-                >
-                  <FiX size={24} />
-                </button>
-              </div>
-
-              <div
-                className="px-8 py-6 overflow-y-auto flex-1 space-y-6 relative z-10"
-                data-lenis-prevent
-              >
-                {/* Group Name */}
-                <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-2">Group/Team Name *</label>
-                  <input
-                    type="text"
-                    value={groupName}
-                    onChange={(e) => setGroupName(e.target.value)}
-                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 transition-all"
-                    placeholder="Enter unique team name"
-                  />
-                </div>
-
-                {/* Team Size Input */}
-                <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-2">
-                    Total Team Size (Including You) *
-                  </label>
-                  <input
-                    type="number"
-                    min={event?.minTeamSize || 2}
-                    max={event?.maxTeamSize || 5}
-                    value={teamSize || ""}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === "") {
-                        setTeamSize(0);
-                        return;
-                      }
-                      const size = parseInt(val);
-                      if (!isNaN(size)) {
-                        setTeamSize(size);
-                      }
-                    }}
-                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 transition-all"
-                  />
-                  <p className="text-zinc-500 text-sm mt-1">Min: {event?.minTeamSize} - Max: {event?.maxTeamSize}</p>
-                </div>
-
-                {/* Mentor Details (Optional) */}
-                <div className="border-t border-zinc-800 pt-4">
-                  <h3 className="text-lg font-semibold text-white mb-4">Mentor / Coordinator (Optional)</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-zinc-300 mb-2">Name</label>
-                      <input
-                        type="text"
-                        value={mentorName}
-                        onChange={(e) => setMentorName(e.target.value)}
-                        className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 transition-all"
-                        placeholder="Mentor Name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-zinc-300 mb-2">Phone</label>
-                      <input
-                        type="text"
-                        value={mentorPhone}
-                        onChange={(e) => setMentorPhone(e.target.value)}
-                        className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 transition-all"
-                        placeholder="Mentor Phone"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t border-zinc-800 pt-4">
-                  <h3 className="text-lg font-semibold text-white mb-4">Team Members</h3>
-
-                  {/* Lead Info */}
-                  <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700 mb-4 flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-white font-medium">You</span>
-                        <span className="bg-red-600/20 text-red-500 text-xs px-2 py-0.5 rounded font-bold uppercase">Team Lead</span>
-                      </div>
-                      <p className="text-xs text-zinc-500">Your registered account</p>
-                    </div>
-                    <div className="text-zinc-400 text-sm">Included</div>
-                  </div>
-
-                  {/* Add Member Input */}
-                  <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-lg mb-4">
-                    <label className="block text-sm font-medium text-zinc-300 mb-2">Add Member by Email</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="email"
-                        value={memberEmailInput}
-                        onChange={(e) => setMemberEmailInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && verifyAndAddMember()}
-                        placeholder="Enter registered email address"
-                        className="flex-1 px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600"
-                      />
-                      <button
-                        onClick={verifyAndAddMember}
-                        disabled={lookingUpMember}
-                        className="px-4 py-2 bg-white text-black font-semibold rounded-lg hover:bg-gray-200 disabled:opacity-50"
-                      >
-                        {lookingUpMember ? 'Checking...' : 'Add'}
-                      </button>
-                    </div>
-                    <p className="text-xs text-zinc-500 mt-2">
-                      Enter the full email address registered on this website. Members must be registered to be added.
-                    </p>
-                  </div>
-
-                  {/* Member List */}
-                  <div className="space-y-3">
-                    {teamMembers.map((member, idx) => (
-                      <div key={member.id || idx} className="bg-zinc-800 p-3 rounded-lg border border-zinc-700 flex items-center justify-between">
-                        <div>
-                          <p className="text-white font-medium">{member.name}</p>
-                          <p className="text-xs text-zinc-400">{member.email}</p>
-                        </div>
-                        <button
-                          onClick={() => removeMember(idx)}
-                          className="text-red-400 hover:text-red-300 p-2"
-                          title="Remove member"
-                        >
-                          <FiX size={18} />
-                        </button>
-                      </div>
-                    ))}
-                    {teamMembers.length === 0 && (
-                      <div className="text-center py-4 text-zinc-500 text-sm border-2 border-dashed border-zinc-800 rounded-lg">
-                        No additional members added yet.
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-4 flex items-center justify-between text-sm text-zinc-400">
-                    <span>Current Size: <strong className="text-white">{1 + teamMembers.length}</strong> (Including You)</span>
-                    <span>Limit: {teamSize}</span>
-                  </div>
-                </div>
-
-                {/* Terms and Conditions */}
-                <div className="border-t border-zinc-800 pt-4">
-                  <h3 className="text-lg font-semibold text-white mb-2">Terms and Conditions</h3>
-                  <div
-                    className="bg-zinc-800 p-4 rounded-md mb-4 max-h-40 overflow-y-auto text-zinc-300 text-sm overscroll-contain relative group"
-                    data-lenis-prevent
-                    onScroll={(e) => {
-                      const element = e.currentTarget;
-                      const isBottom = Math.abs(element.scrollHeight - element.scrollTop - element.clientHeight) <= 10;
-                      if (isBottom) {
-                        setHasScrolled(true);
-                      }
-                    }}
-                    ref={(el) => {
-                      if (el && el.scrollHeight <= el.clientHeight) {
-                        setHasScrolled(true);
-                      }
-                    }}
-                  >
-
-                    {event?.termsandconditions ? (
-                      <div className="space-y-2">
-                        {(() => {
-                          let points = event.termsandconditions.split(/\r?\n/).filter(line => line.trim());
-                          if (points.length === 1 && points[0].length > 50) {
-                            const sentences = points[0].split(/\.\s+/).filter(s => s.trim());
-                            if (sentences.length > 1) {
-                              points = sentences.map(s => s.trim().endsWith('.') ? s : s + '.');
-                            }
-                          }
-                          return points.map((point, index) => (
-                            <div key={index} className="flex gap-2 text-start">
-                              <span className="text-red-500 mt-1.5 min-w-[5px] h-1.5 rounded-full bg-red-500 block shrink-0" />
-                              <span>{point.replace(/^[•\-\*]\s*/, '')}</span>
-                            </div>
-                          ));
-                        })()}
-                      </div>
-                    ) : (
-                      <p>By registering for this event, you agree to follow all event guidelines and rules.</p>
-                    )}
-                  </div>
-                  <label className="flex items-center gap-2 text-white cursor-pointer relative">
-                    <input
-                      type="checkbox"
-                      checked={acceptedTerms}
-                      onChange={(e) => {
-                        const termsBox = e.currentTarget.closest('.border-t')?.querySelector('[data-lenis-prevent]');
-                        const hasScrolled = termsBox?.getAttribute('data-scrolled') === 'true';
-
-                        if (!hasScrolled && !acceptedTerms) {
-                          toast.error("Please scroll through all terms and conditions first");
-                          return;
-                        }
-                        setAcceptedTerms(e.target.checked);
-                      }}
-                      className="rounded border-zinc-600 text-red-600 focus:ring-red-600 bg-zinc-800"
-                    />
-                    I accept the terms and conditions
-                  </label>
-                </div>
-              </div>
-
-              <div className="px-8 py-6 border-t border-zinc-800 flex gap-3">
-                <button
-                  onClick={() => setShowGroupModal(false)}
-                  className="flex-1 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg font-medium transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleGroupRegister}
-                  disabled={registering || !groupName || teamSize < (event?.minTeamSize || 2) || teamSize > (event?.maxTeamSize || 5) || !acceptedTerms}
-                  className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-                >
-                  {registering ? "Registering..." : "Confirm Team Registration"}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* Unregister Confirmation Modal */}
       <AnimatePresence>
