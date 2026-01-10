@@ -380,6 +380,8 @@ export default function EventRegistrationPage() {
                                 <h3 className="text-lg font-semibold text-white mb-3">Terms and Conditions</h3>
                                 <div
                                     className="bg-zinc-800 rounded-lg p-4 max-h-60 overflow-y-auto mb-4 border border-zinc-700"
+                                    data-lenis-prevent
+                                    style={{ overscrollBehavior: 'contain' }}
                                     onScroll={(e) => {
                                         const element = e.currentTarget;
                                         const isBottom = Math.abs(element.scrollHeight - element.scrollTop - element.clientHeight) <= 10;
