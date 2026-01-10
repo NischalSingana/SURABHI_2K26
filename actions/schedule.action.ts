@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { Role } from "@/lib/generated/prisma";
+import { Role } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 export async function createSchedule(image: string) {

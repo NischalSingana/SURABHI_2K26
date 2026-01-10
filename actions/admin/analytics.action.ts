@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
-import { Role } from "@/lib/generated/prisma";
+import { Role } from "@prisma/client";
 
 export async function getUserStats() {
     try {

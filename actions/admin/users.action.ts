@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
-import { Role, PaymentStatus } from "@/lib/generated/prisma";
+import { Role, PaymentStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { sendEmail, emailTemplates } from "../../lib/email";
 

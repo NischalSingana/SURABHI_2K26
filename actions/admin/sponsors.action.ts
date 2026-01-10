@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { Role } from "@/lib/generated/prisma";
+import { Role } from "@prisma/client";
 import { uploadToR2, generateUniqueFilename } from "@/lib/r2";
 
 // Get all sponsors (public)

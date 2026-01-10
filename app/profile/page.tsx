@@ -1,6 +1,6 @@
 import ReturnButton from "@/components/ui/ReturnButton";
 import { auth } from "@/lib/auth";
-import { Role } from "@/lib/generated/prisma";
+import { Role } from "@prisma/client";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { Suspense } from "react";

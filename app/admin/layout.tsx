@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { auth } from "@/lib/auth";
-import { Role } from "@/lib/generated/prisma";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import AdminLayoutWrapper from "./layout-wrapper";
@@ -12,8 +11,8 @@ async function AdminAuthCheck({ children }: { children: React.ReactNode }) {
     headers: headersList,
   });
 
-  const allowedRoles: Role[] = [Role.ADMIN, Role.MANAGER, Role.MASTER];
-  if (!session || !allowedRoles.includes(session.user.role as Role)) {
+  const allowedRoles = ["ADMIN", "MANAGER", "MASTER"];
+  if (!session || !allowedRoles.includes(session.user.role)) {
     return redirect("/login");
   }
 

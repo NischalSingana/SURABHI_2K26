@@ -3,7 +3,7 @@
 import { uploadToR2, isValidImageType, generateUniqueFilename } from "@/lib/r2";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { Role } from "@/lib/generated/prisma";
+import { Role } from "@prisma/client";
 
 export async function uploadEventImage(formData: FormData) {
   try {

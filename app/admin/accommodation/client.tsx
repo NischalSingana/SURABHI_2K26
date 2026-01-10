@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getAllBookings, approveBooking, rejectBooking } from "@/actions/admin/accommodation.action";
-import { BookingType, Gender, PaymentStatus, BookingStatus } from "@/lib/generated/prisma";
+import { BookingType, Gender, PaymentStatus, BookingStatus } from "@prisma/client";
 import { toast } from "sonner";
 
 export default function AccommodationPage() {

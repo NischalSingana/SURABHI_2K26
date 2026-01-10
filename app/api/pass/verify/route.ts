@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { verifyPass, getPassDetails } from "@/lib/pass";
-import { Role } from "@/lib/generated/prisma"; // Adjust import path if needed
+import { Role } from "@prisma/client"; // Adjust import path if needed
 
 // GET: Get pass details without verifying (for preview)
 export async function GET(request: NextRequest) {

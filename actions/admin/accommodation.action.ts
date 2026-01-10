@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
-import { Role, BookingStatus, PaymentStatus, BookingType, Gender } from "@/lib/generated/prisma";
+import { Role, BookingStatus, PaymentStatus, BookingType, Gender } from "@prisma/client";
 
 export async function getAllBookings(filters?: {
     bookingType?: BookingType;
