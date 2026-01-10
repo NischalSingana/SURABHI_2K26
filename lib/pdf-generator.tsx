@@ -333,8 +333,8 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
                         <Text style={styles.ruleText}>Surabhi 2026 is not responsible for any lost or stolen belongings. Please keep your valuables safe.</Text>
                     </View>
 
-                    <View style={{ marginTop: 'auto', borderTop: '1px solid #333', paddingTop: 20, alignItems: 'center' }}>
-                        {logoBase64 ? <Image src={logoBase64} style={{ width: 80, height: 80, opacity: 0.8, marginBottom: 10 }} /> : null}
+                    <View style={{ marginTop: 'auto', borderTop: '1px solid #333', paddingTop: 15, alignItems: 'center' }}>
+                        {logoBase64 ? <Image src={logoBase64} style={{ width: 120, height: 120, opacity: 1.0, marginBottom: 8 }} /> : null}
                         <Text style={{ color: '#71717a', fontSize: 12, fontWeight: 'bold' }}>Surabhi 2026 • National Level Techno-Management Fest</Text>
                         <Text style={{ color: '#71717a', fontSize: 12 }}>KL University, Green Fields, Vaddeswaram, Andhra Pradesh 522502</Text>
                     </View>
