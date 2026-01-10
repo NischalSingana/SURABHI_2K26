@@ -98,23 +98,24 @@ const styles = StyleSheet.create({
     },
     label: {
         color: '#71717a', // Zinc-500
-        fontSize: 10,
+        fontSize: 12,
         marginBottom: 5,
         textTransform: 'uppercase',
         letterSpacing: 1,
+        fontWeight: 'bold',
     },
     value: {
         color: '#ffffff',
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
     },
     valueSmall: {
         color: '#e4e4e7', // Zinc-200
-        fontSize: 12,
+        fontSize: 14,
     },
     statusBadge: {
         color: '#22c55e', // Green-500
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: 'bold',
         marginTop: 5,
         textTransform: 'uppercase',
@@ -122,19 +123,20 @@ const styles = StyleSheet.create({
 
     // QR Section
     qrSection: {
-        alignItems: 'center',
+        alignItems: 'flex-start',
         marginTop: 10,
+        paddingLeft: 0,
     },
     qrCode: {
-        width: 150,
-        height: 150,
+        width: 140,
+        height: 140,
         backgroundColor: '#ffffff',
         padding: 10,
         borderRadius: 10,
     },
     qrText: {
         color: '#ef4444',
-        fontSize: 12,
+        fontSize: 13,
         fontWeight: 'bold',
         marginTop: 10,
         letterSpacing: 1,
@@ -260,15 +262,15 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
                             </View>
                         </View>
 
-                        {/* Row 3: Event Details */}
-                        <View style={{ ...styles.infoRow, borderBottom: 0, paddingBottom: 0 }}>
-                            <View style={styles.infoCol}>
+                        {/* Row 3: Event Details & QR Code */}
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <View style={{ width: '55%' }}>
                                 <Text style={styles.label}>DATE & VENUE</Text>
                                 <Text style={styles.value}>FEB 2026</Text>
                                 <Text style={styles.valueSmall}>KL UNIVERSITY, VIJAYAWADA</Text>
                             </View>
 
-                            {/* QR Code in the corner of the card or bottom? Layout asked for same page. */}
+                            {/* QR Code aligned to the left of its section */}
                             <View style={styles.qrSection}>
                                 <Image src={qrCodeDataURL} style={styles.qrCode} />
                                 <Text style={styles.qrText}>SCAN AT ENTRY</Text>
