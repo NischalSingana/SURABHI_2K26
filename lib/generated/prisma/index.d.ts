@@ -15934,8 +15934,20 @@ export namespace Prisma {
 
   export type AggregateSponsor = {
     _count: SponsorCountAggregateOutputType | null
+    _avg: SponsorAvgAggregateOutputType | null
+    _sum: SponsorSumAggregateOutputType | null
     _min: SponsorMinAggregateOutputType | null
     _max: SponsorMaxAggregateOutputType | null
+  }
+
+  export type SponsorAvgAggregateOutputType = {
+    amount: number | null
+    order: number | null
+  }
+
+  export type SponsorSumAggregateOutputType = {
+    amount: number | null
+    order: number | null
   }
 
   export type SponsorMinAggregateOutputType = {
@@ -15950,6 +15962,8 @@ export namespace Prisma {
     isActive: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
+    amount: number | null
+    order: number | null
   }
 
   export type SponsorMaxAggregateOutputType = {
@@ -15964,6 +15978,8 @@ export namespace Prisma {
     isActive: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
+    amount: number | null
+    order: number | null
   }
 
   export type SponsorCountAggregateOutputType = {
@@ -15978,9 +15994,21 @@ export namespace Prisma {
     isActive: number
     createdAt: number
     updatedAt: number
+    amount: number
+    order: number
     _all: number
   }
 
+
+  export type SponsorAvgAggregateInputType = {
+    amount?: true
+    order?: true
+  }
+
+  export type SponsorSumAggregateInputType = {
+    amount?: true
+    order?: true
+  }
 
   export type SponsorMinAggregateInputType = {
     id?: true
@@ -15994,6 +16022,8 @@ export namespace Prisma {
     isActive?: true
     createdAt?: true
     updatedAt?: true
+    amount?: true
+    order?: true
   }
 
   export type SponsorMaxAggregateInputType = {
@@ -16008,6 +16038,8 @@ export namespace Prisma {
     isActive?: true
     createdAt?: true
     updatedAt?: true
+    amount?: true
+    order?: true
   }
 
   export type SponsorCountAggregateInputType = {
@@ -16022,6 +16054,8 @@ export namespace Prisma {
     isActive?: true
     createdAt?: true
     updatedAt?: true
+    amount?: true
+    order?: true
     _all?: true
   }
 
@@ -16063,6 +16097,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: SponsorAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SponsorSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: SponsorMinAggregateInputType
@@ -16093,6 +16139,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: SponsorCountAggregateInputType | true
+    _avg?: SponsorAvgAggregateInputType
+    _sum?: SponsorSumAggregateInputType
     _min?: SponsorMinAggregateInputType
     _max?: SponsorMaxAggregateInputType
   }
@@ -16109,7 +16157,11 @@ export namespace Prisma {
     isActive: boolean
     createdAt: Date
     updatedAt: Date
+    amount: number | null
+    order: number | null
     _count: SponsorCountAggregateOutputType | null
+    _avg: SponsorAvgAggregateOutputType | null
+    _sum: SponsorSumAggregateOutputType | null
     _min: SponsorMinAggregateOutputType | null
     _max: SponsorMaxAggregateOutputType | null
   }
@@ -16140,6 +16192,8 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    amount?: boolean
+    order?: boolean
   }, ExtArgs["result"]["sponsor"]>
 
   export type SponsorSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -16154,6 +16208,8 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    amount?: boolean
+    order?: boolean
   }, ExtArgs["result"]["sponsor"]>
 
   export type SponsorSelectScalar = {
@@ -16168,6 +16224,8 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    amount?: boolean
+    order?: boolean
   }
 
 
@@ -16186,6 +16244,8 @@ export namespace Prisma {
       isActive: boolean
       createdAt: Date
       updatedAt: Date
+      amount: number | null
+      order: number | null
     }, ExtArgs["result"]["sponsor"]>
     composites: {}
   }
@@ -16590,6 +16650,8 @@ export namespace Prisma {
     readonly isActive: FieldRef<"Sponsor", 'Boolean'>
     readonly createdAt: FieldRef<"Sponsor", 'DateTime'>
     readonly updatedAt: FieldRef<"Sponsor", 'DateTime'>
+    readonly amount: FieldRef<"Sponsor", 'Float'>
+    readonly order: FieldRef<"Sponsor", 'Int'>
   }
     
 
@@ -19984,7 +20046,9 @@ export namespace Prisma {
     gradient: 'gradient',
     isActive: 'isActive',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    amount: 'amount',
+    order: 'order'
   };
 
   export type SponsorScalarFieldEnum = (typeof SponsorScalarFieldEnum)[keyof typeof SponsorScalarFieldEnum]
@@ -21395,6 +21459,8 @@ export namespace Prisma {
     isActive?: BoolFilter<"Sponsor"> | boolean
     createdAt?: DateTimeFilter<"Sponsor"> | Date | string
     updatedAt?: DateTimeFilter<"Sponsor"> | Date | string
+    amount?: FloatNullableFilter<"Sponsor"> | number | null
+    order?: IntNullableFilter<"Sponsor"> | number | null
   }
 
   export type SponsorOrderByWithRelationInput = {
@@ -21409,6 +21475,8 @@ export namespace Prisma {
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    amount?: SortOrderInput | SortOrder
+    order?: SortOrderInput | SortOrder
   }
 
   export type SponsorWhereUniqueInput = Prisma.AtLeast<{
@@ -21426,6 +21494,8 @@ export namespace Prisma {
     isActive?: BoolFilter<"Sponsor"> | boolean
     createdAt?: DateTimeFilter<"Sponsor"> | Date | string
     updatedAt?: DateTimeFilter<"Sponsor"> | Date | string
+    amount?: FloatNullableFilter<"Sponsor"> | number | null
+    order?: IntNullableFilter<"Sponsor"> | number | null
   }, "id">
 
   export type SponsorOrderByWithAggregationInput = {
@@ -21440,9 +21510,13 @@ export namespace Prisma {
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    amount?: SortOrderInput | SortOrder
+    order?: SortOrderInput | SortOrder
     _count?: SponsorCountOrderByAggregateInput
+    _avg?: SponsorAvgOrderByAggregateInput
     _max?: SponsorMaxOrderByAggregateInput
     _min?: SponsorMinOrderByAggregateInput
+    _sum?: SponsorSumOrderByAggregateInput
   }
 
   export type SponsorScalarWhereWithAggregatesInput = {
@@ -21460,6 +21534,8 @@ export namespace Prisma {
     isActive?: BoolWithAggregatesFilter<"Sponsor"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"Sponsor"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Sponsor"> | Date | string
+    amount?: FloatNullableWithAggregatesFilter<"Sponsor"> | number | null
+    order?: IntNullableWithAggregatesFilter<"Sponsor"> | number | null
   }
 
   export type ScheduleWhereInput = {
@@ -22952,6 +23028,8 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    amount?: number | null
+    order?: number | null
   }
 
   export type SponsorUncheckedCreateInput = {
@@ -22966,6 +23044,8 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    amount?: number | null
+    order?: number | null
   }
 
   export type SponsorUpdateInput = {
@@ -22980,6 +23060,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    amount?: NullableFloatFieldUpdateOperationsInput | number | null
+    order?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type SponsorUncheckedUpdateInput = {
@@ -22994,6 +23076,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    amount?: NullableFloatFieldUpdateOperationsInput | number | null
+    order?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type SponsorCreateManyInput = {
@@ -23008,6 +23092,8 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    amount?: number | null
+    order?: number | null
   }
 
   export type SponsorUpdateManyMutationInput = {
@@ -23022,6 +23108,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    amount?: NullableFloatFieldUpdateOperationsInput | number | null
+    order?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type SponsorUncheckedUpdateManyInput = {
@@ -23036,6 +23124,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    amount?: NullableFloatFieldUpdateOperationsInput | number | null
+    order?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type ScheduleCreateInput = {
@@ -24359,6 +24449,17 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
+  export type FloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type SponsorCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
@@ -24371,6 +24472,13 @@ export namespace Prisma {
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    amount?: SortOrder
+    order?: SortOrder
+  }
+
+  export type SponsorAvgOrderByAggregateInput = {
+    amount?: SortOrder
+    order?: SortOrder
   }
 
   export type SponsorMaxOrderByAggregateInput = {
@@ -24385,6 +24493,8 @@ export namespace Prisma {
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    amount?: SortOrder
+    order?: SortOrder
   }
 
   export type SponsorMinOrderByAggregateInput = {
@@ -24399,6 +24509,29 @@ export namespace Prisma {
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    amount?: SortOrder
+    order?: SortOrder
+  }
+
+  export type SponsorSumOrderByAggregateInput = {
+    amount?: SortOrder
+    order?: SortOrder
+  }
+
+  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type ScheduleCountOrderByAggregateInput = {
@@ -25333,6 +25466,14 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutEvaluationsReceivedInput, UserUpdateWithoutEvaluationsReceivedInput>, UserUncheckedUpdateWithoutEvaluationsReceivedInput>
   }
 
+  export type NullableFloatFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type ContactCoordinatorCreateNestedManyWithoutCategoryInput = {
     create?: XOR<ContactCoordinatorCreateWithoutCategoryInput, ContactCoordinatorUncheckedCreateWithoutCategoryInput> | ContactCoordinatorCreateWithoutCategoryInput[] | ContactCoordinatorUncheckedCreateWithoutCategoryInput[]
     connectOrCreate?: ContactCoordinatorCreateOrConnectWithoutCategoryInput | ContactCoordinatorCreateOrConnectWithoutCategoryInput[]
@@ -25760,6 +25901,22 @@ export namespace Prisma {
     _sum?: NestedFloatFilter<$PrismaModel>
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type AccountCreateWithoutUserInput = {
