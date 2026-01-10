@@ -15934,32 +15934,19 @@ export namespace Prisma {
 
   export type AggregateSponsor = {
     _count: SponsorCountAggregateOutputType | null
-    _avg: SponsorAvgAggregateOutputType | null
-    _sum: SponsorSumAggregateOutputType | null
     _min: SponsorMinAggregateOutputType | null
     _max: SponsorMaxAggregateOutputType | null
-  }
-
-  export type SponsorAvgAggregateOutputType = {
-    amount: number | null
-    order: number | null
-  }
-
-  export type SponsorSumAggregateOutputType = {
-    amount: number | null
-    order: number | null
   }
 
   export type SponsorMinAggregateOutputType = {
     id: string | null
     name: string | null
     description: string | null
-    amount: number | null
+    sponsoredFor: string | null
     image: string | null
     website: string | null
     borderColor: string | null
     gradient: string | null
-    order: number | null
     isActive: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -15969,12 +15956,11 @@ export namespace Prisma {
     id: string | null
     name: string | null
     description: string | null
-    amount: number | null
+    sponsoredFor: string | null
     image: string | null
     website: string | null
     borderColor: string | null
     gradient: string | null
-    order: number | null
     isActive: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -15984,12 +15970,11 @@ export namespace Prisma {
     id: number
     name: number
     description: number
-    amount: number
+    sponsoredFor: number
     image: number
     website: number
     borderColor: number
     gradient: number
-    order: number
     isActive: number
     createdAt: number
     updatedAt: number
@@ -15997,26 +15982,15 @@ export namespace Prisma {
   }
 
 
-  export type SponsorAvgAggregateInputType = {
-    amount?: true
-    order?: true
-  }
-
-  export type SponsorSumAggregateInputType = {
-    amount?: true
-    order?: true
-  }
-
   export type SponsorMinAggregateInputType = {
     id?: true
     name?: true
     description?: true
-    amount?: true
+    sponsoredFor?: true
     image?: true
     website?: true
     borderColor?: true
     gradient?: true
-    order?: true
     isActive?: true
     createdAt?: true
     updatedAt?: true
@@ -16026,12 +16000,11 @@ export namespace Prisma {
     id?: true
     name?: true
     description?: true
-    amount?: true
+    sponsoredFor?: true
     image?: true
     website?: true
     borderColor?: true
     gradient?: true
-    order?: true
     isActive?: true
     createdAt?: true
     updatedAt?: true
@@ -16041,12 +16014,11 @@ export namespace Prisma {
     id?: true
     name?: true
     description?: true
-    amount?: true
+    sponsoredFor?: true
     image?: true
     website?: true
     borderColor?: true
     gradient?: true
-    order?: true
     isActive?: true
     createdAt?: true
     updatedAt?: true
@@ -16091,18 +16063,6 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Select which fields to average
-    **/
-    _avg?: SponsorAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: SponsorSumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
      * Select which fields to find the minimum value
     **/
     _min?: SponsorMinAggregateInputType
@@ -16133,8 +16093,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: SponsorCountAggregateInputType | true
-    _avg?: SponsorAvgAggregateInputType
-    _sum?: SponsorSumAggregateInputType
     _min?: SponsorMinAggregateInputType
     _max?: SponsorMaxAggregateInputType
   }
@@ -16143,18 +16101,15 @@ export namespace Prisma {
     id: string
     name: string
     description: string
-    amount: number
+    sponsoredFor: string
     image: string | null
     website: string | null
     borderColor: string
     gradient: string
-    order: number
     isActive: boolean
     createdAt: Date
     updatedAt: Date
     _count: SponsorCountAggregateOutputType | null
-    _avg: SponsorAvgAggregateOutputType | null
-    _sum: SponsorSumAggregateOutputType | null
     _min: SponsorMinAggregateOutputType | null
     _max: SponsorMaxAggregateOutputType | null
   }
@@ -16177,12 +16132,11 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     description?: boolean
-    amount?: boolean
+    sponsoredFor?: boolean
     image?: boolean
     website?: boolean
     borderColor?: boolean
     gradient?: boolean
-    order?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -16192,12 +16146,11 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     description?: boolean
-    amount?: boolean
+    sponsoredFor?: boolean
     image?: boolean
     website?: boolean
     borderColor?: boolean
     gradient?: boolean
-    order?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -16207,12 +16160,11 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     description?: boolean
-    amount?: boolean
+    sponsoredFor?: boolean
     image?: boolean
     website?: boolean
     borderColor?: boolean
     gradient?: boolean
-    order?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -16226,12 +16178,11 @@ export namespace Prisma {
       id: string
       name: string
       description: string
-      amount: number
+      sponsoredFor: string
       image: string | null
       website: string | null
       borderColor: string
       gradient: string
-      order: number
       isActive: boolean
       createdAt: Date
       updatedAt: Date
@@ -16631,12 +16582,11 @@ export namespace Prisma {
     readonly id: FieldRef<"Sponsor", 'String'>
     readonly name: FieldRef<"Sponsor", 'String'>
     readonly description: FieldRef<"Sponsor", 'String'>
-    readonly amount: FieldRef<"Sponsor", 'Float'>
+    readonly sponsoredFor: FieldRef<"Sponsor", 'String'>
     readonly image: FieldRef<"Sponsor", 'String'>
     readonly website: FieldRef<"Sponsor", 'String'>
     readonly borderColor: FieldRef<"Sponsor", 'String'>
     readonly gradient: FieldRef<"Sponsor", 'String'>
-    readonly order: FieldRef<"Sponsor", 'Int'>
     readonly isActive: FieldRef<"Sponsor", 'Boolean'>
     readonly createdAt: FieldRef<"Sponsor", 'DateTime'>
     readonly updatedAt: FieldRef<"Sponsor", 'DateTime'>
@@ -20027,12 +19977,11 @@ export namespace Prisma {
     id: 'id',
     name: 'name',
     description: 'description',
-    amount: 'amount',
+    sponsoredFor: 'sponsoredFor',
     image: 'image',
     website: 'website',
     borderColor: 'borderColor',
     gradient: 'gradient',
-    order: 'order',
     isActive: 'isActive',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -21438,12 +21387,11 @@ export namespace Prisma {
     id?: StringFilter<"Sponsor"> | string
     name?: StringFilter<"Sponsor"> | string
     description?: StringFilter<"Sponsor"> | string
-    amount?: FloatFilter<"Sponsor"> | number
+    sponsoredFor?: StringFilter<"Sponsor"> | string
     image?: StringNullableFilter<"Sponsor"> | string | null
     website?: StringNullableFilter<"Sponsor"> | string | null
     borderColor?: StringFilter<"Sponsor"> | string
     gradient?: StringFilter<"Sponsor"> | string
-    order?: IntFilter<"Sponsor"> | number
     isActive?: BoolFilter<"Sponsor"> | boolean
     createdAt?: DateTimeFilter<"Sponsor"> | Date | string
     updatedAt?: DateTimeFilter<"Sponsor"> | Date | string
@@ -21453,12 +21401,11 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrder
-    amount?: SortOrder
+    sponsoredFor?: SortOrder
     image?: SortOrderInput | SortOrder
     website?: SortOrderInput | SortOrder
     borderColor?: SortOrder
     gradient?: SortOrder
-    order?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -21471,12 +21418,11 @@ export namespace Prisma {
     NOT?: SponsorWhereInput | SponsorWhereInput[]
     name?: StringFilter<"Sponsor"> | string
     description?: StringFilter<"Sponsor"> | string
-    amount?: FloatFilter<"Sponsor"> | number
+    sponsoredFor?: StringFilter<"Sponsor"> | string
     image?: StringNullableFilter<"Sponsor"> | string | null
     website?: StringNullableFilter<"Sponsor"> | string | null
     borderColor?: StringFilter<"Sponsor"> | string
     gradient?: StringFilter<"Sponsor"> | string
-    order?: IntFilter<"Sponsor"> | number
     isActive?: BoolFilter<"Sponsor"> | boolean
     createdAt?: DateTimeFilter<"Sponsor"> | Date | string
     updatedAt?: DateTimeFilter<"Sponsor"> | Date | string
@@ -21486,20 +21432,17 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrder
-    amount?: SortOrder
+    sponsoredFor?: SortOrder
     image?: SortOrderInput | SortOrder
     website?: SortOrderInput | SortOrder
     borderColor?: SortOrder
     gradient?: SortOrder
-    order?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: SponsorCountOrderByAggregateInput
-    _avg?: SponsorAvgOrderByAggregateInput
     _max?: SponsorMaxOrderByAggregateInput
     _min?: SponsorMinOrderByAggregateInput
-    _sum?: SponsorSumOrderByAggregateInput
   }
 
   export type SponsorScalarWhereWithAggregatesInput = {
@@ -21509,12 +21452,11 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Sponsor"> | string
     name?: StringWithAggregatesFilter<"Sponsor"> | string
     description?: StringWithAggregatesFilter<"Sponsor"> | string
-    amount?: FloatWithAggregatesFilter<"Sponsor"> | number
+    sponsoredFor?: StringWithAggregatesFilter<"Sponsor"> | string
     image?: StringNullableWithAggregatesFilter<"Sponsor"> | string | null
     website?: StringNullableWithAggregatesFilter<"Sponsor"> | string | null
     borderColor?: StringWithAggregatesFilter<"Sponsor"> | string
     gradient?: StringWithAggregatesFilter<"Sponsor"> | string
-    order?: IntWithAggregatesFilter<"Sponsor"> | number
     isActive?: BoolWithAggregatesFilter<"Sponsor"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"Sponsor"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Sponsor"> | Date | string
@@ -23002,12 +22944,11 @@ export namespace Prisma {
     id?: string
     name: string
     description: string
-    amount: number
+    sponsoredFor?: string
     image?: string | null
     website?: string | null
     borderColor?: string
     gradient?: string
-    order?: number
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -23017,12 +22958,11 @@ export namespace Prisma {
     id?: string
     name: string
     description: string
-    amount: number
+    sponsoredFor?: string
     image?: string | null
     website?: string | null
     borderColor?: string
     gradient?: string
-    order?: number
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -23032,12 +22972,11 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
-    amount?: FloatFieldUpdateOperationsInput | number
+    sponsoredFor?: StringFieldUpdateOperationsInput | string
     image?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     borderColor?: StringFieldUpdateOperationsInput | string
     gradient?: StringFieldUpdateOperationsInput | string
-    order?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -23047,12 +22986,11 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
-    amount?: FloatFieldUpdateOperationsInput | number
+    sponsoredFor?: StringFieldUpdateOperationsInput | string
     image?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     borderColor?: StringFieldUpdateOperationsInput | string
     gradient?: StringFieldUpdateOperationsInput | string
-    order?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -23062,12 +23000,11 @@ export namespace Prisma {
     id?: string
     name: string
     description: string
-    amount: number
+    sponsoredFor?: string
     image?: string | null
     website?: string | null
     borderColor?: string
     gradient?: string
-    order?: number
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -23077,12 +23014,11 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
-    amount?: FloatFieldUpdateOperationsInput | number
+    sponsoredFor?: StringFieldUpdateOperationsInput | string
     image?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     borderColor?: StringFieldUpdateOperationsInput | string
     gradient?: StringFieldUpdateOperationsInput | string
-    order?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -23092,12 +23028,11 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
-    amount?: FloatFieldUpdateOperationsInput | number
+    sponsoredFor?: StringFieldUpdateOperationsInput | string
     image?: NullableStringFieldUpdateOperationsInput | string | null
     website?: NullableStringFieldUpdateOperationsInput | string | null
     borderColor?: StringFieldUpdateOperationsInput | string
     gradient?: StringFieldUpdateOperationsInput | string
-    order?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -24428,32 +24363,25 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrder
-    amount?: SortOrder
+    sponsoredFor?: SortOrder
     image?: SortOrder
     website?: SortOrder
     borderColor?: SortOrder
     gradient?: SortOrder
-    order?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-  }
-
-  export type SponsorAvgOrderByAggregateInput = {
-    amount?: SortOrder
-    order?: SortOrder
   }
 
   export type SponsorMaxOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrder
-    amount?: SortOrder
+    sponsoredFor?: SortOrder
     image?: SortOrder
     website?: SortOrder
     borderColor?: SortOrder
     gradient?: SortOrder
-    order?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -24463,20 +24391,14 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrder
-    amount?: SortOrder
+    sponsoredFor?: SortOrder
     image?: SortOrder
     website?: SortOrder
     borderColor?: SortOrder
     gradient?: SortOrder
-    order?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-  }
-
-  export type SponsorSumOrderByAggregateInput = {
-    amount?: SortOrder
-    order?: SortOrder
   }
 
   export type ScheduleCountOrderByAggregateInput = {

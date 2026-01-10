@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { Role, PaymentStatus } from "@/lib/generated/prisma";
+import { revalidatePath } from "next/cache";
 import { sendEmail, emailTemplates } from "../../lib/email";
 
 export async function getAllUsers(filters?: {
@@ -240,6 +241,35 @@ export async function updatePaymentStatus(userId: string, status: PaymentStatus)
         }
 
         return { success: true, message: "Payment status updated successfully" };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
+
+export async function updateUserRole(userId: string, role: Role) {
+    try {
+        const headersList = await headers();
+        const session = await auth.api.getSession({
+            headers: headersList,
+        });
+
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+            throw new Error("Unauthorized");
+        }
+
+        // Prevent modifying own role to avoid locking oneself out (optional but good practice)
+        if (session.user.id === userId) {
+            // throw new Error("Cannot change your own role"); 
+            // allowed for now as master might want to test
+        }
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { role },
+        });
+
+        revalidatePath("/admin/users");
+        return { success: true, message: "User role updated successfully" };
     } catch (error: any) {
         return { success: false, error: error.message };
     }
