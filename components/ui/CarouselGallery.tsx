@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiChevronLeft, FiChevronRight, FiFilter } from "react-icons/fi";
 import { cn } from "@/lib/utils";
@@ -44,6 +44,16 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
   useEffect(() => {
     setActiveIndex(0);
   }, [selectedYear]);
+
+  // Handle client-side mobile detection to prevent hydration errors
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleNext = useCallback(() => {
     setActiveIndex((prev) => (prev + 1) % filteredItems.length);
@@ -97,6 +107,55 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
     return { offset, isActive, isVisible };
   };
 
+  // Modal Navigation
+  const handleModalNext = useCallback(() => {
+    if (!modalImage) return;
+    const currentIndex = filteredItems.indexOf(modalImage);
+    if (currentIndex === -1) return;
+    const nextIndex = (currentIndex + 1) % filteredItems.length;
+    setModalImage(filteredItems[nextIndex]);
+  }, [modalImage, filteredItems]);
+
+  const handleModalPrev = useCallback(() => {
+    if (!modalImage) return;
+    const currentIndex = filteredItems.indexOf(modalImage);
+    if (currentIndex === -1) return;
+    const prevIndex = (currentIndex - 1 + filteredItems.length) % filteredItems.length;
+    setModalImage(filteredItems[prevIndex]);
+  }, [modalImage, filteredItems]);
+
+  // Swipe Handlers
+  const touchStart = useRef<number | null>(null);
+  const touchEnd = useRef<number | null>(null);
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchEnd.current = null;
+    touchStart.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    touchEnd.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchEndMain = () => {
+    if (!touchStart.current || !touchEnd.current) return;
+    const distance = touchStart.current - touchEnd.current;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe) handleNext();
+    if (isRightSwipe) handlePrev();
+  };
+
+  const onTouchEndModal = () => {
+    if (!touchStart.current || !touchEnd.current) return;
+    const distance = touchStart.current - touchEnd.current;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe) handleModalNext();
+    if (isRightSwipe) handleModalPrev();
+  };
+
   return (
     <div className="w-full min-h-screen bg-neutral-950 text-white relative overflow-hidden flex flex-col items-center">
       {/* Dynamic Background */}
@@ -108,7 +167,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
             initial={{ opacity: 0, scale: 1.2 }}
             animate={{ opacity: 0.15, scale: 1.1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.2, ease: "easeInOut" }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
             className="absolute inset-0 bg-cover bg-center blur-[100px] opacity-20"
             style={{ backgroundImage: `url(${filteredItems[activeIndex]?.image})` }}
           />
@@ -122,7 +181,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
 
         {/* Controls Header */}
         <div className="flex flex-wrap items-center justify-between gap-6 mb-4 sm:mb-8">
-          <div className="space-y-2 -ml-6 md:-ml-12">
+          <div className="space-y-2">
             <h2 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-white via-red-200 to-red-400 bg-clip-text text-transparent">
               Gallery
             </h2>
@@ -131,8 +190,8 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
             </p>
           </div>
 
-          {/* Year Filter */}
-          <div className="relative filter-container z-50">
+          {/* Year Filter - Desktop (Dropdown) */}
+          <div className="relative filter-container z-50 hidden md:block">
             <button
               onClick={() => setIsFilterOpen(!isFilterOpen)}
               className="flex items-center gap-3 px-5 py-3 rounded-full bg-neutral-900/80 border border-neutral-800 hover:border-red-500/50 transition-all backdrop-blur-md group"
@@ -169,12 +228,33 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
               )}
             </AnimatePresence>
           </div>
+
+          {/* Year Filter - Mobile (Horizontal Scroll) */}
+          <div className="flex md:hidden w-full overflow-x-auto no-scrollbar gap-3 pb-0 -mx-4 px-4 mask-fade-sides">
+            {years.map((year) => (
+              <button
+                key={year}
+                onClick={() => setSelectedYear(year)}
+                className={cn(
+                  "flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-all whitespace-nowrap border",
+                  selectedYear === year
+                    ? "bg-red-600 border-red-500 text-white shadow-lg shadow-red-900/20"
+                    : "bg-neutral-900/80 border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700"
+                )}
+              >
+                {year}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* 3D Carousel Stage */}
         <div
-          className="relative w-full h-[400px] md:h-[500px] flex items-center justify-center perspective-1000"
 
+          className="relative w-full h-[500px] md:h-[500px] flex items-center justify-center perspective-1000"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEndMain}
         >
           <AnimatePresence mode="popLayout">
             {filteredItems.map((item, index) => {
@@ -187,12 +267,12 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                   key={`${item.year}-${index}`}
                   layoutId={undefined}
                   className={cn(
-                    "absolute top-0 w-[280px] md:w-[600px] h-[220px] md:h-[450px] rounded-3xl overflow-hidden bg-neutral-900 border border-neutral-800 cursor-pointer shadow-2xl",
-                    isActive ? "z-20 border-red-500/30" : "z-10 grayscale-[50%] hover:grayscale-0"
+                    "absolute top-0 w-[300px] md:w-[600px] h-[360px] md:h-auto md:aspect-[4/3] rounded-3xl overflow-hidden bg-neutral-900 border border-neutral-800 shadow-2xl transition-all duration-300",
+                    isActive ? "z-20 border-red-500/30 cursor-zoom-in" : "z-10 grayscale-[50%] hover:grayscale-0 cursor-pointer"
                   )}
                   initial={false}
                   animate={{
-                    x: offset * (typeof window !== 'undefined' && window.innerWidth < 768 ? 55 : 120) + '%',
+                    x: offset * (isMobile ? 55 : 120) + '%',
                     scale: isActive ? 1 : 0.7,
                     opacity: isActive ? 1 : 0.4,
                     zIndex: isActive ? 20 : 10 - Math.abs(offset),
@@ -200,9 +280,9 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                   }}
                   transition={{
                     type: "spring",
-                    stiffness: 200,
+                    stiffness: 300,
                     damping: 30,
-                    mass: 0.8
+                    mass: 0.5
                   }}
                   style={{
                     transformStyle: "preserve-3d",
@@ -221,7 +301,8 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="absolute inset-0 w-full h-full object-cover rounded-3xl"
+                    className="absolute inset-0 w-full h-full object-fill md:object-cover rounded-3xl"
+                    style={{ height: '100%' }}
                   />
 
                   {/* Overlay Gradient */}
@@ -230,17 +311,27 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                     isActive ? "opacity-100" : "opacity-0"
                   )} />
 
+
+
                   {/* Content (Only Visible on Active) */}
                   <div className={cn(
-                    "absolute bottom-0 left-0 w-full p-6 md:p-8 transform transition-all duration-500 delay-100 pointer-events-none",
+                    "absolute bottom-0 left-0 w-full pl-8 pr-4 py-4 md:p-8 transform transition-all duration-500 delay-100 pointer-events-none",
                     isActive ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
                   )}>
                     <motion.h3
-                      className="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight"
+                      className="text-xl md:text-3xl font-bold text-white mb-1 md:mb-2 leading-tight"
                       layout
                     >
                       {item.name || `Gallery ${item.year}`}
                     </motion.h3>
+                    {item.description && (
+                      <motion.p
+                        className="text-sm md:text-base text-neutral-300 line-clamp-2"
+                        layout
+                      >
+                        {item.description}
+                      </motion.p>
+                    )}
                   </div>
                 </motion.div>
               );
@@ -307,13 +398,16 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="relative w-full h-full flex flex-col items-center justify-center"
+              className="relative w-full h-full flex flex-col items-center justify-center pt-10 md:pt-12"
               onClick={(e) => e.stopPropagation()}
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEndModal}
             >
               <img
                 src={modalImage.image}
                 alt={modalImage.name}
-                className="h-auto max-h-[96vh] w-auto max-w-[98vw] object-contain rounded-lg shadow-2xl"
+                className="h-[70vh] md:h-[80vh] w-auto max-w-[95vw] object-contain rounded-lg shadow-2xl"
               />
               <div className="absolute bottom-20 left-0 right-0 text-center pointer-events-none">
                 <h3 className="text-xl md:text-2xl font-bold text-white drop-shadow-lg inline-block px-6 py-2 rounded-full bg-black/50 backdrop-blur-md border border-white/10">
@@ -325,7 +419,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
         )}
       </AnimatePresence>
 
-    </div>
+    </div >
   );
 };
 
