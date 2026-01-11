@@ -177,15 +177,15 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
         <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/80 via-neutral-950/50 to-neutral-950" />
       </div>
 
-      <div className="relative z-10 w-full max-w-7xl px-4 md:px-8 pt-16 md:pt-24 pb-12 flex flex-col justify-start min-h-screen">
+      <div className="relative z-10 w-full max-w-7xl px-4 md:px-4 pt-24 md:pt-24 pb-12 flex flex-col justify-start min-h-screen">
 
         {/* Controls Header */}
-        <div className="flex flex-wrap items-center justify-between gap-6 mb-4 sm:mb-8">
+        <div className="flex flex-wrap items-center justify-between gap-6 mb-10 sm:mb-8">
           <div className="space-y-2">
-            <h2 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-white via-red-200 to-red-400 bg-clip-text text-transparent">
+            <h2 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-white via-red-200 to-red-400 bg-clip-text text-transparent">
               Gallery
             </h2>
-            <p className="text-neutral-400 text-base md:text-lg max-w-md">
+            <p className="text-neutral-400 text-lg md:text-lg max-w-md">
               A visual journey through {selectedYear}
             </p>
           </div>
@@ -230,7 +230,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
           </div>
 
           {/* Year Filter - Mobile (Horizontal Scroll) */}
-          <div className="flex md:hidden w-full overflow-x-auto no-scrollbar gap-3 pb-0 -mx-4 px-4 mask-fade-sides">
+          <div className="flex md:hidden w-full overflow-x-auto no-scrollbar gap-3 pb-2 -mx-4 px-4 mask-fade-sides">
             {years.map((year) => (
               <button
                 key={year}
@@ -251,7 +251,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
         {/* 3D Carousel Stage */}
         <div
 
-          className="relative w-full h-[500px] md:h-[500px] flex items-center justify-center perspective-1000"
+          className="relative w-full h-[500px] md:h-[500px] flex items-center justify-center perspective-1000 mt-6 md:mt-0"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEndMain}
@@ -340,7 +340,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
         </div>
 
         {/* Carousel Controls */}
-        <div className="flex justify-center gap-6 mt-6">
+        <div className="flex justify-center gap-6 -mt-16 md:mt-8">
           <button
             onClick={handlePrev}
             className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-neutral-800 hover:border-red-500/30 transition-all active:scale-95"
