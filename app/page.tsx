@@ -303,7 +303,7 @@ const HomePage = () => {
                         </div>
                     ) : posterItems.length > 0 ? (
                         <>
-                            <div className="w-full h-[50dvh] md:h-[70vh] mt-2 md:-mt-8">
+                            <div className="w-full h-[50dvh] md:h-[70vh] mt-8 md:mt-4">
                                 <CircularGallery
                                     ref={galleryRef}
                                     items={posterItems}
