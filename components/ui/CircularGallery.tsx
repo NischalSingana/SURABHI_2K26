@@ -383,8 +383,8 @@ class Media {
       }
     }
     this.scale = this.screen.height / 1500;
-    this.plane.scale.y = (this.viewport.height * (1100 * this.scale)) / this.screen.height; // Increased for full vertical content
-    this.plane.scale.x = (this.viewport.width * (700 * this.scale)) / this.screen.width;
+    this.plane.scale.y = (this.viewport.height * (1400 * this.scale)) / this.screen.height; // Increased height for full poster display
+    this.plane.scale.x = (this.viewport.width * (900 * this.scale)) / this.screen.width; // Increased width for fuller display
     this.plane.program.uniforms.uPlaneSizes.value = [this.plane.scale.x, this.plane.scale.y];
     this.padding = 2;
     this.width = this.plane.scale.x + this.padding;
