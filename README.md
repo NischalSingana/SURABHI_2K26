@@ -57,9 +57,8 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
 - **Schedule Management**: Upload and manage event schedules
 - **Chatbot FAQ**: Manage chatbot categories and frequently asked questions
 
-### 🤖 AI Chatbot
+### 🤖 Chatbot
 - **Category-Based Navigation**: Organized FAQ system
-- **Dynamic Responses**: Real-time answers to common queries
 - **Admin Configurable**: Manage questions and categories from admin panel
 
 ### 📱 Additional Features
