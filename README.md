@@ -100,61 +100,6 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
 - **Code Analysis**: Knip 5.80.0
 - **Compiler**: Babel React Compiler 1.0.0
 
-## 📁 Project Structure
-
-```
-SurabhiWebsite-2026-/
-├── app/                          # Next.js App Router
-│   ├── (auth)/                   # Authentication routes
-│   │   └── login/                # Login page
-│   ├── accommodation/            # Accommodation booking
-│   ├── admin/                    # Admin dashboard
-│   │   ├── dashboard/            # Main admin panel
-│   │   ├── events/               # Event management
-│   │   ├── users/                # User management
-│   │   ├── sponsors/             # Sponsor management
-│   │   ├── gallery/              # Gallery management
-│   │   └── ...                   # Other admin features
-│   ├── api/                      # API routes
-│   │   ├── auth/                 # Auth endpoints
-│   │   ├── events/               # Event endpoints
-│   │   ├── poster-gallery/       # Poster gallery API
-│   │   └── ...                   # Other API routes
-│   ├── competitions/             # Event listing & registration
-│   ├── contact/                  # Contact coordinators
-│   ├── gallery/                  # Photo gallery
-│   ├── judge/                    # Judge dashboard
-│   ├── poster-gallery/           # Poster gallery page
-│   ├── profile/                  # User profile
-│   ├── results/                  # Competition results
-│   ├── schedule/                 # Event schedule
-│   ├── sponsors/                 # Sponsors showcase
-│   ├── stay/                     # Accommodation info
-│   ├── verify/                   # Email verification
-│   ├── page.tsx                  # Homepage
-│   ├── layout.tsx                # Root layout
-│   └── globals.css               # Global styles
-├── components/                   # React components
-│   ├── ui/                       # UI components
-│   │   ├── CircularGallery.tsx   # 3D circular gallery
-│   │   ├── LoginFlow.tsx         # Login modal
-│   │   ├── Footer.tsx            # Footer component
-│   │   └── ...                   # Other UI components
-│   ├── chat/                     # Chatbot components
-│   ├── providers/                # Context providers
-│   └── PassScanner.tsx           # QR scanner component
-├── lib/                          # Utility libraries
-│   ├── auth.ts                   # Auth configuration
-│   ├── prisma.ts                 # Prisma client
-│   └── ...                       # Other utilities
-├── actions/                      # Server actions
-├── prisma/                       # Database schema
-│   └── schema.prisma             # Prisma schema
-├── public/                       # Static assets
-├── hooks/                        # Custom React hooks
-├── scripts/                      # Utility scripts
-└── Dockerfile                    # Docker configuration
-```
 
 ## 🚀 Getting Started
 
@@ -217,10 +162,6 @@ SurabhiWebsite-2026-/
    ```bash
    npm run dev
    ```
-
-6. **Open your browser**
-   
-   Navigate to [http://localhost:3000](http://localhost:3000)
 
 ## 📝 Available Scripts
 
@@ -289,24 +230,3 @@ docker build -t surabhi-2026 .
 docker run -p 3000:3000 --env-file .env surabhi-2026
 ```
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
-
-## 🤝 Contributing
-
-This is a student-led project for KL University's Surabhi cultural fest. For contributions or issues, please contact the development team.
-
-## 📞 Contact
-
-For questions or support regarding the website:
-- Visit the [Contact Page](http://localhost:3000/contact) for coordinator information
-- Email: [Contact through the website]
-
-## 🏆 Achievements
-
-Surabhi has been recognized in the **[Indian Book of Records](https://indianbookofrecords.com/kl-university-indian-world-record-holder)** for its scale and excellence in cultural fest organization.
-
----
-
-**Built with ❤️ by the Student Activity Centre (SAC), KL University**
