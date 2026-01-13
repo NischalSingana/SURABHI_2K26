@@ -18,6 +18,7 @@ import {
 } from "react-icons/fi";
 import { useSession, signOut } from "@/lib/auth-client";
 import SignInOAuthButton from "./signInOAuthButton";
+import { BRANCHES } from "@/lib/constants";
 
 type College = "KL_UNIVERSITY" | "OTHER" | "";
 
@@ -39,22 +40,7 @@ const COLLEGES = [
   "Other College"
 ];
 
-const BRANCHES = [
-  "Computer Science Engineering",
-  "Electronics and Communication Engineering",
-  "Electrical and Electronics Engineering",
-  "Mechanical Engineering",
-  "Civil Engineering",
-  "Biotechnology",
-  "BBA",
-  "MBA",
-  "BCA",
-  "M.Tech",
-  "B.Sc / B.Com / Arts",
-  "Pharmacy / Medical",
-  "Law / Architecture",
-  "Other"
-];
+
 
 const MultiStepRegister = () => {
   const router = useRouter();
@@ -62,6 +48,7 @@ const MultiStepRegister = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasAutoAdvanced, setHasAutoAdvanced] = useState(false);
+  const [registrationComplete, setRegistrationComplete] = useState(false);
 
   const [formData, setFormData] = useState<RegistrationData>({
     college: "",
@@ -107,8 +94,8 @@ const MultiStepRegister = () => {
 
   // Prevent navigation away from registration page until complete
   useEffect(() => {
-    // Only apply lock if user is authenticated and on step 3 (filling form)
-    if (session?.user && currentStep === 3) {
+    // Only apply lock if user is authenticated, on step 3, and registration not complete
+    if (session?.user && currentStep === 3 && !registrationComplete) {
       // Warn user before leaving/refreshing page
       const handleBeforeUnload = (e: BeforeUnloadEvent) => {
         e.preventDefault();
@@ -122,7 +109,7 @@ const MultiStepRegister = () => {
         window.removeEventListener("beforeunload", handleBeforeUnload);
       };
     }
-  }, [session?.user, currentStep]);
+  }, [session?.user, currentStep, registrationComplete]);
 
 
   // Check if user is already registered on component mount
@@ -153,6 +140,7 @@ const MultiStepRegister = () => {
             // Pre-fill existing user data
             setFormData(prev => ({
               ...prev,
+              collegeName: data.userData.collage || prev.collegeName,
               phone: data.userData.phone || prev.phone,
               collageId: data.userData.collageId || prev.collageId,
               branch: data.userData.branch || prev.branch,
@@ -191,11 +179,20 @@ const MultiStepRegister = () => {
       }
     }
 
+    // If it's OTHER college, we want to preserve the existing college name if it was autofilled
+    // effectively, if formData.collegeName is NOT "Other College" (default) and NOT empty, keep it.
+    let finalCollegeName = college;
+    if (collegeType === "OTHER") {
+      if (formData.collegeName && formData.collegeName !== "Other College") {
+        finalCollegeName = formData.collegeName;
+      }
+    }
+
     // Save to localStorage before OAuth redirect
     localStorage.setItem("selectedCollege", collegeType);
-    localStorage.setItem("selectedCollegeName", college);
+    localStorage.setItem("selectedCollegeName", finalCollegeName);
 
-    setFormData({ ...formData, college: collegeType, collegeName: college });
+    setFormData({ ...formData, college: collegeType, collegeName: finalCollegeName });
     setCurrentStep(2);
   };
 
@@ -264,8 +261,17 @@ const MultiStepRegister = () => {
       localStorage.removeItem("selectedCollege");
       localStorage.removeItem("selectedCollegeName");
 
+      // Mark registration as complete to allow navigation
+      setRegistrationComplete(true);
+
       toast.success(result.message || "Registration successful!");
-      router.push("/profile");
+
+      // Reload the page to refresh session data
+      // This ensures the ConditionalNavbar gets the updated user data
+      // and removes the navigation lock
+      setTimeout(() => {
+        window.location.href = "/"; // Use window.location to force a full page reload
+      }, 1000); // Increased delay to show success message
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Registration failed. Please try again.";
       toast.error(errorMessage);
@@ -345,7 +351,7 @@ const MultiStepRegister = () => {
                     className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all ${currentStep > 1
                       ? "bg-green-500 text-white"
                       : currentStep === 1
-                        ? "bg-orange-500 text-white"
+                        ? "bg-red-600 text-white"
                         : "bg-zinc-800 text-zinc-500"
                       }`}
                   >
@@ -362,7 +368,7 @@ const MultiStepRegister = () => {
                     className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all ${currentStep > 2
                       ? "bg-green-500 text-white"
                       : currentStep === 2
-                        ? "bg-orange-500 text-white"
+                        ? "bg-red-600 text-white"
                         : "bg-zinc-800 text-zinc-500"
                       }`}
                   >
@@ -379,7 +385,7 @@ const MultiStepRegister = () => {
                     className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all ${currentStep > 3
                       ? "bg-green-500 text-white"
                       : currentStep === 3
-                        ? "bg-orange-500 text-white"
+                        ? "bg-red-600 text-white"
                         : "bg-zinc-800 text-zinc-500"
                       }`}
                   >
@@ -392,6 +398,7 @@ const MultiStepRegister = () => {
           </div>
         </div>
       </div>
+
 
       {/* Step Content */}
       <div className="flex-1 w-full px-6 pb-8">
@@ -425,7 +432,7 @@ const MultiStepRegister = () => {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => handleCollegeSelect(college)}
-                        className="p-8 rounded-xl border-2 border-zinc-700 bg-zinc-800/50 hover:border-orange-500 hover:bg-orange-500/10 transition-all text-left"
+                        className="p-8 rounded-xl border-2 border-zinc-700 bg-zinc-800/50 hover:border-red-600 hover:bg-red-600/10 transition-all text-left"
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-lg font-semibold text-white">
@@ -529,7 +536,7 @@ const MultiStepRegister = () => {
                           }
                           setCurrentStep(3);
                         }}
-                        className="w-full px-8 py-4 bg-linear-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all font-medium flex items-center justify-center gap-2"
+                        className="w-full px-8 py-4 bg-linear-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 transition-all font-medium flex items-center justify-center gap-2"
                       >
                         Next: Complete Profile
                         <FiChevronRight />
@@ -590,7 +597,7 @@ const MultiStepRegister = () => {
                           value={formData.collegeName === "Other College" ? "" : formData.collegeName}
                           onChange={handleInputChange}
                           required
-                          className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
                           placeholder="Enter your college name"
                         />
                       </div>
@@ -612,7 +619,7 @@ const MultiStepRegister = () => {
                         readOnly={formData.college === "KL_UNIVERSITY"}
                         className={`w-full pl-12 pr-4 py-3 text-base border border-zinc-700 rounded-lg text-white ${formData.college === "KL_UNIVERSITY"
                           ? "bg-zinc-800/50 cursor-not-allowed"
-                          : "bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          : "bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
                           }`}
                         placeholder="Enter your full name"
                       />
@@ -650,7 +657,7 @@ const MultiStepRegister = () => {
                         onChange={handleInputChange}
                         required
                         pattern="[0-9]{10}"
-                        className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
                         placeholder="10-digit mobile number"
                       />
                     </div>
@@ -669,7 +676,7 @@ const MultiStepRegister = () => {
                         value={formData.collageId}
                         onChange={handleInputChange}
                         required
-                        className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
                         placeholder="Enter your college ID"
                       />
                     </div>
@@ -697,7 +704,7 @@ const MultiStepRegister = () => {
                           }
                         }}
                         required
-                        className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all appearance-none"
+                        className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all appearance-none"
                       >
                         <option value="">Select your branch</option>
                         {BRANCHES.map((branch) => (
@@ -715,7 +722,7 @@ const MultiStepRegister = () => {
                           value={formData.branch === "Other" ? "" : formData.branch}
                           onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
                           placeholder="Enter your specific course/branch"
-                          className="w-full px-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          className="w-full px-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-600"
                           autoFocus
                           required
                         />
@@ -735,7 +742,7 @@ const MultiStepRegister = () => {
                         value={formData.year}
                         onChange={handleInputChange}
                         required
-                        className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all appearance-none"
+                        className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all appearance-none"
                       >
                         <option value={1}>1st Year</option>
                         <option value={2}>2nd Year</option>
@@ -761,7 +768,7 @@ const MultiStepRegister = () => {
                             name="transactionId"
                             value={formData.transactionId}
                             onChange={handleInputChange}
-                            className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                            className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
                             placeholder="Enter transaction ID (if paid)"
                           />
                         </div>
@@ -778,7 +785,7 @@ const MultiStepRegister = () => {
                             type="file"
                             accept="image/*"
                             onChange={handleFileChange}
-                            className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-orange-500 file:text-white hover:file:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                            className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-red-600 file:text-white hover:file:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
                           />
                         </div>
                         {formData.paymentProof && (
@@ -815,7 +822,7 @@ const MultiStepRegister = () => {
                     whileTap={{ scale: 0.98 }}
                     onClick={handleSubmit}
                     disabled={!canSubmit() || isSubmitting}
-                    className="w-full px-8 py-4 bg-linear-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full px-8 py-4 bg-linear-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {isSubmitting ? "Submitting..." : "Complete Registration"}
                     <FiCheck />
