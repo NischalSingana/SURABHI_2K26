@@ -64,7 +64,7 @@ const LoginFlow = () => {
   if (isPending) {
     return (
       <div className="w-full max-w-md flex items-center justify-center py-12">
-        <div className="animate-spin h-8 w-8 border-4 border-orange-500 border-t-transparent rounded-full"></div>
+        <div className="animate-spin h-8 w-8 border-4 border-red-600 border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -95,14 +95,14 @@ const LoginFlow = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => handleCollegeSelect("KL_UNIVERSITY")}
-                className="w-full p-6 rounded-xl border-2 border-zinc-700 bg-zinc-800/50 hover:border-orange-500 hover:bg-orange-500/10 transition-all text-left"
+                className="w-full p-6 rounded-xl border-2 border-zinc-700 bg-zinc-800/50 hover:border-red-600 hover:bg-red-600/10 transition-all text-left"
               >
                 <span className="flex items-center justify-between w-full">
                   <span>
                     <span className="text-lg font-semibold text-white block">
                       KL University
                     </span>
-                    <span className="text-sm text-zinc-400 hover:text-orange-300 mt-1 block">
+                    <span className="text-sm text-zinc-400 hover:text-red-400 mt-1 block">
                       Sign in with Microsoft
                     </span>
                   </span>
@@ -114,7 +114,7 @@ const LoginFlow = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => handleCollegeSelect("OTHER")}
-                className="w-full p-6 rounded-xl border-2 border-zinc-700 bg-zinc-800/50 hover:border-orange-500 hover:bg-orange-500/10 transition-all text-left"
+                className="w-full p-6 rounded-xl border-2 border-zinc-700 bg-zinc-800/50 hover:border-red-600 hover:bg-red-600/10 transition-all text-left"
               >
                 <span className="flex items-center justify-between w-full">
                   <span>
