@@ -285,11 +285,13 @@ const MultiStepRegister = () => {
       return basicFieldsFilled;
     }
 
-    // Other college students need basic fields and college name (payment fields are optional)
+    // Other college students need all fields including college name and payment fields
     return (
       basicFieldsFilled &&
       formData.collegeName &&
-      formData.collegeName !== "Other College"
+      formData.collegeName !== "Other College" &&
+      formData.transactionId &&
+      formData.paymentProof
     );
   };
 
@@ -748,7 +750,7 @@ const MultiStepRegister = () => {
                       {/* Transaction ID */}
                       <div>
                         <label className="block text-sm font-medium text-zinc-300 mb-2">
-                          Payment Transaction ID (Optional)
+                          Payment Transaction ID *
                         </label>
                         <div className="relative">
                           <FiCreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
@@ -757,8 +759,9 @@ const MultiStepRegister = () => {
                             name="transactionId"
                             value={formData.transactionId}
                             onChange={handleInputChange}
+                            required
                             className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                            placeholder="Enter transaction ID (if paid)"
+                            placeholder="Enter transaction ID"
                           />
                         </div>
                       </div>
@@ -766,7 +769,7 @@ const MultiStepRegister = () => {
                       {/* Payment Proof */}
                       <div>
                         <label className="block text-sm font-medium text-zinc-300 mb-2">
-                          Payment Proof (Screenshot) (Optional)
+                          Payment Proof (Screenshot) *
                         </label>
                         <div className="relative">
                           <FiUpload className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
@@ -774,6 +777,7 @@ const MultiStepRegister = () => {
                             type="file"
                             accept="image/*"
                             onChange={handleFileChange}
+                            required
                             className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-orange-500 file:text-white hover:file:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                           />
                         </div>
@@ -797,9 +801,9 @@ const MultiStepRegister = () => {
 
                   {/* Info message for Other College students */}
                   {formData.college === "OTHER" && (
-                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                      <p className="text-blue-300 text-sm font-medium">
-                        ℹ️ Payment fields are optional. You can complete registration now and add payment details later if needed.
+                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                      <p className="text-amber-300 text-sm font-medium">
+                        ⚠️ Payment details are required for non-KL University students to complete registration.
                       </p>
                     </div>
                   )}
