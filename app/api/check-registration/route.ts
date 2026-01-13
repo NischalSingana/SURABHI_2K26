@@ -6,7 +6,7 @@ export async function POST(request: Request) {
     const { userId } = await request.json();
 
     if (!userId) {
-      return NextResponse.json({ isRegistered: false }, { status: 200 });
+      return NextResponse.json({ isRegistered: false, userData: null }, { status: 200 });
     }
 
     // Check if user exists in database
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 
     // If user doesn't exist in database (was deleted), return false
     if (!user) {
-      return NextResponse.json({ isRegistered: false }, { status: 200 });
+      return NextResponse.json({ isRegistered: false, userData: null }, { status: 200 });
     }
 
     // If user exists but hasn't filled registration fields, return false
@@ -35,10 +35,20 @@ export async function POST(request: Request) {
       user.phone
     );
 
-    return NextResponse.json({ isRegistered }, { status: 200 });
+    // Return both registration status and existing user data
+    return NextResponse.json({
+      isRegistered,
+      userData: {
+        collage: user.collage || "",
+        collageId: user.collageId || "",
+        branch: user.branch || "",
+        year: user.year || 1,
+        phone: user.phone || "",
+      }
+    }, { status: 200 });
   } catch (error) {
     console.error("Check registration error:", error);
     // On error, allow user to continue (return false)
-    return NextResponse.json({ isRegistered: false }, { status: 200 });
+    return NextResponse.json({ isRegistered: false, userData: null }, { status: 200 });
   }
 }
