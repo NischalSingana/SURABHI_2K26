@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import PillNav from "@/components/ui/PillNav";
 import { useSession } from "@/lib/auth-client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { isRegistrationComplete } from "@/lib/registration-check";
 
 const navItems = [
@@ -19,6 +19,7 @@ export default function ConditionalNavbar() {
     const pathname = usePathname();
     const router = useRouter();
     const { data: session, isPending } = useSession();
+    const [isServerConfirmedRegistered, setIsServerConfirmedRegistered] = useState(false);
 
     useEffect(() => {
         if (!isPending && session?.user?.role === "JUDGE") {
@@ -26,25 +27,56 @@ export default function ConditionalNavbar() {
             if (!pathname?.startsWith("/judge")) {
                 router.replace("/judge/dashboard");
             }
+            return;
         }
 
-        // Redirect to registration if user is authenticated but hasn't completed registration
-        if (!isPending && session?.user && !isRegistrationComplete(session.user)) {
-            // Allow access to register, login, and auth callback routes
-            const allowedRoutes = ["/register", "/login", "/auth"];
-            const isAllowedRoute = allowedRoutes.some(route => pathname?.startsWith(route));
+        const checkRegistrationAndRedirect = async () => {
+            // Redirect to registration if user is authenticated but hasn't completed registration
+            if (!isPending && session?.user) {
+                // First check locally based on session
+                if (isRegistrationComplete(session.user)) {
+                    return;
+                }
 
-            if (!isAllowedRoute) {
-                router.replace("/register");
+                // If session says incomplete, double check with server to avoid stale session issues
+                try {
+                    const response = await fetch("/api/check-registration", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ userId: session.user.id }),
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.isRegistered) {
+                            // User is actually registered on server, so don't redirect
+                            setIsServerConfirmedRegistered(true);
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to verify registration status", e);
+                }
+
+                // If we get here, both session and server (or server failed) think we are incomplete
+                // Allow access to register, login, and auth callback routes
+                const allowedRoutes = ["/register", "/login", "/auth"];
+                const isAllowedRoute = allowedRoutes.some(route => pathname?.startsWith(route));
+
+                if (!isAllowedRoute) {
+                    router.replace("/register");
+                }
             }
-        }
+        };
+
+        checkRegistrationAndRedirect();
     }, [session, isPending, pathname, router]);
 
     // Hide navbar on admin routes, if user is a judge, OR if registration is incomplete
     if (
         pathname?.startsWith("/admin") ||
         session?.user?.role === "JUDGE" ||
-        (session?.user && !isRegistrationComplete(session.user))
+        (session?.user && !isRegistrationComplete(session.user) && !isServerConfirmedRegistered)
     ) {
         return null;
     }
