@@ -147,14 +147,9 @@ const MultiStepRegister = () => {
 
         if (response.ok) {
           const data = await response.json();
-          if (data.isRegistered) {
-            toast.error("Account already registered. You cannot register again.");
-            // Redirect to profile after a short delay
-            setTimeout(() => {
-              router.push("/profile");
-            }, 1500);
-            return;
-          } else if (data.userData) {
+          // Don't redirect or show error - just pre-fill data if available
+          // Backend will handle duplicate registration attempts
+          if (data.userData) {
             // Pre-fill existing user data
             setFormData(prev => ({
               ...prev,
@@ -164,7 +159,6 @@ const MultiStepRegister = () => {
               year: data.userData.year || prev.year,
             }));
           }
-          // If not registered (including deleted users), allow registration to proceed
         }
       } catch (error) {
         console.error("Registration check error:", error);
