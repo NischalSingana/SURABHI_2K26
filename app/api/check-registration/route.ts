@@ -9,7 +9,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ isRegistered: false }, { status: 200 });
     }
 
-    // Check if user has already registered
+    // Check if user exists in database
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -21,18 +21,24 @@ export async function POST(request: Request) {
       },
     });
 
-    // If user has already filled these fields, they've already registered
+    // If user doesn't exist in database (was deleted), return false
+    if (!user) {
+      return NextResponse.json({ isRegistered: false }, { status: 200 });
+    }
+
+    // If user exists but hasn't filled registration fields, return false
     const isRegistered = !!(
-      user?.collage &&
-      user?.collageId &&
-      user?.branch &&
-      user?.year &&
-      user?.phone
+      user.collage &&
+      user.collageId &&
+      user.branch &&
+      user.year &&
+      user.phone
     );
 
     return NextResponse.json({ isRegistered }, { status: 200 });
   } catch (error) {
     console.error("Check registration error:", error);
+    // On error, allow user to continue (return false)
     return NextResponse.json({ isRegistered: false }, { status: 200 });
   }
 }

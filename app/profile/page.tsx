@@ -6,8 +6,9 @@ import Link from "next/link";
 import { Suspense } from "react";
 import ProfileClient from "./ProfileClient";
 import { getMyRegisteredEvents } from "@/actions/profile.action";
-
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { isRegistrationComplete } from "@/lib/registration-check";
 
 async function SessionData() {
   const headersList = await headers();
@@ -42,6 +43,11 @@ async function SessionData() {
 
   if (!user) {
     return <div>User not found</div>;
+  }
+
+  // Check if registration is complete, redirect to register if not
+  if (!isRegistrationComplete(user)) {
+    redirect("/register");
   }
 
   const hasGoogleAccount = user.accounts.some(
