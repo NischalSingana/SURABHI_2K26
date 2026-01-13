@@ -65,18 +65,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For non-KL students, payment fields are required
+    // Payment fields are optional for non-KL students
     const isKLStudent = college === "KL_UNIVERSITY";
-    if (!isKLStudent && (!transactionId || !paymentProof)) {
-      return NextResponse.json(
-        { error: "Payment details are required for non-KL students" },
-        { status: 400 }
-      );
-    }
 
     // Upload payment proof only if provided
     let paymentProofUrl = null;
-    if (paymentProof) {
+    if (paymentProof && paymentProof.size > 0) {
       paymentProofUrl = await uploadFile(paymentProof, "payment-proofs");
     }
 
