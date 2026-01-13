@@ -340,7 +340,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
         </div>
 
         {/* Carousel Controls */}
-        <div className="flex justify-center gap-6 -mt-16 md:mt-8">
+        <div className="flex justify-center gap-6 -mt-16 md:mt-8xx">
           <button
             onClick={handlePrev}
             className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-neutral-800 hover:border-red-500/30 transition-all active:scale-95"

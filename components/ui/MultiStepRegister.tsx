@@ -16,7 +16,7 @@ import {
   FiChevronLeft,
   FiCheck
 } from "react-icons/fi";
-import { useSession } from "@/lib/auth-client";
+import { useSession, signOut } from "@/lib/auth-client";
 import SignInOAuthButton from "./signInOAuthButton";
 
 type College = "KL_UNIVERSITY" | "OTHER" | "";
@@ -76,10 +76,10 @@ const MultiStepRegister = () => {
     paymentProof: null,
   });
 
-  // Auto-fill data after OAuth login
+  // Auto-detect college from localStorage and skip to registration
   useEffect(() => {
-    if (session?.user && currentStep === 2 && !hasAutoAdvanced) {
-      // User is logged in at step 2, check if we have saved college selection
+    if (session?.user && currentStep === 1 && !hasAutoAdvanced) {
+      // Check if we have saved college selection from OAuth flow
       const savedCollege = localStorage.getItem("selectedCollege");
       const savedCollegeName = localStorage.getItem("selectedCollegeName");
 
@@ -96,13 +96,32 @@ const MultiStepRegister = () => {
           email: session.user.email || "",
         }));
 
-        // Small delay to ensure state is updated before moving to step 3
+        // Skip directly to step 3 (registration form)
         setTimeout(() => {
           setCurrentStep(3);
         }, 100);
       }
     }
   }, [session?.user?.id, currentStep, hasAutoAdvanced]);
+
+  // Prevent navigation away from registration page until complete
+  useEffect(() => {
+    // Only apply lock if user is authenticated and on step 3 (filling form)
+    if (session?.user && currentStep === 3) {
+      // Warn user before leaving/refreshing page
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = ""; // Required for Chrome
+        return ""; // Required for some browsers
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      };
+    }
+  }, [session?.user, currentStep]);
 
   // Check if user is already registered on component mount
   useEffect(() => {
@@ -118,6 +137,7 @@ const MultiStepRegister = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId: session.user.id }),
         });
+
         if (response.ok) {
           const data = await response.json();
           if (data.isRegistered) {
@@ -125,17 +145,38 @@ const MultiStepRegister = () => {
             // Do not clear localStorage before redirecting
             router.push("/profile");
           }
+          // If not registered (including deleted users), allow registration to proceed
         }
       } catch (error) {
-        // Silently fail - user can continue
+        console.error("Registration check error:", error);
+        // On error, allow user to continue with registration
       }
     };
 
     checkExistingRegistration();
   }, [session, router]);
 
-  const handleCollegeSelect = (college: string) => {
+  const handleCollegeSelect = async (college: string) => {
     const collegeType = college === "KL University" ? "KL_UNIVERSITY" : "OTHER";
+
+    // If user is already authenticated but switching college type, sign them out
+    if (session?.user && formData.college && formData.college !== collegeType) {
+      try {
+        toast.info("Switching college type. Please sign in with the appropriate account.");
+
+        // Save to localStorage first
+        localStorage.setItem("selectedCollege", collegeType);
+        localStorage.setItem("selectedCollegeName", college);
+
+        // Sign out the user using auth-client
+        await signOut();
+
+        // Update state and go to Step 2 - the page will reload automatically after signOut
+        return;
+      } catch (error) {
+        console.error("Sign out error:", error);
+      }
+    }
 
     // Save to localStorage before OAuth redirect
     localStorage.setItem("selectedCollege", collegeType);
@@ -235,9 +276,11 @@ const MultiStepRegister = () => {
       return basicFieldsFilled;
     }
 
-    // Other college students need payment fields
+    // Other college students need all fields including college name and payment fields
     return (
       basicFieldsFilled &&
+      formData.collegeName &&
+      formData.collegeName !== "Other College" &&
       formData.transactionId &&
       formData.paymentProof
     );
@@ -250,44 +293,91 @@ const MultiStepRegister = () => {
   };
 
   return (
-    <div className="w-full min-h-screen py-10 bg-linear-to-br from-zinc-950 via-zinc-900 to-black flex flex-col">
+    <div className="w-full min-h-screen py-12 bg-linear-to-br from-zinc-950 via-zinc-900 to-black flex flex-col">
       {/* Header */}
-      <div className="w-full px-6 py-8">
+      <div className="w-full px-6 py-10">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold text-white mb-2">Surabhi 2025 Registration</h1>
-          <p className="text-zinc-400">Complete your registration in 3 simple steps</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Surabhi 2026 Registration</h1>
+          <p className="text-base text-zinc-400">Complete your registration in 3 simple steps</p>
+          {session?.user && currentStep === 3 && (
+            <div className="mt-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+              <p className="text-amber-300 text-base font-medium">
+                ⚠️ Please complete all fields to finish registration. You cannot navigate away until registration is complete.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full px-6 mb-8">
+      <div className="w-full px-6 mb-12">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-4">
-            {[1, 2, 3].map((step) => (
-              <div key={step} className="flex items-center flex-1">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${currentStep > step
-                    ? "bg-green-500 text-white"
-                    : currentStep === step
-                      ? "bg-orange-500 text-white"
-                      : "bg-zinc-800 text-zinc-500"
-                    }`}
-                >
-                  {currentStep > step ? <FiCheck /> : step}
-                </div>
-                {step < 3 && (
+          <div className="relative">
+            {/* Background Line */}
+            <div className="absolute top-6 h-1.5 bg-zinc-800" style={{ left: '8.33%', right: '8.33%' }} />
+
+            {/* Animated Progress Line */}
+            <div
+              className="absolute top-6 left-0 h-1.5 bg-green-500 transition-all duration-500"
+              style={{
+                left: '8.33%',
+                width: currentStep === 1 ? '0%' : currentStep === 2 ? '41.67%' : '83.33%'
+              }}
+            />
+
+            {/* Steps */}
+            <div className="relative flex justify-between">
+              {/* Step 1 */}
+              <div className="flex flex-col items-center">
+                <div className="flex items-center justify-center w-full mb-6">
                   <div
-                    className={`flex-1 h-1 mx-2 transition-all ${currentStep > step ? "bg-green-500" : "bg-zinc-800"
+                    className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all ${currentStep > 1
+                      ? "bg-green-500 text-white"
+                      : currentStep === 1
+                        ? "bg-orange-500 text-white"
+                        : "bg-zinc-800 text-zinc-500"
                       }`}
-                  />
-                )}
+                  >
+                    {currentStep > 1 ? <FiCheck /> : 1}
+                  </div>
+                </div>
+                <span className="text-base text-zinc-400 text-center">College Selection</span>
               </div>
-            ))}
-          </div>
-          <div className="flex justify-between text-sm text-zinc-400">
-            <span>College Selection</span>
-            <span>Authentication</span>
-            <span>Complete Profile</span>
+
+              {/* Step 2 */}
+              <div className="flex flex-col items-center">
+                <div className="flex items-center justify-center w-full mb-6">
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all ${currentStep > 2
+                      ? "bg-green-500 text-white"
+                      : currentStep === 2
+                        ? "bg-orange-500 text-white"
+                        : "bg-zinc-800 text-zinc-500"
+                      }`}
+                  >
+                    {currentStep > 2 ? <FiCheck /> : 2}
+                  </div>
+                </div>
+                <span className="text-base text-zinc-400 text-center">Authentication</span>
+              </div>
+
+              {/* Step 3 */}
+              <div className="flex flex-col items-center">
+                <div className="flex items-center justify-center w-full mb-6">
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all ${currentStep > 3
+                      ? "bg-green-500 text-white"
+                      : currentStep === 3
+                        ? "bg-orange-500 text-white"
+                        : "bg-zinc-800 text-zinc-500"
+                      }`}
+                  >
+                    {currentStep > 3 ? <FiCheck /> : 3}
+                  </div>
+                </div>
+                <span className="text-base text-zinc-400 text-center">Complete Profile</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -311,32 +401,29 @@ const MultiStepRegister = () => {
                   <h2 className="text-3xl font-bold text-white mb-2">
                     Select Your College
                   </h2>
-                  <p className="text-zinc-400">
+                  <p className="text-base text-zinc-400">
                     Choose your institution to continue registration
                   </p>
                 </div>
 
                 <div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {COLLEGES.map((college) => (
                       <motion.button
                         key={college}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => handleCollegeSelect(college)}
-                        className={`p-6 rounded-xl border-2 transition-all text-left ${college === "KL University"
-                          ? "border-orange-500 bg-orange-500/10 hover:bg-orange-500/20"
-                          : "border-zinc-700 bg-zinc-800/50 hover:bg-zinc-800"
-                          }`}
+                        className="p-8 rounded-xl border-2 border-zinc-700 bg-zinc-800/50 hover:border-orange-500 hover:bg-orange-500/10 transition-all text-left"
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-lg font-semibold text-white">
                             {college}
                           </span>
-                          <FiChevronRight className="text-zinc-400" />
+                          <FiChevronRight className="text-zinc-400 text-2xl" />
                         </div>
                         {college === "KL University" && (
-                          <p className="text-sm text-orange-300 mt-2">
+                          <p className="text-base text-zinc-400 mt-3">
                             Microsoft authentication required
                           </p>
                         )}
@@ -364,7 +451,7 @@ const MultiStepRegister = () => {
                       <h2 className="text-3xl font-bold text-white mb-2">
                         Authenticate Your Account
                       </h2>
-                      <p className="text-zinc-400">
+                      <p className="text-base text-zinc-400">
                         Sign in to continue registration for {formData.collegeName}
                       </p>
                     </div>
@@ -372,19 +459,19 @@ const MultiStepRegister = () => {
                     <div className="space-y-6">
                       {formData.college === "KL_UNIVERSITY" && (
                         <>
-                          <div className="">
-                            <p className="text-red-500 text-sm font-medium">
+                          <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+                            <p className="text-red-400 text-base font-medium">
                               Important: All KL University students must login with
                               their official college email ID (@kluniversity.in)
                             </p>
                           </div>
 
-                          <SignInOAuthButton provider="microsoft" signup={true} />
+                          <SignInOAuthButton provider="microsoft" signup={true} collegeType="KL_UNIVERSITY" />
                         </>
                       )}
 
                       {formData.college === "OTHER" && (
-                        <SignInOAuthButton provider="google" signup={true} />
+                        <SignInOAuthButton provider="google" signup={true} collegeType="OTHER" />
                       )}
 
                       <button
@@ -465,12 +552,12 @@ const MultiStepRegister = () => {
                   <h2 className="text-3xl font-bold text-white mb-2">
                     Complete Your Profile
                   </h2>
-                  <p className="text-zinc-400">
+                  <p className="text-base text-zinc-400">
                     Fill in the remaining details to complete registration
                   </p>
                 </div>
 
-                <div className="space-y-6 pr-2">
+                <div className="space-y-8 pr-2">
                   {/* College Name - Only for Other College */}
                   {formData.college === "OTHER" && (
                     <div>
@@ -478,33 +565,38 @@ const MultiStepRegister = () => {
                         College Name *
                       </label>
                       <div className="relative">
-                        <FiBook className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                        <FiBook className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
                         <input
                           type="text"
                           name="collegeName"
                           value={formData.collegeName === "Other College" ? "" : formData.collegeName}
                           onChange={handleInputChange}
                           required
-                          className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                           placeholder="Enter your college name"
                         />
                       </div>
                     </div>
                   )}
 
-                  {/* Name (Read-only) */}
+                  {/* Name (Editable for Google, Read-only for Microsoft) */}
                   <div>
                     <label className="block text-sm font-medium text-zinc-300 mb-2">
                       Full Name *
                     </label>
                     <div className="relative">
-                      <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                      <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
                       <input
                         type="text"
                         name="name"
                         value={formData.name}
-                        readOnly
-                        className="w-full pl-10 pr-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-lg text-white cursor-not-allowed"
+                        onChange={handleInputChange}
+                        readOnly={formData.college === "KL_UNIVERSITY"}
+                        className={`w-full pl-12 pr-4 py-3 text-base border border-zinc-700 rounded-lg text-white ${formData.college === "KL_UNIVERSITY"
+                          ? "bg-zinc-800/50 cursor-not-allowed"
+                          : "bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          }`}
+                        placeholder="Enter your full name"
                       />
                     </div>
                   </div>
@@ -515,7 +607,7 @@ const MultiStepRegister = () => {
                       Email Address *
                     </label>
                     <div className="relative">
-                      <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                      <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
                       <input
                         type="email"
                         name="email"
@@ -532,7 +624,7 @@ const MultiStepRegister = () => {
                       Phone Number *
                     </label>
                     <div className="relative">
-                      <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                      <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
                       <input
                         type="tel"
                         name="phone"
@@ -540,7 +632,7 @@ const MultiStepRegister = () => {
                         onChange={handleInputChange}
                         required
                         pattern="[0-9]{10}"
-                        className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                         placeholder="10-digit mobile number"
                       />
                     </div>
@@ -552,14 +644,14 @@ const MultiStepRegister = () => {
                       College ID / Roll Number *
                     </label>
                     <div className="relative">
-                      <FiCreditCard className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                      <FiCreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
                       <input
                         type="text"
                         name="collageId"
                         value={formData.collageId}
                         onChange={handleInputChange}
                         required
-                        className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                         placeholder="Enter your college ID"
                       />
                     </div>
@@ -571,7 +663,7 @@ const MultiStepRegister = () => {
                       Branch / Department *
                     </label>
                     <div className="relative">
-                      <FiBook className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                      <FiBook className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
                       <select
                         name="branch"
                         value={BRANCHES.includes(formData.branch) ? formData.branch : (formData.branch ? "Other" : "")}
@@ -587,7 +679,7 @@ const MultiStepRegister = () => {
                           }
                         }}
                         required
-                        className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all appearance-none"
+                        className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all appearance-none"
                       >
                         <option value="">Select your branch</option>
                         {BRANCHES.map((branch) => (
@@ -605,7 +697,7 @@ const MultiStepRegister = () => {
                           value={formData.branch === "Other" ? "" : formData.branch}
                           onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
                           placeholder="Enter your specific course/branch"
-                          className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          className="w-full px-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                           autoFocus
                           required
                         />
@@ -619,13 +711,13 @@ const MultiStepRegister = () => {
                       Year of Study *
                     </label>
                     <div className="relative">
-                      <FiCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                      <FiCalendar className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
                       <select
                         name="year"
                         value={formData.year}
                         onChange={handleInputChange}
                         required
-                        className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all appearance-none"
+                        className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all appearance-none"
                       >
                         <option value={1}>1st Year</option>
                         <option value={2}>2nd Year</option>
@@ -645,14 +737,14 @@ const MultiStepRegister = () => {
                           Payment Transaction ID *
                         </label>
                         <div className="relative">
-                          <FiCreditCard className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                          <FiCreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
                           <input
                             type="text"
                             name="transactionId"
                             value={formData.transactionId}
                             onChange={handleInputChange}
                             required
-                            className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                            className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                             placeholder="Enter transaction ID"
                           />
                         </div>
@@ -664,13 +756,13 @@ const MultiStepRegister = () => {
                           Payment Proof (Screenshot) *
                         </label>
                         <div className="relative">
-                          <FiUpload className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                          <FiUpload className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
                           <input
                             type="file"
                             accept="image/*"
                             onChange={handleFileChange}
                             required
-                            className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-orange-500 file:text-white hover:file:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                            className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-orange-500 file:text-white hover:file:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                           />
                         </div>
                         {formData.paymentProof && (

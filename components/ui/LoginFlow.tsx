@@ -48,14 +48,14 @@ const LoginFlow = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => handleCollegeSelect("KL_UNIVERSITY")}
-                className="w-full p-6 rounded-xl border-2 border-orange-500 bg-orange-500/10 hover:bg-orange-500/20 transition-all text-left"
+                className="w-full p-6 rounded-xl border-2 border-zinc-700 bg-zinc-800/50 hover:border-orange-500 hover:bg-orange-500/10 transition-all text-left"
               >
                 <span className="flex items-center justify-between w-full">
                   <span>
                     <span className="text-lg font-semibold text-white block">
                       KL University
                     </span>
-                    <span className="text-sm text-orange-300 mt-1 block">
+                    <span className="text-sm text-zinc-400 hover:text-orange-300 mt-1 block">
                       Sign in with Microsoft
                     </span>
                   </span>
@@ -67,7 +67,7 @@ const LoginFlow = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => handleCollegeSelect("OTHER")}
-                className="w-full p-6 rounded-xl border-2 border-zinc-700 bg-zinc-800/50 hover:bg-zinc-800 transition-all text-left"
+                className="w-full p-6 rounded-xl border-2 border-zinc-700 bg-zinc-800/50 hover:border-orange-500 hover:bg-orange-500/10 transition-all text-left"
               >
                 <span className="flex items-center justify-between w-full">
                   <span>
@@ -105,19 +105,19 @@ const LoginFlow = () => {
 
             {selectedCollege === "KL_UNIVERSITY" && (
               <div className="space-y-6">
-                <div className="  rounded-lg p-4">
+                <div className="rounded-lg p-4">
                   <p className="text-red-500 text-center text-sm font-medium">
                     Important: KL University students must sign in with their
                     official college email ID (@kluniversity.in)
                   </p>
                 </div>
-                <SignInOAuthButton provider="microsoft" />
+                <SignInOAuthButton provider="microsoft" collegeType="KL_UNIVERSITY" />
               </div>
             )}
 
             {selectedCollege === "OTHER" && (
               <div className="space-y-6">
-                <SignInOAuthButton provider="google" />
+                <SignInOAuthButton provider="google" collegeType="OTHER" />
               </div>
             )}
 
