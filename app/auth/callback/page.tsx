@@ -30,11 +30,11 @@ export default function AuthCallback() {
         const data = await response.json();
 
         if (data.isRegistered) {
-          // User exists and is registered, go to home
+          // User exists and is registered, redirect to home
           toast.success("Welcome back!");
           router.push("/");
         } else {
-          // User authenticated but not registered, go to registration
+          // User authenticated but hasn't completed registration yet
           toast.info("Please complete your registration");
           router.push("/register");
         }

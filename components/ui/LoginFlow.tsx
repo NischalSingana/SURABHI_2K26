@@ -1,15 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiChevronRight } from "react-icons/fi";
 import SignInOAuthButton from "./signInOAuthButton";
+import { useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 type College = "KL_UNIVERSITY" | "OTHER" | "";
 
 const LoginFlow = () => {
   const [step, setStep] = useState(1);
   const [selectedCollege, setSelectedCollege] = useState<College>("");
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+
+  // Check if user is already logged in and registered
+  useEffect(() => {
+    const checkSession = async () => {
+      if (isPending) return;
+
+      if (session?.user) {
+        try {
+          // Check if user is already registered
+          const response = await fetch("/api/check-registration", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: session.user.id }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.isRegistered) {
+              // User is already logged in and registered, redirect to home
+              toast.success("You're already logged in!");
+              router.push("/");
+            }
+            // If not registered, let them stay on login page to complete registration
+          }
+        } catch (error) {
+          console.error("Error checking registration:", error);
+          // On error, allow user to continue with login flow
+        }
+      }
+    };
+
+    checkSession();
+  }, [session, isPending, router]);
 
   const handleCollegeSelect = (college: College) => {
     setSelectedCollege(college);
@@ -21,6 +59,15 @@ const LoginFlow = () => {
     animate: { opacity: 1, x: 0 },
     exit: { opacity: 0, x: -100 },
   };
+
+  // Show loading state while checking session
+  if (isPending) {
+    return (
+      <div className="w-full max-w-md flex items-center justify-center py-12">
+        <div className="animate-spin h-8 w-8 border-4 border-orange-500 border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-md">
