@@ -96,10 +96,11 @@ const MultiStepRegister = () => {
           email: session.user.email || "",
         }));
 
+        // DISABLED: Automatic redirect causes issues - users should navigate manually
         // Skip directly to step 3 (registration form)
-        setTimeout(() => {
-          setCurrentStep(3);
-        }, 100);
+        // setTimeout(() => {
+        //   setCurrentStep(3);
+        // }, 100);
       }
     }
   }, [session?.user?.id, currentStep, hasAutoAdvanced]);
