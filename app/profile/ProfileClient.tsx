@@ -26,6 +26,7 @@ import { signOut } from "@/lib/auth-client";
 import { updateProfile } from "@/actions/profile.action";
 import { unregisterFromEvent } from "@/actions/events.action";
 import Image from "next/image";
+import { BRANCHES } from "@/lib/constants";
 
 
 interface User {
@@ -410,73 +411,45 @@ export default function ProfileClient({
                   Branch
                 </label>
                 {isEditing ? (
-                  hasMicrosoftAccount ? (
-                    <select
-                      id="branch"
-                      name="branch"
-                      value={formData.branch}
-                      onChange={(e) =>
-                        setFormData({ ...formData, branch: e.target.value })
-                      }
-                      className="w-full h-12 px-4 border border-zinc-700 bg-zinc-800 text-white rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
-                    >
-                      <option value="">Select Branch</option>
-                      <option value="B.Tech AI&DS">B.Tech AI&DS</option>
-                      <option value="B.Tech CS&IT">B.Tech CS&IT</option>
-                      <option value="B.Tech ECS">B.Tech ECS</option>
-                      <option value="B.Tech IOT">B.Tech IOT</option>
-                      <option value="B.Tech ECE">B.Tech ECE</option>
-                      <option value="B.Tech CSE - 1">B.Tech CSE - 1</option>
-                      <option value="B.Tech CSE - 2">B.Tech CSE - 2</option>
-                      <option value="B.Tech CSE - 3">B.Tech CSE - 3</option>
-                      <option value="B.Tech CSE - 4">B.Tech CSE - 4</option>
-                      <option value="B.Tech CSE - Regular">B.Tech CSE - Regular</option>
-                      <option value="B.Tech BT">B.Tech BT</option>
-                      <option value="B.Tech CE">B.Tech CE</option>
-                      <option value="B.Tech EEE">B.Tech EEE</option>
-                      <option value="B.Tech ME">B.Tech ME</option>
-                      <option value="B.Sc - VC">B.Sc - VC</option>
-                      <option value="B.Sc (Animation & Gaming)">B.Sc (Animation & Gaming)</option>
-                      <option value="B.Sc (Hons.) Agriculture">B.Sc (Hons.) Agriculture</option>
-                      <option value="M.Tech - EVT">M.Tech - EVT</option>
-                      <option value="M.Tech - PE & PS">M.Tech - PE & PS</option>
-                      <option value="M.Tech - CTM">M.Tech - CTM</option>
-                      <option value="M.Tech - Machine Design">M.Tech - Machine Design</option>
-                      <option value="M.Tech - SE">M.Tech - SE</option>
-                      <option value="M.Tech - Thermal Engineering">M.Tech - Thermal Engineering</option>
-                      <option value="M.Tech - CSE">M.Tech - CSE</option>
-                      <option value="M.Sc Computational Mathematics">M.Sc Computational Mathematics</option>
-                      <option value="M.Sc Nano Science and Technology">M.Sc Nano Science and Technology</option>
-                      <option value="M.Sc Chemistry">M.Sc Chemistry</option>
-                      <option value="M.Sc Physics">M.Sc Physics</option>
-                      <option value="M.Sc - F&C">M.Sc - F&C</option>
-                      <option value="B.Com">B.Com</option>
-                      <option value="B.Com.(Hons)">B.Com.(Hons)</option>
-                      <option value="B.A">B.A</option>
-                      <option value="B.Arch">B.Arch</option>
-                      <option value="B.Pharmacy">B.Pharmacy</option>
-                      <option value="LLB">LLB</option>
-                      <option value="BBA">BBA</option>
-                      <option value="BBA- BA">BBA- BA</option>
-                      <option value="BBA-LLB">BBA-LLB</option>
-                      <option value="BCA">BCA</option>
-                      <option value="M.Pharmacy">M.Pharmacy</option>
-                      <option value="MA DH&LS">MA DH&LS</option>
-                      <option value="MA - English">MA - English</option>
-                      <option value="MBA">MBA</option>
-                      <option value="MCA">MCA</option>
-                      <option value="Pharma D">Pharma D</option>
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      value={formData.branch}
-                      onChange={(e) =>
-                        setFormData({ ...formData, branch: e.target.value })
-                      }
-                      className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    />
-                  )
+                  <>
+                    <div className="relative">
+                      <select
+                        id="branch"
+                        name="branch"
+                        value={BRANCHES.includes(formData.branch) ? formData.branch : (formData.branch ? "Other" : "")}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === "Other") {
+                            setFormData({ ...formData, branch: "Other" });
+                          } else {
+                            setFormData({ ...formData, branch: val });
+                          }
+                        }}
+                        className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-600"
+                      >
+                        <option value="">Select Branch</option>
+                        {BRANCHES.map((branch) => (
+                          <option key={branch} value={branch}>
+                            {branch}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {/* Show input if "Other" is selected or if value is not in the list (custom) */}
+                    {((formData.branch === "Other") || (!BRANCHES.includes(formData.branch) && formData.branch !== "")) && (
+                      <div className="mt-2">
+                        <input
+                          type="text"
+                          value={formData.branch === "Other" ? "" : formData.branch}
+                          onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                          placeholder="Enter your specific course/branch"
+                          className="w-full px-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-600"
+                          autoFocus
+                          required
+                        />
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <p className="text-white font-medium px-4 py-3 bg-zinc-800/50 rounded-lg">
                     {user.branch || "Not provided"}
