@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import PillNav from "@/components/ui/PillNav";
 import { useSession } from "@/lib/auth-client";
 import { useEffect } from "react";
+import { isRegistrationComplete } from "@/lib/registration-check";
 
 const navItems = [
     { label: "Home", href: "/" },
@@ -26,10 +27,25 @@ export default function ConditionalNavbar() {
                 router.replace("/judge/dashboard");
             }
         }
+
+        // Redirect to registration if user is authenticated but hasn't completed registration
+        if (!isPending && session?.user && !isRegistrationComplete(session.user)) {
+            // Allow access to register, login, and auth callback routes
+            const allowedRoutes = ["/register", "/login", "/auth"];
+            const isAllowedRoute = allowedRoutes.some(route => pathname?.startsWith(route));
+
+            if (!isAllowedRoute) {
+                router.replace("/register");
+            }
+        }
     }, [session, isPending, pathname, router]);
 
-    // Hide navbar on admin routes OR if user is a judge
-    if (pathname?.startsWith("/admin") || session?.user?.role === "JUDGE") {
+    // Hide navbar on admin routes, if user is a judge, OR if registration is incomplete
+    if (
+        pathname?.startsWith("/admin") ||
+        session?.user?.role === "JUDGE" ||
+        (session?.user && !isRegistrationComplete(session.user))
+    ) {
         return null;
     }
 

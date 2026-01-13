@@ -43,6 +43,9 @@ export const auth = betterAuth({
             redirectURI: isProduction
                 ? "https://klusurabhi.in/api/auth/callback/microsoft"
                 : "http://localhost:3000/api/auth/callback/microsoft",
+            authorizationParams: {
+                prompt: "select_account", // Force account selection every time
+            },
         },
     },
     emailAndPassword: {
