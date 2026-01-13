@@ -29,7 +29,7 @@ const signInOAuthButton = ({ provider, signup, collegeType }: signInOAuthButtonP
     try {
       const result = await signIn.social({
         provider,
-        callbackURL: signup ? "/register" : "/auth/callback",
+        callbackURL: "/auth/callback", // Always use auth callback for proper redirect handling
         errorCallbackURL: signup ? "/register" : "/auth/login/error",
         fetchOptions: {
           onRequest: () => {
