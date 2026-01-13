@@ -144,6 +144,15 @@ const MultiStepRegister = () => {
             toast.error("Account already registered. You cannot register again.");
             // Do not clear localStorage before redirecting
             router.push("/profile");
+          } else if (data.userData) {
+            // Pre-fill existing user data
+            setFormData(prev => ({
+              ...prev,
+              phone: data.userData.phone || prev.phone,
+              collageId: data.userData.collageId || prev.collageId,
+              branch: data.userData.branch || prev.branch,
+              year: data.userData.year || prev.year,
+            }));
           }
           // If not registered (including deleted users), allow registration to proceed
         }
@@ -276,13 +285,11 @@ const MultiStepRegister = () => {
       return basicFieldsFilled;
     }
 
-    // Other college students need all fields including college name and payment fields
+    // Other college students need basic fields and college name (payment fields are optional)
     return (
       basicFieldsFilled &&
       formData.collegeName &&
-      formData.collegeName !== "Other College" &&
-      formData.transactionId &&
-      formData.paymentProof
+      formData.collegeName !== "Other College"
     );
   };
 
@@ -555,6 +562,13 @@ const MultiStepRegister = () => {
                   <p className="text-base text-zinc-400">
                     Fill in the remaining details to complete registration
                   </p>
+                  {(formData.phone || formData.collageId || formData.branch) && (
+                    <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                      <p className="text-blue-300 text-sm">
+                        ℹ️ Some fields are pre-filled with your existing data. Please fill in any empty fields to complete your registration.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-8 pr-2">
@@ -734,7 +748,7 @@ const MultiStepRegister = () => {
                       {/* Transaction ID */}
                       <div>
                         <label className="block text-sm font-medium text-zinc-300 mb-2">
-                          Payment Transaction ID *
+                          Payment Transaction ID (Optional)
                         </label>
                         <div className="relative">
                           <FiCreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
@@ -743,9 +757,8 @@ const MultiStepRegister = () => {
                             name="transactionId"
                             value={formData.transactionId}
                             onChange={handleInputChange}
-                            required
                             className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                            placeholder="Enter transaction ID"
+                            placeholder="Enter transaction ID (if paid)"
                           />
                         </div>
                       </div>
@@ -753,7 +766,7 @@ const MultiStepRegister = () => {
                       {/* Payment Proof */}
                       <div>
                         <label className="block text-sm font-medium text-zinc-300 mb-2">
-                          Payment Proof (Screenshot) *
+                          Payment Proof (Screenshot) (Optional)
                         </label>
                         <div className="relative">
                           <FiUpload className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
@@ -761,7 +774,6 @@ const MultiStepRegister = () => {
                             type="file"
                             accept="image/*"
                             onChange={handleFileChange}
-                            required
                             className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-orange-500 file:text-white hover:file:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                           />
                         </div>
@@ -779,6 +791,15 @@ const MultiStepRegister = () => {
                     <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
                       <p className="text-green-300 text-sm font-medium">
                         ✓ No payment required for KL University students
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Info message for Other College students */}
+                  {formData.college === "OTHER" && (
+                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                      <p className="text-blue-300 text-sm font-medium">
+                        ℹ️ Payment fields are optional. You can complete registration now and add payment details later if needed.
                       </p>
                     </div>
                   )}
