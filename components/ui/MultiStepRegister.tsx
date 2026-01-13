@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -124,13 +124,19 @@ const MultiStepRegister = () => {
     }
   }, [session?.user, currentStep]);
 
+
   // Check if user is already registered on component mount
+  const hasCheckedRegistration = useRef(false);
+
   useEffect(() => {
     const checkExistingRegistration = async () => {
-      if (!session?.user) {
-        // If no session, do not clear any saved college selection
+      if (!session?.user || hasCheckedRegistration.current) {
+        // If no session or already checked, skip
         return;
       }
+
+      // Mark as checked to prevent multiple calls
+      hasCheckedRegistration.current = true;
 
       try {
         const response = await fetch("/api/check-registration", {
@@ -143,8 +149,11 @@ const MultiStepRegister = () => {
           const data = await response.json();
           if (data.isRegistered) {
             toast.error("Account already registered. You cannot register again.");
-            // Do not clear localStorage before redirecting
-            router.push("/profile");
+            // Redirect to profile after a short delay
+            setTimeout(() => {
+              router.push("/profile");
+            }, 1500);
+            return;
           } else if (data.userData) {
             // Pre-fill existing user data
             setFormData(prev => ({
@@ -164,7 +173,7 @@ const MultiStepRegister = () => {
     };
 
     checkExistingRegistration();
-  }, [session, router]);
+  }, [session?.user?.id]);
 
   const handleCollegeSelect = async (college: string) => {
     const collegeType = college === "KL University" ? "KL_UNIVERSITY" : "OTHER";
