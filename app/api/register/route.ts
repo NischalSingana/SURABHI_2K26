@@ -85,9 +85,10 @@ export async function POST(request: NextRequest) {
         phone,
         transactionId: transactionId || null,
         paymentProof: paymentProofUrl,
-        // KL students are auto-approved, others need payment verification
+        // Auto-approve all users so they can access the website immediately
+        // Payment verification is tracked separately via paymentStatus
         paymentStatus: isKLStudent ? "APPROVED" : "PENDING",
-        isApproved: isKLStudent, // Auto-approve KL students
+        isApproved: true, // All users can access the website after registration
       },
     });
 
@@ -95,8 +96,8 @@ export async function POST(request: NextRequest) {
     revalidatePath("/profile");
 
     const message = isKLStudent
-      ? "Registration successful"
-      : "Registration submitted successfully. Awaiting payment verification.";
+      ? "Registration successful! Welcome to Surabhi 2026."
+      : "Registration successful! You can now access the website. Payment verification is pending.";
 
     return NextResponse.json(
       {
