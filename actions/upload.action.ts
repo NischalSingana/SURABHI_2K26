@@ -24,10 +24,10 @@ export async function uploadEventImage(formData: FormData) {
       return { success: false, error: "Invalid file type. Only images are allowed." };
     }
 
-    // Validate file size (5MB max)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // Validate file size (10MB max)
+    const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
-      return { success: false, error: "File size too large. Maximum size is 5MB." };
+      return { success: false, error: "File size too large. Maximum size is 10MB." };
     }
 
     // Convert file to buffer
