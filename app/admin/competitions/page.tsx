@@ -138,6 +138,11 @@ export default function EventsManagement() {
   const handleScheduleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File size too large. Maximum size is 10MB.");
+        e.target.value = "";
+        return;
+      }
       setScheduleImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -208,6 +213,11 @@ export default function EventsManagement() {
   const handleCategoryImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File size too large. Maximum size is 10MB.");
+        e.target.value = "";
+        return;
+      }
       setCategoryImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
