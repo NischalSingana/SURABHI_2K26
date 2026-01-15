@@ -382,9 +382,23 @@ class Media {
         this.plane.program.uniforms.uViewportSizes.value = [this.viewport.width, this.viewport.height];
       }
     }
-    this.scale = this.screen.height / 1500;
-    this.plane.scale.y = (this.viewport.height * (1400 * this.scale)) / this.screen.height; // Increased height for full poster display
-    this.plane.scale.x = (this.viewport.width * (900 * this.scale)) / this.screen.width; // Increased width for fuller display
+    const isMobile = this.screen.width < 768;
+
+    if (isMobile) {
+      // Mobile adjustments: wider plane relative to height to prevent cropping
+      // Standard poster ratio is roughly 2:3 (0.66). 
+      // We want to make sure the plane fits this better.
+      this.scale = this.screen.height / 1500;
+      // Adjust these multipliers to tune the mobile look
+      this.plane.scale.y = (this.viewport.height * (900 * this.scale)) / this.screen.height;
+      this.plane.scale.x = (this.viewport.width * (700 * this.scale)) / this.screen.width;
+    } else {
+      // Desktop default
+      this.scale = this.screen.height / 1500;
+      this.plane.scale.y = (this.viewport.height * (1400 * this.scale)) / this.screen.height;
+      this.plane.scale.x = (this.viewport.width * (900 * this.scale)) / this.screen.width;
+    }
+
     this.plane.program.uniforms.uPlaneSizes.value = [this.plane.scale.x, this.plane.scale.y];
     this.padding = 2;
     this.width = this.plane.scale.x + this.padding;
