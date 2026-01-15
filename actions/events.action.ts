@@ -45,6 +45,26 @@ export async function getCategories() {
             whatsappLink: true,
             termsandconditions: true,
             categoryId: true,
+            registeredStudents: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                collage: true,
+                branch: true,
+                year: true,
+                collageId: true,
+              },
+            },
+            submissions: {
+              select: {
+                id: true,
+                userId: true,
+                submissionLink: true,
+                notes: true,
+              },
+            },
           },
           orderBy: {
             date: "asc",

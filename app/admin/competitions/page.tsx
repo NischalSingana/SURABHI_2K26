@@ -40,6 +40,15 @@ interface Event {
     email: string;
     phone: string | null;
     collage: string | null;
+    branch: string | null;
+    year: number | null;
+    collageId: string | null;
+  }>;
+  submissions?: Array<{
+    id: string;
+    userId: string;
+    submissionLink: string;
+    notes: string | null;
   }>;
 }
 
@@ -100,6 +109,17 @@ export default function EventsManagement() {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set()
   );
+
+  // Student Details Modal State
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [showStudentDetailsModal, setShowStudentDetailsModal] = useState(false);
+
+  const getSubmissionForStudent = (studentId: string) => {
+    if (!selectedEventForRegistrations?.submissions) return null;
+    return selectedEventForRegistrations.submissions.find(
+      (s) => s.userId === studentId
+    );
+  };
 
   useEffect(() => {
     fetchCategoriesWithEvents();
@@ -899,15 +919,26 @@ export default function EventsManagement() {
                       (student: any, index: number) => (
                         <div
                           key={student.id}
-                          className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-red-600/50 transition-all"
+                          onClick={() => {
+                            setSelectedStudent(student);
+                            setShowStudentDetailsModal(true);
+                          }}
+                          className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-red-600/50 transition-all cursor-pointer group"
                         >
                           <div className="flex items-start gap-3">
                             <div className="w-10 h-10 rounded-full bg-red-600/20 flex items-center justify-center text-red-500 font-bold">
                               {index + 1}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="text-white font-semibold">
+                              <h4 className="text-white font-semibold flex items-center gap-2">
                                 {student.name || "No name"}
+                                {getSubmissionForStudent(student.id) && (
+                                  <span title="Submission Available" className="text-green-500">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                    </svg>
+                                  </span>
+                                )}
                               </h4>
                               <p className="text-zinc-400 text-sm truncate">
                                 {student.email}
@@ -1038,6 +1069,111 @@ export default function EventsManagement() {
           onSuccess={handleEventFormSuccess}
         />
       )}
-    </div>
+      {/* Student Details Modal */}
+      {
+        showStudentDetailsModal && selectedStudent && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-zinc-900 rounded-xl w-full max-w-lg border border-zinc-800 shadow-2xl overflow-hidden"
+            >
+              <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+                <h2 className="text-xl font-bold text-white">Student Details</h2>
+                <button
+                  onClick={() => {
+                    setShowStudentDetailsModal(false);
+                    setSelectedStudent(null);
+                  }}
+                  className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 rounded-full bg-red-600/20 flex items-center justify-center text-red-500 text-2xl font-bold border border-red-500/30">
+                    {selectedStudent.name ? selectedStudent.name.charAt(0).toUpperCase() : '?'}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{selectedStudent.name || "No name"}</h3>
+                    <p className="text-zinc-400">{selectedStudent.email}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <span className="text-zinc-500">Phone:</span>
+                    <span className="text-white col-span-2 font-medium">{selectedStudent.phone || "N/A"}</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <span className="text-zinc-500">College:</span>
+                    <span className="text-white col-span-2 font-medium">{selectedStudent.collage || "N/A"}</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <span className="text-zinc-500">Branch:</span>
+                    <span className="text-white col-span-2 font-medium">{selectedStudent.branch || "N/A"}</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <span className="text-zinc-500">Year:</span>
+                    <span className="text-white col-span-2 font-medium">{selectedStudent.year || "N/A"}</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <span className="text-zinc-500">College ID:</span>
+                    <span className="text-white col-span-2 font-medium font-mono bg-zinc-800 px-2 py-0.5 rounded w-fit">{selectedStudent.collageId || "N/A"}</span>
+                  </div>
+
+                  {getSubmissionForStudent(selectedStudent.id) && (
+                    <div className="pt-4 mt-4 border-t border-zinc-800/50">
+                      <h4 className="text-white font-semibold mb-3">Submission</h4>
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-3 gap-2 text-sm">
+                          <span className="text-zinc-500">Link:</span>
+                          <a
+                            href={getSubmissionForStudent(selectedStudent.id)?.submissionLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="col-span-2 text-blue-400 hover:text-blue-300 break-all hover:underline"
+                          >
+                            {getSubmissionForStudent(selectedStudent.id)?.submissionLink}
+                          </a>
+                        </div>
+                        {getSubmissionForStudent(selectedStudent.id)?.notes && (
+                          <div className="grid grid-cols-3 gap-2 text-sm">
+                            <span className="text-zinc-500">Notes:</span>
+                            <p className="text-zinc-300 col-span-2 whitespace-pre-wrap">
+                              {getSubmissionForStudent(selectedStudent.id)?.notes}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="px-6 py-4 bg-zinc-950/50 border-t border-zinc-800 flex justify-end">
+                <button
+                  onClick={() => {
+                    setShowStudentDetailsModal(false);
+                    setSelectedStudent(null);
+                  }}
+                  className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )
+      }
+    </div >
   );
 }
