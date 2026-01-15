@@ -6,148 +6,147 @@ export const metadata: Metadata = {
   description: "Explore the vibrant gallery of Surabhi Cultural Fest events and memories.",
 };
 
-const galleryImages = [
-  // 2025 Images
-  {
-    image: "https://i.imghippo.com/files/HEK3855M.jpeg",
-    year: "2025",
-  },
-  {
-    image: "https://i.imghippo.com/files/idTS8828AfQ.JPG",
-    year: "2025",
-  },
-  {
-    image: "https://i.imghippo.com/files/DLI1046HmA.JPG",
-    year: "2025",
-  },
-  {
-    image: "https://i.imghippo.com/files/mIod6172jf.JPG",
-    year: "2025",
-  },
-  {
-    image: "https://i.imghippo.com/files/BzCV7186HTo.JPG",
-    year: "2025",
-  },
-  {
-    image: "https://i.imghippo.com/files/NOJT5960c.jpg",
-    year: "2025",
-  },
-  {
-    image: "https://i.imghippo.com/files/XzpS9511jpo.jpg",
-    year: "2025",
-  },
-  {
-    image: "https://i.imghippo.com/files/fu8100vp.jpg",
-    year: "2025",
-  },
-  {
-    image: "https://i.imghippo.com/files/xnT9207vuw.jpg",
-    year: "2025",
-  },
-  {
-    image: "https://i.imghippo.com/files/aX2170ug.jpg",
-    year: "2025",
-  },
+const CDN_URL = process.env.NEXT_PUBLIC_GALLERY_CDN_URL || "";
 
+// TODO: Update these filenames to match what you uploaded to your DigitalOcean bucket
+const galleryImages = [
+    // 2025 Images
+  {
+    image: `${CDN_URL}/2024/WhatsApp%20Image%202026-01-15%20at%2014.36.33%203.05.14%E2%80%AFPM.jpeg`,
+    year: "2025",
+  },
+  {
+    image: `${CDN_URL}/2024/DSC09230%20(1).jpg`,
+    year: "2025",
+  },
+  {
+    image: `${CDN_URL}/2024/RAVI0326%20(1).jpg`,
+    year: "2025",
+  },
+  {
+    image: `${CDN_URL}/2024/RAVI0126%20(1).jpg`,
+    year: "2025",
+  },
+  {
+    image: `${CDN_URL}/2024/RAVI9664%20(1).jpg`,
+    year: "2025",
+  },
+  {
+    image: `${CDN_URL}/2024/RAVI9924%20(1).jpg`,
+    year: "2025",
+  },
+  {
+    image: `${CDN_URL}/2024/RAVI9543%20(1).jpg`,
+    year: "2025",
+  },
+  {
+    image: `${CDN_URL}/2024/RAVI9583%20(1).jpg`,
+    year: "2025",
+  },
+    {
+    image: `${CDN_URL}/2024/RAVI9615%20(1).jpg`,
+    year: "2025",
+  },
+    {
+    image: `${CDN_URL}/2024/RAVI0390%20(1).jpg`,
+    year: "2025",
+  },
   // 2024 Images
   {
-    image: "https://i.imghippo.com/files/Xcy8735KmY.jpeg",
+    image: `${CDN_URL}/2025/WhatsApp%20Image%202026-01-10%20at%2013.34.48%20(2).jpeg`,
     year: "2024",
   },
   {
-    image: "https://i.imghippo.com/files/eLgR9932Ys.jpeg",
+    image: `${CDN_URL}/2025/WhatsApp%20Image%202026-01-10%20at%2013.34.49%20(3).jpeg`,
     year: "2024",
   },
   {
-    image: "https://i.imghippo.com/files/ZGYX2812fw.jpeg",
+    image: `${CDN_URL}/2025/WhatsApp%20Image%202026-01-10%20at%2013.34.49%20(4).jpeg`,
     year: "2024",
   },
   {
-    image: "https://i.imghippo.com/files/ZsZc3437eaA.jpeg",
+    image: `${CDN_URL}/2025/WhatsApp%20Image%202026-01-10%20at%2013.34.50%20(4).jpeg`,
     year: "2024",
   },
   {
-    image: "https://i.imghippo.com/files/zjnN6551OS.jpeg",
+    image: `${CDN_URL}/2025/WhatsApp%20Image%202026-01-10%20at%2013.34.50%20(5).jpeg`,
     year: "2024",
   },
   {
-    image: "https://i.imghippo.com/files/Cna2701dzA.jpeg",
+    image: `${CDN_URL}/2025/WhatsApp%20Image%202026-01-10%20at%2013.34.50%20(6).jpeg`,
     year: "2024",
   },
   {
-    image: "https://i.imghippo.com/files/oyUo9101rMY.jpeg",
+    image: `${CDN_URL}/2025/WhatsApp%20Image%202026-01-10%20at%2013.34.51%20(2).jpeg`,
     year: "2024",
   },
   {
-    image: "https://i.imghippo.com/files/wNGp6741GNk.jpeg",
+    image: `${CDN_URL}/2025/WhatsApp%20Image%202026-01-10%20at%2013.34.51%20(3).jpeg`,
     year: "2024",
   },
+  {
+    image: `${CDN_URL}/2025/WhatsApp%20Image%202026-01-10%20at%2013.38.37.jpeg`,
+    year: "2024",
+  },
+
 
   // 2023 Images
   {
-    image: "https://i.ibb.co/qCkd9jS/img1.jpg",
+    image: `${CDN_URL}/Events/Surabhi_2023/1.jpg`,
     year: "2023",
   },
   {
-    image: "https://i.ibb.co/jrRb11q/img2.jpg",
+    image: `${CDN_URL}/Events/Surabhi_2023/2.jpg`,
     year: "2023",
   },
   {
-    image: "https://i.ibb.co/NSwVv8D/img3.jpg",
+    image: `${CDN_URL}/Events/Surabhi_2023/3.jpg`,
     year: "2023",
   },
   {
-    image: "https://i.ibb.co/Bq4Q0M8/img4.jpg",
+    image: `${CDN_URL}/Events/Surabhi_2023/4.jpg`,
     year: "2023",
   },
   {
-    image: "https://i.ibb.co/jTQfmTq/img5.jpg",
+    image: `${CDN_URL}/Events/Surabhi_2023/5.jpg`,
     year: "2023",
   },
   {
-    image: "https://i.ibb.co/RNkk6L0/img6.jpg",
-    year: "2023",
-  },
-  {
-    image: "https://i.ibb.co/qCkd9jS/img1.jpg",
-    year: "2023",
-  },
-  {
-    image: "https://i.ibb.co/jrRb11q/img2.jpg",
+    image: `${CDN_URL}/Events/Surabhi_2023/6.jpg`,
     year: "2023",
   },
 
   // 2022 Images
   {
-    image: "https://i.ibb.co/Bq4Q0M8/img4.jpg",
+    image: `${CDN_URL}/Events/Surabhi_2022/1.jpg`,
     year: "2022",
   },
   {
-    image: "https://i.ibb.co/jTQfmTq/img5.jpg",
+    image: `${CDN_URL}/Events/Surabhi_2022/2.jpg`,
     year: "2022",
   },
   {
-    image: "https://i.ibb.co/RNkk6L0/img6.jpg",
+    image: `${CDN_URL}/Events/Surabhi_2022/3.jpg`,
     year: "2022",
   },
   {
-    image: "https://i.ibb.co/qCkd9jS/img1.jpg",
+    image: `${CDN_URL}/Events/Surabhi_2022/4.jpg`,
     year: "2022",
   },
   {
-    image: "https://i.ibb.co/jrRb11q/img2.jpg",
+    image: `${CDN_URL}/Events/Surabhi_2022/5.yaml`, // Just a placeholder example
     year: "2022",
   },
   {
-    image: "https://i.ibb.co/NSwVv8D/img3.jpg",
+    image: `${CDN_URL}/Events/Surabhi_2022/6.jpg`,
     year: "2022",
   },
   {
-    image: "https://i.ibb.co/Bq4Q0M8/img4.jpg",
+    image: `${CDN_URL}/Events/Surabhi_2022/7.jpg`,
     year: "2022",
   },
   {
-    image: "https://i.ibb.co/jTQfmTq/img5.jpg",
+    image: `${CDN_URL}/Events/Surabhi_2022/8.jpg`,
     year: "2022",
   },
 ];
