@@ -120,33 +120,13 @@ export async function approveUser(userId: string) {
 
         if (hasGoogleAccount) {
             try {
-                // Generate PDF ticket
-                const { generateTicketPDF } = await import("@/lib/pdf-generator");
-                const pdfBuffer = await generateTicketPDF({
-                    userId: user.id,
-                    name: user.name || "Participant",
-                    email: user.email,
-                    phone: user.phone,
-                    collage: user.collage,
-                    collageId: user.collageId,
-                    paymentStatus: user.paymentStatus,
-                    isApproved: true,
-                });
-
-                // Send approval email with PDF attachment
+                // Send approval email
                 const emailTemplate = emailTemplates.userApproved(user.name || "", user.email);
 
                 const emailOptions: any = {
                     to: user.email,
                     subject: emailTemplate.subject,
                     html: emailTemplate.html,
-                    attachments: [
-                        {
-                            filename: `surabhi-2026-ticket-${user.name?.replace(/\s+/g, '-') || 'participant'}.pdf`,
-                            content: pdfBuffer,
-                            contentType: 'application/pdf',
-                        },
-                    ],
                 };
 
                 const emailResult = await sendEmail(emailOptions);
