@@ -11,7 +11,6 @@ interface UserTicketData {
     phone: string | null;
     collage: string | null;
     collageId: string | null;
-    transactionId: string | null;
     paymentStatus: string;
     isApproved: boolean;
 }
@@ -198,7 +197,6 @@ const styles = StyleSheet.create({
 export async function generateTicketPDF(userData: UserTicketData): Promise<Buffer> {
     const qrCodeDataURL = await generateTicketQR({
         userId: userData.userId,
-        transactionId: userData.transactionId || '',
         name: userData.name,
         email: userData.email,
         phone: userData.phone,
@@ -304,7 +302,7 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
                     </View>
 
                     <View style={styles.footer}>
-                        <Text style={styles.footerText}>Transaction ID: {userData.transactionId || 'N/A'} • Generated on {new Date().toLocaleDateString()}</Text>
+                        <Text style={styles.footerText}>Generated on {new Date().toLocaleDateString()}</Text>
                     </View>
 
                     <View style={styles.bottomLine} />

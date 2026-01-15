@@ -4,7 +4,6 @@ import { createPass } from '@/lib/pass';
 
 interface TicketData {
     userId: string;
-    transactionId: string;
     name: string;
     email: string;
     phone?: string | null;

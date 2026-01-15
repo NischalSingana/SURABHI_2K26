@@ -18,8 +18,6 @@ model User {
   collage          String?
   collageId        String?
   branch           String?
-  transactionId    String?
-  paymentProof     String?
   year             Int?
   isApproved       Boolean       @default(false)
   paymentStatus    PaymentStatus @default(PENDING)

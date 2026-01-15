@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { uploadFile } from "@/lib/upload";
 import { revalidatePath } from "next/cache";
 
 export async function POST(request: NextRequest) {
@@ -54,8 +53,6 @@ export async function POST(request: NextRequest) {
     const collageId = formData.get("collageId") as string;
     const branch = formData.get("branch") as string;
     const year = parseInt(formData.get("year") as string);
-    const transactionId = formData.get("transactionId") as string;
-    const paymentProof = formData.get("paymentProof") as File;
 
     // Validate required fields
     if (!collegeName || !phone || !collageId || !branch || !year) {
@@ -65,14 +62,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Payment fields are optional for non-KL students
+    // Payment fields are no longer required - free registration for all
     const isKLStudent = college === "KL_UNIVERSITY";
-
-    // Upload payment proof only if provided
-    let paymentProofUrl = null;
-    if (paymentProof && paymentProof.size > 0) {
-      paymentProofUrl = await uploadFile(paymentProof, "payment-proofs");
-    }
 
     // Update user with registration details
     const updatedUser = await prisma.user.update({
@@ -83,21 +74,16 @@ export async function POST(request: NextRequest) {
         branch,
         year,
         phone,
-        transactionId: transactionId || null,
-        paymentProof: paymentProofUrl,
-        // Auto-approve all users so they can access the website immediately
-        // Payment verification is tracked separately via paymentStatus
-        paymentStatus: isKLStudent ? "APPROVED" : "PENDING",
-        isApproved: true, // All users can access the website after registration
+        // Auto-approve all users
+        isApproved: true,
+        paymentStatus: "APPROVED",
       },
     });
 
     // Revalidate profile page to show new data immediately
     revalidatePath("/profile");
 
-    const message = isKLStudent
-      ? "Registration successful! Welcome to Surabhi 2026."
-      : "Registration successful! You can now access the website. Payment verification is pending.";
+    const message = "Registration successful! Welcome to Surabhi 2026. You can now access the full website.";
 
     return NextResponse.json(
       {
