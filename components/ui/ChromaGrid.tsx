@@ -42,16 +42,17 @@ const ChromaGrid: React.FC<ChromaGridProps> = ({
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: i * 0.1 }}
                     onClick={() => handleCardClick(sponsor.website)}
-                    className="group relative flex flex-col w-full h-full rounded-2xl overflow-hidden cursor-pointer bg-black/40 backdrop-blur-sm border border-white/10"
+                    className="group relative flex flex-col w-full h-full rounded-2xl overflow-hidden cursor-pointer bg-neutral-900/40 backdrop-blur-md border border-white/5 shadow-lg transition-all duration-500 ease-out"
                     whileHover={{
-                        y: -5,
-                        boxShadow: `0 20px 40px -10px ${sponsor.borderColor || '#dc2626'}40`,
-                        borderColor: sponsor.borderColor || '#dc2626'
+                        y: -8,
+                        boxShadow: `0 25px 50px -12px ${sponsor.borderColor || '#ef4444'}30`,
+                        borderColor: sponsor.borderColor || '#ef4444',
+                        backgroundColor: "rgba(23, 23, 23, 0.6)"
                     }}
                 >
                     {/* Hover Gradient Overlay */}
                     <div
-                        className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 z-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-0 bg-gradient-to-br from-white/5 via-transparent to-transparent pointer-events-none mix-blend-overlay"
                     />
 
                     {/* Image */}
