@@ -6,7 +6,7 @@ import Image from "next/image";
 import { getUserRegisteredEvents } from "@/actions/submissions.action";
 import { unregisterFromEvent } from "@/actions/events.action";
 import SubmissionModal from "@/components/ui/SubmissionModal";
-import { FiCalendar, FiMapPin, FiClock, FiUsers, FiUpload, FiCheckCircle, FiX } from "react-icons/fi";
+import { FiCalendar, FiMapPin, FiClock, FiUsers, FiUpload, FiCheckCircle, FiX, FiCreditCard } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
@@ -118,7 +118,7 @@ export default function MyEventsPage() {
                         animate={{ opacity: 1, y: 0 }}
                         className="text-5xl font-bold text-red-500 mb-4"
                     >
-                        My Events
+                        My Competitions
                     </motion.h1>
                     <motion.p
                         initial={{ opacity: 0, y: -20 }}
@@ -126,7 +126,7 @@ export default function MyEventsPage() {
                         transition={{ delay: 0.1 }}
                         className="text-zinc-400 text-xl"
                     >
-                        {events.length} {events.length === 1 ? "event" : "events"} registered
+                        {events.length} {events.length === 1 ? "competition" : "competitions"} registered
                     </motion.p>
                 </div>
 
@@ -140,13 +140,13 @@ export default function MyEventsPage() {
                         <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-6">
                             <FiCalendar size={40} className="text-zinc-600" />
                         </div>
-                        <h3 className="text-2xl font-bold text-white mb-2">No Events Yet</h3>
-                        <p className="text-zinc-400 mb-6">You haven't registered for any events</p>
+                        <h3 className="text-2xl font-bold text-white mb-2">No Competitions Yet</h3>
+                        <p className="text-zinc-400 mb-6">You haven't registered for any competitions</p>
                         <button
                             onClick={() => router.push("/competitions")}
                             className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
                         >
-                            Browse Events
+                            Browse Competitions
                         </button>
                     </motion.div>
                 ) : (
@@ -255,6 +255,34 @@ export default function MyEventsPage() {
 
                                         {/* Action Buttons */}
                                         <div className="space-y-2">
+                                            <button
+                                                onClick={async () => {
+                                                    try {
+                                                        const response = await fetch(`/api/ticket/download?eventId=${event.id}`);
+                                                        if (!response.ok) {
+                                                            const error = await response.json();
+                                                            toast.error(error.error || 'Failed to download ticket');
+                                                            return;
+                                                        }
+                                                        const blob = await response.blob();
+                                                        const url = window.URL.createObjectURL(blob);
+                                                        const a = document.createElement('a');
+                                                        a.href = url;
+                                                        a.download = `surabhi-2026-ticket-${event.name.replace(/\s+/g, '-')}.pdf`;
+                                                        document.body.appendChild(a);
+                                                        a.click();
+                                                        window.URL.revokeObjectURL(url);
+                                                        document.body.removeChild(a);
+                                                        toast.success('Ticket downloaded successfully!');
+                                                    } catch (error) {
+                                                        toast.error('Failed to download ticket');
+                                                    }
+                                                }}
+                                                className="w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white hover:shadow-lg hover:shadow-red-600/50"
+                                            >
+                                                <FiCreditCard size={16} />
+                                                Download Ticket
+                                            </button>
                                             <button
                                                 onClick={() => handleSubmitClick(event)}
                                                 className={`w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${hasSubmission
