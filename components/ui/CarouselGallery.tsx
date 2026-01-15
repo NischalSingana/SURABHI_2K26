@@ -318,12 +318,14 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                     "absolute bottom-0 left-0 w-full pl-8 pr-4 py-4 md:p-8 transform transition-all duration-500 delay-100 pointer-events-none",
                     isActive ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
                   )}>
-                    <motion.h3
-                      className="text-xl md:text-3xl font-bold text-white mb-1 md:mb-2 leading-tight"
-                      layout
-                    >
-                      {item.name || `Gallery ${item.year}`}
-                    </motion.h3>
+                    {item.name && (
+                      <motion.h3
+                        className="text-xl md:text-3xl font-bold text-white mb-1 md:mb-2 leading-tight"
+                        layout
+                      >
+                        {item.name}
+                      </motion.h3>
+                    )}
                     {item.description && (
                       <motion.p
                         className="text-sm md:text-base text-neutral-300 line-clamp-2"
@@ -410,9 +412,11 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                 className="h-[70vh] md:h-[80vh] w-auto max-w-[95vw] object-contain rounded-lg shadow-2xl"
               />
               <div className="absolute bottom-20 left-0 right-0 text-center pointer-events-none">
-                <h3 className="text-xl md:text-2xl font-bold text-white drop-shadow-lg inline-block px-6 py-2 rounded-full bg-black/50 backdrop-blur-md border border-white/10">
-                  {modalImage.name}
-                </h3>
+                {modalImage.name && (
+                  <h3 className="text-xl md:text-2xl font-bold text-white drop-shadow-lg inline-block px-6 py-2 rounded-full bg-black/50 backdrop-blur-md border border-white/10">
+                    {modalImage.name}
+                  </h3>
+                )}
               </div>
             </motion.div>
           </motion.div>

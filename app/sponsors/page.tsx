@@ -28,27 +28,27 @@ export default function SponsorsPage() {
     };
 
     return (
-        <main className="relative w-full min-h-screen bg-black overflow-hidden pt-20">
+        <main className="relative w-full min-h-screen bg-black overflow-hidden pt-16 sm:pt-20">
             {/* Background Effects */}
             <div className="fixed inset-0 z-0 bg-black">
                 <div className="absolute inset-0 bg-gradient-to-b from-red-900/10 to-transparent pointer-events-none" />
             </div>
 
-            <div className="relative z-10 w-full min-h-screen flex flex-col items-center px-4 sm:px-6 lg:px-8 py-12">
+            <div className="relative z-10 w-full min-h-screen flex flex-col items-center px-4 sm:px-6 lg:px-8 py-4 md:py-8">
                 {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
-                    className="text-center mb-12"
+                    className="text-center mb-6 sm:mb-10"
                 >
-                    <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-4 bg-gradient-to-r from-orange-400 via-red-500 to-orange-500 bg-clip-text text-transparent">
+                    <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black mb-4 tracking-tight bg-gradient-to-br from-red-500 via-red-600 to-red-400 bg-clip-text text-transparent drop-shadow-2xl">
                         Our Sponsors
                     </h1>
                     <p className="text-gray-300 text-lg max-w-2xl mx-auto">
                         We are grateful to our sponsors for their generous support in making Surabhi 2026 possible
                     </p>
-                    <div className="w-32 h-1 bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 mx-auto rounded-full mt-6" />
+                    <div className="w-32 h-1.5 bg-gradient-to-r from-red-500 via-red-600 to-red-400 mx-auto rounded-full mt-8 shadow-[0_0_20px_rgba(220,38,38,0.5)]" />
                 </motion.div>
 
                 {/* Sponsors Grid */}
