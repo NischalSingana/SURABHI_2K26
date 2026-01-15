@@ -62,6 +62,11 @@ export default function EventRegistrationPage() {
     const [memberEmailInput, setMemberEmailInput] = useState("");
     const [lookingUpMember, setLookingUpMember] = useState(false);
 
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [paymentProcessing, setPaymentProcessing] = useState(false);
+
+
+
     useEffect(() => {
         if (slug) {
             fetchEvent();
@@ -88,58 +93,60 @@ export default function EventRegistrationPage() {
         setLoading(false);
     };
 
-    const handleRegister = async () => {
+    const processPaymentAndRegister = async () => {
+        setPaymentProcessing(true);
+        // Simulate payment delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        if (!event) return;
+
+        let result;
+        try {
+            if (event.isGroupEvent) {
+                result = await registerGroupEvent(event.id, groupName, teamMembers, mentorName, mentorPhone);
+            } else {
+                result = await registerForEvent(event.id);
+            }
+
+            if (result.success) {
+                toast.success("Payment Successful! Registration confirmed.");
+                setShowPaymentModal(false);
+                router.push(`/competitions/${categoryName}/${slug}`); // Redirect
+            } else {
+                toast.error(result.error || "Registration failed");
+            }
+        } catch (err) {
+            console.error("Registration error:", err);
+            toast.error("An unexpected error occurred");
+        } finally {
+            setPaymentProcessing(false);
+        }
+    };
+
+
+    const handleRegisterClick = () => {
         if (!acceptedTerms) {
             toast.error("Please accept the terms and conditions");
             return;
         }
 
-        setRegistering(true);
-
-        if (!event) return;
-
-        const result = await registerForEvent(event.id);
-
-        if (result.success) {
-            toast.success("Successfully registered for the event!");
-            router.push(`/competitions/${categoryName}/${slug}`); // Redirect back to event page
-        } else {
-            toast.error(result.error || "Failed to register");
-        }
-
-        setRegistering(false);
-    };
-
-    const handleGroupRegister = async () => {
-        if (!event) return;
-
-        if (!groupName.trim()) {
-            toast.error("Please enter a group name");
-            return;
-        }
-        const requiredMembers = Math.max(0, teamSize - 1);
-        if (teamMembers.length < requiredMembers) {
-            toast.error(`Please add details for all ${requiredMembers} additional members`);
-            return;
-        }
-
-        setRegistering(true);
-        try {
-            const result = await registerGroupEvent(event.id, groupName, teamMembers, mentorName, mentorPhone);
-
-            if (result.success) {
-                toast.success("Team registered successfully!");
-                router.push(`/competitions/${categoryName}/${slug}`);
-            } else {
-                toast.error(result.error || "Failed to register team");
+        if (event?.isGroupEvent) {
+            if (!groupName.trim()) {
+                toast.error("Please enter a group name");
+                return;
             }
-        } catch (err) {
-            console.error("Error in handleGroupRegister:", err);
-            toast.error("An unexpected error occurred");
-        } finally {
-            setRegistering(false);
+            const requiredMembers = Math.max(0, teamSize - 1);
+            if (teamMembers.length < requiredMembers) {
+                toast.error(`Please add details for all ${requiredMembers} additional members`);
+                return;
+            }
         }
+
+        setShowPaymentModal(true);
     };
+
+
+
 
     const verifyAndAddMember = async () => {
         if (!memberEmailInput.trim()) {
@@ -204,8 +211,13 @@ export default function EventRegistrationPage() {
 
     if (!event) return null;
 
+    // Calculate Fees
+    const memberCount = event.isGroupEvent ? teamSize : 1;
+    const feePerPerson = 350;
+    const totalFee = memberCount * feePerPerson;
+
     return (
-        <div className="min-h-screen bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8 relative">
             <div className="max-w-3xl mx-auto">
                 <button
                     onClick={() => router.back()}
@@ -440,28 +452,107 @@ export default function EventRegistrationPage() {
 
                             {/* Action Buttons */}
                             <div className="pt-6">
-                                {event.isGroupEvent ? (
-                                    <button
-                                        onClick={handleGroupRegister}
-                                        disabled={registering || !groupName || teamSize < event.minTeamSize || teamSize > event.maxTeamSize || !acceptedTerms}
-                                        className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {registering ? "Registering..." : `Confirm Registration (${1 + teamMembers.length} Members)`}
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={handleRegister}
-                                        disabled={!acceptedTerms || registering}
-                                        className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {registering ? "Registering..." : "Confirm Registration"}
-                                    </button>
-                                )}
+                                <button
+                                    onClick={handleRegisterClick}
+                                    disabled={!acceptedTerms || registering || (event.isGroupEvent && (!groupName || teamSize < event.minTeamSize || teamSize > event.maxTeamSize))}
+                                    className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Proceed to Payment
+                                </button>
                             </div>
                         </div>
                     )}
                 </div>
             </div>
+
+            {/* Payment Modal */}
+            <AnimatePresence>
+                {showPaymentModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+                        >
+                            <div className="p-6">
+                                <h2 className="text-2xl font-bold text-white mb-1">Payment Summary</h2>
+                                <p className="text-zinc-400 text-sm mb-6">Complete your registration for {event.name}</p>
+
+                                <div className="space-y-4 mb-6">
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-zinc-300">Registration Fee</span>
+                                        <span className="text-white">₹{feePerPerson} / person</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-zinc-300">Participants</span>
+                                        <span className="text-white">{memberCount}</span>
+                                    </div>
+                                    <div className="h-px bg-zinc-800 my-2" />
+                                    <div className="flex justify-between items-center font-bold text-lg">
+                                        <span className="text-white">Total Amount</span>
+                                        <span className="text-red-500">₹{totalFee}</span>
+                                    </div>
+                                </div>
+
+                                <div className="bg-zinc-800/50 rounded-xl p-4 mb-6">
+                                    <h3 className="text-sm font-semibold text-white mb-3">Includes:</h3>
+                                    <ul className="space-y-2 text-sm text-zinc-300">
+                                        <li className="flex items-start gap-2">
+                                            <FiCheck className="text-green-500 mt-0.5 shrink-0" />
+                                            <span>1 Day Free Accommodation</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <FiCheck className="text-green-500 mt-0.5 shrink-0" />
+                                            <span>Complimentary Lunch</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <FiCheck className="text-green-500 mt-0.5 shrink-0" />
+                                            <span>Access to all Events & Pro Shows (6th & 7th March)</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <FiCheck className="text-green-500 mt-0.5 shrink-0" />
+                                            <span>Free Merchandise (T-shirt)</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setShowPaymentModal(false)}
+                                        disabled={paymentProcessing}
+                                        className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={processPaymentAndRegister}
+                                        disabled={paymentProcessing}
+                                        className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        {paymentProcessing ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                Processing...
+                                            </>
+                                        ) : (
+                                            <>
+                                                Pay Now
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="px-6 py-3 bg-zinc-950 border-t border-zinc-800 text-center">
+                                <p className="text-xs text-zinc-500 flex items-center justify-center gap-1">
+                                    <span className="w-2 h-2 rounded-full bg-yellow-500" />
+                                    Demo Mode: No real payment will be deducted
+                                </p>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

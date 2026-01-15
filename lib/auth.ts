@@ -115,14 +115,6 @@ export const auth = betterAuth({
             paymentStatus: {
                 type: "string",
                 input: false
-            },
-            transactionId: {
-                type: "string",
-                input: false
-            },
-            paymentProof: {
-                type: "string",
-                input: false
             }
         }
     },

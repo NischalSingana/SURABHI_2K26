@@ -49,8 +49,6 @@ export async function getAllUsers(filters?: {
                 phone: true,
                 isApproved: true,
                 paymentStatus: true,
-                transactionId: true,
-                paymentProof: true,
                 role: true,
                 createdAt: true,
                 _count: {
@@ -97,7 +95,6 @@ export async function approveUser(userId: string) {
                 phone: true,
                 collage: true,
                 collageId: true,
-                transactionId: true,
                 paymentStatus: true,
                 accounts: {
                     select: {
@@ -132,7 +129,6 @@ export async function approveUser(userId: string) {
                     phone: user.phone,
                     collage: user.collage,
                     collageId: user.collageId,
-                    transactionId: user.transactionId,
                     paymentStatus: user.paymentStatus,
                     isApproved: true,
                 });

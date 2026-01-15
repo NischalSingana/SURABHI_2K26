@@ -10,8 +10,6 @@ import {
   FiPhone,
   FiBook,
   FiCalendar,
-  FiCreditCard,
-  FiUpload,
   FiChevronRight,
   FiChevronLeft,
   FiCheck
@@ -31,8 +29,6 @@ interface RegistrationData {
   collageId: string;
   branch: string;
   year: number;
-  transactionId: string;
-  paymentProof: File | null;
 }
 
 const COLLEGES = [
@@ -59,8 +55,6 @@ const MultiStepRegister = () => {
     collageId: "",
     branch: "",
     year: 1,
-    transactionId: "",
-    paymentProof: null,
   });
 
   // Auto-detect college from localStorage and skip to registration
@@ -204,11 +198,7 @@ const MultiStepRegister = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFormData({ ...formData, paymentProof: e.target.files[0] });
-    }
-  };
+
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -232,15 +222,10 @@ const MultiStepRegister = () => {
         }
       }
 
-      // Create FormData for file upload
       const submitData = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== null && value !== "") {
-          if (key === "paymentProof" && value instanceof File) {
-            submitData.append(key, value);
-          } else {
-            submitData.append(key, String(value));
-          }
+          submitData.append(key, String(value));
         }
       });
 
@@ -290,17 +275,16 @@ const MultiStepRegister = () => {
       formData.branch &&
       formData.year;
 
-    // KL University students don't need payment fields
-    if (formData.college === "KL_UNIVERSITY") {
-      return basicFieldsFilled;
+    // Other college students need basic fields and college name
+    if (formData.college === "OTHER") {
+      return (
+        basicFieldsFilled &&
+        formData.collegeName &&
+        formData.collegeName !== "Other College"
+      );
     }
 
-    // Other college students need basic fields and college name (payment fields are optional)
-    return (
-      basicFieldsFilled &&
-      formData.collegeName &&
-      formData.collegeName !== "Other College"
-    );
+    return basicFieldsFilled;
   };
 
   const pageVariants = {
@@ -669,7 +653,7 @@ const MultiStepRegister = () => {
                       College ID / Roll Number *
                     </label>
                     <div className="relative">
-                      <FiCreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
+                      <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
                       <input
                         type="text"
                         name="collageId"
@@ -753,49 +737,7 @@ const MultiStepRegister = () => {
                     </div>
                   </div>
 
-                  {/* Payment Fields - Only for non-KL students */}
-                  {formData.college !== "KL_UNIVERSITY" && (
-                    <>
-                      {/* Transaction ID */}
-                      <div>
-                        <label className="block text-sm font-medium text-zinc-300 mb-2">
-                          Payment Transaction ID (Optional)
-                        </label>
-                        <div className="relative">
-                          <FiCreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
-                          <input
-                            type="text"
-                            name="transactionId"
-                            value={formData.transactionId}
-                            onChange={handleInputChange}
-                            className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
-                            placeholder="Enter transaction ID (if paid)"
-                          />
-                        </div>
-                      </div>
 
-                      {/* Payment Proof */}
-                      <div>
-                        <label className="block text-sm font-medium text-zinc-300 mb-2">
-                          Payment Proof (Screenshot) (Optional)
-                        </label>
-                        <div className="relative">
-                          <FiUpload className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-red-600 file:text-white hover:file:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
-                          />
-                        </div>
-                        {formData.paymentProof && (
-                          <p className="text-sm text-green-400 mt-2">
-                            ✓ {formData.paymentProof.name}
-                          </p>
-                        )}
-                      </div>
-                    </>
-                  )}
 
                   {/* Info message for KL students */}
                   {formData.college === "KL_UNIVERSITY" && (
@@ -806,14 +748,7 @@ const MultiStepRegister = () => {
                     </div>
                   )}
 
-                  {/* Info message for Other College students */}
-                  {formData.college === "OTHER" && (
-                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                      <p className="text-blue-300 text-sm font-medium">
-                        ℹ️ Payment fields are optional. You can complete registration now and add payment details later if needed.
-                      </p>
-                    </div>
-                  )}
+
                 </div>
 
                 <div className="mt-8 space-y-3">
