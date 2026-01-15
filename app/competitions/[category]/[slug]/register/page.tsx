@@ -11,13 +11,13 @@ import {
     FiCheck,
     FiChevronLeft,
     FiUsers,
-    FiX
+    FiX,
+    FiEdit2
 } from "react-icons/fi";
 import {
     registerForEvent,
     checkEventRegistration,
-    registerGroupEvent,
-    getUserByEmail
+    registerGroupEvent
 } from "@/actions/events.action";
 import { useSession } from "@/lib/auth-client";
 
@@ -59,11 +59,25 @@ export default function EventRegistrationPage() {
     const [teamMembers, setTeamMembers] = useState<any[]>([]);
     const [mentorName, setMentorName] = useState("");
     const [mentorPhone, setMentorPhone] = useState("");
-    const [memberEmailInput, setMemberEmailInput] = useState("");
-    const [lookingUpMember, setLookingUpMember] = useState(false);
+    const [currentMemberName, setCurrentMemberName] = useState("");
+    const [currentMemberPhone, setCurrentMemberPhone] = useState("");
+    const [currentMemberGender, setCurrentMemberGender] = useState("");
+    // Vastranaut Specific
+    const [styleDNA, setStyleDNA] = useState("");
+    const isVastranaut = slug?.includes("vastranaut");
+    const styleDNAOptions = [
+        "Street Rebel",
+        "Luxe Minimalist",
+        "Futuristic Nomad",
+        "Tech Couture",
+        "Gothic Renaissance",
+        "Culture Remix",
+        "Indie Royal"
+    ];
 
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentProcessing, setPaymentProcessing] = useState(false);
+    const [isReviewing, setIsReviewing] = useState(false);
 
 
 
@@ -103,9 +117,9 @@ export default function EventRegistrationPage() {
         let result;
         try {
             if (event.isGroupEvent) {
-                result = await registerGroupEvent(event.id, groupName, teamMembers, mentorName, mentorPhone);
+                result = await registerGroupEvent(event.id, groupName, teamMembers, mentorName, mentorPhone, isVastranaut ? { styleDNA } : undefined);
             } else {
-                result = await registerForEvent(event.id);
+                result = await registerForEvent(event.id, isVastranaut ? { styleDNA } : undefined);
             }
 
             if (result.success) {
@@ -142,26 +156,23 @@ export default function EventRegistrationPage() {
             }
         }
 
+        // If it's a group event, go to review step first
+        if (event?.isGroupEvent) {
+            setIsReviewing(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
+        // Individual events go straight to payment
         setShowPaymentModal(true);
     };
 
 
 
 
-    const verifyAndAddMember = async () => {
-        if (!memberEmailInput.trim()) {
-            toast.error("Please enter an email address");
-            return;
-        }
-
-        if (teamMembers.some(m => m.email === memberEmailInput.trim())) {
-            toast.error("This user is already in your team list");
-            return;
-        }
-
-        // Check if user is trying to add themselves
-        if (session?.user?.email === memberEmailInput.trim()) {
-            toast.error("You are already the team lead (included automatically).");
+    const addManualMember = () => {
+        if (!currentMemberName.trim() || !currentMemberPhone.trim() || !currentMemberGender) {
+            toast.error("Please fill in all member details (Name, Phone, Gender)");
             return;
         }
 
@@ -170,35 +181,38 @@ export default function EventRegistrationPage() {
             return;
         }
 
-        setLookingUpMember(true);
-        try {
-            const res = await getUserByEmail(memberEmailInput.trim());
-            if (res.success && res.user) {
-                setTeamMembers([...teamMembers, {
-                    id: res.user.id,
-                    name: res.user.name,
-                    email: res.user.email,
-                    college: "",
-                    collegeId: "",
-                    phone: ""
-                }]);
-                setMemberEmailInput("");
-                toast.success(`Added ${res.user.name} to the team!`);
-            } else {
-                toast.error("User not found. Check email or ensure they are registered.");
-            }
-        } catch (error) {
-            console.error(error);
-            toast.error("Error looking up user");
-        } finally {
-            setLookingUpMember(false);
+        // Basic phone validation
+        if (currentMemberPhone.trim().length < 10) {
+            toast.error("Please enter a valid phone number");
+            return;
         }
+
+        setTeamMembers([...teamMembers, {
+            name: currentMemberName.trim(),
+            phone: currentMemberPhone.trim(),
+            gender: currentMemberGender
+        }]);
+
+        // Reset inputs
+        setCurrentMemberName("");
+        setCurrentMemberPhone("");
+        setCurrentMemberGender("");
+        toast.success("Member added to list");
     };
 
     const removeMember = (index: number) => {
         const newMembers = [...teamMembers];
         newMembers.splice(index, 1);
         setTeamMembers(newMembers);
+    };
+
+    const editMember = (index: number) => {
+        const member = teamMembers[index];
+        setCurrentMemberName(member.name);
+        setCurrentMemberPhone(member.phone);
+        setCurrentMemberGender(member.gender);
+        removeMember(index);
+        toast.info("Editing member details...");
     };
 
     if (loading) {
@@ -244,6 +258,89 @@ export default function EventRegistrationPage() {
                             >
                                 Login to Register
                             </button>
+                        </div>
+                    ) : isReviewing ? (
+                        // Review Step
+                        <div className="space-y-8">
+                            <div className="bg-zinc-800/50 border border-zinc-700 rounded-xl p-6">
+                                <h2 className="text-xl font-bold text-white mb-6 border-b border-zinc-700 pb-4">Review Your Registration</h2>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                    <div>
+                                        <p className="text-sm text-zinc-400 mb-1">Group Name</p>
+                                        <p className="text-white font-medium text-lg">{groupName}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-zinc-400 mb-1">Total Team Size</p>
+                                        <p className="text-white font-medium">{teamSize}</p>
+                                    </div>
+                                    {isVastranaut && styleDNA && (
+                                        <div className="md:col-span-2">
+                                            <p className="text-sm text-zinc-400 mb-1">Style DNA</p>
+                                            <p className="text-white font-medium text-lg text-red-500">{styleDNA}</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {mentorName && (
+                                    <div className="bg-zinc-900/50 p-4 rounded-lg mb-6 border border-zinc-800/50">
+                                        <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">Mentor Details</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-xs text-zinc-500">Name</p>
+                                                <p className="text-white">{mentorName}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-zinc-500">Phone</p>
+                                                <p className="text-white">{mentorPhone || "N/A"}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div>
+                                    <h3 className="text-lg font-semibold text-white mb-3">Team Roster</h3>
+                                    <div className="space-y-3">
+                                        {/* Team Lead */}
+                                        <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700 flex items-center justify-between">
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-white font-medium">{session.user.name}</span>
+                                                    <span className="bg-red-600/20 text-red-500 text-xs px-2 py-0.5 rounded font-bold uppercase">Team Lead</span>
+                                                </div>
+                                                <p className="text-xs text-zinc-400">{session.user.email}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Members */}
+                                        {teamMembers.map((member, idx) => (
+                                            <div key={idx} className="bg-zinc-800 p-4 rounded-lg border border-zinc-700 flex items-center justify-between">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="text-white font-medium">{member.name}</span>
+                                                    </div>
+                                                    <p className="text-xs text-zinc-400">{member.gender} • {member.phone}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4 pt-4">
+                                <button
+                                    onClick={() => setIsReviewing(false)}
+                                    className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <FiEdit2 /> Edit Details
+                                </button>
+                                <button
+                                    onClick={() => setShowPaymentModal(true)}
+                                    className="flex-1 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-red-600/20"
+                                >
+                                    Proceed to Payment
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <div className="space-y-8">
@@ -330,24 +427,39 @@ export default function EventRegistrationPage() {
                                         </div>
 
                                         <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-lg mb-4">
-                                            <label className="block text-sm font-medium text-zinc-300 mb-2">Add Member by Email</label>
-                                            <div className="flex gap-2">
+                                            <label className="block text-sm font-medium text-zinc-300 mb-3">Add Team Member</label>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                                                 <input
-                                                    type="email"
-                                                    value={memberEmailInput}
-                                                    onChange={(e) => setMemberEmailInput(e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && verifyAndAddMember()}
-                                                    placeholder="Enter registered email address"
-                                                    className="flex-1 px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none"
+                                                    type="text"
+                                                    value={currentMemberName}
+                                                    onChange={(e) => setCurrentMemberName(e.target.value)}
+                                                    placeholder="Full Name"
+                                                    className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none"
                                                 />
-                                                <button
-                                                    onClick={verifyAndAddMember}
-                                                    disabled={lookingUpMember}
-                                                    className="px-4 py-2 bg-zinc-100 text-black font-semibold rounded-lg hover:bg-zinc-200 disabled:opacity-50 transition-colors"
+                                                <input
+                                                    type="text"
+                                                    value={currentMemberPhone}
+                                                    onChange={(e) => setCurrentMemberPhone(e.target.value)}
+                                                    placeholder="Phone Number"
+                                                    className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none"
+                                                />
+                                                <select
+                                                    value={currentMemberGender}
+                                                    onChange={(e) => setCurrentMemberGender(e.target.value)}
+                                                    className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none appearance-none"
                                                 >
-                                                    {lookingUpMember ? 'Checking...' : 'Add'}
-                                                </button>
+                                                    <option value="">Select Gender</option>
+                                                    <option value="Male">Male</option>
+                                                    <option value="Female">Female</option>
+                                                    <option value="Other">Other</option>
+                                                </select>
                                             </div>
+                                            <button
+                                                onClick={addManualMember}
+                                                className="w-full px-4 py-2 bg-zinc-100 text-black font-semibold rounded-lg hover:bg-zinc-200 transition-colors flex justify-center items-center gap-2"
+                                            >
+                                                <FiUsers /> Add Member
+                                            </button>
                                         </div>
 
                                         <div className="space-y-3">
@@ -355,15 +467,24 @@ export default function EventRegistrationPage() {
                                                 <div key={member.id || idx} className="bg-zinc-800 p-3 rounded-lg border border-zinc-700 flex items-center justify-between">
                                                     <div>
                                                         <p className="text-white font-medium">{member.name}</p>
-                                                        <p className="text-xs text-zinc-400">{member.email}</p>
+                                                        <p className="text-xs text-zinc-400">{member.gender} • {member.phone}</p>
                                                     </div>
-                                                    <button
-                                                        onClick={() => removeMember(idx)}
-                                                        className="text-red-400 hover:text-red-300 p-2"
-                                                        title="Remove member"
-                                                    >
-                                                        <FiX size={18} />
-                                                    </button>
+                                                    <div className="flex items-center gap-1">
+                                                        <button
+                                                            onClick={() => editMember(idx)}
+                                                            className="text-zinc-400 hover:text-white p-2 transition-colors"
+                                                            title="Edit member"
+                                                        >
+                                                            <FiEdit2 size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => removeMember(idx)}
+                                                            className="text-red-400 hover:text-red-300 p-2 transition-colors"
+                                                            title="Remove member"
+                                                        >
+                                                            <FiX size={18} />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
@@ -384,6 +505,28 @@ export default function EventRegistrationPage() {
                                     <p className="text-zinc-300 text-sm">
                                         You are registering as an individual participant for this event.
                                     </p>
+                                </div>
+                            )}
+
+                            {/* Vastranaut Specific Field */}
+                            {isVastranaut && (
+                                <div className="border-t border-zinc-800 pt-6">
+                                    <h3 className="text-lg font-semibold text-white mb-4">Choose Your Style DNA *</h3>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                        {styleDNAOptions.map((option) => (
+                                            <button
+                                                key={option}
+                                                onClick={() => setStyleDNA(option)}
+                                                className={`px-4 py-3 rounded-lg text-sm font-medium transition-all text-center border ${styleDNA === option
+                                                    ? "bg-red-600 border-red-500 text-white shadow-lg shadow-red-900/20"
+                                                    : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700 hover:text-white"
+                                                    }`}
+                                            >
+                                                {option}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {!styleDNA && <p className="text-zinc-500 text-xs mt-2">Please select one style option.</p>}
                                 </div>
                             )}
 
@@ -454,105 +597,105 @@ export default function EventRegistrationPage() {
                             <div className="pt-6">
                                 <button
                                     onClick={handleRegisterClick}
-                                    disabled={!acceptedTerms || registering || (event.isGroupEvent && (!groupName || teamSize < event.minTeamSize || teamSize > event.maxTeamSize))}
+                                    disabled={!acceptedTerms || registering || (isVastranaut && !styleDNA) || (event.isGroupEvent && (!groupName || teamSize < event.minTeamSize || teamSize > event.maxTeamSize))}
                                     className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    Proceed to Payment
+                                    {event.isGroupEvent ? "Review Details" : "Proceed to Payment"}
                                 </button>
                             </div>
                         </div>
                     )}
                 </div>
+
+                {/* Payment Modal */}
+                <AnimatePresence>
+                    {showPaymentModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+                            >
+                                <div className="p-6">
+                                    <h2 className="text-2xl font-bold text-white mb-1">Payment Summary</h2>
+                                    <p className="text-zinc-400 text-sm mb-6">Complete your registration for {event.name}</p>
+
+                                    <div className="space-y-4 mb-6">
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-zinc-300">Registration Fee</span>
+                                            <span className="text-white">₹{feePerPerson} / person</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-zinc-300">Participants</span>
+                                            <span className="text-white">{memberCount}</span>
+                                        </div>
+                                        <div className="h-px bg-zinc-800 my-2" />
+                                        <div className="flex justify-between items-center font-bold text-lg">
+                                            <span className="text-white">Total Amount</span>
+                                            <span className="text-red-500">₹{totalFee}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-zinc-800/50 rounded-xl p-4 mb-6">
+                                        <h3 className="text-sm font-semibold text-white mb-3">Includes:</h3>
+                                        <ul className="space-y-2 text-sm text-zinc-300">
+                                            <li className="flex items-start gap-2">
+                                                <FiCheck className="text-green-500 mt-0.5 shrink-0" />
+                                                <span>1 Day Free Accommodation</span>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <FiCheck className="text-green-500 mt-0.5 shrink-0" />
+                                                <span>Complimentary Lunch</span>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <FiCheck className="text-green-500 mt-0.5 shrink-0" />
+                                                <span>Access to all Events & Pro Shows (6th & 7th March)</span>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <FiCheck className="text-green-500 mt-0.5 shrink-0" />
+                                                <span>Free Merchandise (T-shirt)</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={() => setShowPaymentModal(false)}
+                                            disabled={paymentProcessing}
+                                            className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={processPaymentAndRegister}
+                                            disabled={paymentProcessing}
+                                            className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                                        >
+                                            {paymentProcessing ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    Processing...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Pay Now
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="px-6 py-3 bg-zinc-950 border-t border-zinc-800 text-center">
+                                    <p className="text-xs text-zinc-500 flex items-center justify-center gap-1">
+                                        <span className="w-2 h-2 rounded-full bg-yellow-500" />
+                                        Demo Mode: No real payment will be deducted
+                                    </p>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
             </div>
-
-            {/* Payment Modal */}
-            <AnimatePresence>
-                {showPaymentModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
-                        >
-                            <div className="p-6">
-                                <h2 className="text-2xl font-bold text-white mb-1">Payment Summary</h2>
-                                <p className="text-zinc-400 text-sm mb-6">Complete your registration for {event.name}</p>
-
-                                <div className="space-y-4 mb-6">
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-zinc-300">Registration Fee</span>
-                                        <span className="text-white">₹{feePerPerson} / person</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-zinc-300">Participants</span>
-                                        <span className="text-white">{memberCount}</span>
-                                    </div>
-                                    <div className="h-px bg-zinc-800 my-2" />
-                                    <div className="flex justify-between items-center font-bold text-lg">
-                                        <span className="text-white">Total Amount</span>
-                                        <span className="text-red-500">₹{totalFee}</span>
-                                    </div>
-                                </div>
-
-                                <div className="bg-zinc-800/50 rounded-xl p-4 mb-6">
-                                    <h3 className="text-sm font-semibold text-white mb-3">Includes:</h3>
-                                    <ul className="space-y-2 text-sm text-zinc-300">
-                                        <li className="flex items-start gap-2">
-                                            <FiCheck className="text-green-500 mt-0.5 shrink-0" />
-                                            <span>1 Day Free Accommodation</span>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <FiCheck className="text-green-500 mt-0.5 shrink-0" />
-                                            <span>Complimentary Lunch</span>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <FiCheck className="text-green-500 mt-0.5 shrink-0" />
-                                            <span>Access to all Events & Pro Shows (6th & 7th March)</span>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <FiCheck className="text-green-500 mt-0.5 shrink-0" />
-                                            <span>Free Merchandise (T-shirt)</span>
-                                        </li>
-                                    </ul>
-                                </div>
-
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={() => setShowPaymentModal(false)}
-                                        disabled={paymentProcessing}
-                                        className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={processPaymentAndRegister}
-                                        disabled={paymentProcessing}
-                                        className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
-                                    >
-                                        {paymentProcessing ? (
-                                            <>
-                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                Processing...
-                                            </>
-                                        ) : (
-                                            <>
-                                                Pay Now
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="px-6 py-3 bg-zinc-950 border-t border-zinc-800 text-center">
-                                <p className="text-xs text-zinc-500 flex items-center justify-center gap-1">
-                                    <span className="w-2 h-2 rounded-full bg-yellow-500" />
-                                    Demo Mode: No real payment will be deducted
-                                </p>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
-        </div>
+        </div >
     );
 }
