@@ -76,7 +76,7 @@ const Footer = () => {
                         <h3 className="text-white font-semibold text-xl">Quick Links</h3>
                         <ul className="space-y-3">
                             {[
-                                { name: 'Events', href: '/events' },
+                                { name: 'Competitions', href: '/competitions' },
                                 { name: 'Gallery', href: '/gallery' },
                                 { name: 'Accommodation', href: '/accommodation' },
                                 { name: 'Sponsors', href: '/sponsors' },
