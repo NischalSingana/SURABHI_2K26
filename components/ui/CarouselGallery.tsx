@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { FiChevronLeft, FiChevronRight, FiFilter } from "react-icons/fi";
 import { cn } from "@/lib/utils";
 
@@ -168,7 +169,10 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
             animate={{ opacity: 0.15, scale: 1.1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="absolute inset-0 bg-cover bg-center blur-[100px] opacity-20"
+            className={cn(
+              "absolute inset-0 bg-cover bg-center opacity-20",
+              isMobile ? "blur-xl" : "blur-[100px]" // Reduce blur on mobile for performance
+            )}
             style={{ backgroundImage: `url(${filteredItems[activeIndex]?.image})` }}
           />
         </AnimatePresence>
@@ -267,7 +271,8 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                   key={`${item.year}-${index}`}
                   layoutId={undefined}
                   className={cn(
-                    "absolute top-0 w-[300px] md:w-[600px] h-[360px] md:h-auto md:aspect-[4/3] rounded-3xl overflow-hidden bg-neutral-900 border border-neutral-800 shadow-2xl transition-all duration-300",
+                    "absolute top-0 rounded-3xl overflow-hidden bg-neutral-900 border border-neutral-800 shadow-2xl transition-all duration-300",
+                    isMobile ? "w-[75vw] aspect-[3/4] h-auto" : "w-[600px] md:aspect-[4/3] h-auto",
                     isActive ? "z-20 border-red-500/30 cursor-zoom-in" : "z-10 grayscale-[50%] hover:grayscale-0 cursor-pointer"
                   )}
                   initial={false}
@@ -298,12 +303,17 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                   }}
                 >
                   {/* Clean Image Tag for better Border Clip */}
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="absolute inset-0 w-full h-full object-fill md:object-cover rounded-3xl"
-                    style={{ height: '100%' }}
-                  />
+                  <div className="absolute inset-0 w-full h-full">
+                    <Image
+                      src={item.image}
+                      alt={item.name || "Gallery Image"}
+                      fill
+                      className="object-cover rounded-3xl"
+                      sizes="(max-width: 768px) 75vw, 600px"
+                      priority={isActive} // High priority for the active image
+                      quality={85}
+                    />
+                  </div>
 
                   {/* Overlay Gradient */}
                   <div className={cn(
