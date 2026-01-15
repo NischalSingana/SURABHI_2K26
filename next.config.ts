@@ -41,7 +41,22 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "i.imghippo.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "i.ibb.co",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "your-bucket.your-domain.com", // Replace with your custom R2 domain if using one
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "**.digitaloceanspaces.com",
         pathname: "/**",
       },
     ],
