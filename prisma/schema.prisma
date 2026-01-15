@@ -161,6 +161,7 @@ model GroupRegistration {
   mentorName String?
   mentorPhone String?
   members   Json
+  registrationDetails Json?
 
   @@unique([userId, eventId])
   @@map("group_registrations")
@@ -244,6 +245,7 @@ model EventSubmission {
 
   submissionLink String
   notes          String?
+  registrationDetails Json?
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)

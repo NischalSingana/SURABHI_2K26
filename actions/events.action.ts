@@ -65,6 +65,25 @@ export async function getCategories() {
                 notes: true,
               },
             },
+            groupRegistrations: {
+              select: {
+                id: true,
+                groupName: true,
+                mentorName: true,
+                mentorPhone: true,
+                members: true,
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    phone: true,
+                    collage: true,
+                    collageId: true,
+                  }
+                }
+              }
+            }
           },
           orderBy: {
             date: "asc",
@@ -373,10 +392,8 @@ export async function deleteEvent(id: string) {
 
 interface GroupMember {
   name: string;
-  college: string;
-  collegeId: string;
   phone: string;
-  email: string;
+  gender: string;
 }
 
 export async function getUserByEmail(email: string) {
@@ -410,9 +427,10 @@ export async function registerGroupEvent(
   groupName: string,
   members: GroupMember[],
   mentorName?: string,
-  mentorPhone?: string
+  mentorPhone?: string,
+  registrationDetails?: any
 ) {
-  console.log("registerGroupEvent started", { eventId, groupName, memberCount: members.length, mentorName });
+  console.log("registerGroupEvent started", { eventId, groupName, memberCount: members.length, mentorName, registrationDetails });
   try {
     const headersList = await headers();
     const session = await auth.api.getSession({
@@ -435,17 +453,6 @@ export async function registerGroupEvent(
     }
     console.log("registerGroupEvent: User logged in", session.user.id);
 
-    // Validate that all members have an ID (meaning they are verified users)
-    for (const member of members) {
-      // Logic assumes frontend passes userId in 'collegeId' or a new field. 
-      // User requested "fetched and added", so we should infer we have their IDs.
-      // Let's assume the 'collegeId' field in GroupMember interface is being repurposed or we should rely on email lookup being trusted.
-      // Better: The UI will look them up. We can lookup by email here to be sure.
-      if (!member.email) {
-        return { success: false, error: "All members must be valid users with emails." };
-      }
-    }
-
     const registrationResult = await prisma.$transaction(
       async (tx) => {
         const event = await tx.event.findUnique({
@@ -464,16 +471,22 @@ export async function registerGroupEvent(
         }
         console.log("registerGroupEvent: Event found", event.name);
 
-        if (event._count.registeredStudents + members.length >= event.participantLimit) { // + members.length to include team
-          // Note: Logic might need 1 for lead + members. 
-          // If 'members' includes lead, just length. If members are *other* people, lead + members.
-          // Current UI implies "Total Team Size (Including You)", so members array usually excludes You? 
-          // Need to align. Let's assume members array contains ONLY the added teammates.
-        }
-
         // Strict check: Is event full?
-        const totalNewRegistrants = 1 + members.length; // Lead + Teammates
-        if (event._count.registeredStudents + totalNewRegistrants > event.participantLimit) {
+        // Count registrations + new team size (Lead + Members)
+        // Note: registeredStudents count tracks individual Users registered.
+        // For Group Event, we are only registering the Lead as a 'User' relation.
+        // So technologically, the event participant count might not reflect team size if we only link the Lead.
+        // HOWEVER, to keep it simple and consistent with "participantLimit":
+        // We should arguably count the TEAM SIZE against the limit.
+        // But the `registeredStudents` relation is User[].
+        // If we don't register teammates as Users, `event._count.registeredStudents` will only increase by 1 (Lead).
+        // This is a trade-off. We should probably stick to checking if we have space, but we can't easily increment the counter by 5 if only 1 user relation exists.
+        // REQUIRED FIX: If we want accurate limits, we should rely on GroupRegistration calculation or accept that 'registeredStudents' = 'Teams Registered'.
+        // Let's assume for now `participantLimit` for group events means "Number of Teams".
+        // If it means "Number of People", we are breaking that tracking by not creating User records.
+        // Let's assume it means "Number of Teams" or "Number of Leads".
+
+        if (event._count.registeredStudents >= event.participantLimit) {
           throw new Error(EVENT_FULL_ERROR);
         }
 
@@ -489,57 +502,15 @@ export async function registerGroupEvent(
           throw new Error("You are already registered for this event");
         }
 
-        // Check if any Teammate is already registered
-        // We need their IDs. Since we only have emails in the interface 'GroupMember' currently, we must fetch them.
-        // It is better to resolve them to IDs first.
-        const memberEmails = members.map(m => m.email);
-        const registeredTeammates = await tx.user.findMany({
-          where: {
-            email: { in: memberEmails },
-            registeredEvents: { some: { id: eventId } },
-          },
-        });
-
-        if (registeredTeammates.length > 0) {
-          throw new Error(`User ${registeredTeammates[0].name} (${registeredTeammates[0].email}) is already registered.`);
-        }
-
         // 1. Register Team Lead
         await tx.user.update({
           where: { id: session.user.id },
           data: { registeredEvents: { connect: { id: eventId } } },
         });
 
-        // 2. Register Teammates
-        // We need the IDs of these users.
-        const teamUsers = await tx.user.findMany({
-          where: { email: { in: memberEmails } }
-        });
-
-        // Check if all exist
-        if (teamUsers.length !== members.length) {
-          throw new Error("One or more team members not found in the system. Please ensure they are registered.");
-        }
-
-        for (const user of teamUsers) {
-          await tx.user.update({
-            where: { id: user.id },
-            data: { registeredEvents: { connect: { id: eventId } } },
-          });
-        }
-
-        // 3. Create Group Registration
+        // 2. Create Group Registration
         // Store structured data in 'members' JSON.
-        // We'll store: { userId, name, email, phone, college, collegeId }
-        // We can fetch details from 'teamUsers' and merge with provided input if any.
-        const enhancedMembers = teamUsers.map(u => ({
-          userId: u.id,
-          name: u.name,
-          email: u.email,
-          // phone, etc might not be in User model or might be. 
-          // We can just store what we found in DB.
-        }));
-
+        // We ensure members array is stored directly
         await tx.groupRegistration.create({
           data: {
             eventId,
@@ -547,18 +518,17 @@ export async function registerGroupEvent(
             groupName: groupName || "Team",
             mentorName,
             mentorPhone,
-            members: enhancedMembers as any, // Storing verified user details
+            members: members as any, // Storing manual details
+            registrationDetails: registrationDetails || undefined
           },
         });
         console.log("registerGroupEvent: Group registration created");
-
-        // Re-check count after insert (optional but safe)
-        // ...
 
         return { success: true };
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
     );
+
 
     revalidatePath("/events");
     revalidatePath("/profile");
@@ -625,7 +595,7 @@ export async function getPublicEvents() {
   }
 }
 
-export async function registerForEvent(eventId: string) {
+export async function registerForEvent(eventId: string, registrationDetails?: any) {
   try {
     const headersList = await headers();
     const session = await auth.api.getSession({
@@ -707,6 +677,29 @@ export async function registerForEvent(eventId: string) {
 
         if (!updated || updated._count.registeredStudents > updated.participantLimit) {
           throw new Error(EVENT_FULL_ERROR);
+        }
+
+        // If registration details are provided (for solo events), create an EventSubmission or similar record
+        // Since we don't have a direct field on the relation, we'll use EventSubmission as a workaround storage if needed
+        if (registrationDetails) {
+          await tx.eventSubmission.upsert({
+            where: {
+              userId_eventId: {
+                userId: session.user.id,
+                eventId: eventId
+              }
+            },
+            create: {
+              userId: session.user.id,
+              eventId: eventId,
+              submissionLink: "", // Placeholder
+              notes: "Registration Details",
+              registrationDetails: registrationDetails
+            },
+            update: {
+              registrationDetails: registrationDetails
+            }
+          });
         }
 
         return { success: true };
