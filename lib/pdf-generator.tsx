@@ -4,7 +4,13 @@ import { generateTicketQR } from './qr-generator';
 import fs from 'fs';
 import path from 'path';
 
-interface UserTicketData {
+interface MemberData {
+    name: string;
+    phone: string;
+    gender: string;
+}
+
+export interface EventTicketData {
     userId: string;
     name: string;
     email: string;
@@ -13,6 +19,10 @@ interface UserTicketData {
     collageId: string | null;
     paymentStatus: string;
     isApproved: boolean;
+    eventName: string;
+    isGroupEvent: boolean;
+    groupName?: string | null;
+    teamMembers?: MemberData[];
 }
 
 // Register fonts if needed, for now standard Helvetica is fine for speed/compatibility
@@ -53,24 +63,40 @@ const styles = StyleSheet.create({
 
     // Logo Section
     logo: {
-        width: 180,
-        height: 180,
-        marginBottom: 20,
+        width: 140,
+        height: 140,
+        marginBottom: 10,
     },
     title: {
         color: '#dc2626', // Red-600
-        fontSize: 48,
+        fontSize: 36,
         fontWeight: 'heavy',
         letterSpacing: 4,
-        marginBottom: 10,
+        marginBottom: 5,
         textAlign: 'center',
     },
     subtitle: {
         color: '#d4d4d8', // Zinc-300
-        fontSize: 18,
-        letterSpacing: 6,
-        marginBottom: 50,
+        fontSize: 14,
+        letterSpacing: 4,
+        marginBottom: 20,
         textTransform: 'uppercase',
+    },
+
+    // Event Title
+    eventTitleBox: {
+        backgroundColor: '#dc2626',
+        paddingHorizontal: 20,
+        paddingVertical: 8,
+        borderRadius: 4,
+        marginBottom: 20,
+    },
+    eventTitle: {
+        color: '#ffffff',
+        fontSize: 20,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        letterSpacing: 2,
     },
 
     // Ticket Box
@@ -79,7 +105,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#18181b', // Zinc-900
         borderRadius: 20,
         border: '1px solid #3f3f46', // Zinc-700
-        padding: 30,
+        padding: 25,
         flexDirection: 'column',
     },
 
@@ -87,58 +113,69 @@ const styles = StyleSheet.create({
     infoRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 25,
+        marginBottom: 20,
         borderBottom: '1px solid #27272a', // Zinc-800
-        paddingBottom: 25,
+        paddingBottom: 20,
     },
     infoCol: {
         flexDirection: 'column',
-        width: '48%',
     },
     label: {
         color: '#71717a', // Zinc-500
-        fontSize: 12,
-        marginBottom: 5,
+        fontSize: 10,
+        marginBottom: 4,
         textTransform: 'uppercase',
         letterSpacing: 1,
         fontWeight: 'bold',
     },
     value: {
         color: '#ffffff',
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
     },
     valueSmall: {
         color: '#e4e4e7', // Zinc-200
-        fontSize: 14,
+        fontSize: 12,
     },
-    statusBadge: {
-        color: '#22c55e', // Green-500
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginTop: 5,
-        textTransform: 'uppercase',
+
+    // Group Table
+    tableHeader: {
+        flexDirection: 'row',
+        borderBottom: '1px solid #3f3f46',
+        paddingBottom: 5,
+        marginBottom: 5,
+        marginTop: 10,
     },
+    tableRow: {
+        flexDirection: 'row',
+        marginBottom: 4,
+    },
+    col1: { width: '40%' },
+    col2: { width: '40%' },
+    col3: { width: '20%' },
+    tableText: { color: '#d4d4d8', fontSize: 10 },
+    tableHeadText: { color: '#71717a', fontSize: 10, fontWeight: 'bold' },
+
 
     // QR Section
     qrSection: {
-        alignItems: 'flex-start',
-        marginTop: 10,
-        paddingLeft: 0,
+        marginLeft: 20,
+        alignItems: 'center',
     },
     qrCode: {
-        width: 140,
-        height: 140,
+        width: 100,
+        height: 100,
         backgroundColor: '#ffffff',
-        padding: 10,
-        borderRadius: 10,
+        padding: 5,
+        borderRadius: 8,
     },
     qrText: {
         color: '#ef4444',
-        fontSize: 13,
+        fontSize: 10,
         fontWeight: 'bold',
-        marginTop: 10,
+        marginTop: 5,
         letterSpacing: 1,
+        textAlign: 'center',
     },
 
     // Footer on Page 1
@@ -194,18 +231,18 @@ const styles = StyleSheet.create({
     },
 });
 
-export async function generateTicketPDF(userData: UserTicketData): Promise<Buffer> {
+export async function generateTicketPDF(ticketData: EventTicketData): Promise<Buffer> {
     const qrCodeDataURL = await generateTicketQR({
-        userId: userData.userId,
-        name: userData.name,
-        email: userData.email,
-        phone: userData.phone,
-        collage: userData.collage,
-        paymentStatus: userData.paymentStatus,
-        isApproved: userData.isApproved,
+        userId: ticketData.userId,
+        name: ticketData.name,
+        email: ticketData.email,
+        phone: ticketData.phone,
+        collage: ticketData.collage,
+        paymentStatus: ticketData.paymentStatus,
+        isApproved: ticketData.isApproved,
     });
 
-    // Read Surabhi logo
+    // Read logos
     const logoPath = path.join(process.cwd(), 'public', 'images', 'surabhi_white_logo.png');
     let logoBase64 = '';
     try {
@@ -214,10 +251,9 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
             logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
         }
     } catch (e) {
-        console.error("Surabhi logo not found or readable", e);
+        console.error("Surabhi logo not found", e);
     }
 
-    // Read SAC logo
     const sacLogoPath = path.join(process.cwd(), 'public', 'sac_logo (1).png');
     let sacLogoBase64 = '';
     try {
@@ -226,7 +262,7 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
             sacLogoBase64 = `data:image/png;base64,${sacLogoBuffer.toString('base64')}`;
         }
     } catch (e) {
-        console.error("SAC logo not found or readable", e);
+        console.error("SAC logo not found", e);
     }
 
     const TicketDocument = (
@@ -236,67 +272,95 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
                 <View style={styles.coverContainer}>
                     <View style={styles.topLine} />
 
-                    {/* SAC Logo - Top Left Corner */}
-                    {sacLogoBase64 ? (
+                    {sacLogoBase64 && (
                         <Image
                             src={sacLogoBase64}
                             style={{
                                 position: 'absolute',
                                 top: 30,
                                 left: 30,
-                                width: 140,
-                                height: 50
+                                width: 120,
+                                height: 40
                             }}
                         />
-                    ) : null}
+                    )}
 
-                    {/* Logo & Header */}
-                    {logoBase64 ? <Image src={logoBase64} style={{ ...styles.logo, marginBottom: 10 }} /> : null}
+                    {logoBase64 && <Image src={logoBase64} style={styles.logo} />}
                     <Text style={styles.title}>SURABHI-2026</Text>
                     <Text style={styles.subtitle}>OFFICIAL ENTRY PASS</Text>
 
-                    {/* Ticket Card */}
+                    <View style={styles.eventTitleBox}>
+                        <Text style={styles.eventTitle}>{ticketData.eventName}</Text>
+                    </View>
+
                     <View style={styles.ticketCard}>
-                        {/* Row 1: Name & Contact */}
-                        <View style={styles.infoRow}>
-                            <View style={styles.infoCol}>
-                                <Text style={styles.label}>ATTENDEE NAME</Text>
-                                <Text style={styles.value}>{userData.name}</Text>
-                            </View>
-                            <View style={styles.infoCol}>
-                                <Text style={styles.label}>CONTACT</Text>
-                                <Text style={styles.valueSmall}>{userData.email}</Text>
-                                {userData.phone && <Text style={styles.valueSmall}>{userData.phone}</Text>}
-                            </View>
-                        </View>
-
-                        {/* Row 2: College & Status with QR Code on the right */}
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', borderBottom: '1px solid #27272a', paddingBottom: 25, marginBottom: 25 }}>
-                            <View style={{ flexDirection: 'row', width: '60%', justifyContent: 'space-between' }}>
-                                <View style={{ width: '48%' }}>
-                                    <Text style={styles.label}>INSTITUTION</Text>
-                                    <Text style={styles.valueSmall}>{userData.collage || 'N/A'}</Text>
-                                    <Text style={styles.valueSmall}>{userData.collageId ? `ID: ${userData.collageId}` : ''}</Text>
+                        {/* Top Section with QR on Right */}
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+                            <View style={{ flex: 1, paddingRight: 20 }}>
+                                <View style={{ marginBottom: 15 }}>
+                                    <Text style={styles.label}>{ticketData.isGroupEvent ? "TEAM LEAD" : "ATTENDEE NAME"}</Text>
+                                    <Text style={styles.value}>{ticketData.name}</Text>
+                                    <Text style={styles.valueSmall}>{ticketData.email}</Text>
+                                    {ticketData.phone && <Text style={styles.valueSmall}>{ticketData.phone}</Text>}
                                 </View>
-                                <View style={{ width: '48%' }}>
-                                    <Text style={styles.label}>STATUS</Text>
-                                    <Text style={{ ...styles.value, color: userData.isApproved ? '#22c55e' : '#f59e0b' }}>
-                                        {userData.isApproved ? 'CONFIRMED' : 'PENDING'}
-                                    </Text>
+
+                                {ticketData.isGroupEvent && ticketData.groupName && (
+                                    <View style={{ marginBottom: 15 }}>
+                                        <Text style={styles.label}>TEAM NAME</Text>
+                                        <Text style={{ ...styles.value, color: '#dc2626' }}>{ticketData.groupName}</Text>
+                                    </View>
+                                )}
+
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                    <View>
+                                        <Text style={styles.label}>INSTITUTION</Text>
+                                        <Text style={styles.valueSmall}>{ticketData.collage || 'N/A'}</Text>
+                                        {ticketData.collageId && <Text style={styles.valueSmall}>ID: {ticketData.collageId}</Text>}
+                                    </View>
                                 </View>
                             </View>
 
-                            {/* QR Code aligned to the right */}
-                            <View style={{ alignItems: 'center' }}>
+                            <View style={styles.qrSection}>
                                 <Image src={qrCodeDataURL} style={styles.qrCode} />
-                                <Text style={styles.qrText}>SCAN AT ENTRY</Text>
+                                <Text style={styles.qrText}>SCAN ENTRY</Text>
                             </View>
                         </View>
 
-                        {/* Row 3: Event Details */}
-                        <View style={{ paddingBottom: 0 }}>
-                            <Text style={styles.label}>DATE & VENUE</Text>
-                            <Text style={styles.value}>FEB 2026</Text>
+                        <View style={{ marginBottom: 20, borderTop: '1px solid #27272a', paddingTop: 15 }}>
+                            <Text style={styles.label}>STATUS</Text>
+                            <Text style={{ ...styles.value, color: ticketData.isApproved ? '#22c55e' : '#f59e0b' }}>
+                                {ticketData.isApproved ? 'CONFIRMED' : 'PENDING'}
+                            </Text>
+                        </View>
+
+                        {/* Team Roster for Group Events */}
+                        {ticketData.isGroupEvent && ticketData.teamMembers && ticketData.teamMembers.length > 0 && (
+                            <View style={{ borderTop: '1px solid #27272a', paddingTop: 15 }}>
+                                <Text style={{ ...styles.label, marginBottom: 10 }}>TEAM ROSTER</Text>
+                                <View style={styles.tableHeader}>
+                                    <Text style={[styles.tableHeadText, styles.col1]}>NAME</Text>
+                                    <Text style={[styles.tableHeadText, styles.col2]}>PHONE</Text>
+                                    <Text style={[styles.tableHeadText, styles.col3]}>GENDER</Text>
+                                </View>
+                                {/* Lead row first? */}
+                                <View style={styles.tableRow}>
+                                    <Text style={[styles.tableText, styles.col1]}>{ticketData.name} (Lead)</Text>
+                                    <Text style={[styles.tableText, styles.col2]}>{ticketData.phone || '-'}</Text>
+                                    <Text style={[styles.tableText, styles.col3]}>-</Text>
+                                </View>
+                                {ticketData.teamMembers.map((member, idx) => (
+                                    <View key={idx} style={styles.tableRow}>
+                                        <Text style={[styles.tableText, styles.col1]}>{member.name}</Text>
+                                        <Text style={[styles.tableText, styles.col2]}>{member.phone}</Text>
+                                        <Text style={[styles.tableText, styles.col3]}>{member.gender}</Text>
+                                    </View>
+                                ))}
+                            </View>
+                        )}
+
+                        {/* Event Details Footer */}
+                        <View style={{ borderTop: '1px solid #27272a', paddingTop: 15, marginTop: 'auto' }}>
+                            <Text style={styles.label}>VENUE</Text>
                             <Text style={styles.valueSmall}>KL UNIVERSITY, VIJAYAWADA</Text>
                         </View>
                     </View>
@@ -309,7 +373,7 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
                 </View>
             </Page>
 
-            {/* Page 2: Rules */}
+            {/* Page 2: Rules (Kept same) */}
             <Page size="A4" style={styles.page}>
                 <View style={styles.rulesContainer}>
                     <Text style={styles.pageTitle}>RULES & REGULATIONS</Text>
@@ -321,45 +385,22 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
                     </View>
                     <View style={styles.bulletRow}>
                         <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Attendees must carry a valid Government ID (Aadhar/Driving License) or Student ID Card.</Text>
-                    </View>
-                    <View style={styles.bulletRow}>
-                        <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Entry will be strictly denied without valid identification.</Text>
+                        <Text style={styles.ruleText}>Attendees must carry a valid Government ID or Student ID Card.</Text>
                     </View>
 
                     <Text style={styles.sectionTitle}>SECURITY & CONDUCT</Text>
                     <View style={styles.bulletRow}>
                         <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Alcohol, drugs, flammable items, and weapons are strictly prohibited inside the campus.</Text>
+                        <Text style={styles.ruleText}>Alcohol, drugs, flammable items, and weapons are strictly prohibited.</Text>
                     </View>
                     <View style={styles.bulletRow}>
                         <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Any form of misconduct, harassment, or violence will result in immediate disqualification and removal from the venue.</Text>
-                    </View>
-                    <View style={styles.bulletRow}>
-                        <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Security checks will be conducted at all entry points. Please cooperate with the security personnel.</Text>
-                    </View>
-
-                    <Text style={styles.sectionTitle}>GENERAL GUIDELINES</Text>
-                    <View style={styles.bulletRow}>
-                        <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Gates will open 1 hour prior to the scheduled event time.</Text>
-                    </View>
-                    <View style={styles.bulletRow}>
-                        <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>The organizers reserve the right of admission and may engage security to remove anyone violating the rules.</Text>
-                    </View>
-                    <View style={styles.bulletRow}>
-                        <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Surabhi 2026 is not responsible for any lost or stolen belongings. Please keep your valuables safe.</Text>
+                        <Text style={styles.ruleText}>Misconduct will result in immediate disqualification.</Text>
                     </View>
 
                     <View style={{ marginTop: 'auto', borderTop: '1px solid #333', paddingTop: 15, alignItems: 'center' }}>
-                        {logoBase64 ? <Image src={logoBase64} style={{ width: 120, height: 120, opacity: 1.0, marginBottom: 8 }} /> : null}
+                        {logoBase64 && <Image src={logoBase64} style={{ width: 100, height: 100, marginBottom: 8 }} />}
                         <Text style={{ color: '#71717a', fontSize: 12, fontWeight: 'bold' }}>Surabhi 2026 • National Level Techno-Management Fest</Text>
-                        <Text style={{ color: '#71717a', fontSize: 12 }}>KL University, Green Fields, Vaddeswaram, Andhra Pradesh 522502</Text>
                     </View>
                 </View>
                 <View style={styles.bottomLine} />
@@ -367,6 +408,5 @@ export async function generateTicketPDF(userData: UserTicketData): Promise<Buffe
         </Document>
     );
 
-    const pdfBuffer = await renderToBuffer(TicketDocument);
-    return pdfBuffer;
+    return await renderToBuffer(TicketDocument);
 }
