@@ -11,7 +11,7 @@ import gsap from 'gsap';
 
 import Footer from '@/components/ui/Footer';
 import CountUp from '@/components/ui/CountUp';
-import { FiGlobe, FiAward, FiUsers, FiMusic, FiHeart, FiTrendingUp } from "react-icons/fi";
+import { FiGlobe, FiAward, FiUsers, FiFeather, FiHeart, FiTrendingUp } from "react-icons/fi";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -250,7 +250,7 @@ const HomePage = () => {
                         >
                             <div className="flex items-center gap-4 mb-6">
                                 <div className="p-3 bg-red-600/10 rounded-xl">
-                                    <FiMusic className="text-red-500 text-2xl" />
+                                    <FiFeather className="text-red-500 text-2xl" />
                                 </div>
                                 <h3 className="text-2xl font-bold text-white font-[family-name:var(--font-Lexend)]">
                                     Liberal Arts Clubs

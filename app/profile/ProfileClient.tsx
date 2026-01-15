@@ -39,7 +39,6 @@ interface User {
   collageId: string | null;
   branch: string | null;
   year: number | null;
-  transactionId: string | null;
   isApproved: boolean;
   paymentStatus: string;
   role: string;
@@ -494,22 +493,7 @@ export default function ProfileClient({
             </div>
           </div>
 
-          {/* Payment Information */}
-          {user.transactionId && (
-            <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
-              <h2 className="text-2xl font-bold text-white mb-6">
-                Payment Information
-              </h2>
-              <div>
-                <label className="block text-zinc-400 text-sm mb-2">
-                  Transaction ID
-                </label>
-                <p className="text-white font-medium px-4 py-3 bg-zinc-800/50 rounded-lg">
-                  {user.transactionId}
-                </p>
-              </div>
-            </div>
-          )}
+
 
           {/* Session Information */}
           <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">

@@ -12,8 +12,6 @@ type User = {
     email: string;
     collage: string | null;
     paymentStatus: PaymentStatus;
-    transactionId: string | null;
-    paymentProof: string | null;
     isApproved: boolean;
     role: Role;
     _count?: { registeredEvents: number };
@@ -126,12 +124,6 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                                         Payment Status
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Txn ID
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Proof
-                                    </th>
                                 </>
                             )}
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
@@ -181,23 +173,6 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
                                                 <option value="APPROVED">Approved</option>
                                                 <option value="REJECTED">Rejected</option>
                                             </select>
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
-                                            {user.transactionId || "-"}
-                                        </td>
-                                        <td className="px-4 py-4 whitespace-nowrap text-sm">
-                                            {user.paymentProof ? (
-                                                <a
-                                                    href={user.paymentProof}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-400 hover:text-blue-300 underline"
-                                                >
-                                                    View
-                                                </a>
-                                            ) : (
-                                                <span className="text-gray-500">-</span>
-                                            )}
                                         </td>
                                     </>
                                 )}

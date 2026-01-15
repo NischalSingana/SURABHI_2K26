@@ -30,7 +30,6 @@ export async function GET() {
                 phone: true,
                 collage: true,
                 collageId: true,
-                transactionId: true,
                 paymentStatus: true,
                 isApproved: true,
             },
@@ -59,7 +58,6 @@ export async function GET() {
             phone: user.phone,
             collage: user.collage,
             collageId: user.collageId,
-            transactionId: user.transactionId,
             paymentStatus: user.paymentStatus,
             isApproved: user.isApproved,
         });

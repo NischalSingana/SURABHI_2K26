@@ -15,7 +15,6 @@ interface VerificationResult {
         collegeId: string | null;
         branch: string | null;
         year: number | null;
-        transactionId: string | null;
         paymentStatus: string;
         isApproved: boolean;
         registeredAt: Date;
@@ -81,8 +80,8 @@ export default function VerifyPage() {
             >
                 <div
                     className={`p-8 rounded-xl border-2 ${result?.valid
-                            ? "bg-green-500/10 border-green-500"
-                            : "bg-red-500/10 border-red-500"
+                        ? "bg-green-500/10 border-green-500"
+                        : "bg-red-500/10 border-red-500"
                         }`}
                 >
                     {/* Status Header */}
@@ -142,14 +141,7 @@ export default function VerifyPage() {
                                     </div>
                                 )}
 
-                                {result.user.transactionId && (
-                                    <div className="bg-zinc-900 p-4 rounded-lg">
-                                        <p className="text-zinc-400 text-sm mb-1">Transaction ID</p>
-                                        <p className="text-white font-semibold text-sm">
-                                            {result.user.transactionId}
-                                        </p>
-                                    </div>
-                                )}
+
                             </div>
 
                             {/* Payment Status */}
@@ -157,8 +149,8 @@ export default function VerifyPage() {
                                 <span className="text-zinc-400">Payment Status</span>
                                 <span
                                     className={`px-4 py-2 rounded-full text-sm font-bold ${result.user.isApproved
-                                            ? "bg-green-500/20 text-green-500"
-                                            : "bg-yellow-500/20 text-yellow-500"
+                                        ? "bg-green-500/20 text-green-500"
+                                        : "bg-yellow-500/20 text-yellow-500"
                                         }`}
                                 >
                                     {result.user.isApproved ? "APPROVED ✓" : "PENDING"}
