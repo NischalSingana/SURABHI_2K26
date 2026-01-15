@@ -50,6 +50,21 @@ interface Event {
     submissionLink: string;
     notes: string | null;
   }>;
+  groupRegistrations?: Array<{
+    id: string;
+    groupName: string | null;
+    mentorName: string | null;
+    mentorPhone: string | null;
+    members: any; // key-value JSON
+    user: {
+      id: string;
+      name: string | null;
+      email: string;
+      phone: string | null;
+      collage: string | null;
+      collageId: string | null;
+    };
+  }>;
 }
 
 interface Category {
@@ -113,6 +128,10 @@ export default function EventsManagement() {
   // Student Details Modal State
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [showStudentDetailsModal, setShowStudentDetailsModal] = useState(false);
+
+  // Group Details Modal State
+  const [selectedGroup, setSelectedGroup] = useState<any>(null);
+  const [showGroupDetailsModal, setShowGroupDetailsModal] = useState(false);
 
   const getSubmissionForStudent = (studentId: string) => {
     if (!selectedEventForRegistrations?.submissions) return null;
@@ -870,6 +889,7 @@ export default function EventsManagement() {
                 </h2>
                 <p className="text-zinc-400 mt-1">
                   {selectedEventForRegistrations.name}
+                  {selectedEventForRegistrations.isGroupEvent && <span className="ml-2 bg-red-600/20 text-red-500 text-xs px-2 py-0.5 rounded font-bold uppercase">Group Event</span>}
                 </p>
               </div>
               <button
@@ -897,178 +917,246 @@ export default function EventsManagement() {
 
             {/* Content - Scrollable */}
             <div className="px-8 py-6 overflow-y-auto flex-1">
-              {selectedEventForRegistrations.registeredStudents &&
-                selectedEventForRegistrations.registeredStudents.length > 0 ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-zinc-400">
-                      Total Registrations:{" "}
-                      <span className="text-white font-semibold">
-                        {
-                          selectedEventForRegistrations.registeredStudents
-                            .length
-                        }
-                      </span>{" "}
-                      / {selectedEventForRegistrations.participantLimit}
-                    </p>
-                  </div>
+              {(() => {
+                const groupRegistrations = selectedEventForRegistrations.groupRegistrations || [];
+                const registeredStudents = selectedEventForRegistrations.registeredStudents || [];
 
-                  {/* Students List */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {selectedEventForRegistrations.registeredStudents.map(
-                      (student: any, index: number) => (
-                        <div
-                          key={student.id}
-                          onClick={() => {
-                            setSelectedStudent(student);
-                            setShowStudentDetailsModal(true);
-                          }}
-                          className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-red-600/50 transition-all cursor-pointer group"
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-full bg-red-600/20 flex items-center justify-center text-red-500 font-bold">
-                              {index + 1}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-white font-semibold flex items-center gap-2">
-                                {student.name || "No name"}
-                                {getSubmissionForStudent(student.id) && (
-                                  <span title="Submission Available" className="text-green-500">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                                    </svg>
-                                  </span>
-                                )}
-                              </h4>
-                              <p className="text-zinc-400 text-sm truncate">
-                                {student.email}
-                              </p>
-                              {student.phone && (
-                                <p className="text-zinc-400 text-sm mt-1">
-                                  {student.phone}
-                                </p>
-                              )}
-                            </div>
-                          </div>
+                // Filter out students who are team leads (already in groupRegistrations)
+                // We identify them by matching user.id
+                const teamLeadIds = new Set(groupRegistrations.map(g => g.user.id));
+                const soloStudents = registeredStudents.filter(s => !teamLeadIds.has(s.id));
+
+                const hasGroups = groupRegistrations.length > 0;
+                const hasSolo = soloStudents.length > 0;
+
+                if (!hasGroups && !hasSolo) {
+                  return (
+                    <div className="text-center py-12">
+                      <p className="text-zinc-400">No registrations yet</p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-8">
+                    {/* Group Registrations Section */}
+                    {hasGroups && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-2">
+                          <h3 className="text-white font-bold text-lg">Group Registrations</h3>
+                          <p className="text-zinc-400 text-sm">
+                            Total Teams:{" "}
+                            <span className="text-white font-semibold">
+                              {groupRegistrations.length}
+                            </span>
+                          </p>
                         </div>
-                      )
+                        <div className="grid grid-cols-1 gap-4">
+                          {groupRegistrations.map((group, index) => (
+                            <div
+                              key={group.id}
+                              onClick={() => {
+                                setSelectedGroup(group);
+                                setShowGroupDetailsModal(true);
+                              }}
+                              className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-red-600/50 transition-all cursor-pointer group hover:bg-zinc-800/80"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                  <div className="w-10 h-10 rounded-full bg-red-600/20 flex items-center justify-center text-red-500 font-bold">
+                                    {index + 1}
+                                  </div>
+                                  <div>
+                                    <h4 className="text-white font-bold text-lg">{group.groupName}</h4>
+                                    <p className="text-zinc-400 text-sm flex items-center gap-2">
+                                      <span className="bg-zinc-700/50 px-2 py-0.5 rounded text-xs text-zinc-300">Lead: {group.user.name}</span>
+                                      <span className="text-zinc-500">•</span>
+                                      <span>{group.members ? (group.members as any[]).length + 1 : 1} Members</span>
+                                    </p>
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className="text-red-500 text-sm group-hover:underline">View Details &rarr;</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Individual Registrations Section */}
+                    {hasSolo && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-2">
+                          <h3 className="text-white font-bold text-lg">Individual Registrations</h3>
+                          <p className="text-zinc-400 text-sm">
+                            Count:{" "}
+                            <span className="text-white font-semibold">
+                              {soloStudents.length}
+                            </span>
+                            {/* Only show 'limit' if it makes sense contextually, removed for clarity in mixed view */}
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {soloStudents.map(
+                            (student: any, index: number) => (
+                              <div
+                                key={student.id}
+                                onClick={() => {
+                                  setSelectedStudent(student);
+                                  setShowStudentDetailsModal(true);
+                                }}
+                                className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-red-600/50 transition-all cursor-pointer group"
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500 font-bold">
+                                    {index + 1}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="text-white font-semibold flex items-center gap-2">
+                                      {student.name || "No name"}
+                                      {getSubmissionForStudent(student.id) && (
+                                        <span title="Submission Available" className="text-green-500">
+                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                          </svg>
+                                        </span>
+                                      )}
+                                    </h4>
+                                    <p className="text-zinc-400 text-sm truncate">
+                                      {student.email}
+                                    </p>
+                                    {student.phone && (
+                                      <p className="text-zinc-400 text-sm mt-1">
+                                        {student.phone}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-zinc-400">No registrations yet</p>
-                </div>
-              )}
+                );
+              })()}
             </div>
           </motion.div>
         </div>
       )}
 
       {/* Schedule Management Modal */}
-      {showScheduleModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-zinc-900 rounded-xl w-full max-w-4xl border border-zinc-800 shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
-          >
-            <div className="px-8 py-6 border-b border-zinc-800 flex items-center justify-between shrink-0">
-              <h2 className="text-2xl font-bold text-white">Manage Schedule</h2>
-              <button
-                onClick={() => setShowScheduleModal(false)}
-                className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="px-8 py-6 overflow-y-auto flex-1">
-              {/* Upload Form */}
-              <div className="mb-8 bg-zinc-800/50 p-6 rounded-xl border border-zinc-700">
-                <h3 className="text-lg font-semibold text-white mb-4">Add New Schedule Image</h3>
-                <form onSubmit={handleUploadSchedule}>
-                  <div className="flex gap-4 items-end">
-                    <div className="flex-1">
-                      <label className="block text-zinc-400 mb-2 text-sm">Upload Image</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleScheduleImageSelect}
-                        className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-red-600 file:text-white hover:file:bg-red-700 file:cursor-pointer"
-                        required
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={!scheduleImage || uploadingSchedule}
-                      className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
-                    >
-                      {uploadingSchedule ? (
-                        <>
-                          <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Uploading...
-                        </>
-                      ) : (
-                        "Upload"
-                      )}
-                    </button>
-                  </div>
-                  {scheduleImagePreview && (
-                    <div className="mt-4 w-full h-48 bg-zinc-950 rounded-lg overflow-hidden border border-zinc-700 relative">
-                      <img src={scheduleImagePreview} alt="Preview" className="w-full h-full object-contain" />
-                    </div>
-                  )}
-                </form>
+      {
+        showScheduleModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-zinc-900 rounded-xl w-full max-w-4xl border border-zinc-800 shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
+            >
+              <div className="px-8 py-6 border-b border-zinc-800 flex items-center justify-between shrink-0">
+                <h2 className="text-2xl font-bold text-white">Manage Schedule</h2>
+                <button
+                  onClick={() => setShowScheduleModal(false)}
+                  className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
 
-              {/* Existing Schedules */}
-              <h3 className="text-lg font-semibold text-white mb-4">Current Schedules</h3>
-              {schedules.length === 0 ? (
-                <p className="text-zinc-400 text-center py-8">No schedule images uploaded yet.</p>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {schedules.map((schedule) => (
-                    <div key={schedule.id} className="bg-zinc-800 rounded-lg border border-zinc-700 overflow-hidden group relative">
-                      <div className="aspect-[3/4] relative">
-                        <Image
-                          src={schedule.image}
-                          alt="Schedule"
-                          fill
-                          className="object-cover"
-                          unoptimized
+              <div className="px-8 py-6 overflow-y-auto flex-1">
+                {/* Upload Form */}
+                <div className="mb-8 bg-zinc-800/50 p-6 rounded-xl border border-zinc-700">
+                  <h3 className="text-lg font-semibold text-white mb-4">Add New Schedule Image</h3>
+                  <form onSubmit={handleUploadSchedule}>
+                    <div className="flex gap-4 items-end">
+                      <div className="flex-1">
+                        <label className="block text-zinc-400 mb-2 text-sm">Upload Image</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleScheduleImageSelect}
+                          className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-red-600 file:text-white hover:file:bg-red-700 file:cursor-pointer"
+                          required
                         />
-                        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex justify-center">
-                          <button
-                            onClick={() => handleDeleteSchedule(schedule.id)}
-                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                          >
-                            Delete
-                          </button>
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={!scheduleImage || uploadingSchedule}
+                        className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+                      >
+                        {uploadingSchedule ? (
+                          <>
+                            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Uploading...
+                          </>
+                        ) : (
+                          "Upload"
+                        )}
+                      </button>
+                    </div>
+                    {scheduleImagePreview && (
+                      <div className="mt-4 w-full h-48 bg-zinc-950 rounded-lg overflow-hidden border border-zinc-700 relative">
+                        <img src={scheduleImagePreview} alt="Preview" className="w-full h-full object-contain" />
+                      </div>
+                    )}
+                  </form>
+                </div>
+
+                {/* Existing Schedules */}
+                <h3 className="text-lg font-semibold text-white mb-4">Current Schedules</h3>
+                {schedules.length === 0 ? (
+                  <p className="text-zinc-400 text-center py-8">No schedule images uploaded yet.</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {schedules.map((schedule) => (
+                      <div key={schedule.id} className="bg-zinc-800 rounded-lg border border-zinc-700 overflow-hidden group relative">
+                        <div className="aspect-[3/4] relative">
+                          <Image
+                            src={schedule.image}
+                            alt="Schedule"
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                          <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex justify-center">
+                            <button
+                              onClick={() => handleDeleteSchedule(schedule.id)}
+                              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </motion.div>
-        </div>
-      )}
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )
+      }
       {/* Multi-Step Event Form Modal */}
-      {showEventForm && (
-        <MultiStepEventForm
-          categoryId={selectedCategoryId}
-          editingEvent={editingEvent}
-          onClose={handleEventFormClose}
-          onSuccess={handleEventFormSuccess}
-        />
-      )}
+      {
+        showEventForm && (
+          <MultiStepEventForm
+            categoryId={selectedCategoryId}
+            editingEvent={editingEvent}
+            onClose={handleEventFormClose}
+            onSuccess={handleEventFormSuccess}
+          />
+        )
+      }
       {/* Student Details Modal */}
       {
         showStudentDetailsModal && selectedStudent && (
@@ -1164,6 +1252,113 @@ export default function EventsManagement() {
                   onClick={() => {
                     setShowStudentDetailsModal(false);
                     setSelectedStudent(null);
+                  }}
+                  className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )
+      }
+      {/* Group Details Modal */}
+      {
+        showGroupDetailsModal && selectedGroup && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-zinc-900 rounded-xl w-full max-w-2xl border border-zinc-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            >
+              <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between shrink-0">
+                <div>
+                  <h2 className="text-xl font-bold text-white">{selectedGroup.groupName}</h2>
+                  <p className="text-zinc-400 text-sm">Group Details</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowGroupDetailsModal(false);
+                    setSelectedGroup(null);
+                  }}
+                  className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700">
+                    <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">Team Lead</h3>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500 font-bold border border-blue-500/30">
+                        {selectedGroup.user.name ? selectedGroup.user.name.charAt(0).toUpperCase() : 'L'}
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">{selectedGroup.user.name}</p>
+                        <p className="text-sm text-zinc-400">{selectedGroup.user.email}</p>
+                        <p className="text-xs text-zinc-500 mt-1">{selectedGroup.user.phone || "No Phone"}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 text-xs text-zinc-500 space-y-1">
+                      <p>College: {selectedGroup.user.collage || "N/A"}</p>
+                      <p>ID: {selectedGroup.user.collageId || "N/A"}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700">
+                    <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">Mentor / Coordinator</h3>
+                    {selectedGroup.mentorName ? (
+                      <>
+                        <p className="text-white font-medium">{selectedGroup.mentorName}</p>
+                        <p className="text-sm text-zinc-400">{selectedGroup.mentorPhone || "No Phone"}</p>
+                      </>
+                    ) : (
+                      <p className="text-zinc-500 italic">No mentor details provided</p>
+                    )}
+                  </div>
+                </div>
+
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <span className="bg-red-600 w-1 h-6 rounded-full block"></span>
+                  Team Members
+                </h3>
+
+                <div className="space-y-3">
+                  {
+                    selectedGroup.members && (selectedGroup.members as any[]).length > 0 ? (
+                      (selectedGroup.members as any[]).map((member, idx) => (
+                        <div key={idx} className="bg-zinc-800 p-4 rounded-lg border border-zinc-700 flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 font-bold text-sm">
+                              {idx + 1}
+                            </div>
+                            <div>
+                              <p className="text-white font-medium">{member.name}</p>
+                              <div className="flex items-center gap-2 text-xs text-zinc-400 mt-0.5">
+                                <span>{member.gender}</span>
+                                <span>•</span>
+                                <span>{member.phone}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-zinc-500 italic">No additional members found in record.</p>
+                    )
+                  }
+                </div>
+              </div>
+
+              <div className="px-6 py-4 bg-zinc-950/50 border-t border-zinc-800 flex justify-end">
+                <button
+                  onClick={() => {
+                    setShowGroupDetailsModal(false);
+                    setSelectedGroup(null);
                   }}
                   className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium transition-colors"
                 >
