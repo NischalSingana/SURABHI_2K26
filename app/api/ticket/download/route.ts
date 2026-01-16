@@ -42,6 +42,8 @@ export async function GET(req: Request) {
                 collage: true,
                 collageId: true,
                 gender: true, // Fetch gender
+                state: true,
+                city: true,
             },
         });
 
@@ -67,6 +69,8 @@ export async function GET(req: Request) {
             collage: user.collage,
             collageId: user.collageId,
             gender: user.gender || "-", // Add gender to ticket data
+            state: user.state,
+            city: user.city,
             eventName: event.name,
             eventId: event.id, // Add eventId to pass to PDF/QR generator
             isGroupEvent: event.isGroupEvent,

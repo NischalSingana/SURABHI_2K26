@@ -15,6 +15,8 @@ interface RegistrationData {
   branch?: string;
   year?: number;
   gender?: string;
+  state?: string;
+  city?: string;
 }
 
 export async function updateProfile(data: RegistrationData) {

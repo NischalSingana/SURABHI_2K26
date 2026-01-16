@@ -26,7 +26,7 @@ import { signOut } from "@/lib/auth-client";
 import { updateProfile } from "@/actions/profile.action";
 import { unregisterFromEvent } from "@/actions/events.action";
 import Image from "next/image";
-import { BRANCHES } from "@/lib/constants";
+import { BRANCHES, INDIAN_STATES } from "@/lib/constants";
 
 
 interface User {
@@ -43,6 +43,8 @@ interface User {
   paymentStatus: string;
   role: string;
   gender: string | null;
+  state: string | null;
+  city: string | null;
 }
 
 interface Event {
@@ -94,6 +96,8 @@ export default function ProfileClient({
     branch: user.branch || "",
     year: user.year || 1,
     gender: user.gender || "",
+    state: user.state || "",
+    city: user.city || "",
   });
 
   const handleLogout = async () => {
@@ -131,6 +135,8 @@ export default function ProfileClient({
       branch: user.branch || "",
       year: user.year || 1,
       gender: user.gender || "",
+      state: user.state || "",
+      city: user.city || "",
     });
     setIsEditing(false);
   };
@@ -488,8 +494,53 @@ export default function ProfileClient({
                   </p>
                 )}
               </div>
+
+
+              {/* State and City */}
+              <div>
+                <label className="block text-zinc-400 text-sm mb-2">State</label>
+                {isEditing ? (
+                  <>
+                    <input
+                      list="states-list"
+                      type="text"
+                      value={formData.state}
+                      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                      className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-600"
+                      placeholder="Search or Select State"
+                    />
+                    <datalist id="states-list">
+                      {INDIAN_STATES.map((state) => (
+                        <option key={state} value={state} />
+                      ))}
+                    </datalist>
+                  </>
+                ) : (
+                  <p className="text-white font-medium px-4 py-3 bg-zinc-800/50 rounded-lg">
+                    {user.state || "Not provided"}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-zinc-400 text-sm mb-2">City/Town</label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-600"
+                    placeholder="Enter City/Town"
+                  />
+                ) : (
+                  <p className="text-white font-medium px-4 py-3 bg-zinc-800/50 rounded-lg">
+                    {user.city || "Not provided"}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
+
 
 
 
