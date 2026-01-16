@@ -10,6 +10,7 @@ interface TicketData {
     collage?: string | null;
     paymentStatus: string;
     isApproved: boolean;
+    eventId?: string;
 }
 
 /**
@@ -19,15 +20,20 @@ interface TicketData {
  */
 export async function generateTicketQR(data: TicketData): Promise<string> {
     // 1. Find existing pass for user or create new one
+    // Prioritize finding a pass for THIS specific event if eventId is provided
     let pass = await prisma.pass.findFirst({
-        where: { userId: data.userId },
+        where: {
+            userId: data.userId,
+            eventId: data.eventId || null
+        },
         orderBy: { createdAt: 'desc' }
     });
 
     if (!pass) {
-        // Create new pass if none exists
+        // Create new pass if none exists for this event
         pass = await createPass(data.userId, {
-            passType: 'GENERAL'
+            passType: data.eventId ? 'EVENT' : 'GENERAL',
+            eventId: data.eventId
         });
     }
 
