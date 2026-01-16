@@ -165,5 +165,43 @@ export async function getPassDetails(passToken: string) {
         },
     });
 
-    return pass;
+    if (!pass) return null;
+
+    // Fetch Event Details if eventId exists
+    let event = null;
+    let groupRegistration = null;
+
+    if (pass.eventId) {
+        event = await prisma.event.findUnique({
+            where: { id: pass.eventId },
+            select: {
+                name: true,
+                isGroupEvent: true,
+                venue: true,
+                date: true,
+            }
+        });
+
+        if (event?.isGroupEvent) {
+            groupRegistration = await prisma.groupRegistration.findFirst({
+                where: {
+                    eventId: pass.eventId,
+                    userId: pass.userId // Assuming the pass holder is the one who registered (Team Lead)
+                }
+            });
+
+            // If the pass holder is NOT the team lead, we might need to find which group they belong to.
+            // However, the current logic in `app/api/ticket/download` suggests only the Team Lead gets the ticket/registration.
+            // Depending on how `groupRegistration` is stored (if members are just JSON), finding a member's group by their ID 
+            // inside the JSON is hard. For now, we assume the pass owner is the PRIMARY registrant.
+            // If we needed to support members having their own passes, we'd need to change this logic 
+            // to search where `members` array contains the user, or `userId` matches.
+        }
+    }
+
+    return {
+        ...pass,
+        event,
+        groupRegistration
+    };
 }
