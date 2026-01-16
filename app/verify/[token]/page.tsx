@@ -17,7 +17,8 @@ export default async function VerifyPage({
         headers: await headers(),
     });
 
-    const isAdmin = session?.user?.role === "ADMIN";
+    const allowedRoles = ["ADMIN", "MASTER", "MANAGER"];
+    const isAdmin = session?.user?.role && allowedRoles.includes(session.user.role);
 
     if (!pass) {
         return (
@@ -127,6 +128,57 @@ export default async function VerifyPage({
                         )}
                         <p className="font-mono text-xs text-zinc-400 break-all">{pass.passToken}</p>
                     </div>
+                </div>
+
+                {/* Event & Team Details (if valid) */}
+                {(pass.event || pass.groupRegistration) && (
+                    <div className="p-6 border-t border-zinc-800 space-y-4 bg-zinc-900/50">
+                        {pass.event && (
+                            <div className="space-y-1">
+                                <p className="text-zinc-500 text-xs uppercase tracking-wider font-bold">Event</p>
+                                <h3 className="text-lg font-bold text-white">{pass.event.name}</h3>
+                                <p className="text-zinc-400 text-sm flex items-center gap-2">
+                                    <FiMapPin className="w-3 h-3" /> {pass.event.venue}
+                                </p>
+                            </div>
+                        )}
+
+                        {pass.groupRegistration && (
+                            <div className="space-y-3 pt-2">
+                                <div>
+                                    <p className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-1">Team</p>
+                                    <p className="text-white font-medium text-lg text-red-400">{pass.groupRegistration.groupName}</p>
+                                </div>
+
+                                {pass.groupRegistration.members && Array.isArray(pass.groupRegistration.members) && pass.groupRegistration.members.length > 0 && (
+                                    <div className="mt-3">
+                                        <p className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-2">Team Members</p>
+                                        <div className="space-y-2">
+                                            {/* Team Lead (User) - Optional to repeat or just list members */}
+                                            {/* Usually members list includes everyone or just extra members. Let's assume members array. */}
+                                            {(pass.groupRegistration.members as any[]).map((member: any, i: number) => (
+                                                <div key={i} className="flex justify-between items-center bg-zinc-950/50 p-2 rounded border border-zinc-800/50">
+                                                    <div>
+                                                        <p className="text-zinc-300 text-sm font-medium">{member.name}</p>
+                                                        <p className="text-zinc-500 text-xs">{member.phone || "No phone"}</p>
+                                                    </div>
+                                                    <span className="text-zinc-600 text-xs bg-zinc-900 px-2 py-1 rounded">Member</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                <div className="p-6 space-y-2 text-sm text-zinc-400 border-t border-zinc-800">
+                    <p>Created: {new Date(pass.createdAt).toDateString()}</p>
+                    {pass.expiresAt && (
+                        <p>Expires: {new Date(pass.expiresAt).toDateString()}</p>
+                    )}
+                    <p className="font-mono text-xs text-zinc-400 break-all">{pass.passToken}</p>
                 </div>
 
                 {/* Admin Actions */}
