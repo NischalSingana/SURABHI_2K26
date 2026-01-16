@@ -4,7 +4,12 @@ import Link from 'next/link';
 import { motion } from "framer-motion";
 import Image from "next/image";
 import MainPoster from "./MainPoster.png";
-import CircularGallery, { CircularGalleryHandle } from "@/components/ui/CircularGallery";
+import dynamic from 'next/dynamic';
+const CircularGallery = dynamic(() => import("@/components/ui/CircularGallery"), {
+    ssr: false,
+    loading: () => <div className="w-full h-full flex items-center justify-center text-gray-500">Loading gallery...</div>
+});
+import { CircularGalleryHandle } from "@/components/ui/CircularGallery";
 import { useEffect, useState, useRef } from "react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import gsap from 'gsap';
@@ -25,7 +30,7 @@ const HomePage = () => {
 
     useEffect(() => {
         // Generate particles on client side to avoid hydration mismatch
-        setParticles([...Array(20)].map(() => ({
+        setParticles([...Array(12)].map(() => ({
             x: `${Math.random() * 100}%`,
             duration: 3 + Math.random() * 2,
             delay: Math.random() * 2,
@@ -150,7 +155,7 @@ const HomePage = () => {
                             alt="Surabhi International Cultural Fest 2026 Poster"
                             className="w-full h-auto md:h-full object-contain md:object-fill drop-shadow-2xl"
                             priority
-                            sizes="100vw"
+                            sizes="(max-width: 768px) 100vw, 90vw"
                             quality={85}
                         />
                     </div>
