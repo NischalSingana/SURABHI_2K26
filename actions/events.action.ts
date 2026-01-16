@@ -638,6 +638,20 @@ export async function registerForEvent(eventId: string, registrationDetails?: an
           return { success: false, error: "Event is full" };
         }
 
+        // Check if user already has an Individual Registration (explicit check)
+        const existingIndividualReg = await tx.individualRegistration.findUnique({
+          where: {
+            userId_eventId: {
+              userId: session.user.id,
+              eventId: eventId
+            }
+          }
+        });
+
+        if (existingIndividualReg) {
+          return { success: false, error: "You are already registered for this event" };
+        }
+
         const existingRegistration = await tx.user.findFirst({
           where: {
             id: session.user.id,
@@ -660,6 +674,15 @@ export async function registerForEvent(eventId: string, registrationDetails?: an
               connect: { id: eventId },
             },
           },
+        });
+
+        // Create Individual Registration Record
+        await tx.individualRegistration.create({
+          data: {
+            userId: session.user.id,
+            eventId: eventId,
+            registrationDetails: registrationDetails || undefined
+          }
         });
 
         // Re-check count after insert to ensure we didn't exceed limit
