@@ -39,8 +39,13 @@ export async function GET() {
                     .replace(/[-_]/g, ' ')
                     .trim();
 
+                // Use Next.js Image Optimization API
+                // We construct a URL that points to /_next/image with parameters
+                const rawUrl = `/poster-gallery/${file}`;
+                const optimizedUrl = `/_next/image?url=${encodeURIComponent(rawUrl)}&w=1080&q=75`;
+
                 return {
-                    image: `/poster-gallery/${file}`,
+                    image: optimizedUrl,
                     text: nameWithoutExt || 'Poster',
                 };
             })
