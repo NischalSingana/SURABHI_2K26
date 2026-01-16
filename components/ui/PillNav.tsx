@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import { gsap } from 'gsap';
@@ -259,7 +260,14 @@ const PillNav: React.FC<PillNavProps> = ({
             logoRef.current = el;
           }}
         >
-          <img src={logo} alt={logoAlt} />
+          <Image
+            src={logo}
+            alt={logoAlt}
+            width={200}
+            height={115}
+            style={{ width: 'auto', height: '115px' }} // CSS override handling
+            priority
+          />
         </Link>
 
         <div className="pill-nav-items desktop-only" ref={navItemsRef}>
