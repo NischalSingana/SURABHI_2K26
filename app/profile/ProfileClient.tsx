@@ -42,6 +42,7 @@ interface User {
   isApproved: boolean;
   paymentStatus: string;
   role: string;
+  gender: string | null;
 }
 
 interface Event {
@@ -92,6 +93,7 @@ export default function ProfileClient({
     collageId: user.collageId || "",
     branch: user.branch || "",
     year: user.year || 1,
+    gender: user.gender || "",
   });
 
   const handleLogout = async () => {
@@ -128,6 +130,7 @@ export default function ProfileClient({
       collageId: user.collageId || "",
       branch: user.branch || "",
       year: user.year || 1,
+      gender: user.gender || "",
     });
     setIsEditing(false);
   };
@@ -322,6 +325,32 @@ export default function ProfileClient({
                 ) : (
                   <p className="text-white font-medium px-4 py-3 bg-zinc-800/50 rounded-lg">
                     {user.phone || "Not provided"}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-zinc-400 text-sm mb-2">
+                  Gender
+                </label>
+                {isEditing ? (
+                  <div className="relative">
+                    <select
+                      value={formData.gender}
+                      onChange={(e) =>
+                        setFormData({ ...formData, gender: e.target.value })
+                      }
+                      className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-500 appearance-none"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                ) : (
+                  <p className="text-white font-medium px-4 py-3 bg-zinc-800/50 rounded-lg">
+                    {user.gender || "Not provided"}
                   </p>
                 )}
               </div>
@@ -651,7 +680,7 @@ export default function ProfileClient({
                                 toast.error('Failed to download ticket');
                               }
                             }}
-                            className="flex-1 px-4 py-2 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                            className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
                           >
                             <FiCreditCard size={16} />
                             Ticket
@@ -665,7 +694,7 @@ export default function ProfileClient({
                             setEventToUnregister(event);
                             setShowUnregisterModal(true);
                           }}
-                          className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                          className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
                         >
                           <FiTrash2 size={16} />
                           Unregister
