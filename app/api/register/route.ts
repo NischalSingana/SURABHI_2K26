@@ -53,9 +53,10 @@ export async function POST(request: NextRequest) {
     const collageId = formData.get("collageId") as string;
     const branch = formData.get("branch") as string;
     const year = parseInt(formData.get("year") as string);
+    const gender = formData.get("gender") as string;
 
     // Validate required fields
-    if (!collegeName || !phone || !collageId || !branch || !year) {
+    if (!collegeName || !phone || !collageId || !branch || !year || !gender) {
       return NextResponse.json(
         { error: "All required fields must be filled" },
         { status: 400 }
@@ -74,6 +75,7 @@ export async function POST(request: NextRequest) {
         branch,
         year,
         phone,
+        gender,
         // Auto-approve all users
         isApproved: true,
         paymentStatus: "APPROVED",
