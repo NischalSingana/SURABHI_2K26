@@ -11,6 +11,7 @@ interface TicketData {
     paymentStatus: string;
     isApproved: boolean;
     eventId?: string;
+    gender?: string | null; // Added gender
 }
 
 /**
@@ -45,6 +46,7 @@ export async function generateTicketQR(data: TicketData): Promise<string> {
     if (data.name) params.append('name', String(data.name));
     if (data.collage) params.append('college', String(data.collage));
     if (data.phone) params.append('phone', String(data.phone));
+    if (data.gender) params.append('gender', String(data.gender)); // Added to params
 
     const verificationUrl = `${baseUrl}/verify/${pass.passToken}?${params.toString()}`;
 
