@@ -32,6 +32,7 @@ model User {
   registeredEvents      Event[]                  @relation("EventToUser")
   accommodationBookings AccommodationBooking[]
   eventSubmissions      EventSubmission[]
+  individualRegistrations IndividualRegistration[]
   groupRegistrations    GroupRegistration[]
   evaluationsGiven      Evaluation[]             @relation("JudgeEvaluations")
   evaluationsReceived   Evaluation[]             @relation("ParticipantEvaluations")
@@ -143,6 +144,7 @@ model Event {
   Category           Category @relation(fields: [categoryId], references: [id])
   registeredStudents User[]   @relation("EventToUser")
   submissions        EventSubmission[]
+  individualRegistrations IndividualRegistration[]
   groupRegistrations GroupRegistration[]
   evaluations        Evaluation[]
 }
@@ -253,6 +255,23 @@ model EventSubmission {
 
   @@unique([userId, eventId])
   @@map("event_submissions")
+}
+
+model IndividualRegistration {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  registrationDetails Json? // For any future extra fields
+
+  @@unique([userId, eventId])
+  @@map("individual_registrations")
 }
 
 
