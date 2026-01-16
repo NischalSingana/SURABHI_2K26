@@ -80,6 +80,8 @@ export async function getCategories() {
                     phone: true,
                     collage: true,
                     collageId: true,
+                    state: true,
+                    city: true,
                   }
                 }
               }
