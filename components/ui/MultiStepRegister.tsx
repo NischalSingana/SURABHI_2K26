@@ -29,11 +29,18 @@ interface RegistrationData {
   collageId: string;
   branch: string;
   year: number;
+  gender: string;
 }
 
 const COLLEGES = [
   "KL University",
   "Other College"
+];
+
+const GENDERS = [
+  "Male",
+  "Female",
+  "Other"
 ];
 
 
@@ -55,6 +62,7 @@ const MultiStepRegister = () => {
     collageId: "",
     branch: "",
     year: 1,
+    gender: "",
   });
 
   // Auto-detect college from localStorage and skip to registration
@@ -139,6 +147,7 @@ const MultiStepRegister = () => {
               collageId: data.userData.collageId || prev.collageId,
               branch: data.userData.branch || prev.branch,
               year: data.userData.year || prev.year,
+              gender: data.userData.gender || prev.gender,
             }));
           }
         }
@@ -273,7 +282,8 @@ const MultiStepRegister = () => {
       formData.phone &&
       formData.collageId &&
       formData.branch &&
-      formData.year;
+      formData.year &&
+      formData.gender;
 
     // Other college students need basic fields and college name
     if (formData.college === "OTHER") {
@@ -731,8 +741,29 @@ const MultiStepRegister = () => {
                         <option value={1}>1st Year</option>
                         <option value={2}>2nd Year</option>
                         <option value={3}>3rd Year</option>
-                        <option value={4}>4th Year</option>
                         <option value={5}>5th Year</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Gender */}
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-300 mb-2">
+                      Gender *
+                    </label>
+                    <div className="relative">
+                      <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
+                      <select
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all appearance-none"
+                      >
+                        <option value="">Select Gender</option>
+                        {GENDERS.map(g => (
+                          <option key={g} value={g}>{g}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
