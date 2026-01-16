@@ -23,6 +23,8 @@ export async function GET() {
                         collageId: true,
                         branch: true,
                         year: true,
+                        state: true,
+                        city: true,
                     }
                 },
                 event: {

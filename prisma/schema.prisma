@@ -26,6 +26,8 @@ model User {
   phone            String?
   gender           String?
   password         String?
+  state            String?
+  city             String?
   role             Role          @default(USER)
   accounts              Account[]
   sessions              Session[]

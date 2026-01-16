@@ -24,6 +24,8 @@ export interface EventTicketData {
     eventId?: string; // Add eventId to interface
     groupName?: string | null;
     gender?: string | null; // Add gender to interface
+    state?: string | null;
+    city?: string | null;
     teamMembers?: MemberData[];
 }
 
@@ -367,6 +369,11 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                                         <Text style={styles.label}>INSTITUTION</Text>
                                         <Text style={styles.valueSmall}>{ticketData.collage || 'N/A'}</Text>
                                         {ticketData.collageId && <Text style={styles.valueSmall}>ID: {ticketData.collageId}</Text>}
+                                        {(ticketData.state || ticketData.city) && (
+                                            <Text style={styles.valueSmall}>
+                                                {[ticketData.city, ticketData.state].filter(Boolean).join(", ")}
+                                            </Text>
+                                        )}
                                     </View>
                                 </View>
                             </View>

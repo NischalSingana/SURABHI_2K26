@@ -63,6 +63,8 @@ interface Event {
       phone: string | null;
       collage: string | null;
       collageId: string | null;
+      state: string | null;
+      city: string | null;
     };
   }>;
 }
@@ -1329,6 +1331,7 @@ export default function EventsManagement() {
                     <div className="mt-3 text-xs text-zinc-500 space-y-1">
                       <p>College: {selectedGroup.user.collage || "N/A"}</p>
                       <p>ID: {selectedGroup.user.collageId || "N/A"}</p>
+                      <p>Location: {[selectedGroup.user.city, selectedGroup.user.state].filter(Boolean).join(", ") || "N/A"}</p>
                     </div>
                   </div>
 
