@@ -616,26 +616,7 @@ function EventDetailPageContent() {
                   </div>
                 </div>
 
-                {!event.isGroupEvent && (
-                  <div className="flex items-start gap-3">
-                    <FiUsers className="text-red-500 mt-1" size={20} />
-                    <div>
-                      <p className="text-zinc-400 text-sm">Participants</p>
-                      <p className="text-white font-medium">
-                        {event._count.registeredStudents} /{" "}
-                        {event.participantLimit} registered
-                      </p>
-                      <div className="mt-2 w-full bg-zinc-800 rounded-full h-2">
-                        <div
-                          className="bg-red-600 h-2 rounded-full transition-all"
-                          style={{
-                            width: `${Math.min(100, (event._count.registeredStudents / event.participantLimit) * 100)}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
+
               </div>
 
               {/* External Registration Link */}
