@@ -83,7 +83,7 @@ export default function ConditionalNavbar() {
 
     return (
         <PillNav
-            logo="/favicon.ico"
+            logo="/surabhi-logo.png"
             logoAlt="Surabhi Logo"
             items={navItems}
             baseColor="#ffffff"
