@@ -179,29 +179,75 @@ export async function getPassDetails(passToken: string) {
                 isGroupEvent: true,
                 venue: true,
                 date: true,
+                minTeamSize: true, // Useful for showing team size in requirements
+                maxTeamSize: true,
             }
         });
 
         if (event?.isGroupEvent) {
+            // First try to find if they are the leader (userId matches)
             groupRegistration = await prisma.groupRegistration.findFirst({
                 where: {
                     eventId: pass.eventId,
-                    userId: pass.userId // Assuming the pass holder is the one who registered (Team Lead)
+                    userId: pass.userId
+                },
+                include: {
+                    user: { // Leader details
+                        select: {
+                            name: true,
+                            email: true,
+                            phone: true,
+                            collage: true,
+                            collageId: true,
+                        }
+                    }
                 }
             });
 
-            // If the pass holder is NOT the team lead, we might need to find which group they belong to.
-            // However, the current logic in `app/api/ticket/download` suggests only the Team Lead gets the ticket/registration.
-            // Depending on how `groupRegistration` is stored (if members are just JSON), finding a member's group by their ID 
-            // inside the JSON is hard. For now, we assume the pass owner is the PRIMARY registrant.
-            // If we needed to support members having their own passes, we'd need to change this logic 
-            // to search where `members` array contains the user, or `userId` matches.
+            // If not found as leader, try to find if they are a member
+            if (!groupRegistration) {
+                // We have to search using raw query or constraints because members is JSON
+                // Using array_contains is tricky with Prisma JSON, but we can try to find registrations
+                // where the members array contains an object with this user's details or just simple find
+                // Since members is just a JSON, we might have to fetch all group registrations for this event
+                // and filter in code if database allows, OR better: 
+                // Since this is a critical fetch, let's try raw query if needed, OR 
+                // just rely on the fact that ONLY LEADER usually gets the pass in current logic.
+                // BUT, user wants members to scanning to show details.
+
+                // Let's try to find if the pass owner's email matches a member email in the JSON
+                const allEventGroups = await prisma.groupRegistration.findMany({
+                    where: { eventId: pass.eventId },
+                    include: {
+                        user: { // Leader details
+                            select: {
+                                name: true,
+                                email: true,
+                                phone: true,
+                                collage: true,
+                                collageId: true,
+                            }
+                        }
+                    }
+                });
+
+                // Filter in memory (not efficient for huge datasets, but fine for college fest)
+                const userEmail = pass.user.email;
+                groupRegistration = allEventGroups.find(g => {
+                    const members = g.members as any[];
+                    if (!Array.isArray(members)) return false;
+                    // Check if any member has the same email or phone or some identifier
+                    // Usually members JSON has { name, email, ... }
+                    return members.some((m: any) => m.email === userEmail || m.mail === userEmail); // handling potential key variations
+                }) || null;
+            }
         }
     }
 
     return {
         ...pass,
         event,
+        // Ensure groupRegistration includes the leader user details as 'user'
         groupRegistration
     };
 }
