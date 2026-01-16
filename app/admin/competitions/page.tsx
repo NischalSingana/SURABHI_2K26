@@ -164,15 +164,36 @@ export default function EventsManagement() {
 
   // Lock body scroll when any modal is open
   useEffect(() => {
-    if (showCategoryModal || showDeleteCategoryModal || showScheduleModal) {
+    if (
+      showCategoryModal ||
+      showDeleteCategoryModal ||
+      showScheduleModal ||
+      showDeleteEventModal ||
+      showRegistrationsModal ||
+      showEventForm ||
+      showStudentDetailsModal ||
+      showGroupDetailsModal
+    ) {
       document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
     };
-  }, [showCategoryModal, showDeleteCategoryModal, showScheduleModal]);
+  }, [
+    showCategoryModal,
+    showDeleteCategoryModal,
+    showScheduleModal,
+    showDeleteEventModal,
+    showRegistrationsModal,
+    showEventForm,
+    showStudentDetailsModal,
+    showGroupDetailsModal,
+  ]);
 
   const handleScheduleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1164,7 +1185,8 @@ export default function EventsManagement() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-zinc-900 rounded-xl w-full max-w-lg border border-zinc-800 shadow-2xl overflow-hidden"
+              onWheel={(e) => e.stopPropagation()}
+              className="bg-zinc-900 rounded-xl w-full max-w-lg border border-zinc-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
             >
               <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
                 <h2 className="text-xl font-bold text-white">Student Details</h2>
@@ -1181,7 +1203,7 @@ export default function EventsManagement() {
                 </button>
               </div>
 
-              <div className="p-6 space-y-4">
+              <div className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0 overscroll-contain">
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-16 h-16 rounded-full bg-red-600/20 flex items-center justify-center text-red-500 text-2xl font-bold border border-red-500/30">
                     {selectedStudent.name ? selectedStudent.name.charAt(0).toUpperCase() : '?'}
@@ -1269,6 +1291,7 @@ export default function EventsManagement() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
+              onWheel={(e) => e.stopPropagation()}
               className="bg-zinc-900 rounded-xl w-full max-w-2xl border border-zinc-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
             >
               <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between shrink-0">
@@ -1289,7 +1312,7 @@ export default function EventsManagement() {
                 </button>
               </div>
 
-              <div className="p-6 overflow-y-auto">
+              <div className="p-6 overflow-y-auto flex-1 min-h-0 overscroll-contain">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700">
                     <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">Team Lead</h3>
