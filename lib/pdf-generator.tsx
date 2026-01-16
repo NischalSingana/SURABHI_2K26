@@ -23,6 +23,7 @@ export interface EventTicketData {
     isGroupEvent: boolean;
     eventId?: string; // Add eventId to interface
     groupName?: string | null;
+    gender?: string | null; // Add gender to interface
     teamMembers?: MemberData[];
 }
 
@@ -40,8 +41,8 @@ const styles = StyleSheet.create({
         height: '100%',
         backgroundColor: '#0a0a0a', // Dark background
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: 40,
+        padding: 30, // Reduced padding (was 40)
+        paddingTop: 0, // Reduced top padding (was 10)
         position: 'relative',
     },
     // Decorative lines
@@ -64,9 +65,30 @@ const styles = StyleSheet.create({
 
     // Logo Section
     logo: {
-        width: 140,
-        height: 140,
+        width: 180, // Increased size
+        height: 180, // Increased size
         marginBottom: 10,
+    },
+    headerRow: {
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10, // Reduced margin (was 20)
+        paddingHorizontal: 20,
+    },
+    klLogo: {
+        width: 130, // Much smaller (was 200)
+        height: 60,
+        objectFit: 'contain',
+        marginLeft: -25, // Move more right side
+    },
+    surabhiTextLogo: {
+        width: 280,
+        height: 100,
+        objectFit: 'contain',
+        marginTop: 10, // Push a bit down
+        marginRight: -130, // Move more right side
     },
     title: {
         color: '#dc2626', // Red-600
@@ -88,9 +110,9 @@ const styles = StyleSheet.create({
     eventTitleBox: {
         backgroundColor: '#dc2626',
         paddingHorizontal: 20,
-        paddingVertical: 8,
+        paddingVertical: 5, // Reduced vertical padding
         borderRadius: 4,
-        marginBottom: 20,
+        marginBottom: 10, // Reduced margin (was 20)
     },
     eventTitle: {
         color: '#ffffff',
@@ -106,7 +128,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#18181b', // Zinc-900
         borderRadius: 20,
         border: '1px solid #3f3f46', // Zinc-700
-        padding: 25,
+        padding: 20, // Reduced padding (was 25)
         flexDirection: 'column',
     },
 
@@ -114,29 +136,31 @@ const styles = StyleSheet.create({
     infoRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 20,
+        marginBottom: 15, // Reduced margin (was 20)
         borderBottom: '1px solid #27272a', // Zinc-800
-        paddingBottom: 20,
+        paddingBottom: 15, // Reduced padding (was 20)
     },
     infoCol: {
         flexDirection: 'column',
     },
     label: {
         color: '#71717a', // Zinc-500
-        fontSize: 10,
-        marginBottom: 4,
+        fontSize: 9, // Reduced font size (was 10)
+        marginBottom: 4, // Reduced spacing
         textTransform: 'uppercase',
         letterSpacing: 1,
         fontWeight: 'bold',
     },
     value: {
         color: '#ffffff',
-        fontSize: 16,
+        fontSize: 18, // Increased size
         fontWeight: 'bold',
+        marginBottom: 4, // Added spacing
     },
     valueSmall: {
         color: '#e4e4e7', // Zinc-200
-        fontSize: 12,
+        fontSize: 14, // Increased size
+        marginBottom: 3, // Added spacing
     },
 
     // Group Table
@@ -154,8 +178,8 @@ const styles = StyleSheet.create({
     col1: { width: '40%' },
     col2: { width: '40%' },
     col3: { width: '20%' },
-    tableText: { color: '#d4d4d8', fontSize: 10 },
-    tableHeadText: { color: '#71717a', fontSize: 10, fontWeight: 'bold' },
+    tableText: { color: '#d4d4d8', fontSize: 12 }, // Increased size
+    tableHeadText: { color: '#71717a', fontSize: 10, fontWeight: 'bold', paddingBottom: 5 },
 
 
     // QR Section
@@ -241,7 +265,8 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
         collage: ticketData.collage,
         paymentStatus: ticketData.paymentStatus,
         isApproved: ticketData.isApproved,
-        eventId: ticketData.eventId, // Pass eventId to QR generator
+        eventId: ticketData.eventId,
+        gender: ticketData.gender, // Add gender to QR data
     });
 
     // Read logos
@@ -267,6 +292,28 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
         console.error("SAC logo not found", e);
     }
 
+    const klLogoPath = path.join(process.cwd(), 'public', 'images', 'kl_logo_white_text.png');
+    let klLogoBase64 = '';
+    try {
+        if (fs.existsSync(klLogoPath)) {
+            const klLogoBuffer = fs.readFileSync(klLogoPath);
+            klLogoBase64 = `data:image/png;base64,${klLogoBuffer.toString('base64')}`;
+        }
+    } catch (e) {
+        console.error("KL logo not found", e);
+    }
+
+    const surabhiTextLogoPath = path.join(process.cwd(), 'public', 'images', 'SURABHI.png');
+    let surabhiTextLogoBase64 = '';
+    try {
+        if (fs.existsSync(surabhiTextLogoPath)) {
+            const buffer = fs.readFileSync(surabhiTextLogoPath);
+            surabhiTextLogoBase64 = `data:image/png;base64,${buffer.toString('base64')}`;
+        }
+    } catch (e) {
+        console.error("Surabhi text logo not found", e);
+    }
+
     const TicketDocument = (
         <Document>
             {/* Page 1: Main Ticket */}
@@ -274,20 +321,20 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                 <View style={styles.coverContainer}>
                     <View style={styles.topLine} />
 
-                    {sacLogoBase64 && (
-                        <Image
-                            src={sacLogoBase64}
-                            style={{
-                                position: 'absolute',
-                                top: 30,
-                                left: 30,
-                                width: 120,
-                                height: 40
-                            }}
-                        />
-                    )}
+                    {/* Header Row for Logos */}
+                    <View style={styles.headerRow}>
+                        {klLogoBase64 && <Image src={klLogoBase64} style={styles.klLogo} />}
+                        {surabhiTextLogoBase64 && <Image src={surabhiTextLogoBase64} style={styles.surabhiTextLogo} />}
+                    </View>
 
-                    {logoBase64 && <Image src={logoBase64} style={styles.logo} />}
+                    {/* SAC Logo (Optional - keeping if needed, but absolute might conflict if not careful. 
+                        User asked for KL Top Left, so maybe SAC logo should be removed or moved?
+                        The prompt said 'move KL logo to top left', implying it takes precedence. 
+                        I'll comment out SAC centered/absolute logic if it interferes.
+                        Actually, previous code had SAC absolute at 30,30. KL is now aiming for that spot.
+                        I will remove the specific SAC render block to avoid clutter as KL takes priority.
+                    */}
+
                     <Text style={styles.title}>SURABHI-2026</Text>
                     <Text style={styles.subtitle}>OFFICIAL ENTRY PASS</Text>
 
@@ -350,7 +397,7 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                                 <View style={styles.tableRow}>
                                     <Text style={[styles.tableText, styles.col1]}>{ticketData.name} (Lead)</Text>
                                     <Text style={[styles.tableText, styles.col2]}>{ticketData.phone || '-'}</Text>
-                                    <Text style={[styles.tableText, styles.col3]}>-</Text>
+                                    <Text style={[styles.tableText, styles.col3]}>{ticketData.gender || '-'}</Text>
                                 </View>
                                 {ticketData.teamMembers.map((member, idx) => (
                                     <View key={idx} style={styles.tableRow}>
@@ -428,9 +475,14 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                         <Text style={styles.ruleText}>Judges' decisions are final and binding.</Text>
                     </View>
 
-                    <View style={{ marginTop: 'auto', borderTop: '1px solid #333', paddingTop: 15, alignItems: 'center' }}>
-                        {sacLogoBase64 && <Image src={sacLogoBase64} style={{ width: 100, height: 35, marginBottom: 8 }} />}
-                        <Text style={{ color: '#71717a', fontSize: 12, fontWeight: 'bold' }}>Surabhi 2026 • KL University</Text>
+                    <View style={{ marginTop: 'auto', borderTop: '1px solid #333', paddingTop: 5, alignItems: 'center' }}>
+                        {/* Footer Logo Section */}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 1, gap: 5 }}>
+                            {sacLogoBase64 && <Image src={sacLogoBase64} style={{ width: 100, height: 35 }} />}
+                            {/* Add Surabhi Logo to Footer */}
+                            {surabhiTextLogoBase64 && <Image src={surabhiTextLogoBase64} style={{ width: 150, height: 170, objectFit: 'contain' }} />}
+                        </View>
+                        <Text style={{ color: '#71717a', fontSize: 14, fontWeight: 'bold', marginTop: -30 }}>Surabhi 2026 • KL University</Text>
                     </View>
                 </View>
                 <View style={styles.bottomLine} />
