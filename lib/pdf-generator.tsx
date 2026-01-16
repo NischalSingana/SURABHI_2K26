@@ -304,10 +304,12 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                                     {ticketData.phone && <Text style={styles.valueSmall}>{ticketData.phone}</Text>}
                                 </View>
 
-                                {ticketData.isGroupEvent && ticketData.groupName && (
+                                {ticketData.isGroupEvent && (
                                     <View style={{ marginBottom: 15 }}>
                                         <Text style={styles.label}>TEAM NAME</Text>
-                                        <Text style={{ ...styles.value, color: '#dc2626' }}>{ticketData.groupName}</Text>
+                                        <Text style={{ ...styles.value, color: '#dc2626', fontSize: 18 }}>
+                                            {ticketData.groupName || "N/A"}
+                                        </Text>
                                     </View>
                                 )}
 
@@ -329,20 +331,20 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                         <View style={{ marginBottom: 20, borderTop: '1px solid #27272a', paddingTop: 15 }}>
                             <Text style={styles.label}>STATUS</Text>
                             <Text style={{ ...styles.value, color: ticketData.isApproved ? '#22c55e' : '#f59e0b' }}>
-                                {ticketData.isApproved ? 'CONFIRMED' : 'PENDING'}
+                                {ticketData.isApproved ? 'CONFIRMED' : 'PENDING APPROVAL'}
                             </Text>
                         </View>
 
-                        {/* Team Roster for Group Events */}
+                        {/* Team Members for Group Events */}
                         {ticketData.isGroupEvent && ticketData.teamMembers && ticketData.teamMembers.length > 0 && (
                             <View style={{ borderTop: '1px solid #27272a', paddingTop: 15 }}>
-                                <Text style={{ ...styles.label, marginBottom: 10 }}>TEAM ROSTER</Text>
+                                <Text style={{ ...styles.label, marginBottom: 10 }}>TEAM MEMBERS</Text>
                                 <View style={styles.tableHeader}>
                                     <Text style={[styles.tableHeadText, styles.col1]}>NAME</Text>
                                     <Text style={[styles.tableHeadText, styles.col2]}>PHONE</Text>
                                     <Text style={[styles.tableHeadText, styles.col3]}>GENDER</Text>
                                 </View>
-                                {/* Lead row first? */}
+                                {/* Lead row first */}
                                 <View style={styles.tableRow}>
                                     <Text style={[styles.tableText, styles.col1]}>{ticketData.name} (Lead)</Text>
                                     <Text style={[styles.tableText, styles.col2]}>{ticketData.phone || '-'}</Text>
@@ -366,41 +368,67 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                     </View>
 
                     <View style={styles.footer}>
-                        <Text style={styles.footerText}>Generated on {new Date().toLocaleDateString()}</Text>
+                        <Text style={styles.footerText}>Generated on {new Date().toLocaleDateString()} • Surabhi 2026</Text>
                     </View>
 
                     <View style={styles.bottomLine} />
                 </View>
             </Page>
 
-            {/* Page 2: Rules (Kept same) */}
+            {/* Page 2: Rules */}
             <Page size="A4" style={styles.page}>
                 <View style={styles.rulesContainer}>
                     <Text style={styles.pageTitle}>RULES & REGULATIONS</Text>
 
-                    <Text style={styles.sectionTitle}>MANDATORY REQUIREMENTS</Text>
+                    <Text style={styles.sectionTitle}>GENERAL GUIDELINES</Text>
                     <View style={styles.bulletRow}>
                         <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>This Entry Pass (Digital or Printed) is mandatory for admission into the event premises.</Text>
+                        <Text style={styles.ruleText}>This Entry Pass is mandatory for admission. Digital or printed copies are accepted.</Text>
                     </View>
                     <View style={styles.bulletRow}>
                         <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Attendees must carry a valid Government ID or Student ID Card.</Text>
+                        <Text style={styles.ruleText}>Attendees must carry a valid College ID / Govt ID proving their identity.</Text>
+                    </View>
+                    <View style={styles.bulletRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.ruleText}>Participants should report to the venue at least 30 minutes before the event starts.</Text>
+                    </View>
+                    <View style={styles.bulletRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.ruleText}>The organizers reserve the right to admission.</Text>
                     </View>
 
-                    <Text style={styles.sectionTitle}>SECURITY & CONDUCT</Text>
+                    <Text style={styles.sectionTitle}>CODE OF CONDUCT</Text>
                     <View style={styles.bulletRow}>
                         <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Alcohol, drugs, flammable items, and weapons are strictly prohibited.</Text>
+                        <Text style={styles.ruleText}>Strict discipline must be maintained within the campus premises.</Text>
                     </View>
                     <View style={styles.bulletRow}>
                         <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Misconduct will result in immediate disqualification.</Text>
+                        <Text style={styles.ruleText}>Possession or consumption of alcohol, drugs, or smoking is strictly prohibited.</Text>
+                    </View>
+                    <View style={styles.bulletRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.ruleText}>Any form of misbehavior or harassment will lead to immediate disqualification and removal.</Text>
+                    </View>
+                    <View style={styles.bulletRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.ruleText}>Damage to university property will result in penalties.</Text>
+                    </View>
+
+                    <Text style={styles.sectionTitle}>EVENT SPECIFIC</Text>
+                    <View style={styles.bulletRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.ruleText}>All team members must be present for group event verification.</Text>
+                    </View>
+                    <View style={styles.bulletRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.ruleText}>Judges' decisions are final and binding.</Text>
                     </View>
 
                     <View style={{ marginTop: 'auto', borderTop: '1px solid #333', paddingTop: 15, alignItems: 'center' }}>
-                        {logoBase64 && <Image src={logoBase64} style={{ width: 100, height: 100, marginBottom: 8 }} />}
-                        <Text style={{ color: '#71717a', fontSize: 12, fontWeight: 'bold' }}>Surabhi 2026 • National Level Techno-Management Fest</Text>
+                        {sacLogoBase64 && <Image src={sacLogoBase64} style={{ width: 100, height: 35, marginBottom: 8 }} />}
+                        <Text style={{ color: '#71717a', fontSize: 12, fontWeight: 'bold' }}>Surabhi 2026 • KL University</Text>
                     </View>
                 </View>
                 <View style={styles.bottomLine} />
