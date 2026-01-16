@@ -390,8 +390,8 @@ class Media {
       // We want to make sure the plane fits this better.
       this.scale = this.screen.height / 1500;
       // Adjust these multipliers to tune the mobile look
-      this.plane.scale.y = (this.viewport.height * (900 * this.scale)) / this.screen.height;
-      this.plane.scale.x = (this.viewport.width * (700 * this.scale)) / this.screen.width;
+      this.plane.scale.y = (this.viewport.height * (1250 * this.scale)) / this.screen.height;
+      this.plane.scale.x = (this.viewport.width * (850 * this.scale)) / this.screen.width;
     } else {
       // Desktop default
       this.scale = this.screen.height / 1500;
@@ -680,6 +680,10 @@ class App {
     const height = 2 * Math.tan(fov / 2) * this.camera.position.z;
     const width = height * this.camera.aspect;
     this.viewport = { width, height };
+    const isMobile = this.screen.width < 768;
+    // Shift scene up on mobile to show description
+    this.scene.position.y = isMobile ? 1.5 : 0;
+
     if (this.medias) {
       this.medias.forEach(media => media.onResize({ screen: this.screen, viewport: this.viewport }));
     }

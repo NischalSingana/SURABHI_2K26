@@ -282,7 +282,7 @@ const HomePage = () => {
             </section>
 
             {/* Poster Gallery Section */}
-            <section ref={competitionSectionRef} className="relative z-30 w-full h-auto min-h-[70vh] md:h-screen bg-gradient-to-b from-[#0a0000] to-black overflow-hidden pt-10 pb-4 md:py-20 flex flex-col items-center justify-center">
+            <section ref={competitionSectionRef} className="relative z-30 w-full h-auto min-h-[70vh] md:h-screen bg-gradient-to-b from-[#0a0000] to-black overflow-hidden pt-0 pb-4 md:py-20 flex flex-col items-center justify-center">
                 <div className="w-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
@@ -303,7 +303,7 @@ const HomePage = () => {
                         </div>
                     ) : posterItems.length > 0 ? (
                         <>
-                            <div className="w-full h-[50dvh] md:h-[70vh] mt-8 md:mt-4">
+                            <div className="w-full h-[65dvh] md:h-[70vh] mt-12 md:mt-4">
                                 <CircularGallery
                                     ref={galleryRef}
                                     items={posterItems}
