@@ -27,12 +27,10 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
 - **QR Code Generation**: Automated ticket generation with unique QR codes
 - **Pass Management**: Digital passes with expiration and usage tracking
 - **Ticket Scanning**: Admin interface for scanning and validating tickets
-- **Provider Restrictions**: Ticket access limited to Google login users
 
 ### 🏨 Accommodation Booking
 - **Individual & Group Bookings**: Support for solo and group accommodation
 - **Gender-Segregated Rooms**: Separate booking flows for male/female participants
-- **Payment Integration**: Track payment status and transaction IDs
 - **Booking Management**: Admin dashboard for managing accommodation requests
 
 ### 👨‍⚖️ Judging System
