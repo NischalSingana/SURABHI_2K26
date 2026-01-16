@@ -51,7 +51,7 @@ export async function GET(req: Request) {
         // Fetch Event Details
         const event = await prisma.event.findUnique({
             where: { id: eventId },
-            select: { name: true, isGroupEvent: true }
+            select: { name: true, isGroupEvent: true, id: true }
         });
 
         if (!event) {
@@ -66,6 +66,7 @@ export async function GET(req: Request) {
             collage: user.collage,
             collageId: user.collageId,
             eventName: event.name,
+            eventId: event.id, // Add eventId to pass to PDF/QR generator
             isGroupEvent: event.isGroupEvent,
             paymentStatus: 'CONFIRMED', // Defaulting since we check registration presence
             isApproved: true, // Defaulting as confirmed registration

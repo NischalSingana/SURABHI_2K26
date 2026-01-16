@@ -21,6 +21,7 @@ export interface EventTicketData {
     isApproved: boolean;
     eventName: string;
     isGroupEvent: boolean;
+    eventId?: string; // Add eventId to interface
     groupName?: string | null;
     teamMembers?: MemberData[];
 }
@@ -240,6 +241,7 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
         collage: ticketData.collage,
         paymentStatus: ticketData.paymentStatus,
         isApproved: ticketData.isApproved,
+        eventId: ticketData.eventId, // Pass eventId to QR generator
     });
 
     // Read logos
