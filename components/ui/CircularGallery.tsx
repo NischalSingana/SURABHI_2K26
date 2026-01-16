@@ -482,6 +482,10 @@ class App {
     this.createGeometry();
     this.createMedias(items, bend, textColor, borderRadius, font);
     this.update();
+
+    // Enable vertical scrolling on mobile, but handle horizontal swipes in JS
+    this.container.style.touchAction = 'pan-y';
+
     this.addEventListeners();
   }
 
@@ -701,30 +705,36 @@ class App {
 
     window.addEventListener('resize', this.boundOnResize);
 
-    // Always enable Drag/Touch interaction
-    window.addEventListener('mousedown', this.boundOnTouchDown);
+    // Attach start events to container only
+    this.container.addEventListener('mousedown', this.boundOnTouchDown);
+    this.container.addEventListener('touchstart', this.boundOnTouchDown, { passive: true });
+
+    // Attach move/end events to window to handle drags that leave the container
     window.addEventListener('mousemove', this.boundOnTouchMove);
     window.addEventListener('mouseup', this.boundOnTouchUp);
-    window.addEventListener('touchstart', this.boundOnTouchDown);
-    window.addEventListener('touchmove', this.boundOnTouchMove);
+
+    window.addEventListener('touchmove', this.boundOnTouchMove, { passive: false });
     window.addEventListener('touchend', this.boundOnTouchUp);
 
     // Only enable Wheel if NOT in manual mode (avoid conflict with ScrollTrigger)
     if (!this.manualMode) {
-      window.addEventListener('mousewheel', this.boundOnWheel);
-      window.addEventListener('wheel', this.boundOnWheel);
+      this.container.addEventListener('mousewheel', this.boundOnWheel);
+      this.container.addEventListener('wheel', this.boundOnWheel);
     }
   }
 
   destroy() {
     window.cancelAnimationFrame(this.raf);
     window.removeEventListener('resize', this.boundOnResize);
-    window.removeEventListener('mousewheel', this.boundOnWheel);
-    window.removeEventListener('wheel', this.boundOnWheel);
-    window.removeEventListener('mousedown', this.boundOnTouchDown);
+
+    this.container.removeEventListener('mousewheel', this.boundOnWheel);
+    this.container.removeEventListener('wheel', this.boundOnWheel);
+
+    this.container.removeEventListener('mousedown', this.boundOnTouchDown);
     window.removeEventListener('mousemove', this.boundOnTouchMove);
     window.removeEventListener('mouseup', this.boundOnTouchUp);
-    window.removeEventListener('touchstart', this.boundOnTouchDown);
+
+    this.container.removeEventListener('touchstart', this.boundOnTouchDown);
     window.removeEventListener('touchmove', this.boundOnTouchMove);
     window.removeEventListener('touchend', this.boundOnTouchUp);
     if (this.renderer && this.renderer.gl && this.renderer.gl.canvas.parentNode) {
