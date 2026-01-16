@@ -28,7 +28,10 @@ export const metadata: Metadata = {
   title: "Surabhi",
   description:
     "A website for Surabhi International Cultural Fest by kl university  ",
-  creator: "M.Vishnu vardhan reddy",
+  creator: "Nischal Singana",
+  icons: {
+    icon: "/faviconn.svg",
+  },
 };
 
 export default function RootLayout({
