@@ -24,6 +24,7 @@ model User {
   ticketScanned    Boolean       @default(false)
   ticketScannedAt  DateTime?
   phone            String?
+  gender           String?
   password         String?
   role             Role          @default(USER)
   accounts              Account[]

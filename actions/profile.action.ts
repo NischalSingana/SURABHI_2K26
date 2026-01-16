@@ -7,13 +7,14 @@ import { revalidatePath } from "next/cache";
 
 
 interface RegistrationData {
-    name?: string;
+  name?: string;
   image?: string;
   phone?: string;
   collage?: string;
   collageId?: string;
   branch?: string;
   year?: number;
+  gender?: string;
 }
 
 export async function updateProfile(data: RegistrationData) {
