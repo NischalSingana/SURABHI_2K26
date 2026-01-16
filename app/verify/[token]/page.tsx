@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import Image from "next/image";
 import { FiCheckCircle, FiXCircle, FiUser, FiCalendar, FiClock, FiMapPin, FiAlertTriangle } from "react-icons/fi";
 import VerifyButton from "./VerifyButton";
+import ApproveButton from "./ApproveButton";
 import Link from "next/link";
 
 export default async function VerifyPage({
@@ -144,25 +145,48 @@ export default async function VerifyPage({
                         )}
 
                         {pass.groupRegistration && (
-                            <div className="space-y-3 pt-2">
+                            <div className="space-y-4 pt-4 border-t border-zinc-800/50">
                                 <div>
-                                    <p className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-1">Team</p>
-                                    <p className="text-white font-medium text-lg text-red-400">{pass.groupRegistration.groupName}</p>
+                                    <p className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-1">Team Details</p>
+                                    <p className="text-white font-bold text-xl text-blue-400">{pass.groupRegistration.groupName}</p>
+                                    <p className="text-zinc-400 text-sm">
+                                        Members: {(pass.groupRegistration.members as any[])?.length || 0}
+                                        {pass.event?.minTeamSize && pass.event?.maxTeamSize && (
+                                            <span className="text-zinc-600 ml-1">
+                                                (Req: {pass.event.minTeamSize}-{pass.event.maxTeamSize})
+                                            </span>
+                                        )}
+                                    </p>
                                 </div>
 
-                                {pass.groupRegistration.members && Array.isArray(pass.groupRegistration.members) && pass.groupRegistration.members.length > 0 && (
+                                {/* Team Lead Section via DB Relation or fallback to checking members */}
+                                {pass.groupRegistration.user && (
+                                    <div className="bg-zinc-950/50 p-3 rounded border border-zinc-800/50">
+                                        <p className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-1">Team Lead</p>
+                                        <p className="text-white font-medium">{pass.groupRegistration.user.name}</p>
+                                        <p className="text-zinc-400 text-xs">{pass.groupRegistration.user.email}</p>
+                                        <p className="text-zinc-400 text-xs">{pass.groupRegistration.user.phone}</p>
+                                    </div>
+                                )}
+
+                                {pass.groupRegistration.members && Array.isArray(pass.groupRegistration.members) && (
                                     <div className="mt-3">
                                         <p className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-2">Team Members</p>
-                                        <div className="space-y-2">
-                                            {/* Team Lead (User) - Optional to repeat or just list members */}
-                                            {/* Usually members list includes everyone or just extra members. Let's assume members array. */}
+                                        <div className="space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
                                             {(pass.groupRegistration.members as any[]).map((member: any, i: number) => (
-                                                <div key={i} className="flex justify-between items-center bg-zinc-950/50 p-2 rounded border border-zinc-800/50">
+                                                <div key={i} className={`flex justify-between items-center p-2 rounded border ${member.email === pass.user.email
+                                                    ? "bg-green-900/10 border-green-900/30 ring-1 ring-green-900/50"
+                                                    : "bg-zinc-950/50 border-zinc-800/50"
+                                                    }`}>
                                                     <div>
-                                                        <p className="text-zinc-300 text-sm font-medium">{member.name}</p>
-                                                        <p className="text-zinc-500 text-xs">{member.phone || "No phone"}</p>
+                                                        <p className={`text-sm font-medium ${member.email === pass.user.email ? "text-green-400" : "text-zinc-300"}`}>
+                                                            {member.name} {member.email === pass.user.email && "(This User)"}
+                                                        </p>
+                                                        <p className="text-zinc-500 text-xs">{member.phone || member.email}</p>
                                                     </div>
-                                                    <span className="text-zinc-600 text-xs bg-zinc-900 px-2 py-1 rounded">Member</span>
+                                                    <span className="text-zinc-600 text-xs bg-zinc-900 px-2 py-1 rounded">
+                                                        {pass.groupRegistration?.userId && (member.email === pass.groupRegistration.user?.email) ? "LEAD" : "MEMBER"}
+                                                    </span>
                                                 </div>
                                             ))}
                                         </div>
@@ -182,10 +206,18 @@ export default async function VerifyPage({
                 </div>
 
                 {/* Admin Actions */}
-                {isAdmin && isValid && (
+                {isAdmin && (
                     <div className="p-6 bg-zinc-950 border-t border-zinc-800">
                         <p className="text-center text-xs text-zinc-500 mb-2 uppercase tracking-widest font-bold">Admin Controls</p>
-                        <VerifyButton token={pass.passToken} />
+
+                        {!isApproved && (
+                            <div className="mb-4 p-3 bg-red-900/20 border border-red-900/50 rounded-lg text-center">
+                                <p className="text-red-400 text-sm font-medium mb-2">User Registration Pending Approval</p>
+                                <ApproveButton userId={pass.user.id} />
+                            </div>
+                        )}
+
+                        {isValid && <VerifyButton token={pass.passToken} />}
                     </div>
                 )}
 
