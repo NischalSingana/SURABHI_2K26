@@ -84,6 +84,7 @@ const styles = StyleSheet.create({
         height: 60,
         objectFit: 'contain',
         marginLeft: -25, // Move more right side
+        marginTop: 10, // Align with Surabhi logo (was 20)
     },
     surabhiTextLogo: {
         width: 280,
@@ -305,7 +306,10 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
         console.error("KL logo not found", e);
     }
 
-    const surabhiTextLogoPath = path.join(process.cwd(), 'public', 'images', 'SURABHI.png');
+    // SVG (faviconn.svg) is not supported by @react-pdf/renderer Image component.
+    // Reverting to the PNG logo which the user confirmed was visible previously.
+    // Case sensitive path: public/images/surabhi.png
+    const surabhiTextLogoPath = path.join(process.cwd(), 'public', 'images', 'surabhi.png');
     let surabhiTextLogoBase64 = '';
     try {
         if (fs.existsSync(surabhiTextLogoPath)) {
