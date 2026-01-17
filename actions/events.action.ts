@@ -526,7 +526,16 @@ export async function registerGroupEvent(
         });
         console.log("registerGroupEvent: Group registration created");
 
-        return { success: true };
+        // --- EMAIL NOTIFICATION START ---
+        // Fetch User details again ensuring we have email
+        const teamLead = await tx.user.findUnique({ where: { id: session.user.id } });
+
+        // Return details needed for email, outside transaction if possible, or handle here.
+        // We will return them to execute email sending AFTER transaction commits if possible, 
+        // but since we are inside an action, we can fire off the async email promise just before returning.
+        // Or better, we do it after the transaction block using data we collected.
+
+        return { success: true, teamLead, event, groupName, members };
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
     );
@@ -535,6 +544,52 @@ export async function registerGroupEvent(
     revalidatePath("/events");
     revalidatePath("/profile");
     console.log("registerGroupEvent: Success");
+
+    // Send Email (Non-blocking)
+    if (registrationResult.success && registrationResult.teamLead && registrationResult.event) {
+      // Capture variables for async closure to avoid "possibly undefined" errors
+      const lead = registrationResult.teamLead;
+      const evt = registrationResult.event;
+      const grp = registrationResult.groupName || "Team";
+      const mems = registrationResult.members || [];
+
+      (async () => {
+        try {
+          // Generate PDF
+          const { generateTicketPDF } = await import("@/lib/pdf-generator");
+          const pdfBuffer = await generateTicketPDF({
+            userId: lead.id,
+            name: lead.name || "Team Lead",
+            email: lead.email,
+            phone: lead.phone,
+            collage: lead.collage,
+            collageId: lead.collageId,
+            paymentStatus: "PAID", // Participation is free/covered
+            isApproved: true,
+            eventName: evt.name,
+            isGroupEvent: true,
+            groupName: grp,
+            teamMembers: mems,
+            eventId: evt.id,
+            gender: lead.gender,
+            state: lead.state,
+            city: lead.city
+          });
+
+          const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
+          await sendEventConfirmationEmail(
+            { name: lead.name || "User", email: lead.email },
+            { name: evt.name, date: evt.date, venue: evt.venue },
+            pdfBuffer,
+            "GROUP",
+            { groupName: grp, members: mems }
+          );
+        } catch (emailErr) {
+          console.error("Failed to send confirmation email:", emailErr);
+        }
+      })();
+    }
+
     return { success: true, message: "Successfully registered team for event" };
 
   } catch (error) {
@@ -727,13 +782,57 @@ export async function registerForEvent(eventId: string, registrationDetails?: an
           });
         }
 
-        return { success: true };
+        return { success: true, user: session.user, event };
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
     );
 
     if (!registrationResult.success) {
       return registrationResult;
+    }
+
+    // Send Email (Non-blocking)
+    if (registrationResult.success && registrationResult.user && registrationResult.event) {
+      (async () => {
+        try {
+          // Fetch full user details for PDF
+          // Warning: session.user might not have phone/college if not updated in session, 
+          // but usually needed for ticket. Ideally we fetch fresh from DB.
+          const userFull = await prisma.user.findUnique({
+            where: { id: registrationResult.user.id }
+          });
+
+          if (!userFull) return;
+
+          const { generateTicketPDF } = await import("@/lib/pdf-generator");
+          const pdfBuffer = await generateTicketPDF({
+            userId: userFull.id,
+            name: userFull.name || "Participant",
+            email: userFull.email,
+            phone: userFull.phone,
+            collage: userFull.collage,
+            collageId: userFull.collageId,
+            paymentStatus: "PAID",
+            isApproved: true,
+            eventName: registrationResult.event.name,
+            isGroupEvent: false,
+            eventId: registrationResult.event.id,
+            gender: userFull.gender,
+            state: userFull.state,
+            city: userFull.city
+          });
+
+          const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
+          await sendEventConfirmationEmail(
+            { name: userFull.name || "User", email: userFull.email },
+            { name: registrationResult.event.name, date: registrationResult.event.date, venue: registrationResult.event.venue },
+            pdfBuffer,
+            "INDIVIDUAL"
+          );
+        } catch (emailErr) {
+          console.error("Failed to send solo confirmation email:", emailErr);
+        }
+      })();
     }
 
     revalidatePath("/events");
