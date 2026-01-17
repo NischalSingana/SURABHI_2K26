@@ -10,7 +10,7 @@ const CDN_URL = process.env.NEXT_PUBLIC_GALLERY_CDN_URL || "";
 
 // TODO: Update these filenames to match what you uploaded to your DigitalOcean bucket
 const galleryImages = [
-    // 2025 Images
+  // 2025 Images
   {
     image: `${CDN_URL}/2024/WhatsApp%20Image%202026-01-15%20at%2014.36.33%203.05.14%E2%80%AFPM.jpeg`,
     year: "2025",
@@ -43,11 +43,11 @@ const galleryImages = [
     image: `${CDN_URL}/2024/RAVI9583%20(1).jpg`,
     year: "2025",
   },
-    {
+  {
     image: `${CDN_URL}/2024/RAVI9615%20(1).jpg`,
     year: "2025",
   },
-    {
+  {
     image: `${CDN_URL}/2024/RAVI0390%20(1).jpg`,
     year: "2025",
   },
@@ -87,67 +87,6 @@ const galleryImages = [
   {
     image: `${CDN_URL}/2025/WhatsApp%20Image%202026-01-10%20at%2013.38.37.jpeg`,
     year: "2024",
-  },
-
-
-  // 2023 Images
-  {
-    image: `${CDN_URL}/Events/Surabhi_2023/1.jpg`,
-    year: "2023",
-  },
-  {
-    image: `${CDN_URL}/Events/Surabhi_2023/2.jpg`,
-    year: "2023",
-  },
-  {
-    image: `${CDN_URL}/Events/Surabhi_2023/3.jpg`,
-    year: "2023",
-  },
-  {
-    image: `${CDN_URL}/Events/Surabhi_2023/4.jpg`,
-    year: "2023",
-  },
-  {
-    image: `${CDN_URL}/Events/Surabhi_2023/5.jpg`,
-    year: "2023",
-  },
-  {
-    image: `${CDN_URL}/Events/Surabhi_2023/6.jpg`,
-    year: "2023",
-  },
-
-  // 2022 Images
-  {
-    image: `${CDN_URL}/Events/Surabhi_2022/1.jpg`,
-    year: "2022",
-  },
-  {
-    image: `${CDN_URL}/Events/Surabhi_2022/2.jpg`,
-    year: "2022",
-  },
-  {
-    image: `${CDN_URL}/Events/Surabhi_2022/3.jpg`,
-    year: "2022",
-  },
-  {
-    image: `${CDN_URL}/Events/Surabhi_2022/4.jpg`,
-    year: "2022",
-  },
-  {
-    image: `${CDN_URL}/Events/Surabhi_2022/5.yaml`, // Just a placeholder example
-    year: "2022",
-  },
-  {
-    image: `${CDN_URL}/Events/Surabhi_2022/6.jpg`,
-    year: "2022",
-  },
-  {
-    image: `${CDN_URL}/Events/Surabhi_2022/7.jpg`,
-    year: "2022",
-  },
-  {
-    image: `${CDN_URL}/Events/Surabhi_2022/8.jpg`,
-    year: "2022",
   },
 ];
 
