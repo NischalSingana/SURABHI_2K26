@@ -226,8 +226,10 @@ export default function EventRegistrationPage() {
     if (!event) return null;
 
     // Calculate Fees
+    const isKLStudent = session?.user?.email?.endsWith("@kluniversity.in");
     const memberCount = event.isGroupEvent ? teamSize : 1;
-    const feePerPerson = 350;
+    // Free for KL University students, 350 for others
+    const feePerPerson = isKLStudent ? 0 : 350;
     const totalFee = memberCount * feePerPerson;
 
     return (
@@ -247,6 +249,13 @@ export default function EventRegistrationPage() {
                         <p className="text-zinc-400">
                             {event.isGroupEvent ? "Team Registration" : "Individual Registration"}
                         </p>
+                        {isKLStudent && (
+                            <div className="mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg inline-block">
+                                <p className="text-green-300 text-sm font-medium">
+                                    🎉 Free Registration for KL University Students
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     {!session?.user ? (
@@ -338,7 +347,7 @@ export default function EventRegistrationPage() {
                                     onClick={() => setShowPaymentModal(true)}
                                     className="flex-1 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-red-600/20"
                                 >
-                                    Proceed to Payment
+                                    Proceed to {isKLStudent ? "Registration" : "Payment"}
                                 </button>
                             </div>
                         </div>
@@ -600,7 +609,7 @@ export default function EventRegistrationPage() {
                                     disabled={!acceptedTerms || registering || (isVastranaut && !styleDNA) || (event.isGroupEvent && (!groupName || teamSize < event.minTeamSize || teamSize > event.maxTeamSize))}
                                     className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {event.isGroupEvent ? "Review Details" : "Proceed to Payment"}
+                                    {event.isGroupEvent ? "Review Details" : isKLStudent ? "Proceed to Register" : "Proceed to Payment"}
                                 </button>
                             </div>
                         </div>
@@ -618,13 +627,21 @@ export default function EventRegistrationPage() {
                                 className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
                             >
                                 <div className="p-6">
-                                    <h2 className="text-2xl font-bold text-white mb-1">Payment Summary</h2>
+                                    <h2 className="text-2xl font-bold text-white mb-1">
+                                        {isKLStudent ? "Confirm Registration" : "Payment Summary"}
+                                    </h2>
                                     <p className="text-zinc-400 text-sm mb-6">Complete your registration for {event.name}</p>
 
                                     <div className="space-y-4 mb-6">
                                         <div className="flex justify-between items-center text-sm">
                                             <span className="text-zinc-300">Registration Fee</span>
-                                            <span className="text-white">₹{feePerPerson} / person</span>
+                                            <span className="text-white">
+                                                {isKLStudent ? (
+                                                    <span className="text-green-500 font-bold">Plan Details Waived (KL)</span>
+                                                ) : (
+                                                    `₹${feePerPerson} / person`
+                                                )}
+                                            </span>
                                         </div>
                                         <div className="flex justify-between items-center text-sm">
                                             <span className="text-zinc-300">Participants</span>
@@ -633,7 +650,13 @@ export default function EventRegistrationPage() {
                                         <div className="h-px bg-zinc-800 my-2" />
                                         <div className="flex justify-between items-center font-bold text-lg">
                                             <span className="text-white">Total Amount</span>
-                                            <span className="text-red-500">₹{totalFee}</span>
+                                            <span className="text-red-500">
+                                                {isKLStudent ? (
+                                                    <span className="text-green-500">₹0 (Free)</span>
+                                                ) : (
+                                                    `₹${totalFee}`
+                                                )}
+                                            </span>
                                         </div>
                                     </div>
 
@@ -679,7 +702,7 @@ export default function EventRegistrationPage() {
                                                 </>
                                             ) : (
                                                 <>
-                                                    Pay Now
+                                                    {isKLStudent ? "Confirm Registration" : "Pay Now"}
                                                 </>
                                             )}
                                         </button>
@@ -688,7 +711,7 @@ export default function EventRegistrationPage() {
                                 <div className="px-6 py-3 bg-zinc-950 border-t border-zinc-800 text-center">
                                     <p className="text-xs text-zinc-500 flex items-center justify-center gap-1">
                                         <span className="w-2 h-2 rounded-full bg-yellow-500" />
-                                        Demo Mode: No real payment will be deducted
+                                        {isKLStudent ? "KL University Student Verification Active" : "Demo Mode: No real payment will be deducted"}
                                     </p>
                                 </div>
                             </motion.div>
