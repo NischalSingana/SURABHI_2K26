@@ -98,27 +98,17 @@ const HomePage = () => {
                     }}
                 />
 
-                {/* Fire-like particles effect - Reduced count or optimized if needed, but keeping primarily for now */}
-                <div className="absolute inset-0 overflow-hidden">
+                {/* Fire-like particles effect - Optimized with CSS */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     {particles.map((particle, i) => (
-                        <motion.div
+                        <div
                             key={i}
-                            className="absolute w-1 h-1 bg-red-600 rounded-full"
-                            initial={{
-                                x: particle.x,
-                                y: "100%",
-                                opacity: 0,
-                            }}
-                            animate={{
-                                y: "-10%",
-                                opacity: [0, 1, 0],
-                                scale: [0, 1.5, 0],
-                            }}
-                            transition={{
-                                duration: particle.duration,
-                                repeat: Infinity,
-                                delay: particle.delay,
-                                ease: "easeOut",
+                            className="absolute w-1 h-1 bg-red-600 rounded-full animate-float"
+                            style={{
+                                left: particle.x,
+                                animationDuration: `${particle.duration}s`,
+                                animationDelay: `${particle.delay}s`,
+                                bottom: '-10px' // Start slightly below
                             }}
                         />
                     ))}
