@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { generateTicketPDF } from "@/lib/pdf-generator";
+import { sendEventConfirmationEmail } from "@/lib/zeptomail";
 
 export async function generateVisitorPass() {
     try {
@@ -55,10 +57,38 @@ export async function generateVisitorPass() {
                 passToken: crypto.randomUUID(),
                 passType: "VISITOR",
                 isActive: true,
-                // If needed we can store payment details in a separate relation or field if schema supports, 
-                // but for now `Pass` model is simple.
             }
         });
+
+        // Send Email Asynchronously (Fire and forget or await if critical)
+        try {
+            const pdfBuffer = await generateTicketPDF({
+                userId: user.id,
+                name: user.name || "Surabhi Visitor",
+                email: user.email,
+                phone: user.phone || "",
+                collage: user.collage || "",
+                collageId: user.collageId || "",
+                paymentStatus: "PAID",
+                isApproved: true,
+                eventName: "Surabhi 2026",
+                isGroupEvent: false,
+                eventId: undefined, // Visitor pass has no specific event
+                gender: user.gender || "N/A",
+                state: user.state || "",
+                city: user.city || ""
+            });
+
+            await sendEventConfirmationEmail(
+                { name: user.name || "Visitor", email: user.email },
+                { name: "Surabhi 2026", date: new Date(), venue: "KL University" }, // Dummy event details for template
+                pdfBuffer,
+                "VISITOR"
+            );
+        } catch (emailError) {
+            console.error("Failed to send visitor pass email:", emailError);
+            // Don't block the UI response
+        }
 
         revalidatePath("/profile");
 

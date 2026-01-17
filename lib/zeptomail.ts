@@ -121,6 +121,14 @@ export async function sendEventConfirmationEmail(
 
     // Theme colors: #dc2626 (Red), #000000 (Black), #18181b (Zinc-900)
 
+    let headingTitle = "You are IN!";
+    let welcomeMessage = `Congratulations! your registration for <strong class="highlight">${event.name}</strong> has been confirmed.`;
+
+    if (registrationType === "VISITOR") {
+        headingTitle = "Visitor Pass Confirmed";
+        welcomeMessage = `Your Visitor Pass for <strong class="highlight">Surabhi 2026</strong> is confirmed. Get ready to witness the grand celebration!`;
+    }
+
     let additionalInfo = "";
     if (registrationType === "GROUP" && teamDetails) {
         additionalInfo = `
@@ -142,38 +150,41 @@ export async function sendEventConfirmationEmail(
             body { margin: 0; padding: 0; background-color: #000000; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
             .container { max-width: 600px; margin: 0 auto; background-color: #0a0a0a; border: 1px solid #333; }
             .header { background-color: #000000; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #dc2626; }
-            .content { padding: 30px 20px; color: #ffffff; }
-            .welcome-title { font-size: 24px; color: #dc2626; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; }
-            .event-card { background-color: #18181b; border: 1px solid #333; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0; }
-            .event-name { font-size: 20px; color: #ffffff; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
-            .event-meta { color: #a1a1aa; font-size: 14px; margin-bottom: 5px; }
-            .cta-button { display: inline-block; padding: 12px 24px; background-color: #dc2626; color: #ffffff !important; text-decoration: none; border-radius: 4px; font-weight: bold; margin-top: 15px; }
-            .footer { background-color: #18181b; padding: 20px; text-align: center; color: #52525b; font-size: 12px; border-top: 1px solid #333; }
+            .content { padding: 40px 30px; color: #ffffff; }
+            .welcome-header { font-size: 20px; color: #dc2626; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+            .main-heading { font-size: 28px; color: #ffffff; font-weight: 800; margin-bottom: 20px; line-height: 1.2; }
+            .text-body { color: #d4d4d8; font-size: 16px; line-height: 1.6; margin-bottom: 20px; }
+            .event-card { background-color: #18181b; border: 1px solid #333; border-radius: 8px; padding: 25px; text-align: center; margin: 30px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
+            .event-name { font-size: 22px; color: #ffffff; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
+            .event-meta { color: #a1a1aa; font-size: 14px; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+            .footer { background-color: #18181b; padding: 30px; text-align: center; color: #52525b; font-size: 12px; border-top: 1px solid #333; }
             .highlight { color: #dc2626; }
+            .divider { height: 1px; background-color: #333; margin: 30px 0; }
         </style>
     </head>
     <body>
         <div class="container">
-            <!-- Header Table for Email Client Compat -->
+            <!-- Header Logos -->
             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #000000; border-bottom: 3px solid #dc2626;">
                 <tr>
                     <td align="left" style="padding: 20px;">
-                        <img src="${klLogoUrl}" alt="KL University" width="120" style="display: block;">
+                        <img src="${klLogoUrl}" alt="KL University" width="130" style="display: block;">
                     </td>
                     <td align="right" style="padding: 20px;">
-                        <img src="${surabhiLogoUrl}" alt="Surabhi 2026" width="100" style="display: block;">
+                        <img src="${surabhiLogoUrl}" alt="Surabhi 2026" width="110" style="display: block;">
                     </td>
                 </tr>
             </table>
 
             <div class="content">
-                <div class="welcome-title">Welcome to Surabhi 2026!</div>
-                <p style="color: #d4d4d8; font-size: 16px; line-height: 1.5;">
+                <div class="welcome-header">Welcome to</div>
+                <div class="main-heading">Surabhi International Cultural Fest 2026</div>
+                
+                <p class="text-body">
                     Hello <strong style="color: #ffffff;">${user.name}</strong>,
                 </p>
-                <p style="color: #d4d4d8; font-size: 16px; line-height: 1.5;">
-                    Congratulations! your registration for <strong class="highlight">${event.name}</strong> has been confirmed. 
-                    We are thrilled to have you participate in this grand celebration of talent and culture.
+                <p class="text-body">
+                    ${welcomeMessage}
                 </p>
 
                 <div class="event-card">
@@ -184,16 +195,21 @@ export async function sendEventConfirmationEmail(
 
                 ${additionalInfo}
 
-                <p style="color: #ffffff; font-size: 16px; margin-top: 30px;">
-                    <strong>🎟️ Your Ticket is Attached!</strong>
+                <div class="divider"></div>
+
+                <p style="color: #ffffff; font-size: 18px; text-align: center; margin-bottom: 15px;">
+                    <strong>🎟️ Your Entry Pass is Attached</strong>
                 </p>
-                <p style="color: #a1a1aa; font-size: 14px;">
-                    Please find your official entry pass attached to this email (PDF). 
-                    You must present this QR code at the venue for entry.
+                <p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-bottom: 0;">
+                    Please find your official entry pass (PDF) attached below.<br>
+                    Keep it handy for security checks at the venue.
                 </p>
 
-                <div style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
-                    <p style="color: #52525b; font-size: 12px;">Ignite Your Passion • Surabhi 2026</p>
+                <div style="margin-top: 40px; text-align: center;">
+                    <p class="text-body" style="font-size: 14px; font-style: italic;">
+                        "Thanks for being part of this event!"
+                    </p>
+                    <p style="color: #52525b; font-size: 12px; margin-top: 10px;">Ignite Your Passion • Surabhi 2026</p>
                 </div>
             </div>
 
