@@ -90,24 +90,15 @@ const HomePage = () => {
             <h1 className="sr-only">Surabhi International Cultural Fest 2026 - KL University</h1>
             {/* Fiery Red Background - Edge to Edge */}
             <div className="fixed inset-0 z-0 bg-gradient-to-br from-[#1a0000] via-[#4a0000] to-[#2a0000]">
-                {/* Animated gradient overlay */}
-                <motion.div
-                    animate={{
-                        background: [
-                            "radial-gradient(circle at 20% 50%, rgba(220, 38, 38, 0.3) 0%, transparent 50%)",
-                            "radial-gradient(circle at 80% 50%, rgba(185, 28, 28, 0.3) 0%, transparent 50%)",
-                            "radial-gradient(circle at 50% 20%, rgba(220, 38, 38, 0.3) 0%, transparent 50%)",
-                            "radial-gradient(circle at 20% 50%, rgba(220, 38, 38, 0.3) 0%, transparent 50%)",
-                        ],
+                {/* CSS animated gradient overlay - Optimized for performance */}
+                <div
+                    className="absolute inset-0 animate-gradient-slow opacity-30"
+                    style={{
+                        background: "radial-gradient(circle at 50% 50%, rgba(220, 38, 38, 0.4), transparent 70%), radial-gradient(circle at 0% 100%, rgba(185, 28, 28, 0.3), transparent 50%)"
                     }}
-                    transition={{
-                        duration: 8,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                    }}
-                    className="absolute inset-0"
                 />
-                {/* Fire-like particles effect */}
+
+                {/* Fire-like particles effect - Reduced count or optimized if needed, but keeping primarily for now */}
                 <div className="absolute inset-0 overflow-hidden">
                     {particles.map((particle, i) => (
                         <motion.div
@@ -155,8 +146,9 @@ const HomePage = () => {
                             alt="Surabhi International Cultural Fest 2026 Poster"
                             className="w-full h-auto md:h-full object-contain md:object-fill drop-shadow-2xl"
                             priority
-                            sizes="(max-width: 768px) 100vw, 90vw"
+                            sizes="100vw"
                             quality={85}
+                            fetchPriority="high"
                         />
                     </div>
                 </motion.div>
