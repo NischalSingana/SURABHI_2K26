@@ -74,9 +74,35 @@ export async function createAccommodationBooking(
     }
 
     // Check if user already has a booking
-    const existingBooking = await prisma.accommodationBooking.findUnique({
-      where: { userId: session.user.id },
+    const userData = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: {
+        registeredEvents: true,
+        accommodationBookings: true,
+      }
     });
+
+    if (!userData) {
+      return { success: false, error: "User not found" };
+    }
+
+    // Restriction 1: KL University Students cannot book accommodation here
+    if (userData.email.endsWith("@kluniversity.in")) {
+      return {
+        success: false,
+        error: "Accommodation booking is not available for KL University students."
+      };
+    }
+
+    // Restriction 2: Must be registered for at least one competition
+    if (userData.registeredEvents.length === 0) {
+      return {
+        success: false,
+        error: "You must be registered for at least one competition to book accommodation."
+      };
+    }
+
+    const existingBooking = userData.accommodationBookings[0];
 
     if (existingBooking) {
       if (existingBooking.status === "REJECTED" || existingBooking.status === "CANCELLED") {
