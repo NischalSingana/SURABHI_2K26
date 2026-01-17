@@ -80,11 +80,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
     klLogo: {
-        width: 130, // Much smaller (was 200)
-        height: 60,
-        objectFit: 'contain',
-        marginLeft: -25, // Move more right side
-        marginTop: 10, // Align with Surabhi logo (was 20)
+        width: 130, // Fixed width
+        height: 60, // Fixed height to maintain layout
+        // objectFit removed to prevent complex scaling artifacts with some PNGs
+        marginLeft: -25,
+        marginTop: 10,
     },
     surabhiTextLogo: {
         width: 280,
