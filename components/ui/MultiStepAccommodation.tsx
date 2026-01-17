@@ -716,11 +716,11 @@ const MultiStepAccommodation = () => {
                   <div className="p-6 bg-gradient-to-br from-zinc-900 to-black">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-zinc-400">Accommodation Fee</span>
-                      <span className="text-zinc-400 line-through">₹500.00</span>
+                      <span className="text-zinc-400 line-through">₹300.00</span>
                     </div>
                     <div className="flex justify-between items-center border-b border-zinc-800/50 pb-4 mb-4">
                       <span className="text-zinc-400">Food & Amenities</span>
-                      <span className="text-zinc-400 line-through">₹200.00</span>
+                      <span className="text-zinc-400 line-through">₹100.00</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-white">Total to Pay</span>
