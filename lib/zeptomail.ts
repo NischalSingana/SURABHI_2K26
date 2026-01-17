@@ -117,16 +117,27 @@ export async function sendEventConfirmationEmail(
     const inlineImages: any[] = [];
 
     // 2. HTML Template
-    const dateStr = new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    // Default date string
+    let dateStr = new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    // Custom overrides for Visitor Pass
+    if (registrationType === "VISITOR") {
+        dateStr = "March 6th & 7th, 2026";
+    }
 
     // Theme colors: #dc2626 (Red), #000000 (Black), #18181b (Zinc-900)
 
     let headingTitle = "You are IN!";
     let welcomeMessage = `Congratulations! your registration for <strong class="highlight">${event.name}</strong> has been confirmed.`;
 
+    // Subject Line Logic
+    let subjectLine = `Registration Confirmed: ${event.name} - Surabhi 2026`;
+
     if (registrationType === "VISITOR") {
         headingTitle = "Visitor Pass Confirmed";
         welcomeMessage = `Your Visitor Pass for <strong class="highlight">Surabhi 2026</strong> is confirmed. Get ready to witness the grand celebration!`;
+        subjectLine = `Your Ticket for Visitor Pass - Surabhi 2026`;
     }
 
     let additionalInfo = "";
@@ -225,7 +236,7 @@ export async function sendEventConfirmationEmail(
     // 3. Send Email
     return sendZeptoMail({
         to: [{ email: user.email, name: user.name }],
-        subject: `Start the Fire! 🔥 Your Ticket for ${event.name} - Surabhi 2026`,
+        subject: subjectLine,
         htmlBody: htmlBody,
         attachments: [{
             content: pdfBuffer.toString('base64'),
