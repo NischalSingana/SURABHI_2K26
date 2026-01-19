@@ -24,6 +24,7 @@ import {
   unregisterFromEvent,
 } from "@/actions/events.action";
 import { formatTime } from "@/lib/utils";
+import { useSession } from "@/lib/auth-client";
 
 function ShareModal({
   show,
@@ -268,6 +269,8 @@ function EventDetailPageContent() {
   const [showUnregisterConfirm, setShowUnregisterConfirm] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const { data: session } = useSession();
+  const isOutsider = session?.user?.email && !session.user.email.endsWith("@kluniversity.in");
 
 
 
@@ -645,6 +648,8 @@ function EventDetailPageContent() {
                 </a>
               )}
 
+
+
               {/* Register/Unregister Button */}
               {isRegistered ? (
                 <div className="space-y-3 mt-6">
@@ -657,7 +662,7 @@ function EventDetailPageContent() {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setShowUnregisterConfirm(true)}
                     disabled={unregistering}
-                    className="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-medium rounded-lg transition-all shadow-lg shadow-red-600/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:bg-red-700 text-white font-medium rounded-lg transition-all shadow-lg shadow-red-600/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {unregistering ? (
                       <>
@@ -674,6 +679,12 @@ function EventDetailPageContent() {
                       </>
                     )}
                   </motion.button>
+                </div>
+              ) : isOutsider ? (
+                <div className="mt-6 p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg text-center">
+                  <p className="text-zinc-400 text-sm">
+                    Website is not launched yet, you can register to competitions once its fully launched.
+                  </p>
                 </div>
               ) : (
                 <motion.button
