@@ -448,6 +448,7 @@ class App {
 
   isDown: boolean = false;
   start: number = 0;
+  startY: number = 0;
 
   // Inertia state
   velocity: number = 0;
@@ -600,6 +601,7 @@ class App {
     this.isDown = true;
     this.scroll.position = this.scroll.current;
     this.start = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    this.startY = 'touches' in e ? e.touches[0].clientY : e.clientY;
 
     // Reset inertia tracking
     this.lastX = this.start;
@@ -610,6 +612,16 @@ class App {
   onTouchMove(e: MouseEvent | TouchEvent) {
     if (!this.isDown) return;
     const x = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const y = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+    // Direction Check: If vertical movement is greater than horizontal, ignore this move (let page scroll)
+    const dx = Math.abs(x - this.start);
+    const dy = Math.abs(y - this.startY);
+
+    if (dy > dx) {
+      return;
+    }
+
     const distance = (this.start - x) * (this.scrollSpeed * 0.025);
     this.scroll.target = (this.scroll.position ?? 0) + distance;
 
@@ -617,9 +629,9 @@ class App {
     const now = Date.now();
     const dt = now - this.lastTime;
     if (dt > 0) {
-      const dx = x - this.lastX;
+      const dxVal = x - this.lastX;
       // Simple moving average could be better, but instantaneous is usually fine for this
-      this.velocity = dx / dt;
+      this.velocity = dxVal / dt;
       this.lastX = x;
       this.lastTime = now;
     }

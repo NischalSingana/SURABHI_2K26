@@ -26,17 +26,54 @@ const Events = () => {
   }, []);
 
   const fetchCategories = async () => {
-    const result = await getCategories();
-    if (result.success && result.data) {
-      const categoriesData: CategoryData[] = result.data.map((cat) => ({
-        name: cat.name,
-        count: cat.Event.length,
-        // Use category image if available, otherwise fallback to first event image (if any), otherwise placeholder
-        image: cat.image || (cat.Event.length > 0 ? cat.Event[0].image : "/placeholder.png"),
-      })).sort((a, b) => a.name.localeCompare(b.name));
-      setCategories(categoriesData);
+    try {
+      const result = await getCategories();
+      if (result.success && result.data) {
+        const categoriesData: CategoryData[] = result.data
+          .map((cat) => ({
+            name: cat.name,
+            count: cat.Event.length,
+            // Use category image if available, otherwise fallback to first event image (if any), otherwise placeholder
+            image:
+              cat.image ||
+              (cat.Event.length > 0 ? cat.Event[0].image : "/placeholder.png"),
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+
+        setCategories(categoriesData);
+
+        // Smart Preloader Logic
+        const hasVisited = sessionStorage.getItem("competitions_visited");
+
+        if (!hasVisited) {
+          // First visit: Preload images and show loader for at least 2 seconds
+          const minLoaderTime = new Promise((resolve) =>
+            setTimeout(resolve, 2000)
+          );
+
+          // Preload all images
+          const imagePromises = categoriesData.map((cat) => {
+            return new Promise((resolve) => {
+              const img = new window.Image();
+              img.src = cat.image;
+              img.onload = resolve;
+              img.onerror = resolve; // Continue even if one image fails
+            });
+          });
+
+          // Wait for both minimum time AND image loading
+          await Promise.all([minLoaderTime, ...imagePromises]);
+
+          // Mark session as visited
+          sessionStorage.setItem("competitions_visited", "true");
+        }
+        // If visited, we just flow through (loading set to false below immediately)
+      }
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
 
