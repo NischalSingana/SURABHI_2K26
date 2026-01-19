@@ -259,7 +259,38 @@ const styles = StyleSheet.create({
     },
 });
 
+// Cache for static assets to avoid repeated disk I/O and base64 conversion
+const logoCache = {
+    surabhiWhite: '',
+    klWhite: '',
+    surabhiText: ''
+};
+
+function getBase64FromPath(p: string) {
+    try {
+        if (fs.existsSync(p)) {
+            return `data:image/png;base64,${fs.readFileSync(p).toString('base64')}`;
+        }
+    } catch (e) {
+        console.error('Error loading asset:', p, e);
+    }
+    return '';
+}
+
+function loadAssets() {
+    // If we have data, logic assumes all are loaded or attempted.
+    // Checking one key is enough for this simple case.
+    if (logoCache.klWhite) return;
+
+    logoCache.surabhiWhite = getBase64FromPath(path.join(process.cwd(), 'public', 'images', 'surabhi_white_logo.png'));
+    logoCache.klWhite = getBase64FromPath(path.join(process.cwd(), 'public', 'images', 'kl_logo_white_text.png'));
+    logoCache.surabhiText = getBase64FromPath(path.join(process.cwd(), 'public', 'images', 'surabhi.png'));
+}
+
 export async function generateTicketPDF(ticketData: EventTicketData): Promise<Buffer> {
+    // Load assets into cache if not already loaded (first request only)
+    loadAssets();
+
     const qrCodeDataURL = await generateTicketQR({
         userId: ticketData.userId,
         name: ticketData.name,
@@ -269,56 +300,14 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
         paymentStatus: ticketData.paymentStatus,
         isApproved: ticketData.isApproved,
         eventId: ticketData.eventId,
-        gender: ticketData.gender, // Add gender to QR data
+        gender: ticketData.gender,
     });
 
-    // Read logos
-    const logoPath = path.join(process.cwd(), 'public', 'images', 'surabhi_white_logo.png');
-    let logoBase64 = '';
-    try {
-        if (fs.existsSync(logoPath)) {
-            const logoBuffer = fs.readFileSync(logoPath);
-            logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
-        }
-    } catch (e) {
-        console.error("Surabhi logo not found", e);
-    }
-
-    const sacLogoPath = path.join(process.cwd(), 'public', 'sac_logo (1).png');
-    let sacLogoBase64 = '';
-    try {
-        if (fs.existsSync(sacLogoPath)) {
-            const sacLogoBuffer = fs.readFileSync(sacLogoPath);
-            sacLogoBase64 = `data:image/png;base64,${sacLogoBuffer.toString('base64')}`;
-        }
-    } catch (e) {
-        console.error("SAC logo not found", e);
-    }
-
-    const klLogoPath = path.join(process.cwd(), 'public', 'images', 'kl_logo_white_text.png');
-    let klLogoBase64 = '';
-    try {
-        if (fs.existsSync(klLogoPath)) {
-            const klLogoBuffer = fs.readFileSync(klLogoPath);
-            klLogoBase64 = `data:image/png;base64,${klLogoBuffer.toString('base64')}`;
-        }
-    } catch (e) {
-        console.error("KL logo not found", e);
-    }
-
-    // SVG (faviconn.svg) is not supported by @react-pdf/renderer Image component.
-    // Reverting to the PNG logo which the user confirmed was visible previously.
-    // Case sensitive path: public/images/surabhi.png
-    const surabhiTextLogoPath = path.join(process.cwd(), 'public', 'images', 'surabhi.png');
-    let surabhiTextLogoBase64 = '';
-    try {
-        if (fs.existsSync(surabhiTextLogoPath)) {
-            const buffer = fs.readFileSync(surabhiTextLogoPath);
-            surabhiTextLogoBase64 = `data:image/png;base64,${buffer.toString('base64')}`;
-        }
-    } catch (e) {
-        console.error("Surabhi text logo not found", e);
-    }
+    // Use cached assets
+    const logoBase64 = logoCache.surabhiWhite;
+    const klLogoBase64 = logoCache.klWhite;
+    const surabhiTextLogoBase64 = logoCache.surabhiText;
+    const sacLogoBase64 = ''; // Logo file missing, skipped to avoid errors
 
     const TicketDocument = (
         <Document>
