@@ -258,10 +258,13 @@ export default function MyEventsPage() {
                                         {/* Action Buttons */}
                                         <div className="space-y-2">
                                             {event.registrationStatus === 'PENDING' && (
-                                                <div className="w-full px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-lg text-sm font-medium flex items-center justify-center gap-2 mb-2">
+                                                <button
+                                                    onClick={() => toast.info("Please wait for admin to review and approve your registration. You'll receive an email when confirmed.")}
+                                                    className="w-full px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-lg text-sm font-medium flex items-center justify-center gap-2 mb-2 hover:bg-yellow-500/20 transition-colors cursor-pointer"
+                                                >
                                                     <FiClock size={16} />
                                                     Pending Approval
-                                                </div>
+                                                </button>
                                             )}
 
                                             {event.registrationStatus === 'REJECTED' && (
