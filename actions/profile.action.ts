@@ -47,6 +47,7 @@ export async function updateProfile(data: RegistrationData) {
 }
 
 
+
 export async function getMyRegisteredEvents() {
   try {
     const headersList = await headers();
@@ -74,6 +75,8 @@ export async function getMyRegisteredEvents() {
             date: "asc",
           },
         },
+        individualRegistrations: true,
+        groupRegistrations: true,
       },
     });
 
@@ -81,7 +84,28 @@ export async function getMyRegisteredEvents() {
       return { success: false, error: "User not found" };
     }
 
-    return { success: true, data: user.registeredEvents };
+    // Map status to events
+    const eventsWithStatus = user.registeredEvents.map(event => {
+      // Check individual registration
+      const individualReg = user.individualRegistrations.find(r => r.eventId === event.id);
+      if (individualReg) {
+        return { ...event, registrationStatus: individualReg.paymentStatus };
+      }
+
+      // Check group registration
+      const groupReg = user.groupRegistrations.find(r => r.eventId === event.id);
+      if (groupReg) {
+        return { ...event, registrationStatus: groupReg.paymentStatus };
+      }
+
+      // Fallback: If no explicit record found but relation exists, assume APPROVED (e.g. KL students auto-linked without extra record logic initially, or legacy)
+      // However, if we want to be strict, we could check isKLStudent. 
+      // For now, defaulting to APPROVED if connected is safest for old data, but PENDING is safer for new.
+      // Given the logic, let's assume APPROVED if they are in the list, unless explicit record says PENDING.
+      return { ...event, registrationStatus: "APPROVED" };
+    });
+
+    return { success: true, data: eventsWithStatus };
   } catch (error) {
     console.error("Error fetching registered events:", error);
     return { success: false, error: "Failed to fetch registered events" };
