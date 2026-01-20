@@ -59,6 +59,7 @@ interface Event {
   Category: {
     name: string;
   };
+  registrationStatus?: string;
 }
 
 interface ProfileClientProps {
@@ -90,6 +91,11 @@ export default function ProfileClient({
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [hasPass, setHasPass] = useState(false);
+  const [paymentDetails, setPaymentDetails] = useState<{
+    screenshot: File | null;
+    utrId: string;
+    payeeName: string;
+  }>({ screenshot: null, utrId: "", payeeName: "" });
   const [passToken, setPassToken] = useState<string | null>(null);
 
   useEffect(() => {
@@ -180,47 +186,73 @@ export default function ProfileClient({
   };
 
   const handleGeneratePass = async () => {
-    // If opening from modal, set loading state on modal button
-    if (showPaymentModal) {
-      setPaymentProcessing(true);
-      // Simulate payment delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+    const isKLStudent = user.email.endsWith("@kluniversity.in");
+
+    // For non-KL students, validate payment details
+    if (!isKLStudent && showPaymentModal) {
+      if (!paymentDetails.screenshot || !paymentDetails.utrId || !paymentDetails.payeeName) {
+        toast.error("Please fill all payment details");
+        return;
+      }
     }
 
-    const loadingToast = !showPaymentModal ? toast.loading("Generating Visitor Pass...") : null;
+    setPaymentProcessing(true);
+    const loadingToast = toast.loading("Processing visitor pass...");
 
     try {
-      const { generateVisitorPass } = await import("@/actions/pass.action");
-      const result = await generateVisitorPass();
+      let paymentData = undefined;
 
-      if (result.success && result.passToken) {
-        if (loadingToast) toast.dismiss(loadingToast);
+      // Upload screenshot if non-KL student
+      if (!isKLStudent && paymentDetails.screenshot) {
+        const formData = new FormData();
+        formData.append("file", paymentDetails.screenshot);
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        if (!uploadRes.ok) throw new Error("Failed to upload screenshot");
+        const uploadData = await uploadRes.json();
+
+        paymentData = {
+          paymentScreenshot: uploadData.url,
+          utrId: paymentDetails.utrId,
+          payeeName: paymentDetails.payeeName,
+        };
+      }
+
+      const { generateVisitorPass } = await import("@/actions/pass.action");
+      const result = await generateVisitorPass(paymentData);
+
+      toast.dismiss(loadingToast);
+
+      if (result.success) {
         toast.success(result.message || "Pass generated successfully!");
         setShowPaymentModal(false);
         setHasPass(true);
-        setPassToken(result.passToken);
+        if (result.passToken) {
+          setPassToken(result.passToken);
 
-        // Download PDF
-        const response = await fetch(`/api/pass/download/${result.passToken}`);
-        if (!response.ok) throw new Error("Failed to download pass");
-
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `surabhi-2026-visitor-pass.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-
-        // Reload to update UI (show eligible/downloaded status if needed, though button will remain)
+          // Only download for KL students (auto-approved)
+          if (isKLStudent) {
+            const response = await fetch(`/api/pass/download/${result.passToken}`);
+            if (response.ok) {
+              const blob = await response.blob();
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `surabhi-2026-visitor-pass.pdf`;
+              document.body.appendChild(a);
+              a.click();
+              window.URL.revokeObjectURL(url);
+              document.body.removeChild(a);
+            }
+          }
+        }
       } else {
-        if (loadingToast) toast.dismiss(loadingToast);
         toast.error(result.error || "Failed to generate pass");
       }
     } catch (error) {
-      if (loadingToast) toast.dismiss(loadingToast);
+      toast.dismiss(loadingToast);
       console.error(error);
       toast.error("An error occurred. Please try again.");
     } finally {
@@ -782,65 +814,102 @@ export default function ProfileClient({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+              className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md md:max-w-5xl overflow-hidden shadow-2xl"
             >
               <div className="p-6">
                 <h2 className="text-2xl font-bold text-white mb-1">
-                  Payment Summary
+                  Visitor Pass Payment
                 </h2>
-                <p className="text-zinc-400 text-sm mb-6">Visitor Pass for Surabhi 2026</p>
+                <p className="text-zinc-400 text-sm mb-6">Complete payment to get your visitor pass</p>
 
-                <div className="space-y-4 mb-6">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-zinc-300">Registration Fee</span>
-                    <span className="text-white">₹350 / person</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-zinc-300">Validity</span>
-                    <span className="text-white">2 Days (March 6th & 7th)</span>
-                  </div>
-                  <div className="h-px bg-zinc-800 my-2" />
-                  <div className="flex justify-between items-center font-bold text-lg">
-                    <span className="text-white">Total Amount</span>
-                    <span className="text-red-500">₹350</span>
+                <div className="bg-zinc-800/30 p-5 rounded-lg border border-zinc-800/50 mb-6">
+                  <div className="flex flex-col md:flex-row gap-6 items-center">
+                    {/* QR Code */}
+                    <div className="shrink-0 flex flex-col items-center gap-3">
+                      <div className="bg-white p-2 rounded-xl w-56 h-56 md:w-64 md:h-64 relative shadow-lg shadow-black/50">
+                        <Image
+                          src="/images/paymentQR.png"
+                          alt="Payment QR"
+                          fill
+                          className="object-contain"
+                          priority
+                        />
+                      </div>
+                      <div className="text-center space-y-2 max-w-[250px]">
+                        <p className="text-2xl md:text-3xl font-black text-white tracking-widest">₹350</p>
+                      </div>
+                    </div>
+
+                    {/* Input Fields */}
+                    <div className="flex-1 space-y-4 w-full">
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Proof (Max 5MB) *</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              if (file.size > 5 * 1024 * 1024) {
+                                toast.error("File size exceeds 5MB limit");
+                                e.target.value = "";
+                                return;
+                              }
+                              setPaymentDetails({ ...paymentDetails, screenshot: file });
+                            }
+                          }}
+                          className="w-full text-sm md:text-base text-zinc-300 file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs md:file:text-sm file:font-semibold file:bg-zinc-700 file:text-white hover:file:bg-zinc-600 transition-colors cursor-pointer border border-zinc-700 rounded-lg p-1.5 bg-zinc-900/50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Transaction ID</label>
+                        <input
+                          type="text"
+                          placeholder="UTR / UPI Ref ID"
+                          value={paymentDetails.utrId}
+                          onChange={(e) => setPaymentDetails({ ...paymentDetails, utrId: e.target.value })}
+                          className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm md:text-base text-white focus:border-red-500 outline-none placeholder:text-zinc-600 transition-all font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">PAYER NAME</label>
+                        <input
+                          type="text"
+                          placeholder="Name as per your Bank records"
+                          value={paymentDetails.payeeName}
+                          onChange={(e) => setPaymentDetails({ ...paymentDetails, payeeName: e.target.value })}
+                          className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm md:text-base text-white focus:border-red-500 outline-none placeholder:text-zinc-600 transition-all"
+                        />
+                      </div>
+
+                      <div className="p-3 rounded bg-yellow-500/10 border border-yellow-500/20 mt-2">
+                        <p className="text-[10px] md:text-xs text-yellow-500 leading-relaxed text-center font-medium">
+                          PLEASE PAY THE FULL AMOUNT AS SHOWN. YOUR PAYMENT WILL BE VERIFIED ALONG WITH UTR ID AND ONLY THEN YOUR PASS WILL BE APPROVED.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-zinc-800/50 rounded-xl p-4 mb-6">
-                  <h3 className="text-sm font-semibold text-white mb-3">Includes:</h3>
-                  <ul className="space-y-2 text-sm text-zinc-300">
-                    <li className="flex items-start gap-2">
-                      <FiCheckCircle className="text-green-500 mt-0.5 shrink-0" />
-                      <span>Access to all Events & Pro Shows</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <FiCheckCircle className="text-green-500 mt-0.5 shrink-0" />
-                      <span>valid for March 6th & 7th</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="flex gap-3">
+                <div className="flex gap-4 pt-2">
                   <button
                     onClick={() => setShowPaymentModal(false)}
                     disabled={paymentProcessing}
-                    className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50"
+                    className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm md:text-base font-medium transition-colors disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleGeneratePass}
                     disabled={paymentProcessing}
-                    className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm md:text-base font-bold transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {paymentProcessing ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         Processing...
                       </>
-                    ) : (
-                      "Pay Now"
-                    )}
+                    ) : "Submit Payment"}
                   </button>
                 </div>
               </div>
@@ -886,7 +955,7 @@ export default function ProfileClient({
                     animate={{ opacity: 1, scale: 1 }}
                     className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden hover:border-red-600/50 transition-all flex flex-col"
                   >
-                    <div className="relative h-48 shrink-0">
+                    <div className="relative h-40 md:h-48 shrink-0">
                       <img
                         src={event.image}
                         alt={event.name}
@@ -932,8 +1001,8 @@ export default function ProfileClient({
                         </div>
                       </div>
 
-                      <div className="flex gap-2 mb-2">
-                        {user.isApproved && (
+                      <div className="flex flex-col sm:flex-row gap-2 mb-2 mt-auto">
+                        {user.isApproved && event.registrationStatus === 'APPROVED' && (
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -965,6 +1034,19 @@ export default function ProfileClient({
                             Ticket
                           </motion.button>
                         )}
+                        {(event.registrationStatus === 'PENDING' || !event.registrationStatus) && (
+                          <div className="flex-1 px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-lg text-sm font-medium flex items-center justify-center gap-2">
+                            <FiClock size={16} />
+                            Pending
+                          </div>
+                        )}
+                        {event.registrationStatus === 'REJECTED' && (
+                          <div className="flex-1 px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg text-sm font-medium flex items-center justify-center gap-2">
+                            <FiXCircle size={16} />
+                            Rejected
+                          </div>
+                        )}
+
                         {/* Unregister Button */}
                         <motion.button
                           whileHover={{ scale: 1.02 }}
@@ -973,7 +1055,7 @@ export default function ProfileClient({
                             setEventToUnregister(event);
                             setShowUnregisterModal(true);
                           }}
-                          className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                          className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
                         >
                           <FiTrash2 size={16} />
                           Unregister
