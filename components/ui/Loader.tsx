@@ -56,13 +56,13 @@ export default function Loader() {
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.5, ease: "easeOut" }}
-                    className="relative w-32 h-32 md:w-40 md:h-40"
+                    className="relative w-48 h-48 md:w-64 md:h-64"
                 >
                     <Image
-                        src="/images/surabhi_white_logo.png"
+                        src="/images/surabhi.png"
                         alt="Surabhi Loader"
                         fill
-                        sizes="160px"
+                        sizes="(max-width: 768px) 192px, 256px"
                         className="object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
                         priority
                     />
