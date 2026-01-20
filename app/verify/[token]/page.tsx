@@ -217,7 +217,7 @@ export default async function VerifyPage({
                             </div>
                         )}
 
-                        {isValid && <VerifyButton token={pass.passToken} />}
+                        {isValid && <VerifyButton token={pass.passToken ?? ""} />}
                     </div>
                 )}
 
