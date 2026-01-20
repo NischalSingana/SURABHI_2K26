@@ -884,9 +884,9 @@ export default function ProfileClient({
                     key={event.id}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden hover:border-red-600/50 transition-all"
+                    className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden hover:border-red-600/50 transition-all flex flex-col"
                   >
-                    <div className="relative h-48">
+                    <div className="relative h-48 shrink-0">
                       <img
                         src={event.image}
                         alt={event.name}
@@ -904,7 +904,7 @@ export default function ProfileClient({
                         Registered
                       </div>
                     </div>
-                    <div className="p-6">
+                    <div className="p-4 md:p-6 flex flex-col grow">
                       <h3 className="text-xl font-bold text-white mb-2">
                         {event.name}
                       </h3>
