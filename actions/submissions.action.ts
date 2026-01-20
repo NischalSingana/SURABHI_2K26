@@ -180,6 +180,8 @@ export async function getUserRegisteredEvents() {
                     },
                 },
                 eventSubmissions: true,
+                individualRegistrations: true,
+                groupRegistrations: true,
             },
         });
 
@@ -202,9 +204,27 @@ export async function getUserRegisteredEvents() {
             return Array.isArray(members) && members.some((m: any) => m.userId === session.user.id || m.email === session.user.email);
         });
 
+        // Map status to events
+        const eventsWithStatus = user.registeredEvents.map(event => {
+            // Check individual registration
+            const individualReg = user.individualRegistrations.find(r => r.eventId === event.id);
+            if (individualReg) {
+                return { ...event, registrationStatus: individualReg.paymentStatus };
+            }
+
+            // Check group registration (from fetched user.groupRegistrations directly to avoid extra query logic issues, or verify if the relevant one applies)
+            const groupReg = relevantGroupRegs.find(r => r.eventId === event.id);
+            if (groupReg) {
+                return { ...event, registrationStatus: groupReg.paymentStatus };
+            }
+
+            // Fallback (assume approved if legacy/KL)
+            return { ...event, registrationStatus: "APPROVED" };
+        });
+
         return {
             success: true,
-            data: user.registeredEvents,
+            data: eventsWithStatus,
             submissions: user.eventSubmissions,
             groupRegistrations: relevantGroupRegs
         };
