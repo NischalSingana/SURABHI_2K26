@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import Image from "next/image";
 import {
     FiUser,
     FiMail,
@@ -39,6 +40,23 @@ interface Event {
         registeredStudents: number;
     };
 }
+
+// Add custom scrollbar styles for the modal
+const scrollbarStyles = `
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(39, 39, 42, 0.5);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(82, 82, 91, 0.8);
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(113, 113, 122, 0.8);
+  }
+`;
 
 export default function EventRegistrationPage() {
     const params = useParams();
@@ -76,8 +94,16 @@ export default function EventRegistrationPage() {
     ];
 
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [paymentStep, setPaymentStep] = useState(0); // 0: Summary, 1: Payment Input
     const [paymentProcessing, setPaymentProcessing] = useState(false);
     const [isReviewing, setIsReviewing] = useState(false);
+
+    // Payment Details State
+    const [paymentDetails, setPaymentDetails] = useState({
+        screenshot: null as File | null,
+        utrId: "",
+        payeeName: "",
+    });
 
 
 
@@ -108,30 +134,71 @@ export default function EventRegistrationPage() {
     };
 
     const processPaymentAndRegister = async () => {
-        setPaymentProcessing(true);
-        // Simulate payment delay
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Validation for Non-KL Students
+        const isKLStudent = session?.user?.email?.endsWith("@kluniversity.in");
 
+        if (!isKLStudent) {
+            if (!paymentDetails.screenshot || !paymentDetails.utrId || !paymentDetails.payeeName) {
+                toast.error("Please complete all payment details (Upload Screenshot, UTR, Payee Name)");
+                return;
+            }
+        }
+
+        setPaymentProcessing(true);
         if (!event) return;
 
-        let result;
         try {
+            let uploadedScreenshotUrl = "";
+
+            // Upload Screenshot if needed
+            if (!isKLStudent && paymentDetails.screenshot) {
+                const formData = new FormData();
+                formData.append("file", paymentDetails.screenshot);
+
+                const { uploadPaymentScreenshot } = await import("@/actions/upload.action");
+                const uploadResult = await uploadPaymentScreenshot(formData);
+
+                if (!uploadResult.success || !uploadResult.url) {
+                    throw new Error("Failed to upload payment screenshot");
+                }
+                uploadedScreenshotUrl = uploadResult.url;
+            }
+
+            const paymentData = !isKLStudent ? {
+                paymentScreenshot: uploadedScreenshotUrl,
+                utrId: paymentDetails.utrId,
+                payeeName: paymentDetails.payeeName
+            } : undefined;
+
+            let result;
             if (event.isGroupEvent) {
-                result = await registerGroupEvent(event.id, groupName, teamMembers, mentorName, mentorPhone, isVastranaut ? { styleDNA } : undefined);
+                result = await registerGroupEvent(
+                    event.id,
+                    groupName,
+                    teamMembers,
+                    mentorName,
+                    mentorPhone,
+                    isVastranaut ? { styleDNA } : undefined,
+                    paymentData
+                );
             } else {
-                result = await registerForEvent(event.id, isVastranaut ? { styleDNA } : undefined);
+                result = await registerForEvent(
+                    event.id,
+                    isVastranaut ? { styleDNA } : undefined,
+                    paymentData
+                );
             }
 
             if (result.success) {
-                toast.success("Payment Successful! Registration confirmed.");
+                toast.success(isKLStudent ? "Registration Confirmed!" : "Registration Submitted! Pending Approval.");
                 setShowPaymentModal(false);
                 router.push(`/competitions/${categoryName}/${slug}`); // Redirect
             } else {
                 toast.error(result.error || "Registration failed");
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("Registration error:", err);
-            toast.error("An unexpected error occurred");
+            toast.error(err.message || "An unexpected error occurred");
         } finally {
             setPaymentProcessing(false);
         }
@@ -234,6 +301,7 @@ export default function EventRegistrationPage() {
 
     return (
         <div className="min-h-screen bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8 relative">
+            <style jsx global>{scrollbarStyles}</style>
             <div className="max-w-3xl mx-auto">
                 <button
                     onClick={() => router.back()}
@@ -619,99 +687,232 @@ export default function EventRegistrationPage() {
                 {/* Payment Modal */}
                 <AnimatePresence>
                     {showPaymentModal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm pt-20 pb-10">
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
-                                className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+                                className={`bg-zinc-900 border border-zinc-800 rounded-2xl w-full shadow-2xl max-h-full flex flex-col transition-all duration-300 ${!isKLStudent ? 'max-w-md md:max-w-5xl' : 'max-w-md'}`}
                             >
-                                <div className="p-6">
-                                    <h2 className="text-2xl font-bold text-white mb-1">
-                                        {isKLStudent ? "Confirm Registration" : "Payment Summary"}
-                                    </h2>
-                                    <p className="text-zinc-400 text-sm mb-6">Complete your registration for {event.name}</p>
-
-                                    <div className="space-y-4 mb-6">
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-zinc-300">Registration Fee</span>
-                                            <span className="text-white">
-                                                {isKLStudent ? (
-                                                    <span className="text-green-500 font-bold">Plan Details Waived (KL)</span>
-                                                ) : (
-                                                    `₹${feePerPerson} / person`
-                                                )}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-zinc-300">Participants</span>
-                                            <span className="text-white">{memberCount}</span>
-                                        </div>
-                                        <div className="h-px bg-zinc-800 my-2" />
-                                        <div className="flex justify-between items-center font-bold text-lg">
-                                            <span className="text-white">Total Amount</span>
-                                            <span className="text-red-500">
-                                                {isKLStudent ? (
-                                                    <span className="text-green-500">₹0 (Free)</span>
-                                                ) : (
-                                                    `₹${totalFee}`
-                                                )}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-zinc-800/50 rounded-xl p-4 mb-6">
-                                        <h3 className="text-sm font-semibold text-white mb-3">Includes:</h3>
-                                        <ul className="space-y-2 text-sm text-zinc-300">
-                                            <li className="flex items-start gap-2">
-                                                <FiCheck className="text-green-500 mt-0.5 shrink-0" />
-                                                <span>1 Day Free Accommodation</span>
-                                            </li>
-                                            <li className="flex items-start gap-2">
-                                                <FiCheck className="text-green-500 mt-0.5 shrink-0" />
-                                                <span>Complimentary Lunch</span>
-                                            </li>
-                                            <li className="flex items-start gap-2">
-                                                <FiCheck className="text-green-500 mt-0.5 shrink-0" />
-                                                <span>Access to all Events & Pro Shows (6th & 7th March)</span>
-                                            </li>
-                                            <li className="flex items-start gap-2">
-                                                <FiCheck className="text-green-500 mt-0.5 shrink-0" />
-                                                <span>Free Merchandise (T-shirt)</span>
-                                            </li>
-                                        </ul>
-                                    </div>
-
-                                    <div className="flex gap-3">
+                                <div className="p-0 h-full flex flex-col">
+                                    {/* Mobile Only Header */}
+                                    <div className="p-4 md:hidden border-b border-zinc-800 flex items-center gap-3">
                                         <button
                                             onClick={() => setShowPaymentModal(false)}
-                                            disabled={paymentProcessing}
-                                            className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50"
+                                            className="p-2 -ml-2 hover:bg-zinc-800 rounded-full transition-colors text-white"
                                         >
-                                            Cancel
+                                            <FiChevronLeft className="w-5 h-5" />
                                         </button>
-                                        <button
-                                            onClick={processPaymentAndRegister}
-                                            disabled={paymentProcessing}
-                                            className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
-                                        >
-                                            {paymentProcessing ? (
-                                                <>
-                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                    Processing...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    {isKLStudent ? "Confirm Registration" : "Pay Now"}
-                                                </>
+                                        <div>
+                                            <h2 className="text-xl font-bold text-white">
+                                                {isKLStudent ? "Confirm Registration" : "Payment Summary"}
+                                            </h2>
+                                            <p className="text-zinc-400 text-xs">Complete your registration</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="h-full flex flex-col">
+                                        {/* LEFT COLUMN: Summary & Details */}
+                                        <div className={`p-5 md:p-6 bg-zinc-950/50 space-y-5 w-full ${paymentStep === 1 && !isKLStudent ? 'hidden' : 'block'}`}>
+                                            {!isKLStudent && (
+                                                <div className="hidden md:flex items-center gap-3">
+                                                    <button
+                                                        onClick={() => setShowPaymentModal(false)}
+                                                        className="p-2 -ml-2 hover:bg-zinc-800 rounded-full transition-colors text-white"
+                                                    >
+                                                        <FiChevronLeft className="w-6 h-6" />
+                                                    </button>
+                                                    <div>
+                                                        <h2 className="text-lg md:text-2xl font-bold text-white mb-0.5">Summary</h2>
+                                                        <p className="text-zinc-500 text-xs md:text-sm">Registration details</p>
+                                                    </div>
+                                                </div>
                                             )}
-                                        </button>
+
+                                            <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800/50 space-y-3">
+                                                <div className="flex justify-between items-center text-xs md:text-base">
+                                                    <span className="text-zinc-400">Fee per person</span>
+                                                    <span className="text-white">
+                                                        {isKLStudent ? (
+                                                            <span className="text-green-500 font-bold">Waived</span>
+                                                        ) : (
+                                                            `₹${feePerPerson}`
+                                                        )}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-xs md:text-base">
+                                                    <span className="text-zinc-400">Participants</span>
+                                                    <span className="text-white">{memberCount}</span>
+                                                </div>
+                                                <div className="h-px bg-zinc-800 my-1" />
+                                                <div className="flex justify-between items-center font-bold text-sm md:text-xl">
+                                                    <span className="text-white">Total</span>
+                                                    <span className="text-red-500 text-base md:text-2xl">
+                                                        {isKLStudent ? (
+                                                            <span className="text-green-500">Free</span>
+                                                        ) : (
+                                                            `₹${totalFee}`
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800/50">
+                                                <h3 className="text-[10px] md:text-xs font-semibold text-zinc-500 mb-2 uppercase tracking-wider">Also Includes Complimentary:</h3>
+                                                <ul className="space-y-1.5 md:space-y-2 text-xs md:text-base text-zinc-300">
+                                                    <li className="flex items-start gap-2">
+                                                        <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
+                                                        <span>Accommodation (1 Day)</span>
+                                                    </li>
+                                                    <li className="flex items-start gap-2">
+                                                        <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
+                                                        <span>Lunch</span>
+                                                    </li>
+                                                    <li className="flex items-start gap-2">
+                                                        <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
+                                                        <span>6th and 7th march free visitor access</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+
+                                            {/* Mobile Buttons - Now Visible on Desktop too */}
+                                            <div className="pt-2">
+                                                {!isKLStudent && (
+                                                    <button
+                                                        onClick={() => setPaymentStep(1)}
+                                                        className="w-full py-2.5 md:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-sm md:text-base shadow-lg shadow-red-600/20 active:scale-95 transition-all"
+                                                    >
+                                                        Proceed
+                                                    </button>
+                                                )}
+                                                {isKLStudent && (
+                                                    <button
+                                                        onClick={processPaymentAndRegister}
+                                                        disabled={paymentProcessing}
+                                                        className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-sm shadow-lg shadow-red-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                                                    >
+                                                        {paymentProcessing ? "Processing..." : "Confirm"}
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {/* Desktop KL Button - Removed redundancy as specific mobile/desktop distinction is no longer needed for flow */}
+                                            <div className="hidden pt-2">
+                                                {/* Intentionally empty/hidden as unified button above covers it */}
+                                            </div>
+                                        </div>
+
+                                        {/* RIGHT COLUMN: Payment Details */}
+                                        {!isKLStudent && (
+                                            <div className={`p-5 md:p-6 space-y-5 w-full ${paymentStep === 1 ? 'block' : 'hidden'}`}>
+                                                <div className="hidden md:block">
+                                                    <h2 className="text-lg md:text-2xl font-bold text-white mb-0.5">Payment</h2>
+                                                    <p className="text-zinc-500 text-xs md:text-sm">Scan & Upload Screenshot</p>
+                                                </div>
+
+                                                <div className="bg-zinc-800/30 p-5 rounded-lg border border-zinc-800/50 flex flex-col gap-5">
+                                                    <div className="flex flex-col md:flex-row gap-6 items-center">
+                                                        {/* QR Code */}
+                                                        <div className="shrink-0 flex flex-col items-center gap-3">
+                                                            <div className="bg-white p-2 rounded-xl w-56 h-56 md:w-64 md:h-64 relative shadow-lg shadow-black/50">
+                                                                <Image
+                                                                    src="/images/paymentQR.png"
+                                                                    alt="Payment QR"
+                                                                    fill
+                                                                    className="object-contain"
+                                                                    priority
+                                                                />
+                                                            </div>
+                                                            <div className="text-center space-y-2 max-w-[250px]">
+                                                                <p className="text-2xl md:text-3xl font-black text-white tracking-widest">₹{totalFee}</p>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Inputs */}
+                                                        <div className="flex-1 space-y-4">
+                                                            <div>
+                                                                <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Proof (Max 5MB) *</label>
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    onChange={(e) => {
+                                                                        const file = e.target.files?.[0];
+                                                                        if (file) {
+                                                                            if (file.size > 5 * 1024 * 1024) {
+                                                                                toast.error("File size exceeds 5MB limit");
+                                                                                e.target.value = "";
+                                                                                return;
+                                                                            }
+                                                                            setPaymentDetails({ ...paymentDetails, screenshot: file });
+                                                                        }
+                                                                    }}
+                                                                    className="w-full text-sm md:text-base text-zinc-300 file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs md:file:text-sm file:font-semibold file:bg-zinc-700 file:text-white hover:file:bg-zinc-600 transition-colors cursor-pointer border border-zinc-700 rounded-lg p-1.5 bg-zinc-900/50"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Transaction ID</label>
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="UTR / UPI Ref ID"
+                                                                    value={paymentDetails.utrId}
+                                                                    onChange={(e) => setPaymentDetails({ ...paymentDetails, utrId: e.target.value })}
+                                                                    className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm md:text-base text-white focus:border-red-500 outline-none placeholder:text-zinc-600 transition-all font-mono"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">PAYER NAME</label>
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Name as per your Bank records"
+                                                                    value={paymentDetails.payeeName}
+                                                                    onChange={(e) => setPaymentDetails({ ...paymentDetails, payeeName: e.target.value })}
+                                                                    className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm md:text-base text-white focus:border-red-500 outline-none placeholder:text-zinc-600 transition-all"
+                                                                />
+                                                            </div>
+
+                                                            <div className="p-3 rounded bg-yellow-500/10 border border-yellow-500/20 mt-2">
+                                                                <p className="text-[10px] md:text-xs text-yellow-500 leading-relaxed text-center font-medium">
+                                                                    PLEASE PAY THE FULL AMOUNT AS SHOWN. YOUR PAYMENT WILL BE VERIFIED ALONG WITH UTR ID AND ONLY THEN REGISTRATION WILL BE APPROVED.
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Submit / Back Buttons */}
+                                                    {/* Submit / Back Buttons */}
+                                                    <div className="flex gap-4 pt-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                if (paymentStep === 1) setPaymentStep(0);
+                                                                else setShowPaymentModal(false);
+                                                            }}
+                                                            disabled={paymentProcessing}
+                                                            className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm md:text-base font-medium transition-colors disabled:opacity-50"
+                                                        >
+                                                            {paymentStep === 1 ? "Back" : "Cancel"}
+                                                        </button>
+                                                        <button
+                                                            onClick={processPaymentAndRegister}
+                                                            disabled={paymentProcessing}
+                                                            className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm md:text-base font-bold transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                                                        >
+                                                            {paymentProcessing ? (
+                                                                <>
+                                                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                                    Processing...
+                                                                </>
+                                                            ) : "Submit Payment"}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="px-6 py-3 bg-zinc-950 border-t border-zinc-800 text-center">
                                     <p className="text-xs text-zinc-500 flex items-center justify-center gap-1">
                                         <span className="w-2 h-2 rounded-full bg-yellow-500" />
-                                        {isKLStudent ? "KL University Student Verification Active" : "Demo Mode: No real payment will be deducted"}
+                                        {isKLStudent ? "KL University Student Verification Active" : "Payment Verification Required"}
                                     </p>
                                 </div>
                             </motion.div>
