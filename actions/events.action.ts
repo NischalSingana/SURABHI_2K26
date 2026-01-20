@@ -559,61 +559,11 @@ export async function registerGroupEvent(
 
     // Special message for pending users
     if (registrationResult.success && registrationResult.paymentStatus === "PENDING") {
-      return { success: true, message: "Registration submitted! Verification pending. You will receive tickets after admin approval." };
+      return { success: true, message: "Registration submitted! Please wait for admin to review and approve your registration. You'll receive an email when confirmed." };
     }
 
-    // If we are here, it's approved flow, proceed to send email below or return success
-    // ORIGINAL LOGIC RESUMES FOR APPROVED USERS
-    // Only send emails to non-KL students after admin approval
-    // KL students don't need email confirmation
-    if (registrationResult.success && registrationResult.paymentStatus === "APPROVED" && !isKLStudent) {
-      const teamLead = await prisma.user.findUnique({ where: { id: session.user.id } });
-      // Send Email (Non-blocking)
-      if (teamLead && registrationResult.event) {
-        // Capture variables for async closure to avoid "possibly undefined" errors
-        const lead = teamLead;
-        const evt = registrationResult.event;
-        const grp = registrationResult.groupName || "Team";
-        const mems = registrationResult.members || [];
-
-        (async () => {
-          try {
-            // Generate PDF
-            const { generateTicketPDF } = await import("@/lib/pdf-generator");
-            const pdfBuffer = await generateTicketPDF({
-              userId: lead.id,
-              name: lead.name || "Team Lead",
-              email: lead.email,
-              phone: lead.phone,
-              collage: lead.collage,
-              collageId: lead.collageId,
-              paymentStatus: "PAID", // Participation is free/covered
-              isApproved: true,
-              eventName: evt.name,
-              isGroupEvent: true,
-              groupName: grp,
-              teamMembers: mems,
-              eventId: evt.id,
-              gender: lead.gender,
-              state: lead.state,
-              city: lead.city
-            });
-
-            const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
-            await sendEventConfirmationEmail(
-              { name: lead.name || "User", email: lead.email },
-              { name: evt.name, date: evt.date, venue: evt.venue },
-              pdfBuffer,
-              "GROUP",
-              { groupName: grp, members: mems }
-            );
-          } catch (emailErr) {
-            console.error("Failed to send confirmation email:", emailErr);
-          }
-        })();
-      }
-    }
-
+    // For approved registrations (KL students), just return success
+    // PDF generation and email sending will happen through admin approval action
     return { success: true, message: "Successfully registered team for event" };
 
   } catch (error) {
@@ -840,58 +790,11 @@ export async function registerForEvent(
 
     // Special message for pending users
     if (registrationResult.success && registrationResult.paymentStatus === "PENDING") {
-      return { success: true, message: "Registration submitted! Verification pending. You will receive tickets after admin approval." };
+      return { success: true, message: "Registration submitted! Please wait for admin to review and approve your registration. You'll receive an email when confirmed." };
     }
 
-    // Send Email (Non-blocking) ONLY if APPROVED
-    // Only send emails to non-KL students after admin approval
-    // KL students don't need email confirmation
-    if (registrationResult.success && registrationResult.paymentStatus === "APPROVED" && !isKLStudent && registrationResult.user && registrationResult.event) {
-      (async () => {
-        try {
-          const freshUser = await prisma.user.findUnique({ where: { id: session.user.id } });
-          if (!freshUser) return;
-
-          // Fetch full user details for PDF
-          // Warning: session.user might not have phone/college if not updated in session, 
-          // but usually needed for ticket. Ideally we fetch fresh from DB.
-          const userFull = await prisma.user.findUnique({
-            where: { id: registrationResult.user.id }
-          });
-
-          if (!userFull) return;
-
-          const { generateTicketPDF } = await import("@/lib/pdf-generator");
-          const pdfBuffer = await generateTicketPDF({
-            userId: userFull.id,
-            name: userFull.name || "Participant",
-            email: userFull.email,
-            phone: userFull.phone,
-            collage: userFull.collage,
-            collageId: userFull.collageId,
-            paymentStatus: "PAID",
-            isApproved: true,
-            eventName: registrationResult.event.name,
-            isGroupEvent: false,
-            eventId: registrationResult.event.id,
-            gender: userFull.gender,
-            state: userFull.state,
-            city: userFull.city
-          });
-
-          const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
-          await sendEventConfirmationEmail(
-            { name: userFull.name || "User", email: userFull.email },
-            { name: registrationResult.event.name, date: registrationResult.event.date, venue: registrationResult.event.venue },
-            pdfBuffer,
-            "INDIVIDUAL"
-          );
-        } catch (emailErr) {
-          console.error("Failed to send solo confirmation email:", emailErr);
-        }
-      })();
-    }
-
+    // For approved registrations (KL students), just return success
+    // PDF generation and email sending will happen through admin approval action
     revalidatePath("/events");
     return { success: true, message: "Successfully registered for event" };
   } catch (error) {
