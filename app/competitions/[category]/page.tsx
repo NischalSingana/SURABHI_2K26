@@ -57,6 +57,14 @@ function CategoryPageContent() {
   const [registeredEvents, setRegisteredEvents] = useState<Set<string>>(new Set());
   const [categoryVideo, setCategoryVideo] = useState<string | null>(null);
   const [categoryImage, setCategoryImage] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [showPaymentStep, setShowPaymentStep] = useState(false);
+  const [paymentDetails, setPaymentDetails] = useState({
+    screenshot: null as File | null,
+    utrId: "",
+    payeeName: "",
+  });
+  const [uploadingPayment, setUploadingPayment] = useState(false);
 
   useEffect(() => {
     fetchEvents();
@@ -114,8 +122,13 @@ function CategoryPageContent() {
 
       // Check registration status
       const regResult = await getUserRegistrations();
-      if (regResult.success && regResult.registeredEventIds) {
-        setRegisteredEvents(new Set(regResult.registeredEventIds));
+      if (regResult.success) {
+        if (regResult.registeredEventIds) {
+          setRegisteredEvents(new Set(regResult.registeredEventIds));
+        }
+        if (regResult.email) {
+          setUserEmail(regResult.email);
+        }
       }
     } else {
       console.error("[fetchEvents] Failed:", result.error);
@@ -149,10 +162,59 @@ function CategoryPageContent() {
 
     if (!selectedEvent) return;
 
+    // Check for Manual Payment Requirement (Non-KL Users)
+    const isKLStudent = userEmail?.endsWith("@kluniversity.in");
+
+    if (!isKLStudent && !showPaymentStep) {
+      setShowPaymentStep(true);
+      return;
+    }
+
+    if (showPaymentStep) {
+      if (!paymentDetails.screenshot || !paymentDetails.utrId || !paymentDetails.payeeName) {
+        setRegistrationStatus({
+          loading: false,
+          error: "Please complete all payment details",
+          success: false,
+        });
+        return;
+      }
+    }
+
     setRegistrationStatus({ loading: true, error: null, success: false });
 
     try {
-      const result = await registerForEvent(selectedEvent.id);
+      let uploadedScreenshotUrl = "";
+
+      if (showPaymentStep && paymentDetails.screenshot) {
+        setUploadingPayment(true);
+        const formData = new FormData();
+        formData.append("file", paymentDetails.screenshot);
+
+        // Dynamically import upload action to avoid server-client issues if any
+        const { uploadPaymentScreenshot } = await import("@/actions/upload.action");
+        const uploadResult = await uploadPaymentScreenshot(formData);
+
+        if (!uploadResult.success || !uploadResult.url) {
+          setRegistrationStatus({
+            loading: false,
+            error: "Failed to upload payment screenshot. Please try again.",
+            success: false
+          });
+          setUploadingPayment(false);
+          return;
+        }
+        uploadedScreenshotUrl = uploadResult.url;
+        setUploadingPayment(false);
+      }
+
+      const result = await registerForEvent(selectedEvent.id, undefined,
+        showPaymentStep ? {
+          paymentScreenshot: uploadedScreenshotUrl,
+          utrId: paymentDetails.utrId,
+          payeeName: paymentDetails.payeeName
+        } : undefined
+      );
 
       if (result.success) {
         setRegistrationStatus({ loading: false, error: null, success: true });
@@ -160,6 +222,8 @@ function CategoryPageContent() {
         setShowSuccessPopup(true);
         // Keep selectedEvent for submission modal
         setAcceptedTerms(false);
+        setShowPaymentStep(false); // Reset
+        setPaymentDetails({ screenshot: null, utrId: "", payeeName: "" }); // Reset
 
         // Update registered events
         setRegisteredEvents(prev => new Set(prev).add(selectedEvent.id));
@@ -179,6 +243,7 @@ function CategoryPageContent() {
         error: "An unexpected error occurred",
         success: false,
       });
+      setUploadingPayment(false);
     }
   };
 
@@ -186,6 +251,8 @@ function CategoryPageContent() {
     setShowRegisterPopup(false);
     setSelectedEvent(null);
     setAcceptedTerms(false);
+    setShowPaymentStep(false);
+    setPaymentDetails({ screenshot: null, utrId: "", payeeName: "" });
     setRegistrationStatus({ loading: false, error: null, success: false });
   };
 
@@ -503,7 +570,7 @@ function CategoryPageContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4"
             onClick={closeRegisterPopup}
           >
             <motion.div
@@ -511,7 +578,7 @@ function CategoryPageContent() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", duration: 0.5 }}
-              className="bg-zinc-900 p-8 rounded-xl max-w-md w-full border border-zinc-800"
+              className="bg-zinc-900 p-8 rounded-xl max-w-md w-full border border-zinc-800 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <h3 className="text-2xl font-bold text-red-500 mb-4">
@@ -526,6 +593,17 @@ function CategoryPageContent() {
                   <p><span className="text-zinc-400">Time:</span> {formatTime(selectedEvent.startTime)} - {formatTime(selectedEvent.endTime)}</p>
                 </div>
               </div>
+
+              {!showPaymentStep && !userEmail?.endsWith("@kluniversity.in") && (
+                <div className="mb-6 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700">
+                  <h4 className="text-sm font-semibold text-white mb-2">Includes (₹350):</h4>
+                  <ul className="space-y-1 text-xs text-zinc-300">
+                    <li className="flex items-center gap-2"><span className="text-green-500">✓</span> 1 Day Free Accommodation</li>
+                    <li className="flex items-center gap-2"><span className="text-green-500">✓</span> Complimentary Lunch</li>
+                    <li className="flex items-center gap-2"><span className="text-green-500">✓</span> Access to all Events & Pro Shows</li>
+                  </ul>
+                </div>
+              )}
 
               <div className="mb-6">
                 <h4 className="text-lg font-semibold text-white mb-2">Terms and Conditions:</h4>
@@ -592,6 +670,83 @@ function CategoryPageContent() {
                 </label>
               </div>
 
+              {/* Payment Step for Non-KL Users */}
+              {showPaymentStep && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="mb-6 bg-zinc-800/50 p-4 rounded-lg border border-zinc-700"
+                >
+                  <h4 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
+                    Payment Verification
+                    <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded">Required for Non-KL</span>
+                  </h4>
+
+                  <div className="flex flex-col items-center mb-4">
+                    <div className="text-center mb-4">
+                      <p className="text-zinc-400 text-xs">Total Amount</p>
+                      <p className="text-xl font-bold text-red-500">₹350</p>
+                    </div>
+                    <p className="text-sm text-zinc-400 mb-2">Scan QR to Pay</p>
+                    <div className="bg-white p-4 rounded-xl shadow-2xl shadow-black/50 border-4 border-white mb-4 transform hover:scale-105 transition-transform duration-300">
+                      <div className="w-64 h-64 sm:w-72 sm:h-72 relative">
+                        <Image
+                          src="/images/paymentQR.png"
+                          alt="Payment QR"
+                          fill
+                          className="object-contain"
+                          priority
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs text-zinc-400 mb-1">Upload Payment Screenshot</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (file.size > 5 * 1024 * 1024) {
+                              toast.error("File size exceeds 5MB limit");
+                              e.target.value = "";
+                              return;
+                            }
+                            setPaymentDetails({ ...paymentDetails, screenshot: file });
+                          }
+                        }}
+                        className="w-full text-sm text-zinc-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-600 file:text-white hover:file:bg-red-700"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-zinc-400 mb-1">UTR / Transaction ID</label>
+                      <input
+                        type="text"
+                        value={paymentDetails.utrId}
+                        onChange={(e) => setPaymentDetails({ ...paymentDetails, utrId: e.target.value })}
+                        placeholder="Enter UTR ID"
+                        className="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-sm text-white focus:border-red-500 outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-zinc-400 mb-1">Payee Name</label>
+                      <input
+                        type="text"
+                        value={paymentDetails.payeeName}
+                        onChange={(e) => setPaymentDetails({ ...paymentDetails, payeeName: e.target.value })}
+                        placeholder="Enter Name on UPI"
+                        className="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-sm text-white focus:border-red-500 outline-none"
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
               {registrationStatus.error && (
                 <div className="mb-4 p-3 bg-red-500/20 border border-red-500 rounded text-red-100 text-sm">
                   {registrationStatus.error}
@@ -607,7 +762,10 @@ function CategoryPageContent() {
                     : "hover:bg-red-700"
                     }`}
                 >
-                  {registrationStatus.loading ? "Registering..." : "Confirm Registration"}
+                  {registrationStatus.loading || uploadingPayment ?
+                    (uploadingPayment ? "Uploading Proof..." : "Registering...") :
+                    (showPaymentStep ? "Submit & Pay" : (userEmail?.endsWith("@kluniversity.in") ? "Confirm Registration" : "Proceed to Payment"))
+                  }
                 </button>
                 <button
                   onClick={closeRegisterPopup}
@@ -649,7 +807,11 @@ function CategoryPageContent() {
                   </svg>
                 </div>
                 <h3 className="text-2xl font-bold text-green-500 mb-2">Success!</h3>
-                <p className="text-zinc-300 mb-6">Successfully registered for the event!</p>
+                <p className="text-zinc-300 mb-6">
+                  {userEmail?.endsWith("@kluniversity.in")
+                    ? "Successfully registered for the event!"
+                    : "Your registration is submitted! Please wait for admin approval (2-3 business days). You will receive an email with your ticket once approved."}
+                </p>
 
                 <div className="space-y-3">
                   <button

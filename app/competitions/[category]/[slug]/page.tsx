@@ -680,12 +680,6 @@ function EventDetailPageContent() {
                     )}
                   </motion.button>
                 </div>
-              ) : isOutsider ? (
-                <div className="mt-6 p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg text-center">
-                  <p className="text-zinc-400 text-sm">
-                    Website is not launched yet, you can register to competitions once its fully launched.
-                  </p>
-                </div>
               ) : (
                 <motion.button
                   whileHover={{ scale: 1.02 }}

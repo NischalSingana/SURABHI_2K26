@@ -28,6 +28,7 @@ interface Event {
     _count: {
         registeredStudents: number;
     };
+    registrationStatus?: string;
 }
 
 interface Submission {
@@ -254,45 +255,65 @@ export default function MyEventsPage() {
                                         </div>
 
                                         {/* Action Buttons */}
+                                        {/* Action Buttons */}
                                         <div className="space-y-2">
-                                            <button
-                                                onClick={async () => {
-                                                    try {
-                                                        const response = await fetch(`/api/ticket/download?eventId=${event.id}`);
-                                                        if (!response.ok) {
-                                                            const error = await response.json();
-                                                            toast.error(error.error || 'Failed to download ticket');
-                                                            return;
-                                                        }
-                                                        const blob = await response.blob();
-                                                        const url = window.URL.createObjectURL(blob);
-                                                        const a = document.createElement('a');
-                                                        a.href = url;
-                                                        a.download = `surabhi-2026-ticket-${event.name.replace(/\s+/g, '-')}.pdf`;
-                                                        document.body.appendChild(a);
-                                                        a.click();
-                                                        window.URL.revokeObjectURL(url);
-                                                        document.body.removeChild(a);
-                                                        toast.success('Ticket downloaded successfully!');
-                                                    } catch (error) {
-                                                        toast.error('Failed to download ticket');
-                                                    }
-                                                }}
-                                                className="w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white hover:shadow-lg hover:shadow-red-600/50"
-                                            >
-                                                <FiCreditCard size={16} />
-                                                Download Ticket
-                                            </button>
-                                            <button
-                                                onClick={() => handleSubmitClick(event)}
-                                                className={`w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${hasSubmission
-                                                    ? "bg-zinc-800 text-red-400 border border-red-500/30 hover:bg-zinc-700"
-                                                    : "bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/50"
-                                                    }`}
-                                            >
-                                                <FiUpload size={16} />
-                                                {hasSubmission ? "Update Submission" : "Submit Work"}
-                                            </button>
+                                            {event.registrationStatus === 'PENDING' && (
+                                                <div className="w-full px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-lg text-sm font-medium flex items-center justify-center gap-2 mb-2">
+                                                    <FiClock size={16} />
+                                                    Pending Approval
+                                                </div>
+                                            )}
+
+                                            {event.registrationStatus === 'REJECTED' && (
+                                                <div className="w-full px-4 py-3 bg-red-500/10 border border-red-500/30 text-red-500 rounded-lg text-sm font-medium flex items-center justify-center gap-2 mb-2">
+                                                    <FiX size={16} />
+                                                    Registration Rejected
+                                                </div>
+                                            )}
+
+                                            {(event.registrationStatus === 'APPROVED' || !event.registrationStatus) && (
+                                                <>
+                                                    <button
+                                                        onClick={async () => {
+                                                            try {
+                                                                const response = await fetch(`/api/ticket/download?eventId=${event.id}`);
+                                                                if (!response.ok) {
+                                                                    const error = await response.json();
+                                                                    toast.error(error.error || 'Failed to download ticket');
+                                                                    return;
+                                                                }
+                                                                const blob = await response.blob();
+                                                                const url = window.URL.createObjectURL(blob);
+                                                                const a = document.createElement('a');
+                                                                a.href = url;
+                                                                a.download = `surabhi-2026-ticket-${event.name.replace(/\s+/g, '-')}.pdf`;
+                                                                document.body.appendChild(a);
+                                                                a.click();
+                                                                window.URL.revokeObjectURL(url);
+                                                                document.body.removeChild(a);
+                                                                toast.success('Ticket downloaded successfully!');
+                                                            } catch (error) {
+                                                                toast.error('Failed to download ticket');
+                                                            }
+                                                        }}
+                                                        className="w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white hover:shadow-lg hover:shadow-red-600/50"
+                                                    >
+                                                        <FiCreditCard size={16} />
+                                                        Download Ticket
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleSubmitClick(event)}
+                                                        className={`w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${hasSubmission
+                                                            ? "bg-zinc-800 text-red-400 border border-red-500/30 hover:bg-zinc-700"
+                                                            : "bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/50"
+                                                            }`}
+                                                    >
+                                                        <FiUpload size={16} />
+                                                        {hasSubmission ? "Update Submission" : "Submit Work"}
+                                                    </button>
+                                                </>
+                                            )}
+
                                             <button
                                                 onClick={() => setShowUnregisterConfirm(event.id)}
                                                 disabled={unregistering === event.id}
