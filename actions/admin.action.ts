@@ -43,11 +43,30 @@ export async function getPendingRegistrations() {
             }
         });
 
+        const allVisitorPasses = await prisma.pass.findMany({
+            where: {
+                passType: "VISITOR"
+            },
+            orderBy: {
+                createdAt: "desc"
+            }
+        });
+
+        // Filter for pending passes and fetch user data
+        const pendingPasses = allVisitorPasses.filter(p => p.paymentStatus === "PENDING");
+        const visitorPasses = await Promise.all(
+            pendingPasses.map(async (pass) => {
+                const user = await prisma.user.findUnique({ where: { id: pass.userId } });
+                return { ...pass, user };
+            })
+        );
+
         return {
             success: true,
             data: {
                 individual: individualRegistrations,
-                group: groupRegistrations
+                group: groupRegistrations,
+                visitorPasses: visitorPasses
             }
         };
     } catch (error) {
@@ -58,7 +77,7 @@ export async function getPendingRegistrations() {
 
 export async function updateRegistrationStatus(
     id: string,
-    type: "INDIVIDUAL" | "GROUP",
+    type: "INDIVIDUAL" | "GROUP" | "VISITOR_PASS",
     status: "APPROVED" | "REJECTED"
 ) {
     try {
@@ -71,7 +90,57 @@ export async function updateRegistrationStatus(
             return { success: false, error: "Unauthorized" };
         }
 
-        if (type === "INDIVIDUAL") {
+        if (type === "VISITOR_PASS") {
+            const pass = await prisma.pass.update({
+                where: { id },
+                data: {
+                    paymentStatus: status,
+                    passToken: status === "APPROVED" ? crypto.randomUUID() : undefined,
+                    isActive: status === "APPROVED"
+                }
+            });
+
+            const user = await prisma.user.findUnique({ where: { id: pass.userId } });
+            if (!user) {
+                return { success: false, error: "User not found" };
+            }
+
+            if (status === "APPROVED") {
+                // Generate Pass and Email
+                (async () => {
+                    try {
+                        const { generateTicketPDF } = await import("@/lib/pdf-generator");
+                        const pdfBuffer = await generateTicketPDF({
+                            userId: user.id,
+                            name: user.name || "Visitor",
+                            email: user.email,
+                            phone: user.phone || "",
+                            collage: user.collage || "",
+                            collageId: user.collageId || "",
+                            paymentStatus: "PAID",
+                            isApproved: true,
+                            eventName: "Surabhi 2026",
+                            isGroupEvent: false,
+                            eventId: undefined,
+                            gender: user.gender || "N/A",
+                            state: user.state || "",
+                            city: user.city || ""
+                        });
+
+                        const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
+                        await sendEventConfirmationEmail(
+                            { name: user.name || "Visitor", email: user.email },
+                            { name: "Surabhi 2026", date: new Date(), venue: "KL University" },
+                            pdfBuffer,
+                            "VISITOR"
+                        );
+                    } catch (e) {
+                        console.error("Failed to send visitor pass approval email", e);
+                    }
+                })();
+            }
+
+        } else if (type === "INDIVIDUAL") {
             const registration = await prisma.individualRegistration.update({
                 where: { id },
                 data: { paymentStatus: status },
@@ -176,6 +245,7 @@ export async function updateRegistrationStatus(
         }
 
         revalidatePath("/admin/registrations/approvals");
+        revalidatePath("/profile");
         return { success: true, message: `Registration ${status.toLowerCase()} successfully` };
 
     } catch (error) {
