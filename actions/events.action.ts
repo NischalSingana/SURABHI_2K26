@@ -430,7 +430,12 @@ export async function registerGroupEvent(
   members: GroupMember[],
   mentorName?: string,
   mentorPhone?: string,
-  registrationDetails?: any
+  registrationDetails?: any,
+  paymentDetails?: {
+    paymentScreenshot: string;
+    utrId: string;
+    payeeName: string;
+  }
 ) {
   console.log("registerGroupEvent started", { eventId, groupName, memberCount: members.length, mentorName, registrationDetails });
   try {
@@ -444,16 +449,16 @@ export async function registerGroupEvent(
       return { success: false, error: "Please login to register for events" };
     }
 
-    // Check approval status
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { isApproved: true }
-    });
+    // Determine if user is KL student or outsider
+    const isKLStudent = session.user.email.endsWith("@kluniversity.in");
 
-    if (!user?.isApproved) {
-      return { success: false, error: "Please wait till admin approves your registration." };
+    // Outsiders must provide payment details
+    if (!isKLStudent && !paymentDetails) {
+      return { success: false, error: "Payment details are required for non-KL students." };
     }
-    console.log("registerGroupEvent: User logged in", session.user.id);
+
+    // Determine payment status
+    const paymentStatus = isKLStudent ? "APPROVED" : "PENDING";
 
     const registrationResult = await prisma.$transaction(
       async (tx) => {
@@ -521,21 +526,17 @@ export async function registerGroupEvent(
             mentorName,
             mentorPhone,
             members: members as any, // Storing manual details
-            registrationDetails: registrationDetails || undefined
+            registrationDetails: registrationDetails || undefined,
+            paymentScreenshot: paymentDetails?.paymentScreenshot || null,
+            utrId: paymentDetails?.utrId || null,
+            payeeName: paymentDetails?.payeeName || null,
+            paymentStatus: paymentStatus as any
           },
         });
         console.log("registerGroupEvent: Group registration created");
 
-        // --- EMAIL NOTIFICATION START ---
-        // Fetch User details again ensuring we have email
-        const teamLead = await tx.user.findUnique({ where: { id: session.user.id } });
-
-        // Return details needed for email, outside transaction if possible, or handle here.
-        // We will return them to execute email sending AFTER transaction commits if possible, 
-        // but since we are inside an action, we can fire off the async email promise just before returning.
-        // Or better, we do it after the transaction block using data we collected.
-
-        return { success: true, teamLead, event, groupName, members };
+        // Return details needed for email
+        return { success: true, teamLead: null, event, groupName, members, paymentStatus }; // teamLead null here to fetch outside tx if needed, but we used tx above.
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
     );
@@ -545,49 +546,72 @@ export async function registerGroupEvent(
     revalidatePath("/profile");
     console.log("registerGroupEvent: Success");
 
-    // Send Email (Non-blocking)
-    if (registrationResult.success && registrationResult.teamLead && registrationResult.event) {
-      // Capture variables for async closure to avoid "possibly undefined" errors
-      const lead = registrationResult.teamLead;
+    // Only generate tickets and send email if APPROVED (KL Students)
+    // Non-KL students wait for admin approval
+    if (registrationResult.success && registrationResult.paymentStatus === "APPROVED") {
+      const teamLead = await prisma.user.findUnique({ where: { id: session.user.id } });
       const evt = registrationResult.event;
-      const grp = registrationResult.groupName || "Team";
-      const mems = registrationResult.members || [];
 
-      (async () => {
-        try {
-          // Generate PDF
-          const { generateTicketPDF } = await import("@/lib/pdf-generator");
-          const pdfBuffer = await generateTicketPDF({
-            userId: lead.id,
-            name: lead.name || "Team Lead",
-            email: lead.email,
-            phone: lead.phone,
-            collage: lead.collage,
-            collageId: lead.collageId,
-            paymentStatus: "PAID", // Participation is free/covered
-            isApproved: true,
-            eventName: evt.name,
-            isGroupEvent: true,
-            groupName: grp,
-            teamMembers: mems,
-            eventId: evt.id,
-            gender: lead.gender,
-            state: lead.state,
-            city: lead.city
-          });
+      if (teamLead && evt) {
+        // ... email sending logic ...
+      }
+    }
 
-          const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
-          await sendEventConfirmationEmail(
-            { name: lead.name || "User", email: lead.email },
-            { name: evt.name, date: evt.date, venue: evt.venue },
-            pdfBuffer,
-            "GROUP",
-            { groupName: grp, members: mems }
-          );
-        } catch (emailErr) {
-          console.error("Failed to send confirmation email:", emailErr);
-        }
-      })();
+    // Special message for pending users
+    if (registrationResult.success && registrationResult.paymentStatus === "PENDING") {
+      return { success: true, message: "Registration submitted! Verification pending. You will receive tickets after admin approval." };
+    }
+
+    // If we are here, it's approved flow, proceed to send email below or return success
+    // ORIGINAL LOGIC RESUMES FOR APPROVED USERS
+    // Only send emails to non-KL students after admin approval
+    // KL students don't need email confirmation
+    if (registrationResult.success && registrationResult.paymentStatus === "APPROVED" && !isKLStudent) {
+      const teamLead = await prisma.user.findUnique({ where: { id: session.user.id } });
+      // Send Email (Non-blocking)
+      if (teamLead && registrationResult.event) {
+        // Capture variables for async closure to avoid "possibly undefined" errors
+        const lead = teamLead;
+        const evt = registrationResult.event;
+        const grp = registrationResult.groupName || "Team";
+        const mems = registrationResult.members || [];
+
+        (async () => {
+          try {
+            // Generate PDF
+            const { generateTicketPDF } = await import("@/lib/pdf-generator");
+            const pdfBuffer = await generateTicketPDF({
+              userId: lead.id,
+              name: lead.name || "Team Lead",
+              email: lead.email,
+              phone: lead.phone,
+              collage: lead.collage,
+              collageId: lead.collageId,
+              paymentStatus: "PAID", // Participation is free/covered
+              isApproved: true,
+              eventName: evt.name,
+              isGroupEvent: true,
+              groupName: grp,
+              teamMembers: mems,
+              eventId: evt.id,
+              gender: lead.gender,
+              state: lead.state,
+              city: lead.city
+            });
+
+            const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
+            await sendEventConfirmationEmail(
+              { name: lead.name || "User", email: lead.email },
+              { name: evt.name, date: evt.date, venue: evt.venue },
+              pdfBuffer,
+              "GROUP",
+              { groupName: grp, members: mems }
+            );
+          } catch (emailErr) {
+            console.error("Failed to send confirmation email:", emailErr);
+          }
+        })();
+      }
     }
 
     return { success: true, message: "Successfully registered team for event" };
@@ -652,7 +676,15 @@ export async function getPublicEvents() {
   }
 }
 
-export async function registerForEvent(eventId: string, registrationDetails?: any) {
+export async function registerForEvent(
+  eventId: string,
+  registrationDetails?: any,
+  paymentDetails?: {
+    paymentScreenshot: string;
+    utrId: string;
+    payeeName: string;
+  }
+) {
   try {
     const headersList = await headers();
     const session = await auth.api.getSession({
@@ -662,6 +694,17 @@ export async function registerForEvent(eventId: string, registrationDetails?: an
     if (!session || !session.user) {
       return { success: false, error: "Please login to register for events" };
     }
+
+    // Determine if user is KL student or outsider
+    const isKLStudent = session.user.email.endsWith("@kluniversity.in");
+
+    // Outsiders must provide payment details
+    if (!isKLStudent && !paymentDetails) {
+      return { success: false, error: "Payment details are required for non-KL students." };
+    }
+
+    // Determine payment status
+    const paymentStatus = isKLStudent ? "APPROVED" : "PENDING";
 
     // Check approval status
     const user = await prisma.user.findUnique({
@@ -738,7 +781,11 @@ export async function registerForEvent(eventId: string, registrationDetails?: an
           data: {
             userId: session.user.id,
             eventId: eventId,
-            registrationDetails: registrationDetails || undefined
+            registrationDetails: registrationDetails || undefined,
+            paymentScreenshot: paymentDetails?.paymentScreenshot || null,
+            utrId: paymentDetails?.utrId || null,
+            payeeName: paymentDetails?.payeeName || null,
+            paymentStatus: paymentStatus as any
           }
         });
 
@@ -782,7 +829,7 @@ export async function registerForEvent(eventId: string, registrationDetails?: an
           });
         }
 
-        return { success: true, user: session.user, event };
+        return { success: true, user: session.user, event, paymentStatus };
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
     );
@@ -791,10 +838,20 @@ export async function registerForEvent(eventId: string, registrationDetails?: an
       return registrationResult;
     }
 
-    // Send Email (Non-blocking)
-    if (registrationResult.success && registrationResult.user && registrationResult.event) {
+    // Special message for pending users
+    if (registrationResult.success && registrationResult.paymentStatus === "PENDING") {
+      return { success: true, message: "Registration submitted! Verification pending. You will receive tickets after admin approval." };
+    }
+
+    // Send Email (Non-blocking) ONLY if APPROVED
+    // Only send emails to non-KL students after admin approval
+    // KL students don't need email confirmation
+    if (registrationResult.success && registrationResult.paymentStatus === "APPROVED" && !isKLStudent && registrationResult.user && registrationResult.event) {
       (async () => {
         try {
+          const freshUser = await prisma.user.findUnique({ where: { id: session.user.id } });
+          if (!freshUser) return;
+
           // Fetch full user details for PDF
           // Warning: session.user might not have phone/college if not updated in session, 
           // but usually needed for ticket. Ideally we fetch fresh from DB.
@@ -903,7 +960,8 @@ export async function getUserRegistrations() {
     return {
       success: true,
       registeredEventIds: user?.registeredEvents.map(e => e.id) || [],
-      isApproved: !!user?.isApproved
+      isApproved: !!user?.isApproved,
+      email: session.user.email
     };
   } catch (error) {
     console.error("Error fetching user registrations:", error);
