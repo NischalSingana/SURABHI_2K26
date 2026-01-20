@@ -61,13 +61,13 @@ export async function generateVisitorPass(paymentDetails?: {
 
         const isRegisteredForEvent = user.registeredEvents.length > 0;
 
-        // Create Pass
+        // Create Pass - only generate token if APPROVED
         const pass = await prisma.pass.create({
             data: {
                 userId: userId,
-                passToken: crypto.randomUUID(),
+                ...(paymentStatus === "APPROVED" && { passToken: crypto.randomUUID() }),
                 passType: "VISITOR",
-                isActive: true,
+                isActive: paymentStatus === "APPROVED",
                 paymentScreenshot: paymentDetails?.paymentScreenshot || null,
                 utrId: paymentDetails?.utrId || null,
                 payeeName: paymentDetails?.payeeName || null,
@@ -78,7 +78,7 @@ export async function generateVisitorPass(paymentDetails?: {
         // Special message for pending users
         if (paymentStatus === "PENDING") {
             revalidatePath("/profile");
-            return { success: true, message: "Visitor pass request submitted! Verification pending. You will receive your pass after admin approval." };
+            return { success: true, message: "Visitor pass request submitted! Please wait for admin to review and approve your registration. You'll receive an email when confirmed." };
         }
 
         // Only send email for APPROVED passes (KL students)
@@ -89,7 +89,7 @@ export async function generateVisitorPass(paymentDetails?: {
 
         return {
             success: true,
-            passToken: pass.passToken,
+            passToken: pass.passToken || undefined,
             message: isRegisteredForEvent ? "Visitor Pass generated (Free for Participant)" : "Visitor Pass generated successfully"
         };
 
@@ -126,7 +126,8 @@ export async function checkVisitorPassStatus() {
             success: true,
             isEligibleForFree: user.registeredEvents.length > 0,
             hasPass: user.passes.length > 0,
-            passToken: user.passes[0]?.passToken
+            passToken: user.passes[0]?.passToken,
+            paymentStatus: user.passes[0]?.paymentStatus
         };
 
     } catch (error) {
