@@ -97,6 +97,7 @@ export default function ProfileClient({
     payeeName: string;
   }>({ screenshot: null, utrId: "", payeeName: "" });
   const [passToken, setPassToken] = useState<string | null>(null);
+  const [passPaymentStatus, setPassPaymentStatus] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if user already has a visitor pass
@@ -106,6 +107,7 @@ export default function ProfileClient({
       if (status.success && status.hasPass) {
         setHasPass(true);
         setPassToken(status.passToken || null);
+        setPassPaymentStatus(status.paymentStatus || null);
       }
     };
     if (hasGoogleAccount) {
@@ -206,15 +208,16 @@ export default function ProfileClient({
       if (!isKLStudent && paymentDetails.screenshot) {
         const formData = new FormData();
         formData.append("file", paymentDetails.screenshot);
-        const uploadRes = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-        if (!uploadRes.ok) throw new Error("Failed to upload screenshot");
-        const uploadData = await uploadRes.json();
+
+        const { uploadPaymentScreenshot } = await import("@/actions/upload.action");
+        const uploadResult = await uploadPaymentScreenshot(formData);
+
+        if (!uploadResult.success) {
+          throw new Error(uploadResult.error || "Failed to upload screenshot");
+        }
 
         paymentData = {
-          paymentScreenshot: uploadData.url,
+          paymentScreenshot: uploadResult.url!,
           utrId: paymentDetails.utrId,
           payeeName: paymentDetails.payeeName,
         };
@@ -772,9 +775,13 @@ export default function ProfileClient({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => {
-                    if (hasPass && passToken) {
-                      // Already has pass, just download
+                    if (hasPass && passToken && passPaymentStatus === "APPROVED") {
+                      // Already has approved pass, just download
                       window.open(`/api/pass/download/${passToken}`, '_blank');
+                    } else if (hasPass && passPaymentStatus === "PENDING") {
+                      // Pass is pending, show info message
+                      toast.info("Please wait for admin to review and approve your registration. You'll receive an email when confirmed.");
+                      return;
                     } else if (registeredEvents.length > 0) {
                       // Free pass logic - verify again just in case
                       handleGeneratePass();
@@ -783,12 +790,19 @@ export default function ProfileClient({
                       setShowPaymentModal(true);
                     }
                   }}
-                  className={`px-6 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2 ${registeredEvents.length > 0 || hasPass
-                    ? "bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700"
-                    : "bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white shadow-red-600/25"
+                  className={`px-6 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2 ${hasPass && passPaymentStatus === "PENDING"
+                    ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 cursor-pointer hover:bg-amber-500/30"
+                    : registeredEvents.length > 0 || (hasPass && passPaymentStatus === "APPROVED")
+                      ? "bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700"
+                      : "bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white shadow-red-600/25"
                     }`}
                 >
-                  {registeredEvents.length > 0 || hasPass ? (
+                  {hasPass && passPaymentStatus === "PENDING" ? (
+                    <>
+                      <FiClock className="text-lg" />
+                      Pending Approval
+                    </>
+                  ) : registeredEvents.length > 0 || (hasPass && passPaymentStatus === "APPROVED") ? (
                     <>
                       <FiBook className="text-lg" />
                       Download Pass
@@ -809,7 +823,7 @@ export default function ProfileClient({
       {/* Payment Modal */}
       <AnimatePresence>
         {showPaymentModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm pt-28 pb-10">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -913,12 +927,7 @@ export default function ProfileClient({
                   </button>
                 </div>
               </div>
-              <div className="px-6 py-3 bg-zinc-950 border-t border-zinc-800 text-center">
-                <p className="text-xs text-zinc-500 flex items-center justify-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-yellow-500" />
-                  Demo Mode: No real payment will be deducted
-                </p>
-              </div>
+
             </motion.div>
           </div>
         )}
