@@ -49,7 +49,7 @@ model Pass {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  passToken   String   @unique
+  passToken   String?   @unique
   eventId     String?
   passType    String   @default("GENERAL")
   
