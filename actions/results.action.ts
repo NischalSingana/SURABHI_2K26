@@ -83,13 +83,26 @@ export async function getEventResults(eventSlug: string) {
 
                 const averageScore = evaluatedCount > 0 ? totalScore / evaluatedCount : 0;
 
+                // Collect all remarks
+                const allRemarks: string[] = [];
+                if (leaderEval?.remarks) allRemarks.push(leaderEval.remarks);
+                if (Array.isArray(members)) {
+                    members.forEach(member => {
+                        if (member.userId) {
+                            const memEval = evaluations.find(e => e.participantId === member.userId);
+                            if (memEval?.remarks) allRemarks.push(memEval.remarks);
+                        }
+                    });
+                }
+
                 return {
                     id: group.id,
                     name: group.groupName || `${group.user.name}'s Team`,
                     type: 'GROUP',
                     collageId: group.user.collageId,
                     score: parseFloat(averageScore.toFixed(2)), // Keep 2 decimals
-                    isEvaluated: evaluatedCount > 0
+                    isEvaluated: evaluatedCount > 0,
+                    remarks: allRemarks.length > 0 ? allRemarks.join(' | ') : null
                 };
             });
 
@@ -124,8 +137,12 @@ export async function getEventResults(eventSlug: string) {
                 // But if multiple judges evaluate same participant, we should average them.
 
                 let totalScore = 0;
+                const allRemarks: string[] = [];
                 if (evals.length > 0) {
                     totalScore = evals.reduce((sum, e) => sum + e.score, 0) / evals.length;
+                    evals.forEach(e => {
+                        if (e.remarks) allRemarks.push(e.remarks);
+                    });
                 }
 
                 return {
@@ -134,7 +151,8 @@ export async function getEventResults(eventSlug: string) {
                     type: 'INDIVIDUAL',
                     collageId: student.collageId,
                     score: parseFloat(totalScore.toFixed(2)),
-                    isEvaluated: evals.length > 0
+                    isEvaluated: evals.length > 0,
+                    remarks: allRemarks.length > 0 ? allRemarks.join(' | ') : null
                 };
             });
         }
