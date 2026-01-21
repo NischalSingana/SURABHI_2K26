@@ -10,8 +10,10 @@ import {
   updateCategory,
   deleteCategory,
   deleteEvent,
+  deleteRegistration,
 } from "@/actions/events.action";
 import { uploadCategoryImage } from "@/actions/upload.action";
+import { useSession } from "@/lib/auth-client";
 import { createSchedule, getSchedules, deleteSchedule } from "@/actions/schedule.action";
 import MultiStepEventForm from "@/components/ui/MultiStepEventForm";
 
@@ -87,6 +89,7 @@ interface Schedule {
 }
 
 export default function EventsManagement() {
+  const { data: session } = useSession();
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,10 +156,31 @@ export default function EventsManagement() {
     const result = await getCategories();
     if (result.success && result.data) {
       setCategories(result.data);
+      // Update selected event if open
+      if (selectedEventForRegistrations) {
+        const updatedCategory = result.data.find(c => c.Event.find(e => e.id === selectedEventForRegistrations.id));
+        const updatedEvent = updatedCategory?.Event.find(e => e.id === selectedEventForRegistrations.id);
+        if (updatedEvent) setSelectedEventForRegistrations(updatedEvent);
+      }
     } else {
       toast.error(result.error || "Failed to fetch categories");
     }
     setLoading(false);
+  };
+
+  const handleDeleteRegistration = async (id: string, type: "INDIVIDUAL" | "GROUP") => {
+    if (!confirm("Are you sure you want to delete this registration? This action cannot be undone.")) return;
+
+    toast.loading("Deleting registration...");
+    const result = await deleteRegistration(id, type);
+    toast.dismiss();
+
+    if (result.success) {
+      toast.success("Registration deleted");
+      fetchCategoriesWithEvents();
+    } else {
+      toast.error(result.error || "Failed to delete");
+    }
   };
 
   const fetchSchedules = async () => {
@@ -947,14 +971,30 @@ export default function EventsManagement() {
                 const individualRegistrations = selectedEventForRegistrations.individualRegistrations || [];
 
                 // Filter out students who are team leads (already in groupRegistrations)
-                // We identify them by matching user.id
                 const teamLeadIds = new Set(groupRegistrations.map(g => g.user.id));
                 const soloStudents = individualRegistrations.filter(reg => !teamLeadIds.has(reg.user.id));
 
-                const hasGroups = groupRegistrations.length > 0;
-                const hasSolo = soloStudents.length > 0;
+                const isKLStudent = (user: any) => {
+                  return (
+                    user.email?.toLowerCase().endsWith("@kluniversity.in") ||
+                    user.collage?.toLowerCase().includes("kl") ||
+                    user.collage?.toLowerCase().includes("koneru") ||
+                    user.collage?.toLowerCase().includes("klef")
+                  );
+                };
 
-                if (!hasGroups && !hasSolo) {
+                // Split Groups
+                const klGroups = groupRegistrations.filter(g => isKLStudent(g.user));
+                const otherGroups = groupRegistrations.filter(g => !isKLStudent(g.user));
+
+                // Split Individual
+                const klSolo = soloStudents.filter(s => isKLStudent(s.user));
+                const otherSolo = soloStudents.filter(s => !isKLStudent(s.user));
+
+                const hasKL = klGroups.length > 0 || klSolo.length > 0;
+                const hasOther = otherGroups.length > 0 || otherSolo.length > 0;
+
+                if (!hasKL && !hasOther) {
                   return (
                     <div className="text-center py-12">
                       <p className="text-zinc-400">No registrations yet</p>
@@ -962,113 +1002,167 @@ export default function EventsManagement() {
                   );
                 }
 
-                return (
-                  <div className="space-y-8">
-                    {/* Group Registrations Section */}
-                    {hasGroups && (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-2">
-                          <h3 className="text-white font-bold text-lg">Group Registrations</h3>
-                          <p className="text-zinc-400 text-sm">
-                            Total Teams:{" "}
-                            <span className="text-white font-semibold">
-                              {groupRegistrations.length}
-                            </span>
-                          </p>
-                        </div>
-                        <div className="grid grid-cols-1 gap-4">
-                          {groupRegistrations.map((group, index) => (
-                            <div
-                              key={group.id}
-                              onClick={() => {
-                                setSelectedGroup(group);
-                                setShowGroupDetailsModal(true);
-                              }}
-                              className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-red-600/50 transition-all cursor-pointer group hover:bg-zinc-800/80"
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                  <div className="w-10 h-10 rounded-full bg-red-600/20 flex items-center justify-center text-red-500 font-bold">
-                                    {index + 1}
-                                  </div>
-                                  <div>
-                                    <h4 className="text-white font-bold text-lg">{group.groupName}</h4>
-                                    <p className="text-zinc-400 text-sm flex items-center gap-2">
-                                      <span className="bg-zinc-700/50 px-2 py-0.5 rounded text-xs text-zinc-300">Lead: {group.user.name}</span>
-                                      <span className="text-zinc-500">•</span>
-                                      <span>{group.members ? (group.members as any[]).length + 1 : 1} Members</span>
-                                    </p>
-                                  </div>
-                                </div>
-                                <div>
-                                  <span className="text-red-500 text-sm group-hover:underline">View Details &rarr;</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                const renderRegistrationSection = (title: string, groups: typeof groupRegistrations, solo: typeof soloStudents) => {
+                  if (groups.length === 0 && solo.length === 0) return null;
+
+                  return (
+                    <div className="mb-10 last:mb-0">
+                      <div className="flex items-center gap-3 mb-6 bg-zinc-800/50 p-4 rounded-lg border-l-4 border-red-600">
+                        <h2 className="text-xl font-bold text-white uppercase tracking-wider">{title}</h2>
+                        <span className="px-3 py-1 bg-zinc-700 rounded-full text-xs text-zinc-300 font-mono">
+                          {groups.length} Teams • {solo.length} Individuals
+                        </span>
                       </div>
-                    )}
 
-                    {/* Individual Registrations Section */}
-                    {hasSolo && (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-2">
-                          <h3 className="text-white font-bold text-lg">Individual Registrations</h3>
-                          <p className="text-zinc-400 text-sm">
-                            Count:{" "}
-                            <span className="text-white font-semibold">
-                              {soloStudents.length}
-                            </span>
-                            {/* Only show 'limit' if it makes sense contextually, removed for clarity in mixed view */}
-                          </p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {soloStudents.map(
-                            (reg: any, index: number) => {
-                              const student = reg.user;
-                              return (
+                      <div className="space-y-8 pl-2">
+                        {/* Group Registrations Section */}
+                        {groups.length > 0 && (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-2">
+                              <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                                Group Registrations
+                              </h3>
+                              <p className="text-zinc-400 text-sm">
+                                Total Teams:{" "}
+                                <span className="text-white font-semibold">
+                                  {groups.length}
+                                </span>
+                              </p>
+                            </div>
+                            <div className="grid grid-cols-1 gap-4">
+                              {groups.map((group, index) => (
                                 <div
-                                  key={student.id}
+                                  key={group.id}
                                   onClick={() => {
-                                    setSelectedStudent(student);
-                                    setShowStudentDetailsModal(true);
+                                    setSelectedGroup(group);
+                                    setShowGroupDetailsModal(true);
                                   }}
-                                  className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-red-600/50 transition-all cursor-pointer group"
+                                  className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-red-600/50 transition-all cursor-pointer group hover:bg-zinc-800/80"
                                 >
-                                  <div className="flex items-start gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500 font-bold">
-                                      {index + 1}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <h4 className="text-white font-semibold flex items-center gap-2">
-                                        {student.name || "No name"}
-                                        {getSubmissionForStudent(student.id) && (
-                                          <span title="Submission Available" className="text-green-500">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                                            </svg>
-                                          </span>
-                                        )}
-                                      </h4>
-                                      <p className="text-zinc-400 text-sm truncate">
-                                        {student.email}
-                                      </p>
-                                      {student.phone && (
-                                        <p className="text-zinc-400 text-sm mt-1">
-                                          {student.phone}
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                      <div className="w-10 h-10 rounded-full bg-red-600/20 flex items-center justify-center text-red-500 font-bold">
+                                        {index + 1}
+                                      </div>
+                                      <div>
+                                        <h4 className="text-white font-bold text-lg">{group.groupName}</h4>
+                                        <p className="text-zinc-400 text-sm flex items-center gap-2">
+                                          <span className="bg-zinc-700/50 px-2 py-0.5 rounded text-xs text-zinc-300">Lead: {group.user.name}</span>
+                                          <span className="text-zinc-500">•</span>
+                                          <span>{group.members ? (group.members as any[]).length + 1 : 1} Members</span>
                                         </p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                      <span className="text-red-500 text-sm group-hover:underline">View Details &rarr;</span>
+                                      {session?.user.role === "MASTER" && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteRegistration(group.id, "GROUP");
+                                          }}
+                                          className="text-zinc-500 hover:text-red-500 p-2 rounded-full hover:bg-red-500/10 transition-colors"
+                                          title="Delete Registration"
+                                        >
+                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                          </svg>
+                                        </button>
                                       )}
+
                                     </div>
                                   </div>
                                 </div>
-                              );
-                            }
-                          )}
-                        </div>
-                        鼓                      </div>
-                    )}
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Individual Registrations Section */}
+                        {solo.length > 0 && (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-2">
+                              <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                                Individual Registrations
+                              </h3>
+                              <p className="text-zinc-400 text-sm">
+                                Count:{" "}
+                                <span className="text-white font-semibold">
+                                  {solo.length}
+                                </span>
+                              </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {solo.map(
+                                (reg: any, index: number) => {
+                                  const student = reg.user;
+                                  return (
+                                    <div
+                                      key={student.id}
+                                      onClick={() => {
+                                        setSelectedStudent(student);
+                                        setShowStudentDetailsModal(true);
+                                      }}
+                                      className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-red-600/50 transition-all cursor-pointer group"
+                                    >
+                                      <div className="flex items-start gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500 font-bold">
+                                          {index + 1}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <h4 className="text-white font-semibold flex items-center gap-2">
+                                            {student.name || "No name"}
+                                            {getSubmissionForStudent(student.id) && (
+                                              <span title="Submission Available" className="text-green-500">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                                </svg>
+                                              </span>
+                                            )}
+                                          </h4>
+                                          <p className="text-zinc-400 text-sm truncate">
+                                            {student.email}
+                                          </p>
+                                          {student.phone && (
+                                            <p className="text-zinc-400 text-sm mt-1">
+                                              {student.phone}
+                                            </p>
+                                          )}
+                                        </div>
+                                        {session?.user.role === "MASTER" && (
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleDeleteRegistration(reg.id, "INDIVIDUAL");
+                                            }}
+                                            className="text-zinc-500 hover:text-red-500 p-2 rounded-full hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
+                                            title="Delete Registration"
+                                          >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                };
+
+                return (
+                  <div className="space-y-4">
+                    {renderRegistrationSection("KL University", klGroups, klSolo)}
+                    {renderRegistrationSection("Other Colleges", otherGroups, otherSolo)}
                   </div>
                 );
               })()}
