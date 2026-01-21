@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getEvaluations } from "@/actions/evaluation.action";
+import { getEvaluations, toggleResultRelease } from "@/actions/evaluation.action";
 import Loader from "@/components/ui/Loader";
-import { FiChevronDown, FiChevronUp, FiAward, FiUsers, FiX, FiCheckCircle } from "react-icons/fi";
+import { FiChevronDown, FiChevronUp, FiAward, FiUsers, FiX, FiCheckCircle, FiGlobe, FiLock } from "react-icons/fi";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -40,6 +40,7 @@ interface EventData {
     Category: { name: string };
     evaluations: Evaluation[];
     groupRegistrations: GroupRegistration[];
+    isResultPublished: boolean;
 }
 
 interface ProcessedEntry {
@@ -78,6 +79,20 @@ export default function AdminEvaluationsPage() {
         if (newSet.has(id)) newSet.delete(id);
         else newSet.add(id);
         setExpandedEvents(newSet);
+    };
+
+    const handleToggleRelease = async (e: React.MouseEvent, eventId: string, currentStatus: boolean) => {
+        e.stopPropagation();
+        const res = await toggleResultRelease(eventId, !currentStatus);
+        if (res.success) {
+            toast.success(res.message);
+            // Update local state
+            setEvents(events.map(ev =>
+                ev.id === eventId ? { ...ev, isResultPublished: !currentStatus } : ev
+            ));
+        } else {
+            toast.error(res.error);
+        }
     };
 
     const processEventData = (event: EventData): ProcessedEntry[] => {
@@ -213,6 +228,23 @@ export default function AdminEvaluationsPage() {
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-4">
+                                            <button
+                                                onClick={(e) => handleToggleRelease(e, event.id, event.isResultPublished)}
+                                                className={`px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 border transition-all ${event.isResultPublished
+                                                    ? "bg-green-500/10 text-green-400 border-green-500/30 hover:bg-green-500/20"
+                                                    : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700"
+                                                    }`}
+                                            >
+                                                {event.isResultPublished ? (
+                                                    <>
+                                                        <FiGlobe /> Released
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <FiLock /> Private
+                                                    </>
+                                                )}
+                                            </button>
                                             <button className="text-gray-400 hover:text-white transition-colors">
                                                 {expandedEvents.has(event.id) ? <FiChevronUp size={24} /> : <FiChevronDown size={24} />}
                                             </button>
@@ -242,19 +274,55 @@ export default function AdminEvaluationsPage() {
                                                             <tbody className="text-sm">
                                                                 {processedEntries.map((entry, index) => (
                                                                     <tr key={index} className="border-b border-zinc-800/50 hover:bg-white/5">
-                                                                        <td className="py-4 pl-4 font-mono text-gray-500">
-                                                                            {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`}
+                                                                        <td className="py-4 pl-4 font-mono text-3xl text-gray-500">
+                                                                            {(() => {
+                                                                                // Calculate rank with draw logic
+                                                                                // Since processedEntries is already sorted by score DESC
+                                                                                let rank = 1;
+                                                                                let isDraw = false;
+
+                                                                                // Look back to find true rank
+                                                                                if (index > 0) {
+                                                                                    const prevScore = processedEntries[index - 1].score;
+                                                                                    const currScore = entry.score;
+                                                                                    // If scores equal, rank is same as previous (we need to find the rank of the first person with this score)
+                                                                                    if (prevScore === currScore) {
+                                                                                        isDraw = true;
+                                                                                        // Recursive or simple loop to find start of this score group
+                                                                                        let i = index - 1;
+                                                                                        while (i >= 0 && processedEntries[i].score === currScore) {
+                                                                                            i--;
+                                                                                        }
+                                                                                        // i is now the index BEFORE the group, so group starts at i + 1
+                                                                                        rank = i + 2;
+                                                                                    } else {
+                                                                                        rank = index + 1;
+                                                                                    }
+                                                                                } else {
+                                                                                    rank = 1;
+                                                                                }
+
+                                                                                // Display
+                                                                                return (
+                                                                                    <div className="flex flex-col items-center justify-center w-12 text-center">
+                                                                                        <span>
+                                                                                            {rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`}
+                                                                                        </span>
+                                                                                        {isDraw && <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-wider mt-1">(Draw)</span>}
+                                                                                    </div>
+                                                                                );
+                                                                            })()}
                                                                         </td>
                                                                         <td className="py-4">
-                                                                            <div className="font-bold text-lg text-white">{entry.name}</div>
-                                                                            <div className="text-sm font-medium text-gray-400 mt-1">{entry.subtitle}</div>
+                                                                            <div className="font-bold text-xl text-white">{entry.name}</div>
+                                                                            <div className="text-base font-medium text-gray-400 mt-1">{entry.subtitle}</div>
                                                                         </td>
-                                                                        <td className="py-4 font-bold text-lg text-red-500">
+                                                                        <td className="py-4 font-bold text-3xl text-red-500">
                                                                             {entry.score}
-                                                                            <span className="text-xs text-gray-600 font-normal ml-1">/10</span>
+                                                                            <span className="text-sm text-gray-600 font-normal ml-1">/10</span>
                                                                         </td>
                                                                         {event.isGroupEvent && (
-                                                                            <td className="py-4 text-gray-400">
+                                                                            <td className="py-4 text-gray-400 text-base">
                                                                                 {entry.evaluationsCount} Members Evaluated
                                                                             </td>
                                                                         )}
@@ -262,14 +330,14 @@ export default function AdminEvaluationsPage() {
                                                                             {entry.type === "GROUP" ? (
                                                                                 <button
                                                                                     onClick={(e) => { e.stopPropagation(); setSelectedTeam(entry); }}
-                                                                                    className="text-xs bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded flex items-center gap-2 transition-colors"
+                                                                                    className="text-sm bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded flex items-center gap-2 transition-colors"
                                                                                 >
                                                                                     <FiUsers /> View Members
                                                                                 </button>
                                                                             ) : (
-                                                                                <div className="text-xs text-gray-500">
-                                                                                    <span className="block text-gray-400">{entry.individualEvaluations?.[0]?.remarks || "-"}</span>
-                                                                                    <span className="block mt-0.5">Judge: {entry.individualEvaluations?.[0]?.judge.name}</span>
+                                                                                <div className="text-base text-gray-400">
+                                                                                    <span className="block text-gray-300 font-medium mb-1">{entry.individualEvaluations?.[0]?.remarks || "-"}</span>
+                                                                                    <span className="block text-sm text-gray-500">Judge: <span className="text-gray-400">{entry.individualEvaluations?.[0]?.judge.name}</span></span>
                                                                                 </div>
                                                                             )}
                                                                         </td>

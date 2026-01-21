@@ -75,6 +75,75 @@ export async function getPendingRegistrations() {
     }
 }
 
+export async function getRegistrationHistory() {
+    try {
+        const headersList = await headers();
+        const session = await auth.api.getSession({
+            headers: headersList,
+        });
+
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
+            return { success: false, error: "Unauthorized" };
+        }
+
+        const individualRegistrations = await prisma.individualRegistration.findMany({
+            where: {
+                paymentStatus: { in: ["APPROVED", "REJECTED"] }
+            },
+            include: {
+                user: true,
+                event: true
+            },
+            orderBy: {
+                updatedAt: "desc"
+            }
+        });
+
+        const groupRegistrations = await prisma.groupRegistration.findMany({
+            where: {
+                paymentStatus: { in: ["APPROVED", "REJECTED"] }
+            },
+            include: {
+                user: true,
+                event: true
+            },
+            orderBy: {
+                updatedAt: "desc"
+            }
+        });
+
+        const allVisitorPasses = await prisma.pass.findMany({
+            where: {
+                passType: "VISITOR",
+                paymentStatus: { in: ["APPROVED", "REJECTED"] }
+            },
+            orderBy: {
+                updatedAt: "desc"
+            }
+        });
+
+        // Filter for user data
+        const visitorPasses = await Promise.all(
+            allVisitorPasses.map(async (pass) => {
+                const user = await prisma.user.findUnique({ where: { id: pass.userId } });
+                return { ...pass, user };
+            })
+        );
+
+        return {
+            success: true,
+            data: {
+                individual: individualRegistrations,
+                group: groupRegistrations,
+                visitorPasses: visitorPasses
+            }
+        };
+    } catch (error) {
+        console.error("Error fetching registration history:", error);
+        return { success: false, error: "Failed to fetch registration history" };
+    }
+}
+
 export async function updateRegistrationStatus(
     id: string,
     type: "INDIVIDUAL" | "GROUP" | "VISITOR_PASS",
@@ -179,7 +248,13 @@ export async function updateRegistrationStatus(
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
                         await sendEventConfirmationEmail(
                             { name: userFull.name || "User", email: userFull.email },
-                            { name: registration.event.name, date: registration.event.date, venue: registration.event.venue },
+                            {
+                                name: registration.event.name,
+                                date: registration.event.date,
+                                venue: registration.event.venue,
+                                startTime: registration.event.startTime,
+                                endTime: registration.event.endTime
+                            },
                             pdfBuffer,
                             "INDIVIDUAL",
                             undefined,
@@ -238,7 +313,13 @@ export async function updateRegistrationStatus(
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
                         await sendEventConfirmationEmail(
                             { name: lead.name || "User", email: lead.email },
-                            { name: registration.event.name, date: registration.event.date, venue: registration.event.venue },
+                            {
+                                name: registration.event.name,
+                                date: registration.event.date,
+                                venue: registration.event.venue,
+                                startTime: registration.event.startTime,
+                                endTime: registration.event.endTime
+                            },
                             pdfBuffer,
                             "GROUP",
                             { groupName: groupName, members: members },

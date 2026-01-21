@@ -4,103 +4,173 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { hash } from "bcryptjs"; // Now available
+import { revalidatePath } from "next/cache";
 
-export async function getCategoriesWithJudges() {
+export async function getJudgeManagementData() {
     try {
         const session = await auth.api.getSession({
             headers: await headers()
         });
 
-        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "MASTER" && session.user.role !== "MANAGER")) {
+        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "MASTER")) {
             return { success: false, error: "Unauthorized" };
         }
 
-        const categories = await prisma.category.findMany();
-
-        // Fetch judges (users with JUDGE role and assigned category)
-        const judges = await prisma.user.findMany({
-            where: {
-                role: "JUDGE",
-                assignedCategoryId: { not: null }
-            },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                assignedCategoryId: true
+        const categories = await prisma.category.findMany({
+            include: {
+                Event: {
+                    include: {
+                        judges: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                judgePassword: session.user.role === "MASTER" // Only select if MASTER
+                            }
+                        }
+                    }
+                }
             }
         });
 
-        const data = categories.map(cat => ({
-            ...cat,
-            judge: judges.find(j => j.assignedCategoryId === cat.id) || null
-        }));
-
-        return { success: true, data };
+        return { success: true, data: categories, role: session.user.role };
 
     } catch (error) {
-        console.error("Error fetching categories:", error);
+        console.error("Error fetching judge management data:", error);
         return { success: false, error: "Failed to load data" };
     }
 }
 
-export async function createJudgeAccount(categoryId: string, email: string, passwordPlain: string, name: string) {
+export async function createJudgeAccount(eventId: string, passwordPlain: string | null) {
     try {
         const session = await auth.api.getSession({
             headers: await headers()
         });
 
-        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "MASTER" && session.user.role !== "MANAGER")) {
+        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "MASTER")) {
             return { success: false, error: "Unauthorized" };
         }
 
-        // Check if user exists
-        const existingUser = await prisma.user.findUnique({
-            where: { email }
-        });
-
-        const hashedPassword = await hash(passwordPlain, 10);
-
-        if (existingUser) {
-            // Update existing user to be a judge
-            await prisma.user.update({
-                where: { email },
-                data: {
-                    role: "JUDGE",
-                    assignedCategoryId: categoryId,
-                    password: hashedPassword, // Reset password
-                    name
-                }
-            });
-            // Ensure account linked? better-auth usually checks user.password for email login.
-        } else {
-            // Create new user
-            await prisma.user.create({
-                data: {
-                    id: crypto.randomUUID(),
-                    email,
-                    name,
-                    role: "JUDGE",
-                    assignedCategoryId: categoryId,
-                    password: hashedPassword,
-                    emailVerified: true,
-                    accounts: {
-                        create: {
-                            id: crypto.randomUUID(),
-                            accountId: email, // Use email as accountId for credentials often
-                            providerId: "credential", // better-auth usually uses 'credential' or 'email'
-                            password: hashedPassword,
-                            accessToken: crypto.randomUUID(), // Placeholder
-                        }
-                    }
-                }
-            });
+        // Only MASTER can set specific password
+        if (passwordPlain && session.user.role !== "MASTER") {
+            return { success: false, error: "Only MASTER can set passwords. Admins can only create accounts." };
         }
 
-        return { success: true };
+        const event = await prisma.event.findUnique({
+            where: { id: eventId },
+            select: { slug: true, name: true }
+        });
+
+        if (!event) {
+            return { success: false, error: "Event not found" };
+        }
+
+        // Generate auto-email
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000); // 4 digit random
+        const email = `judge.${event.slug}.${randomSuffix}@klusurabhi.in`;
+        const name = `Judge - ${event.name} (${randomSuffix})`;
+
+        // Determine password
+        // If MASTER provided one, use it.
+        // If ADMIN creating (passwordPlain null), generate a random secure one that no one knows (they must be reset by MASTER later theoretically, or just used purely for existence)
+        // But user said "MASTER WILL SET password". This implies initially it might not have a known password? 
+        // Or I can generate a random one.
+        const effectivePasswordPlain = passwordPlain || crypto.randomUUID();
+        const hashedPassword = await hash(effectivePasswordPlain, 10);
+        const storedJudgePassword = passwordPlain ? passwordPlain : null; // Only store if explicitly set by Master
+
+        // Create new user
+        await prisma.user.create({
+            data: {
+                id: crypto.randomUUID(),
+                email,
+                name,
+                role: "JUDGE",
+                assignedEventId: eventId,
+                password: hashedPassword,
+                judgePassword: storedJudgePassword,
+                emailVerified: true,
+                accounts: {
+                    create: {
+                        id: crypto.randomUUID(),
+                        accountId: email,
+                        providerId: "credential",
+                        password: hashedPassword,
+                        accessToken: crypto.randomUUID(),
+                    }
+                }
+            }
+        });
+
+        revalidatePath("/admin/judges");
+        return { success: true, email };
 
     } catch (error) {
         console.error("Error creating judge:", error);
         return { success: false, error: "Failed to create judge account" };
+    }
+}
+
+export async function updateJudgePassword(judgeId: string, newPasswordPlain: string) {
+    try {
+        const session = await auth.api.getSession({
+            headers: await headers()
+        });
+
+        if (!session?.user || session.user.role !== "MASTER") {
+            return { success: false, error: "Unauthorized. Only MASTER can specific passwords." };
+        }
+
+        const hashedPassword = await hash(newPasswordPlain, 10);
+
+        await prisma.user.update({
+            where: { id: judgeId },
+            data: {
+                password: hashedPassword,
+                judgePassword: newPasswordPlain
+            }
+        });
+
+        // Update account too
+        const judge = await prisma.user.findUnique({ where: { id: judgeId } });
+        if (judge) {
+            const account = await prisma.account.findFirst({
+                where: { userId: judgeId, providerId: 'credential' }
+            });
+            if (account) {
+                await prisma.account.update({
+                    where: { id: account.id },
+                    data: { password: hashedPassword }
+                });
+            }
+        }
+
+        revalidatePath("/admin/judges");
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating judge password:", error);
+        return { success: false, error: "Failed to update password" };
+    }
+}
+
+export async function deleteJudgeAccount(judgeId: string) {
+    try {
+        const session = await auth.api.getSession({
+            headers: await headers()
+        });
+
+        if (!session?.user || session.user.role !== "MASTER") {
+            return { success: false, error: "Unauthorized. Only MASTER can delete judges." };
+        }
+
+        await prisma.user.delete({
+            where: { id: judgeId }
+        });
+
+        revalidatePath("/admin/judges");
+        return { success: true };
+    } catch (error) {
+        console.error("Error deleting judge:", error);
+        return { success: false, error: "Failed to delete judge account" };
     }
 }
