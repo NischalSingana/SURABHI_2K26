@@ -267,6 +267,7 @@ function EventDetailPageContent() {
   const [loading, setLoading] = useState(true);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isApproved, setIsApproved] = useState<boolean | undefined>(undefined);
+  const [registrationStatus, setRegistrationStatus] = useState<string | null>(null);
   const [checkingRegistration, setCheckingRegistration] = useState(true);
   const [unregistering, setUnregistering] = useState(false);
   const [showUnregisterConfirm, setShowUnregisterConfirm] = useState(false);
@@ -321,6 +322,9 @@ function EventDetailPageContent() {
     if (result.success) {
       setIsRegistered(result.isRegistered || false);
       setIsApproved(result.isApproved);
+      if (result.registrationStatus) {
+        setRegistrationStatus(result.registrationStatus);
+      }
     }
     setCheckingRegistration(false);
   };

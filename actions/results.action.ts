@@ -1,9 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth"; // Assuming auth is needed, though results might be public?
-// Actually if it's public results, we might not need auth check, but let's check requirements.
-// "display that page to students at last" -> implies public.
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export async function getCategories() {
     try {
@@ -143,7 +142,41 @@ export async function getEventResults(eventSlug: string) {
         // Sort by Score DESC
         participants.sort((a, b) => b.score - a.score);
 
-        return { success: true, data: { event: eventDetails, participants } };
+        // Check if results are released
+        // If not released, we only return participants if the requester is an admin (optional, for preview) 
+        // OR we just return empty list with a flag.
+        // For simplicity and security, if not released, we return empty list for public.
+        // IF we want admins to preview, we'd need to check auth.
+        // Let's check auth to see if user is ADMIN/MASTER, if so, they can see even if not published.
+
+        let canView = eventDetails.isResultPublished;
+        if (!canView) {
+            const headersList = await headers();
+            const session = await auth.api.getSession({ headers: headersList });
+            if (session?.user?.role === 'ADMIN' || session?.user?.role === 'MASTER' || session?.user?.role === 'MANAGER') {
+                canView = true;
+            }
+        }
+
+        if (!canView) {
+            return {
+                success: true,
+                data: {
+                    event: eventDetails,
+                    participants: [],
+                    isPublished: false
+                }
+            };
+        }
+
+        return {
+            success: true,
+            data: {
+                event: eventDetails,
+                participants,
+                isPublished: true
+            }
+        };
 
     } catch (error) {
         console.error("Error fetching event results:", error);

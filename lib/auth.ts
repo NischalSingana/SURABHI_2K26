@@ -84,7 +84,7 @@ export const auth = betterAuth({
                 type: ["USER", "ADMIN", "JUDGE", "MANAGER", "MASTER"] as Array<Role>,
                 input: false
             },
-            assignedCategoryId: {
+            assignedEventId: {
                 type: "string",
                 input: false
             },

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getPendingRegistrations, updateRegistrationStatus } from "@/actions/admin.action";
+import { getPendingRegistrations, getRegistrationHistory, updateRegistrationStatus } from "@/actions/admin.action";
 import { toast } from "sonner";
 import Image from "next/image";
 import { format } from "date-fns";
@@ -34,14 +34,18 @@ export default function RegistrationApprovals() {
     const [loading, setLoading] = useState(true);
     const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
     const [activeTab, setActiveTab] = useState<"INDIVIDUAL" | "GROUP" | "VISITOR">("INDIVIDUAL");
+    const [viewMode, setViewMode] = useState<"PENDING" | "HISTORY">("PENDING");
 
     useEffect(() => {
         fetchRegistrations();
-    }, []);
+    }, [viewMode]);
 
     const fetchRegistrations = async () => {
         setLoading(true);
-        const result = await getPendingRegistrations();
+        const result = viewMode === "PENDING"
+            ? await getPendingRegistrations()
+            : await getRegistrationHistory();
+
         if (result.success && result.data) {
             const individual = result.data.individual.map((r: any) => ({ ...r, type: "INDIVIDUAL" }));
             const group = result.data.group.map((r: any) => ({ ...r, type: "GROUP" }));
@@ -78,7 +82,26 @@ export default function RegistrationApprovals() {
 
     return (
         <div className="p-6">
-            <h1 className="text-3xl font-bold text-white mb-6">Registration Approvals</h1>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold text-white">Registration Approvals</h1>
+
+                <div className="flex bg-zinc-900 p-1 rounded-lg border border-zinc-800">
+                    <button
+                        onClick={() => setViewMode("PENDING")}
+                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === "PENDING" ? "bg-zinc-800 text-white shadow-sm" : "text-zinc-400 hover:text-white"
+                            }`}
+                    >
+                        Pending
+                    </button>
+                    <button
+                        onClick={() => setViewMode("HISTORY")}
+                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === "HISTORY" ? "bg-zinc-800 text-white shadow-sm" : "text-zinc-400 hover:text-white"
+                            }`}
+                    >
+                        History
+                    </button>
+                </div>
+            </div>
 
             {/* Tabs */}
             <div className="flex gap-4 mb-6 border-b border-zinc-800 pb-2">
@@ -121,7 +144,7 @@ export default function RegistrationApprovals() {
                             {filteredRegistrations.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
-                                        No pending registrations found.
+                                        No {viewMode === "PENDING" ? "pending registrations" : "history"} found.
                                     </td>
                                 </tr>
                             ) : (
@@ -161,18 +184,26 @@ export default function RegistrationApprovals() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => handleStatusUpdate(reg.id, reg.type, "APPROVED")}
-                                                    className="px-3 py-1 bg-green-600/20 text-green-500 hover:bg-green-600/30 rounded text-xs font-medium transition-colors"
-                                                >
-                                                    Approve
-                                                </button>
-                                                <button
-                                                    onClick={() => handleStatusUpdate(reg.id, reg.type, "REJECTED")}
-                                                    className="px-3 py-1 bg-red-600/20 text-red-500 hover:bg-red-600/30 rounded text-xs font-medium transition-colors"
-                                                >
-                                                    Reject
-                                                </button>
+                                                {viewMode === "PENDING" ? (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleStatusUpdate(reg.id, reg.type, "APPROVED")}
+                                                            className="px-3 py-1 bg-green-600/20 text-green-500 hover:bg-green-600/30 rounded text-xs font-medium transition-colors"
+                                                        >
+                                                            Approve
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleStatusUpdate(reg.id, reg.type, "REJECTED")}
+                                                            className="px-3 py-1 bg-red-600/20 text-red-500 hover:bg-red-600/30 rounded text-xs font-medium transition-colors"
+                                                        >
+                                                            Reject
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-zinc-500 text-xs italic">
+                                                        {format(new Date(reg.createdAt), "dd MMM yyyy")}
+                                                    </span>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -209,18 +240,15 @@ export default function RegistrationApprovals() {
                             )}
                         </div>
 
-                        <div className="mt-4 flex justify-end gap-3">
+                        <div className="mt-4 flex justify-end">
                             <button
-                                onClick={() => handleStatusUpdate(selectedRegistration.id, selectedRegistration.type, "REJECTED")}
-                                className="px-4 py-2 bg-red-600/20 text-red-500 hover:bg-red-600/30 rounded font-medium transition-colors"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedRegistration(null);
+                                }}
+                                className="px-4 py-2 bg-zinc-800 text-zinc-400 hover:text-white rounded font-medium transition-colors"
                             >
-                                Reject
-                            </button>
-                            <button
-                                onClick={() => handleStatusUpdate(selectedRegistration.id, selectedRegistration.type, "APPROVED")}
-                                className="px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded font-medium transition-colors"
-                            >
-                                Approve & Verify
+                                Close
                             </button>
                         </div>
                     </div>
