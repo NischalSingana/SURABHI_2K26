@@ -14,19 +14,18 @@ export async function GET() {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const categoryId = session.user.assignedCategoryId;
+        const eventId = session.user.assignedEventId;
 
-        if (!categoryId) {
-            return NextResponse.json({ error: "No category assigned to this judge" }, { status: 400 });
+        if (!eventId) {
+            return NextResponse.json({ error: "No event assigned to this judge" }, { status: 400 });
         }
 
-        // Fetch events in the assigned category
-        const events = await prisma.event.findMany({
+        // Fetch the assigned event with all necessary data
+        const event = await prisma.event.findUnique({
             where: {
-                categoryId: categoryId
+                id: eventId
             },
             include: {
-                // Include registered users (individual)
                 // Include registered users (individual)
                 individualRegistrations: {
                     include: {
@@ -59,17 +58,22 @@ export async function GET() {
                     where: {
                         judgeId: session.user.id
                     }
-                }
+                },
+                // Include category info
+                Category: true
             }
         });
 
-        const category = await prisma.category.findUnique({
-            where: { id: categoryId }
-        });
+        if (!event) {
+            return NextResponse.json({ error: "Event not found" }, { status: 404 });
+        }
+
+        // Return as array for compatibility with frontend
+        const events = [event];
 
         return NextResponse.json({
             events,
-            categoryName: category?.name
+            categoryName: event.Category?.name
         });
 
     } catch (error) {
