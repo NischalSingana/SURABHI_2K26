@@ -74,10 +74,10 @@ export default function Loader() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
-                className="mt-8 text-center"
+                className="-mt-4 text-center"
             >
                 <h1 className="text-2xl md:text-3xl font-bold tracking-[0.2em] text-white">
-                    SURABHI
+                    SURABHI-2026
                     <span className="text-red-500">.</span>
                 </h1>
                 <motion.div

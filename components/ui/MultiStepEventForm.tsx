@@ -38,6 +38,7 @@ interface Event {
   termsandconditions: string;
   registrationLink: string;
   whatsappLink?: string | null;
+  brochureLink?: string | null;
 }
 
 interface MultiStepEventFormProps {
@@ -75,6 +76,7 @@ export default function MultiStepEventForm({
     termsandconditions: editingEvent?.termsandconditions || "",
     registrationLink: editingEvent?.registrationLink || "",
     whatsappLink: editingEvent?.whatsappLink || "",
+    brochureLink: editingEvent?.brochureLink || "",
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -795,6 +797,23 @@ export default function MultiStepEventForm({
                       onChange={handleInputChange}
                       className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                       placeholder="https://chat.whatsapp.com/..."
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">
+                    Brochure Link (PDF/Drive) <span className="text-zinc-500 text-xs">(Optional)</span>
+                  </label>
+                  <div className="relative">
+                    <FiFileText className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500" />
+                    <input
+                      type="url"
+                      name="brochureLink"
+                      value={formData.brochureLink}
+                      onChange={handleInputChange}
+                      className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="https://example.com/brochure.pdf"
                     />
                   </div>
                 </div>
