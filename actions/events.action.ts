@@ -233,6 +233,7 @@ interface EventData {
   termsandconditions: string;
   registrationLink: string;
   whatsappLink?: string;
+  brochureLink?: string;
 }
 
 export async function createEvent(eventData: EventData) {
@@ -272,6 +273,7 @@ export async function createEvent(eventData: EventData) {
         termsandconditions: eventData.termsandconditions,
         registrationLink: eventData.registrationLink,
         whatsappLink: eventData.whatsappLink || null,
+        brochureLink: eventData.brochureLink || null,
         updatedAt: new Date(),
       },
     });
@@ -308,6 +310,7 @@ interface EventUpdateData {
     termsandconditions: string;
     registrationLink: string;
     whatsappLink?: string;
+    brochureLink?: string;
   }
 
 }
@@ -346,6 +349,7 @@ export async function updateEvent({ id, eventData }: EventUpdateData) {
         termsandconditions: eventData.termsandconditions,
         registrationLink: eventData.registrationLink,
         whatsappLink: eventData.whatsappLink || null,
+        brochureLink: eventData.brochureLink || null,
         updatedAt: new Date(),
       },
     });

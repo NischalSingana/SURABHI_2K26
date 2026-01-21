@@ -57,7 +57,7 @@ export default function SchedulePage() {
     }
 
     return (
-        <div className="min-h-screen bg-black py-20 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-black pt-32 pb-20 px-4 sm:px-6 lg:px-8">
             {/* Background Effects */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(220,38,38,0.1),transparent_50%)]" />
@@ -133,12 +133,12 @@ export default function SchedulePage() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setSelectedSchedule(null)}
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 md:p-8"
+                        className="fixed inset-0 z-[9999999] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 md:p-8"
                     >
                         {/* Close Button - Fixed to top right of screen for easy access */}
                         <button
                             onClick={() => setSelectedSchedule(null)}
-                            className="fixed top-6 right-6 z-[110] bg-zinc-900/80 hover:bg-zinc-800 text-white p-3 rounded-full border border-zinc-700 transition-all hover:scale-110 backdrop-blur-sm group"
+                            className="fixed top-4 right-4 md:top-8 md:right-8 z-[10000000] bg-zinc-900/90 hover:bg-zinc-800 text-white p-3 rounded-full border border-zinc-700 transition-all hover:scale-110 backdrop-blur-sm group shadow-xl"
                         >
                             <svg className="w-6 h-6 group-hover:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

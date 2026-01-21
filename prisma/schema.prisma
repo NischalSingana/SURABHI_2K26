@@ -40,6 +40,10 @@ model User {
   evaluationsGiven      Evaluation[]             @relation("JudgeEvaluations")
   evaluationsReceived   Evaluation[]             @relation("ParticipantEvaluations")
 
+  @@index([paymentStatus])
+  @@index([role])
+  @@index([isApproved])
+  @@index([collage])
   @@map("users")
 }
 
@@ -146,6 +150,7 @@ model Event {
   termsandconditions String
   registrationLink   String
   whatsappLink       String?
+  brochureLink       String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime
   Category           Category @relation(fields: [categoryId], references: [id])
@@ -179,6 +184,9 @@ model GroupRegistration {
   paymentStatus    PaymentStatus @default(PENDING)
 
   @@unique([userId, eventId])
+  @@index([eventId])
+  @@index([userId])
+  @@index([paymentStatus])
   @@map("group_registrations")
 }
 
@@ -247,6 +255,8 @@ model AccommodationBooking {
 
   // Ensure one booking per user
   @@unique([userId])
+  @@index([paymentStatus])
+  @@index([status])
   @@map("accommodation_bookings")
 }
 
@@ -289,6 +299,9 @@ model IndividualRegistration {
   paymentStatus    PaymentStatus @default(PENDING)
 
   @@unique([userId, eventId])
+  @@index([eventId])
+  @@index([userId])
+  @@index([paymentStatus])
   @@map("individual_registrations")
 }
 
@@ -337,6 +350,9 @@ model Evaluation {
   updatedAt     DateTime @updatedAt
 
   @@unique([judgeId, eventId, participantId])
+  @@index([eventId])
+  @@index([judgeId])
+  @@index([participantId])
   @@map("evaluations")
 }
 

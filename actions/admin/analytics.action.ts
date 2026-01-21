@@ -16,23 +16,21 @@ export async function getUserStats() {
             throw new Error("Unauthorized");
         }
 
-        const totalUsers = await prisma.user.count();
-        const approvedUsers = await prisma.user.count({
-            where: { isApproved: true },
-        });
-        const pendingUsers = await prisma.user.count({
-            where: { isApproved: false },
-        });
-
-        const paymentApproved = await prisma.user.count({
-            where: { paymentStatus: "APPROVED" },
-        });
-        const paymentPending = await prisma.user.count({
-            where: { paymentStatus: "PENDING" },
-        });
-        const paymentRejected = await prisma.user.count({
-            where: { paymentStatus: "REJECTED" },
-        });
+        const [
+            totalUsers,
+            approvedUsers,
+            pendingUsers,
+            paymentApproved,
+            paymentPending,
+            paymentRejected
+        ] = await Promise.all([
+            prisma.user.count(),
+            prisma.user.count({ where: { isApproved: true } }),
+            prisma.user.count({ where: { isApproved: false } }),
+            prisma.user.count({ where: { paymentStatus: "APPROVED" } }),
+            prisma.user.count({ where: { paymentStatus: "PENDING" } }),
+            prisma.user.count({ where: { paymentStatus: "REJECTED" } }),
+        ]);
 
         return {
             success: true,
@@ -115,38 +113,31 @@ export async function getAccommodationStats() {
             throw new Error("Unauthorized");
         }
 
-        const totalBookings = await prisma.accommodationBooking.count();
-        const individualBookings = await prisma.accommodationBooking.count({
-            where: { bookingType: "INDIVIDUAL" },
-        });
-        const groupBookings = await prisma.accommodationBooking.count({
-            where: { bookingType: "GROUP" },
-        });
-
-        const maleBookings = await prisma.accommodationBooking.count({
-            where: { gender: "MALE" },
-        });
-        const femaleBookings = await prisma.accommodationBooking.count({
-            where: { gender: "FEMALE" },
-        });
-
-        const confirmedBookings = await prisma.accommodationBooking.count({
-            where: { status: "CONFIRMED" },
-        });
-        const pendingBookings = await prisma.accommodationBooking.count({
-            where: { status: "PENDING" },
-        });
-        const cancelledBookings = await prisma.accommodationBooking.count({
-            where: { status: "CANCELLED" },
-        });
-
-        // Calculate total members
-        const bookings = await prisma.accommodationBooking.findMany({
-            select: {
-                totalMembers: true,
-            },
-        });
-        const totalMembers = bookings.reduce((sum, b) => sum + b.totalMembers, 0);
+        const [
+            totalBookings,
+            individualBookings,
+            groupBookings,
+            maleBookings,
+            femaleBookings,
+            confirmedBookings,
+            pendingBookings,
+            cancelledBookings,
+            totalMembersAgg
+        ] = await Promise.all([
+            prisma.accommodationBooking.count(),
+            prisma.accommodationBooking.count({ where: { bookingType: "INDIVIDUAL" } }),
+            prisma.accommodationBooking.count({ where: { bookingType: "GROUP" } }),
+            prisma.accommodationBooking.count({ where: { gender: "MALE" } }),
+            prisma.accommodationBooking.count({ where: { gender: "FEMALE" } }),
+            prisma.accommodationBooking.count({ where: { status: "CONFIRMED" } }),
+            prisma.accommodationBooking.count({ where: { status: "PENDING" } }),
+            prisma.accommodationBooking.count({ where: { status: "CANCELLED" } }),
+            prisma.accommodationBooking.aggregate({
+                _sum: {
+                    totalMembers: true
+                }
+            })
+        ]);
 
         return {
             success: true,
@@ -159,7 +150,7 @@ export async function getAccommodationStats() {
                 confirmedBookings,
                 pendingBookings,
                 cancelledBookings,
-                totalMembers,
+                totalMembers: totalMembersAgg._sum.totalMembers || 0,
             },
         };
     } catch (error: any) {
