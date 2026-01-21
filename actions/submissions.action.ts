@@ -29,18 +29,34 @@ export async function submitEventWork(eventId: string, submissionLink: string, n
         }
 
         // Check if user is registered for the event
-        const registration = await prisma.user.findFirst({
+        const individualReg = await prisma.individualRegistration.findUnique({
             where: {
-                id: session.user.id,
-                registeredEvents: {
-                    some: {
-                        id: eventId,
-                    },
+                userId_eventId: {
+                    userId: session.user.id,
+                    eventId: eventId,
                 },
             },
         });
 
-        if (!registration) {
+        const groupReg = await prisma.groupRegistration.findUnique({
+            where: {
+                userId_eventId: {
+                    userId: session.user.id,
+                    eventId: eventId,
+                },
+            },
+        });
+
+        const memberInGroup = await prisma.groupRegistration.findFirst({
+            where: {
+                eventId: eventId,
+                members: {
+                    array_contains: [{ email: session.user.email }]
+                }
+            }
+        });
+
+        if (!individualReg && !groupReg && !memberInGroup) {
             return { success: false, error: "You must be registered for this event to submit" };
         }
 
@@ -166,22 +182,37 @@ export async function getUserRegisteredEvents() {
                 id: session.user.id,
             },
             include: {
-                registeredEvents: {
+                individualRegistrations: {
                     include: {
-                        Category: true,
-                        _count: {
-                            select: {
-                                registeredStudents: true,
+                        event: {
+                            include: {
+                                Category: true,
+                                _count: {
+                                    select: {
+                                        individualRegistrations: true,
+                                        groupRegistrations: true,
+                                    },
+                                },
                             },
                         },
                     },
-                    orderBy: {
-                        date: "asc",
+                },
+                groupRegistrations: {
+                    include: {
+                        event: {
+                            include: {
+                                Category: true,
+                                _count: {
+                                    select: {
+                                        individualRegistrations: true,
+                                        groupRegistrations: true,
+                                    },
+                                },
+                            },
+                        },
                     },
                 },
                 eventSubmissions: true,
-                individualRegistrations: true,
-                groupRegistrations: true,
             },
         });
 
@@ -189,44 +220,60 @@ export async function getUserRegisteredEvents() {
             return { success: false, error: "User not found" };
         }
 
-        // Fetch group registrations only for events the user is registered for
-        const eventIds = user.registeredEvents.map(e => e.id);
-        const allGroupRegs = await prisma.groupRegistration.findMany({
+        // Find groups where user is a member
+        const memberInGroups = await prisma.groupRegistration.findMany({
             where: {
-                eventId: { in: eventIds },
+                members: {
+                    array_contains: [{ email: session.user.email }]
+                },
+                userId: { not: session.user.id }
             },
-        });
-
-        // Filter for groups where the user is either the leader OR a member
-        const relevantGroupRegs = allGroupRegs.filter(gr => {
-            if (gr.userId === session.user.id) return true;
-            const members = gr.members as any[];
-            return Array.isArray(members) && members.some((m: any) => m.userId === session.user.id || m.email === session.user.email);
-        });
-
-        // Map status to events
-        const eventsWithStatus = user.registeredEvents.map(event => {
-            // Check individual registration
-            const individualReg = user.individualRegistrations.find(r => r.eventId === event.id);
-            if (individualReg) {
-                return { ...event, registrationStatus: individualReg.paymentStatus };
+            include: {
+                event: {
+                    include: {
+                        Category: true,
+                        _count: {
+                            select: {
+                                individualRegistrations: true,
+                                groupRegistrations: true,
+                            },
+                        },
+                    },
+                },
             }
-
-            // Check group registration (from fetched user.groupRegistrations directly to avoid extra query logic issues, or verify if the relevant one applies)
-            const groupReg = relevantGroupRegs.find(r => r.eventId === event.id);
-            if (groupReg) {
-                return { ...event, registrationStatus: groupReg.paymentStatus };
-            }
-
-            // Fallback (assume approved if legacy/KL)
-            return { ...event, registrationStatus: "APPROVED" };
         });
+
+        // Combine events
+        const individualEvents = user.individualRegistrations.map(reg => ({
+            ...reg.event,
+            registrationStatus: reg.paymentStatus as any
+        }));
+
+        const groupEvents = user.groupRegistrations.map(reg => ({
+            ...reg.event,
+            registrationStatus: reg.paymentStatus as any
+        }));
+
+        const memberEvents = memberInGroups.map(reg => ({
+            ...reg.event,
+            registrationStatus: reg.paymentStatus as any
+        }));
+
+        const allEvents = [...individualEvents, ...groupEvents, ...memberEvents];
+        const uniqueEventsMap = new Map();
+        allEvents.forEach(e => {
+            uniqueEventsMap.set(e.id, e);
+        });
+
+        const uniqueEvents = Array.from(uniqueEventsMap.values()).sort((a, b) =>
+            new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
 
         return {
             success: true,
-            data: eventsWithStatus,
+            data: uniqueEvents,
             submissions: user.eventSubmissions,
-            groupRegistrations: relevantGroupRegs
+            groupRegistrations: [...user.groupRegistrations, ...memberInGroups]
         };
     } catch (error) {
         console.error("Error fetching registered events:", error);

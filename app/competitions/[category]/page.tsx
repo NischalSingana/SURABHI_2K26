@@ -30,7 +30,8 @@ interface Event {
     name: string;
   };
   _count: {
-    registeredStudents: number;
+    individualRegistrations: number;
+    groupRegistrations: number;
   };
   isGroupEvent: boolean;
 }
@@ -518,8 +519,8 @@ function CategoryPageContent() {
                                   >
                                     Already Registered
                                   </button>
-                                ) : event._count.registeredStudents >= event.participantLimit ? (
-                                  <button
+                                ) : (event._count.individualRegistrations + event._count.groupRegistrations) >= event.participantLimit ? (
+                                  < button
                                     disabled
                                     className="bg-zinc-700 text-zinc-400 px-6 py-2 rounded-md cursor-not-allowed"
                                   >

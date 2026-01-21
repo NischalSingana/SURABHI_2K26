@@ -31,15 +31,14 @@ model User {
   role             Role          @default(USER)
   accounts              Account[]
   sessions              Session[]
-  registeredEvents      Event[]                  @relation("EventToUser")
+  assignedCategoryId    String?
+  passes                Pass[]
   accommodationBookings AccommodationBooking[]
   eventSubmissions      EventSubmission[]
   individualRegistrations IndividualRegistration[]
   groupRegistrations    GroupRegistration[]
   evaluationsGiven      Evaluation[]             @relation("JudgeEvaluations")
   evaluationsReceived   Evaluation[]             @relation("ParticipantEvaluations")
-  assignedCategoryId    String?
-  passes                Pass[]
 
   @@map("users")
 }
@@ -150,7 +149,6 @@ model Event {
   createdAt          DateTime @default(now())
   updatedAt          DateTime
   Category           Category @relation(fields: [categoryId], references: [id])
-  registeredStudents User[]   @relation("EventToUser")
   submissions        EventSubmission[]
   individualRegistrations IndividualRegistration[]
   groupRegistrations GroupRegistration[]
@@ -354,10 +352,6 @@ model Sponsor {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
-  // Legacy fields (kept for safety)
-  amount      Float?
-  order       Int?     @default(0)
 
   @@map("sponsors")
 }
