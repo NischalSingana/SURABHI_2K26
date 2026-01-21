@@ -46,7 +46,7 @@ export default function ResultsPage() {
     const [loadingResults, setLoadingResults] = useState(false);
 
     const { data: session } = useSession();
-    const [isPublished, setIsPublished] = useState(true);
+    const [isPublished, setIsPublished] = useState(false);
 
 
 
@@ -62,7 +62,7 @@ export default function ResultsPage() {
         setSelectedCategory(categoryId);
         setSelectedEvent("");
         setResults([]);
-        setIsPublished(true);
+        setIsPublished(false);
         setLoadingEvents(true);
         const res = await getEventsByCategory(categoryId);
         if (res.success) {
@@ -76,7 +76,7 @@ export default function ResultsPage() {
         setLoadingResults(true);
         const res = await getEventResults(eventSlug);
         if (res.success) {
-            setIsPublished(res.data?.isPublished ?? true);
+            setIsPublished(res.data?.isPublished ?? false);
             const evaluated: ParticipantResult[] = (res.data?.participants || [])
                 .filter((p: any) => p.isEvaluated && p.score > 0)
                 .map((p: any) => ({
