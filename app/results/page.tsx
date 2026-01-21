@@ -31,6 +31,7 @@ interface ParticipantResult {
     collageId: string | null;
     score: number;
     isEvaluated: boolean;
+    remarks: string | null;
 }
 
 export default function ResultsPage() {
@@ -84,7 +85,8 @@ export default function ResultsPage() {
                     type: p.type as "GROUP" | "INDIVIDUAL",
                     collageId: p.collageId,
                     score: p.score,
-                    isEvaluated: p.isEvaluated
+                    isEvaluated: p.isEvaluated,
+                    remarks: p.remarks || null
                 }));
             setResults(evaluated);
         } else {
@@ -239,42 +241,53 @@ export default function ResultsPage() {
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: index * 0.05 }}
-                                        className={`relative rounded-xl p-1 ${isUser ? 'bg-gradient-to-r from-red-600 via-orange-500 to-red-600 animate-pulse' : ''} ${rank <= 3 && !isUser ? 'bg-gradient-to-r from-transparent via-white/5 to-transparent' : ''}`}
+                                        className="relative rounded-xl"
                                     >
-                                        <div className={`relative flex items-center gap-4 sm:gap-6 p-4 sm:p-6 rounded-xl border transition-all hover:scale-[1.01] ${isUser ? 'bg-zinc-900 border-transparent shadow-2xl' : rank === 1 ? 'bg-gradient-to-r from-yellow-600/20 to-yellow-500/10 border-yellow-500/50 text-yellow-500' : rank === 2 ? 'bg-gradient-to-r from-slate-400/20 to-slate-200/10 border-slate-400/50 text-slate-300' : rank === 3 ? 'bg-gradient-to-r from-orange-700/20 to-orange-600/10 border-orange-600/50 text-orange-400' : 'bg-zinc-900/50 border-white/10 text-gray-400'}`}>
-                                            {/* Rank */}
-                                            <div className="flex-shrink-0 w-16 h-16 flex flex-col items-center justify-center text-center">
-                                                <span className="text-3xl sm:text-4xl font-black">
-                                                    {rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`}
-                                                </span>
-                                                {isDraw && (
-                                                    <span className="text-[10px] uppercase tracking-wider font-bold opacity-60 mt-1">
-                                                        (Draw)
+                                        <div className={`relative flex flex-col gap-4 p-4 sm:p-6 rounded-xl border transition-all hover:scale-[1.01] ${isUser ? 'bg-zinc-900 border-red-500/50 shadow-lg' : 'bg-zinc-900/50 border-white/10'}`}>
+                                            {/* Main Row */}
+                                            <div className="flex items-center gap-4 sm:gap-6">
+                                                {/* Rank */}
+                                                <div className="flex-shrink-0 w-16 h-16 flex flex-col items-center justify-center text-center">
+                                                    <span className="text-3xl sm:text-4xl font-black text-white">
+                                                        {rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`}
                                                     </span>
-                                                )}
+                                                    {isDraw && (
+                                                        <span className="text-[10px] uppercase tracking-wider font-bold opacity-60 mt-1">
+                                                            (Draw)
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {/* Info */}
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="text-xl sm:text-2xl font-bold truncate mb-1 text-white">
+                                                        {result.name}
+                                                        {isUser && <span className="ml-2 text-xs bg-red-600 text-white px-2 py-0.5 rounded-full align-middle">YOU</span>}
+                                                    </h3>
+                                                    <p className="text-sm sm:text-base text-gray-400 flex items-center gap-2">
+                                                        {result.type === 'GROUP' ? <FiUsers /> : <FiUser />}
+                                                        {result.collageId || "No ID"}
+                                                    </p>
+                                                </div>
+
+                                                {/* Score */}
+                                                <div className="flex-shrink-0 text-right">
+                                                    <div className="text-2xl sm:text-4xl font-black text-white">
+                                                        {result.score}
+                                                    </div>
+                                                    <div className="text-xs sm:text-sm text-gray-400 uppercase font-medium tracking-wider">
+                                                        Score
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            {/* Info */}
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className={`text-xl sm:text-2xl font-bold truncate mb-1 ${isUser ? 'text-white' : 'text-white'}`}>
-                                                    {result.name}
-                                                    {isUser && <span className="ml-2 text-xs bg-red-600 text-white px-2 py-0.5 rounded-full align-middle">YOU</span>}
-                                                </h3>
-                                                <p className="text-sm sm:text-base opacity-60 flex items-center gap-2">
-                                                    {result.type === 'GROUP' ? <FiUsers /> : <FiUser />}
-                                                    {result.collageId || "No ID"}
-                                                </p>
-                                            </div>
-
-                                            {/* Score */}
-                                            <div className="flex-shrink-0 text-right">
-                                                <div className={`text-2xl sm:text-4xl font-black ${rank === 1 ? 'text-yellow-400' : 'text-white'}`}>
-                                                    {result.score}
+                                            {/* Remarks */}
+                                            {result.remarks && (
+                                                <div className="pt-4 border-t border-white/10">
+                                                    <p className="text-sm text-gray-400 mb-1 font-medium">Remarks:</p>
+                                                    <p className="text-sm text-gray-300 italic">{result.remarks}</p>
                                                 </div>
-                                                <div className="text-xs sm:text-sm opacity-40 uppercase font-medium tracking-wider">
-                                                    Score
-                                                </div>
-                                            </div>
+                                            )}
                                         </div>
                                     </motion.div>
                                 )
