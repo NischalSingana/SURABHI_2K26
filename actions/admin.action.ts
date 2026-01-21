@@ -181,7 +181,13 @@ export async function updateRegistrationStatus(
                             { name: userFull.name || "User", email: userFull.email },
                             { name: registration.event.name, date: registration.event.date, venue: registration.event.venue },
                             pdfBuffer,
-                            "INDIVIDUAL"
+                            "INDIVIDUAL",
+                            undefined,
+                            {
+                                description: registration.event.description,
+                                termsAndConditions: registration.event.termsandconditions,
+                                whatsappLink: registration.event.whatsappLink
+                            }
                         );
                     } catch (e) {
                         console.error("Failed to send approval email", e);
@@ -235,7 +241,12 @@ export async function updateRegistrationStatus(
                             { name: registration.event.name, date: registration.event.date, venue: registration.event.venue },
                             pdfBuffer,
                             "GROUP",
-                            { groupName: groupName, members: members }
+                            { groupName: groupName, members: members },
+                            {
+                                description: registration.event.description,
+                                termsAndConditions: registration.event.termsandconditions,
+                                whatsappLink: registration.event.whatsappLink
+                            }
                         );
                     } catch (e) {
                         console.error("Failed to send group approval email", e);
