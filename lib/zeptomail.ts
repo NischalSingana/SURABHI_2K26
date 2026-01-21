@@ -105,7 +105,8 @@ export async function sendEventConfirmationEmail(
     event: { name: string; date: Date; venue: string },
     pdfBuffer: Buffer,
     registrationType: "INDIVIDUAL" | "GROUP" | "VISITOR",
-    teamDetails?: { groupName: string; members: any[] }
+    teamDetails?: { groupName: string; members: any[] },
+    eventDetails?: { description?: string; termsAndConditions?: string; whatsappLink?: string | null }
 ) {
     // 1. Prepare Logos - Using Public URLs
     // Assuming site is at https://klusurabhi.in
@@ -147,6 +148,41 @@ export async function sendEventConfirmationEmail(
                 <h3 style="color: #ffffff; margin-top: 0;">Team Details</h3>
                 <p style="color: #d4d4d8; margin: 5px 0;"><strong>Team Name:</strong> ${teamDetails.groupName}</p>
                 <p style="color: #d4d4d8; margin: 5px 0;"><strong>Members:</strong> ${teamDetails.members.length + 1} (Lead included)</p>
+            </div>
+        `;
+    }
+
+    // Event Details Section (Description & T&C)
+    let eventDetailsSection = "";
+    if (eventDetails) {
+        if (eventDetails.description) {
+            eventDetailsSection += `
+                <div style="margin-top: 30px;">
+                    <h3 style="color: #dc2626; font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">About the Event</h3>
+                    <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${eventDetails.description}</p>
+                </div>
+            `;
+        }
+
+        if (eventDetails.termsAndConditions) {
+            eventDetailsSection += `
+                <div style="margin-top: 25px;">
+                    <h3 style="color: #dc2626; font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">Terms & Conditions</h3>
+                    <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${eventDetails.termsAndConditions}</p>
+                </div>
+            `;
+        }
+    }
+
+    // WhatsApp Group Button
+    let whatsappButton = "";
+    if (eventDetails?.whatsappLink && eventDetails.whatsappLink.trim() !== "") {
+        whatsappButton = `
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${eventDetails.whatsappLink}" target="_blank" style="display: inline-block; background-color: #25D366; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+                    Join WhatsApp Group
+                </a>
+                <p style="color: #a1a1aa; font-size: 12px; margin-top: 8px;">Join for live updates and announcements.</p>
             </div>
         `;
     }
@@ -205,6 +241,10 @@ export async function sendEventConfirmationEmail(
                 </div>
 
                 ${additionalInfo}
+
+                ${eventDetailsSection}
+
+                ${whatsappButton}
 
                 <div class="divider"></div>
 

@@ -22,6 +22,42 @@ function generateSlug(text: string) {
 }
 
 
+
+export async function deleteRegistration(id: string, type: 'INDIVIDUAL' | 'GROUP') {
+  try {
+    const headersList = await headers();
+    const session = await auth.api.getSession({
+      headers: headersList,
+    });
+
+    if (!session || session.user.role !== Role.MASTER) {
+      return { success: false, error: "Unauthorized. Only MASTER can delete registrations." };
+    }
+
+    if (type === 'INDIVIDUAL') {
+      await prisma.individualRegistration.delete({
+        where: { id }
+      });
+      // Also check if there's a corresponding EventSubmission and delete it if needed, or rely on cascade? 
+      // IndividualRegistration doesn't cascade to EventSubmission based on schema.
+      // But let's stick to core request: delete the registration record.
+    } else {
+      await prisma.groupRegistration.delete({
+        where: { id }
+      });
+    }
+
+    revalidatePath("/admin/events");
+    revalidatePath("/events");
+    revalidatePath("/profile");
+
+    return { success: true, message: "Registration deleted successfully" };
+  } catch (error) {
+    console.error("Error deleting registration:", error);
+    return { success: false, error: "Failed to delete registration" };
+  }
+}
+
 export async function getCategories() {
   try {
     const categories = await prisma.category.findMany({
@@ -58,6 +94,26 @@ export async function getCategories() {
                 submissionLink: true,
                 notes: true,
               },
+            },
+            individualRegistrations: {
+              select: {
+                id: true,
+                paymentStatus: true,
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    phone: true,
+                    collage: true,
+                    collageId: true,
+                    branch: true,
+                    year: true,
+                    state: true,
+                    city: true,
+                  }
+                }
+              }
             },
             groupRegistrations: {
               select: {
@@ -530,13 +586,9 @@ export async function registerGroupEvent(
 
     // Only generate tickets and send email if APPROVED (KL Students)
     // Non-KL students wait for admin approval
+    // Per requirements: KL students do NOT receive emails/tickets automatically.
     if (registrationResult.success && registrationResult.paymentStatus === "APPROVED") {
-      const teamLead = await prisma.user.findUnique({ where: { id: session.user.id } });
-      const evt = registrationResult.event;
-
-      if (teamLead && evt) {
-        // ... email sending logic ...
-      }
+      // Logic removed as per requirement
     }
 
     // Special message for pending users
