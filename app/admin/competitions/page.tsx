@@ -34,15 +34,17 @@ interface Event {
   maxTeamSize: number;
   createdAt?: Date;
   updatedAt?: Date;
-  registeredStudents?: Array<{
-    id: string;
-    name: string | null;
-    email: string;
-    phone: string | null;
-    collage: string | null;
-    branch: string | null;
-    year: number | null;
-    collageId: string | null;
+  individualRegistrations?: Array<{
+    user: {
+      id: string;
+      name: string | null;
+      email: string;
+      phone: string | null;
+      collage: string | null;
+      branch: string | null;
+      year: number | null;
+      collageId: string | null;
+    };
   }>;
   submissions?: Array<{
     id: string;
@@ -942,12 +944,12 @@ export default function EventsManagement() {
             <div className="px-8 py-6 overflow-y-auto flex-1">
               {(() => {
                 const groupRegistrations = selectedEventForRegistrations.groupRegistrations || [];
-                const registeredStudents = selectedEventForRegistrations.registeredStudents || [];
+                const individualRegistrations = selectedEventForRegistrations.individualRegistrations || [];
 
                 // Filter out students who are team leads (already in groupRegistrations)
                 // We identify them by matching user.id
                 const teamLeadIds = new Set(groupRegistrations.map(g => g.user.id));
-                const soloStudents = registeredStudents.filter(s => !teamLeadIds.has(s.id));
+                const soloStudents = individualRegistrations.filter(reg => !teamLeadIds.has(reg.user.id));
 
                 const hasGroups = groupRegistrations.length > 0;
                 const hasSolo = soloStudents.length > 0;
@@ -1024,45 +1026,48 @@ export default function EventsManagement() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {soloStudents.map(
-                            (student: any, index: number) => (
-                              <div
-                                key={student.id}
-                                onClick={() => {
-                                  setSelectedStudent(student);
-                                  setShowStudentDetailsModal(true);
-                                }}
-                                className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-red-600/50 transition-all cursor-pointer group"
-                              >
-                                <div className="flex items-start gap-3">
-                                  <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500 font-bold">
-                                    {index + 1}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className="text-white font-semibold flex items-center gap-2">
-                                      {student.name || "No name"}
-                                      {getSubmissionForStudent(student.id) && (
-                                        <span title="Submission Available" className="text-green-500">
-                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                                          </svg>
-                                        </span>
-                                      )}
-                                    </h4>
-                                    <p className="text-zinc-400 text-sm truncate">
-                                      {student.email}
-                                    </p>
-                                    {student.phone && (
-                                      <p className="text-zinc-400 text-sm mt-1">
-                                        {student.phone}
+                            (reg: any, index: number) => {
+                              const student = reg.user;
+                              return (
+                                <div
+                                  key={student.id}
+                                  onClick={() => {
+                                    setSelectedStudent(student);
+                                    setShowStudentDetailsModal(true);
+                                  }}
+                                  className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-red-600/50 transition-all cursor-pointer group"
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500 font-bold">
+                                      {index + 1}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="text-white font-semibold flex items-center gap-2">
+                                        {student.name || "No name"}
+                                        {getSubmissionForStudent(student.id) && (
+                                          <span title="Submission Available" className="text-green-500">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                            </svg>
+                                          </span>
+                                        )}
+                                      </h4>
+                                      <p className="text-zinc-400 text-sm truncate">
+                                        {student.email}
                                       </p>
-                                    )}
+                                      {student.phone && (
+                                        <p className="text-zinc-400 text-sm mt-1">
+                                          {student.phone}
+                                        </p>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            )
+                              );
+                            }
                           )}
                         </div>
-                      </div>
+                        鼓                      </div>
                     )}
                   </div>
                 );

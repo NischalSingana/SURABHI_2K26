@@ -83,19 +83,18 @@ export async function GET(req: Request) {
             const groupReg = await prisma.groupRegistration.findFirst({
                 where: {
                     eventId: eventId,
-                    userId: userId // User must be the one who registered (Team Lead)
+                    OR: [
+                        { userId: userId },
+                        {
+                            members: {
+                                array_contains: [{ email: user.email }]
+                            }
+                        }
+                    ]
                 }
             });
 
             if (!groupReg) {
-                // Check if user is a member of a group? 
-                // Current logic implies only Team Lead registers and gets the ticket for the team.
-                // If normal member tries to download, they might not find it here if we stick to `userId: userId` as creator.
-                // But for now, let's assume only Team Leads download or we search deeply.
-                // Wait, if I am a member, I should be able to get a ticket too? 
-                // The prompt said: "IF GROUP COMPETETION THEN DISPLAY FULL DETAILS OF THE TEAM LEAD AND THEN DISPLAY THE MANUALLY ENTERED DETAILS OF THE TEAMMATES"
-                // This implies the ticket is a TEAM TICKET.
-
                 return NextResponse.json(
                     { error: "Group registration not found for this event." },
                     { status: 404 }
@@ -118,7 +117,7 @@ export async function GET(req: Request) {
 
         } else {
             // Check Individual Registration
-            const individualReg = await prisma.eventSubmission.findUnique({
+            const individualReg = await prisma.individualRegistration.findUnique({
                 where: {
                     userId_eventId: {
                         userId: userId,
@@ -128,28 +127,11 @@ export async function GET(req: Request) {
             });
 
             if (!individualReg) {
-                // Fallback: Check if user is registered via the standard relation
-                // (for events that didn't require extra details)
-                const basicReg = await prisma.user.findFirst({
-                    where: {
-                        id: userId,
-                        registeredEvents: {
-                            some: {
-                                id: eventId
-                            }
-                        }
-                    }
-                });
-
-                if (!basicReg) {
-                    return NextResponse.json(
-                        { error: "Registration not found for this event." },
-                        { status: 404 }
-                    );
-                }
-                // Found basic registration, proceed with ticket generation
+                return NextResponse.json(
+                    { error: "Registration not found for this event." },
+                    { status: 404 }
+                );
             }
-            // Individual registration confirmed (either detailed or basic)
         }
 
         // Generate PDF

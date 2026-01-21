@@ -77,8 +77,9 @@ export async function createAccommodationBooking(
     const userData = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: {
-        registeredEvents: true,
         accommodationBookings: true,
+        individualRegistrations: { select: { id: true } },
+        groupRegistrations: { select: { id: true } }
       }
     });
 
@@ -95,7 +96,8 @@ export async function createAccommodationBooking(
     }
 
     // Restriction 2: Must be registered for at least one competition
-    if (userData.registeredEvents.length === 0) {
+    const isRegistered = userData.individualRegistrations.length > 0 || userData.groupRegistrations.length > 0;
+    if (!isRegistered) {
       return {
         success: false,
         error: "You must be registered for at least one competition to book accommodation."

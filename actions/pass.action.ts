@@ -51,7 +51,8 @@ export async function generateVisitorPass(paymentDetails?: {
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
-                registeredEvents: true,
+                individualRegistrations: { select: { id: true } },
+                groupRegistrations: { select: { id: true } }
             }
         });
 
@@ -59,7 +60,7 @@ export async function generateVisitorPass(paymentDetails?: {
             return { success: false, error: "User not found" };
         }
 
-        const isRegisteredForEvent = user.registeredEvents.length > 0;
+        const isRegisteredForEvent = user.individualRegistrations.length > 0 || user.groupRegistrations.length > 0;
 
         // Create Pass - only generate token if APPROVED
         const pass = await prisma.pass.create({
@@ -113,7 +114,8 @@ export async function checkVisitorPassStatus() {
         const user = await prisma.user.findUnique({
             where: { id: session.user.id },
             include: {
-                registeredEvents: true,
+                individualRegistrations: { select: { id: true } },
+                groupRegistrations: { select: { id: true } },
                 passes: {
                     where: { passType: "VISITOR" }
                 }
@@ -122,9 +124,11 @@ export async function checkVisitorPassStatus() {
 
         if (!user) return { success: false, isEligibleForFree: false, hasPass: false };
 
+        const isRegistered = user.individualRegistrations.length > 0 || user.groupRegistrations.length > 0;
+
         return {
             success: true,
-            isEligibleForFree: user.registeredEvents.length > 0,
+            isEligibleForFree: isRegistered,
             hasPass: user.passes.length > 0,
             passToken: user.passes[0]?.passToken,
             paymentStatus: user.passes[0]?.paymentStatus

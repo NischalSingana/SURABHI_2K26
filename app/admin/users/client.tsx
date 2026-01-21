@@ -14,7 +14,10 @@ type User = {
     paymentStatus: PaymentStatus;
     isApproved: boolean;
     role: Role;
-    _count?: { registeredEvents: number };
+    _count?: {
+        individualRegistrations: number;
+        groupRegistrations: number;
+    };
 };
 
 export default function UsersPage({ currentRole }: { currentRole: Role }) {
@@ -152,7 +155,7 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
                                     {user.collage || "N/A"}
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
-                                    {user._count?.registeredEvents || 0}
+                                    {(user._count?.individualRegistrations || 0) + (user._count?.groupRegistrations || 0)}
                                 </td>
                                 {!isKL && (
                                     <>
