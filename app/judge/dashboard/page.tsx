@@ -35,7 +35,7 @@ interface Event {
     startTime: string;
     endTime: string | null;
     isGroupEvent: boolean;
-    registeredStudents: Participant[];
+    individualRegistrations: { user: Participant }[];
     groupRegistrations: { user: Participant; groupName: string | null; members: any }[];
     evaluations: Evaluation[];
 }
@@ -238,7 +238,8 @@ export default function JudgeDashboard() {
         });
 
         // 2. Process Individual Registrants (excluding group members)
-        event.registeredStudents.forEach(user => {
+        event.individualRegistrations.forEach(reg => {
+            const user = reg.user;
             // Skip if this user is part of any group (leader or member)
             if (groupMemberIds.has(user.id)) return;
 

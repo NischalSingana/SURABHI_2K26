@@ -62,21 +62,36 @@ export async function getMyRegisteredEvents() {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: {
-        registeredEvents: {
+        individualRegistrations: {
           include: {
-            Category: true,
-            _count: {
-              select: {
-                registeredStudents: true,
+            event: {
+              include: {
+                Category: true,
+                _count: {
+                  select: {
+                    individualRegistrations: true,
+                    groupRegistrations: true,
+                  },
+                },
               },
             },
           },
-          orderBy: {
-            date: "asc",
+        },
+        groupRegistrations: {
+          include: {
+            event: {
+              include: {
+                Category: true,
+                _count: {
+                  select: {
+                    individualRegistrations: true,
+                    groupRegistrations: true,
+                  },
+                },
+              },
+            },
           },
         },
-        individualRegistrations: true,
-        groupRegistrations: true,
       },
     });
 
@@ -84,28 +99,57 @@ export async function getMyRegisteredEvents() {
       return { success: false, error: "User not found" };
     }
 
-    // Map status to events
-    const eventsWithStatus = user.registeredEvents.map(event => {
-      // Check individual registration
-      const individualReg = user.individualRegistrations.find(r => r.eventId === event.id);
-      if (individualReg) {
-        return { ...event, registrationStatus: individualReg.paymentStatus };
-      }
+    // Combine and format events
+    const individualEvents = user.individualRegistrations.map(reg => ({
+      ...reg.event,
+      registrationStatus: reg.paymentStatus as any
+    }));
 
-      // Check group registration
-      const groupReg = user.groupRegistrations.find(r => r.eventId === event.id);
-      if (groupReg) {
-        return { ...event, registrationStatus: groupReg.paymentStatus };
-      }
+    const groupEvents = user.groupRegistrations.map(reg => ({
+      ...reg.event,
+      registrationStatus: reg.paymentStatus as any
+    }));
 
-      // Fallback: If no explicit record found but relation exists, assume APPROVED (e.g. KL students auto-linked without extra record logic initially, or legacy)
-      // However, if we want to be strict, we could check isKLStudent. 
-      // For now, defaulting to APPROVED if connected is safest for old data, but PENDING is safer for new.
-      // Given the logic, let's assume APPROVED if they are in the list, unless explicit record says PENDING.
-      return { ...event, registrationStatus: "APPROVED" };
+    // Find groups where user is a member but not the leader
+    const memberInGroups = await prisma.groupRegistration.findMany({
+      where: {
+        members: {
+          array_contains: [{ email: session.user.email }]
+        },
+        userId: { not: session.user.id } // Already covered in groupEvents as leader
+      },
+      include: {
+        event: {
+          include: {
+            Category: true,
+            _count: {
+              select: {
+                individualRegistrations: true,
+                groupRegistrations: true,
+              },
+            },
+          },
+        },
+      }
     });
 
-    return { success: true, data: eventsWithStatus };
+    const memberEvents = memberInGroups.map((reg: any) => ({
+      ...reg.event,
+      registrationStatus: reg.paymentStatus as any
+    }));
+
+    // deduplicate events
+    const allEvents = [...individualEvents, ...groupEvents, ...memberEvents];
+    const uniqueEventsMap = new Map();
+    allEvents.forEach(e => {
+      uniqueEventsMap.set(e.id, e);
+    });
+
+    const uniqueEvents = Array.from(uniqueEventsMap.values()).sort((a, b) =>
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    return { success: true, data: uniqueEvents };
   } catch (error) {
     console.error("Error fetching registered events:", error);
     return { success: false, error: "Failed to fetch registered events" };

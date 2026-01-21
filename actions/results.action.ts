@@ -100,11 +100,15 @@ export async function getEventResults(eventSlug: string) {
             // Need to look at schema again for correct relation usage.
             // Event has `registeredStudents User[] @relation("EventToUser")`
 
-            const eventWithStudents = await prisma.event.findUnique({
+            const eventWithParticipants = await prisma.event.findUnique({
                 where: { id: eventDetails.id },
-                select: {
-                    registeredStudents: {
-                        select: { id: true, name: true, collageId: true }
+                include: {
+                    individualRegistrations: {
+                        include: {
+                            user: {
+                                select: { id: true, name: true, collageId: true }
+                            }
+                        }
                     }
                 }
             });
@@ -113,7 +117,8 @@ export async function getEventResults(eventSlug: string) {
                 where: { eventId: eventDetails.id }
             });
 
-            participants = (eventWithStudents?.registeredStudents || []).map(student => {
+            participants = (eventWithParticipants?.individualRegistrations || []).map(reg => {
+                const student = reg.user;
                 const evals = evaluations.filter(e => e.participantId === student.id);
                 // If multiple judges? 
                 // Assuming single judge per participant for now as per current schema allowing one eval per judge per participant.

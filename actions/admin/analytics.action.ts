@@ -78,7 +78,8 @@ export async function getEventStats() {
                 name: true,
                 _count: {
                     select: {
-                        registeredStudents: true,
+                        individualRegistrations: true,
+                        groupRegistrations: true,
                     },
                 },
             },
@@ -94,7 +95,7 @@ export async function getEventStats() {
                 })),
                 registrations: eventRegistrations.map((event) => ({
                     name: event.name,
-                    count: event._count.registeredStudents,
+                    count: event._count.individualRegistrations + event._count.groupRegistrations,
                 })),
             },
         };

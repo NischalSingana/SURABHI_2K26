@@ -53,7 +53,8 @@ export async function getAllUsers(filters?: {
                 createdAt: true,
                 _count: {
                     select: {
-                        registeredEvents: true,
+                        individualRegistrations: true,
+                        groupRegistrations: true,
                     },
                 },
             },

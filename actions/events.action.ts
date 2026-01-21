@@ -45,16 +45,10 @@ export async function getCategories() {
             whatsappLink: true,
             termsandconditions: true,
             categoryId: true,
-            registeredStudents: {
+            _count: {
               select: {
-                id: true,
-                name: true,
-                email: true,
-                phone: true,
-                collage: true,
-                branch: true,
-                year: true,
-                collageId: true,
+                individualRegistrations: true,
+                groupRegistrations: true,
               },
             },
             submissions: {
@@ -467,7 +461,8 @@ export async function registerGroupEvent(
           include: {
             _count: {
               select: {
-                registeredStudents: true,
+                individualRegistrations: true,
+                groupRegistrations: true,
               },
             },
           },
@@ -478,42 +473,25 @@ export async function registerGroupEvent(
         }
         console.log("registerGroupEvent: Event found", event.name);
 
-        // Strict check: Is event full?
-        // Count registrations + new team size (Lead + Members)
-        // Note: registeredStudents count tracks individual Users registered.
-        // For Group Event, we are only registering the Lead as a 'User' relation.
-        // So technologically, the event participant count might not reflect team size if we only link the Lead.
-        // HOWEVER, to keep it simple and consistent with "participantLimit":
-        // We should arguably count the TEAM SIZE against the limit.
-        // But the `registeredStudents` relation is User[].
-        // If we don't register teammates as Users, `event._count.registeredStudents` will only increase by 1 (Lead).
-        // This is a trade-off. We should probably stick to checking if we have space, but we can't easily increment the counter by 5 if only 1 user relation exists.
-        // REQUIRED FIX: If we want accurate limits, we should rely on GroupRegistration calculation or accept that 'registeredStudents' = 'Teams Registered'.
-        // Let's assume for now `participantLimit` for group events means "Number of Teams".
-        // If it means "Number of People", we are breaking that tracking by not creating User records.
-        // Let's assume it means "Number of Teams" or "Number of Leads".
+        const currentParticipants = event._count.individualRegistrations + event._count.groupRegistrations;
 
-        if (event._count.registeredStudents >= event.participantLimit) {
+        if (currentParticipants >= event.participantLimit) {
           throw new Error(EVENT_FULL_ERROR);
         }
 
         // Check if Leader is already registered
-        const existingRegistration = await tx.user.findFirst({
+        const existingRegistration = await tx.groupRegistration.findUnique({
           where: {
-            id: session.user.id,
-            registeredEvents: { some: { id: eventId } },
-          },
+            userId_eventId: {
+              userId: session.user.id,
+              eventId: eventId
+            }
+          }
         });
         if (existingRegistration) {
           console.log("registerGroupEvent: Leader already registered");
           throw new Error("You are already registered for this event");
         }
-
-        // 1. Register Team Lead
-        await tx.user.update({
-          where: { id: session.user.id },
-          data: { registeredEvents: { connect: { id: eventId } } },
-        });
 
         // 2. Create Group Registration
         // Store structured data in 'members' JSON.
@@ -586,7 +564,8 @@ export async function getEventBySlug(slug: string) {
         Category: true,
         _count: {
           select: {
-            registeredStudents: true,
+            individualRegistrations: true,
+            groupRegistrations: true,
           },
         },
       },
@@ -610,7 +589,8 @@ export async function getPublicEvents() {
         Category: true,
         _count: {
           select: {
-            registeredStudents: true,
+            individualRegistrations: true,
+            groupRegistrations: true,
           },
         },
       },
@@ -674,7 +654,8 @@ export async function registerForEvent(
           include: {
             _count: {
               select: {
-                registeredStudents: true,
+                individualRegistrations: true,
+                groupRegistrations: true,
               },
             },
           },
@@ -684,7 +665,9 @@ export async function registerForEvent(
           return { success: false, error: "Event not found" };
         }
 
-        if (event._count.registeredStudents >= event.participantLimit) {
+        const currentParticipants = event._count.individualRegistrations + event._count.groupRegistrations;
+
+        if (currentParticipants >= event.participantLimit) {
           return { success: false, error: "Event is full" };
         }
 
@@ -702,29 +685,7 @@ export async function registerForEvent(
           return { success: false, error: "You are already registered for this event" };
         }
 
-        const existingRegistration = await tx.user.findFirst({
-          where: {
-            id: session.user.id,
-            registeredEvents: {
-              some: {
-                id: eventId,
-              },
-            },
-          },
-        });
-
-        if (existingRegistration) {
-          return { success: false, error: "You are already registered for this event" };
-        }
-
-        await tx.user.update({
-          where: { id: session.user.id },
-          data: {
-            registeredEvents: {
-              connect: { id: eventId },
-            },
-          },
-        });
+        // No longer using registeredEvents relation
 
         // Create Individual Registration Record
         await tx.individualRegistration.create({
@@ -746,13 +707,14 @@ export async function registerForEvent(
             participantLimit: true,
             _count: {
               select: {
-                registeredStudents: true,
+                individualRegistrations: true,
+                groupRegistrations: true,
               },
             },
           },
         });
 
-        if (!updated || updated._count.registeredStudents > updated.participantLimit) {
+        if (!updated || (updated._count.individualRegistrations + updated._count.groupRegistrations) > updated.participantLimit) {
           throw new Error(EVENT_FULL_ERROR);
         }
 
@@ -817,20 +779,46 @@ export async function checkEventRegistration(eventId: string) {
       return { success: true, isRegistered: false };
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        isApproved: true,
-        registeredEvents: {
-          where: { id: eventId },
-          select: { id: true }
+    const individualReg = await prisma.individualRegistration.findUnique({
+      where: {
+        userId_eventId: {
+          userId: session.user.id,
+          eventId: eventId
         }
       }
     });
 
+    const groupReg = await prisma.groupRegistration.findUnique({
+      where: {
+        userId_eventId: {
+          userId: session.user.id,
+          eventId: eventId
+        }
+      }
+    });
+
+    // Also check if they are a member in any group
+    let isMember = false;
+    if (!groupReg) {
+      const memberInGroup = await prisma.groupRegistration.findFirst({
+        where: {
+          eventId: eventId,
+          members: {
+            array_contains: [{ email: session.user.email }]
+          }
+        }
+      });
+      isMember = !!memberInGroup;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isApproved: true }
+    });
+
     return {
       success: true,
-      isRegistered: !!(user?.registeredEvents.length),
+      isRegistered: !!individualReg || !!groupReg || isMember,
       isApproved: !!user?.isApproved
     };
   } catch (error) {
@@ -850,19 +838,39 @@ export async function getUserRegistrations() {
       return { success: true, registeredEventIds: [], isApproved: false };
     }
 
+    const individualRegs = await prisma.individualRegistration.findMany({
+      where: { userId: session.user.id },
+      select: { eventId: true }
+    });
+
+    const groupRegs = await prisma.groupRegistration.findMany({
+      where: { userId: session.user.id },
+      select: { eventId: true }
+    });
+
+    const memberInGroups = await prisma.groupRegistration.findMany({
+      where: {
+        members: {
+          array_contains: [{ email: session.user.email }]
+        }
+      },
+      select: { eventId: true }
+    });
+
+    const registeredEventIds = Array.from(new Set([
+      ...individualRegs.map(r => r.eventId),
+      ...groupRegs.map(r => r.eventId),
+      ...memberInGroups.map(r => r.eventId)
+    ]));
+
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: {
-        isApproved: true,
-        registeredEvents: {
-          select: { id: true }
-        }
-      }
+      select: { isApproved: true }
     });
 
     return {
       success: true,
-      registeredEventIds: user?.registeredEvents.map(e => e.id) || [],
+      registeredEventIds,
       isApproved: !!user?.isApproved,
       email: session.user.email
     };
@@ -883,29 +891,24 @@ export async function unregisterFromEvent(eventId: string) {
       return { success: false, error: "Please login to unregister from events" };
     }
 
-    const user = await prisma.user.findFirst({
+    // Delete individual registration
+    await prisma.individualRegistration.deleteMany({
       where: {
-        id: session.user.id,
-        registeredEvents: {
-          some: {
-            id: eventId,
-          },
-        },
-      },
+        userId: session.user.id,
+        eventId: eventId
+      }
     });
 
-    if (!user) {
-      return { success: false, error: "You are not registered for this event" };
-    }
-
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
-        registeredEvents: {
-          disconnect: { id: eventId },
-        },
-      },
+    // Delete group registration if they are the leader
+    await prisma.groupRegistration.deleteMany({
+      where: {
+        userId: session.user.id,
+        eventId: eventId
+      }
     });
+
+    // Note: If they are just a member, we might want to remove them from the members JSON,
+    // but the текущий UI usually only allows unregistering for the person who registered.
 
     revalidatePath("/profile");
     revalidatePath("/events");

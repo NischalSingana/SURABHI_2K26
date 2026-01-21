@@ -27,13 +27,18 @@ export async function GET() {
             },
             include: {
                 // Include registered users (individual)
-                registeredStudents: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        collageId: true,
-                        image: true
+                // Include registered users (individual)
+                individualRegistrations: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                collageId: true,
+                                image: true
+                            }
+                        }
                     }
                 },
                 // Include group registrations

@@ -246,7 +246,8 @@ interface Event {
     name: string;
   };
   _count: {
-    registeredStudents: number;
+    individualRegistrations: number;
+    groupRegistrations: number;
   };
   isGroupEvent: boolean;
   minTeamSize: number;
@@ -697,14 +698,14 @@ function EventDetailPageContent() {
                     router.push(`/competitions/${categoryName}/${slug}/register`);
                   }}
                   disabled={
-                    event._count.registeredStudents >= event.participantLimit ||
+                    (event._count.individualRegistrations + event._count.groupRegistrations) >= event.participantLimit ||
                     checkingRegistration
                   }
                   className="w-full mt-6 px-6 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-red-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {checkingRegistration
                     ? "Loading..."
-                    : event._count.registeredStudents >= event.participantLimit
+                    : (event._count.individualRegistrations + event._count.groupRegistrations) >= event.participantLimit
                       ? "Event Full"
                       : "Register Now"}
                 </motion.button>
