@@ -102,7 +102,7 @@ function getPublicAssetBase64(filename: string): string | null {
 
 export async function sendEventConfirmationEmail(
     user: { name: string; email: string },
-    event: { name: string; date: Date; venue: string },
+    event: { name: string; date: Date; venue: string; startTime?: string; endTime?: string },
     pdfBuffer: Buffer,
     registrationType: "INDIVIDUAL" | "GROUP" | "VISITOR",
     teamDetails?: { groupName: string; members: any[] },
@@ -237,6 +237,7 @@ export async function sendEventConfirmationEmail(
                 <div class="event-card">
                     <div class="event-name">${event.name}</div>
                     <div class="event-meta">📅 ${dateStr}</div>
+                    ${event.startTime && event.endTime ? `<div class="event-meta">⏰ ${event.startTime} - ${event.endTime}</div>` : ''}
                     <div class="event-meta">📍 ${event.venue}</div>
                 </div>
 

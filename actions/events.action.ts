@@ -549,8 +549,15 @@ export async function registerGroupEvent(
           }
         });
         if (existingRegistration) {
-          console.log("registerGroupEvent: Leader already registered");
-          throw new Error("You are already registered for this event");
+          if (existingRegistration.paymentStatus === "REJECTED") {
+            console.log("registerGroupEvent: Leader previously rejected, deleting old record");
+            await tx.groupRegistration.delete({
+              where: { id: existingRegistration.id }
+            });
+          } else {
+            console.log("registerGroupEvent: Leader already registered");
+            throw new Error("You are already registered for this event");
+          }
         }
 
         // 2. Create Group Registration
@@ -738,7 +745,14 @@ export async function registerForEvent(
         });
 
         if (existingIndividualReg) {
-          return { success: false, error: "You are already registered for this event" };
+          if (existingIndividualReg.paymentStatus === "REJECTED") {
+            // Delete the rejected registration so we can create a new one
+            await tx.individualRegistration.delete({
+              where: { id: existingIndividualReg.id }
+            });
+          } else {
+            return { success: false, error: "You are already registered for this event" };
+          }
         }
 
         // No longer using registeredEvents relation
@@ -855,6 +869,7 @@ export async function checkEventRegistration(eventId: string) {
 
     // Also check if they are a member in any group
     let isMember = false;
+    let memberStatus = null;
     if (!groupReg) {
       const memberInGroup = await prisma.groupRegistration.findFirst({
         where: {
@@ -865,6 +880,7 @@ export async function checkEventRegistration(eventId: string) {
         }
       });
       isMember = !!memberInGroup;
+      memberStatus = memberInGroup?.paymentStatus;
     }
 
     const user = await prisma.user.findUnique({
@@ -872,10 +888,16 @@ export async function checkEventRegistration(eventId: string) {
       select: { isApproved: true }
     });
 
+    // Determine if effectively registered (ignore REJECTED)
+    const isIndivRegistered = individualReg && individualReg.paymentStatus !== "REJECTED";
+    const isGroupRegistered = groupReg && groupReg.paymentStatus !== "REJECTED";
+    const isMemberRegistered = isMember && memberStatus !== "REJECTED";
+
     return {
       success: true,
-      isRegistered: !!individualReg || !!groupReg || isMember,
-      isApproved: !!user?.isApproved
+      isRegistered: !!(isIndivRegistered || isGroupRegistered || isMemberRegistered),
+      isApproved: !!user?.isApproved,
+      registrationStatus: individualReg?.paymentStatus || groupReg?.paymentStatus || memberStatus
     };
   } catch (error) {
     console.error("Error checking registration:", error);

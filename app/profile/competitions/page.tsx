@@ -6,7 +6,7 @@ import Image from "next/image";
 import { getUserRegisteredEvents } from "@/actions/submissions.action";
 import { unregisterFromEvent } from "@/actions/events.action";
 import SubmissionModal from "@/components/ui/SubmissionModal";
-import { FiCalendar, FiMapPin, FiClock, FiUsers, FiUpload, FiCheckCircle, FiX, FiCreditCard } from "react-icons/fi";
+import { FiCalendar, FiMapPin, FiClock, FiUsers, FiUpload, FiCheckCircle, FiX, FiCreditCard, FiAward } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
@@ -15,6 +15,7 @@ interface Event {
     id: string;
     name: string;
     description: string;
+    slug: string;
     date: string | Date;
     image: string;
     venue: string;
@@ -313,6 +314,13 @@ export default function MyEventsPage() {
                                                     >
                                                         <FiUpload size={16} />
                                                         {hasSubmission ? "Update Submission" : "Submit Work"}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => router.push(`/results?category=${event.Category.id}&event=${event.slug}`)}
+                                                        className="w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 bg-emerald-900/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-900/40 hover:shadow-lg hover:shadow-emerald-900/20"
+                                                    >
+                                                        <FiAward size={16} />
+                                                        View Results
                                                     </button>
                                                 </>
                                             )}

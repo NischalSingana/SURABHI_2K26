@@ -19,6 +19,7 @@ import {
   FiTrash2,
   FiLogOut,
   FiZap,
+  FiAward,
 } from "react-icons/fi";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -57,9 +58,12 @@ interface Event {
   startTime: string;
   endTime: string;
   Category: {
+    id: string;
     name: string;
   };
+  slug: string;
   registrationStatus?: string;
+  isResultPublished?: boolean;
 }
 
 interface ProfileClientProps {
@@ -1055,6 +1059,23 @@ export default function ProfileClient({
                             Rejected
                           </div>
                         )}
+
+                        {/* View Results Button */}
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            if (event.isResultPublished) {
+                              router.push(`/results?category=${event.Category.id}&event=${event.slug}`);
+                            } else {
+                              toast.info("Evaluations not released yet");
+                            }
+                          }}
+                          className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        >
+                          <FiAward size={16} />
+                          Results
+                        </motion.button>
 
                         {/* Unregister Button */}
                         <motion.button

@@ -68,3 +68,25 @@ export async function getEvaluations() {
         return { success: false, error: "Failed to fetch evaluations" };
     }
 }
+
+export async function toggleResultRelease(eventId: string, isPublished: boolean) {
+    try {
+        const session = await auth.api.getSession({
+            headers: await headers()
+        });
+
+        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "MASTER" && session.user.role !== "MANAGER")) {
+            return { success: false, error: "Unauthorized" };
+        }
+
+        await prisma.event.update({
+            where: { id: eventId },
+            data: { isResultPublished: isPublished }
+        });
+
+        return { success: true, message: isPublished ? "Results released" : "Results unreleased" };
+    } catch (error) {
+        console.error("Error toggling result release:", error);
+        return { success: false, error: "Failed to update result status" };
+    }
+}

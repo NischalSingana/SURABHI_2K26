@@ -26,12 +26,14 @@ model User {
   phone            String?
   gender           String?
   password         String?
+  judgePassword    String?
   state            String?
   city             String?
   role             Role          @default(USER)
   accounts              Account[]
   sessions              Session[]
-  assignedCategoryId    String?
+  assignedEventId    String?
+  assignedEvent      Event?        @relation("EventJudges", fields: [assignedEventId], references: [id])
   passes                Pass[]
   accommodationBookings AccommodationBooking[]
   eventSubmissions      EventSubmission[]
@@ -145,6 +147,7 @@ model Event {
   endTime            String
   participantLimit   Int
   isGroupEvent       Boolean  @default(false)
+  isResultPublished  Boolean  @default(false)
   minTeamSize        Int      @default(1)
   maxTeamSize        Int      @default(1)
   termsandconditions String
@@ -158,6 +161,7 @@ model Event {
   individualRegistrations IndividualRegistration[]
   groupRegistrations GroupRegistration[]
   evaluations        Evaluation[]
+  judges             User[]   @relation("EventJudges")
 }
 
 model GroupRegistration {
