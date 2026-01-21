@@ -58,7 +58,7 @@ export default function RootLayout({
               minWidth: '300px',
             },
             classNames: {
-              closeButton: 'toast-close-button',
+              closeButton: 'toast-close-button !left-auto !right-0 !top-0 !transform !translate-x-1/3 !-translate-y-1/3',
             },
           }}
         />
