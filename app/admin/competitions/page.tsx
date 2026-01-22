@@ -31,6 +31,7 @@ interface Event {
   termsandconditions: string;
   registrationLink: string;
   whatsappLink?: string | null;
+  brochureLink?: string | null;
   isGroupEvent: boolean;
   minTeamSize: number;
   maxTeamSize: number;
