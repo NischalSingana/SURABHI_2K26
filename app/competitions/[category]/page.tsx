@@ -520,7 +520,7 @@ function CategoryPageContent() {
                                     Already Registered
                                   </button>
                                 ) : (event._count.individualRegistrations + event._count.groupRegistrations) >= event.participantLimit ? (
-                                  < button
+                                  <button
                                     disabled
                                     className="bg-zinc-700 text-zinc-400 px-6 py-2 rounded-md cursor-not-allowed"
                                   >
@@ -535,22 +535,6 @@ function CategoryPageContent() {
                                   </button>
                                 )}
                               </div>
-
-                              {/* WhatsApp Link */}
-                              {event.whatsappLink && (
-                                <div className="pt-2">
-                                  <a
-                                    href={event.whatsappLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-green-600/50"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <FaWhatsapp size={20} />
-                                    Join WhatsApp Group
-                                  </a>
-                                </div>
-                              )}
                             </div>
                           </div>
                         </motion.div>
