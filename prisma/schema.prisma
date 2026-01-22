@@ -148,6 +148,7 @@ model Event {
   participantLimit   Int
   isGroupEvent       Boolean  @default(false)
   isResultPublished  Boolean  @default(false)
+  allowSubmissions   Boolean  @default(false)
   minTeamSize        Int      @default(1)
   maxTeamSize        Int      @default(1)
   termsandconditions String

@@ -33,6 +33,7 @@ interface Event {
   whatsappLink?: string | null;
   brochureLink?: string | null;
   isGroupEvent: boolean;
+  allowSubmissions?: boolean;
   minTeamSize: number;
   maxTeamSize: number;
   createdAt?: Date;

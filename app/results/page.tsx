@@ -1,27 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getCategories, getEventsByCategory, getEventResults } from "@/actions/results.action";
+import { getEventResults } from "@/actions/results.action";
 import Loader from "@/components/ui/Loader";
-import { FiAward, FiChevronDown, FiSearch, FiCalendar, FiFilter, FiUser, FiUsers, FiLock } from "react-icons/fi";
+import { FiFilter, FiUser, FiUsers, FiLock } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
 import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
 
 import { useSearchParams } from "next/navigation";
 
-interface Category {
-    id: string;
-    name: string;
-    slug: string;
-}
-
-interface Event {
-    id: string;
-    name: string;
-    slug: string;
-    isGroupEvent: boolean;
+interface EventMeta {
+    name?: string | null;
+    slug?: string | null;
+    Category?: { name?: string | null } | null;
 }
 
 interface ParticipantResult {
@@ -36,47 +28,30 @@ interface ParticipantResult {
 
 export default function ResultsPage() {
     const searchParams = useSearchParams();
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [events, setEvents] = useState<Event[]>([]);
-    const [selectedCategory, setSelectedCategory] = useState<string>("");
-    const [selectedEvent, setSelectedEvent] = useState<string>("");
+    const selectedEvent = searchParams.get("event") || "";
+    const [eventMeta, setEventMeta] = useState<EventMeta | null>(null);
     const [results, setResults] = useState<ParticipantResult[]>([]);
     const [loading, setLoading] = useState(true);
-    const [loadingEvents, setLoadingEvents] = useState(false);
     const [loadingResults, setLoadingResults] = useState(false);
 
     const { data: session } = useSession();
     const [isPublished, setIsPublished] = useState(false);
 
-
-
-    const loadCategories = async () => {
-        const res = await getCategories();
-        if (res.success) {
-            setCategories(res.data || []);
+    const loadEventResults = async (eventSlug: string) => {
+        if (!eventSlug) {
+            setLoading(false);
+            return;
         }
-        setLoading(false);
-    };
-
-    const handleCategoryChange = async (categoryId: string) => {
-        setSelectedCategory(categoryId);
-        setSelectedEvent("");
-        setResults([]);
-        setIsPublished(false);
-        setLoadingEvents(true);
-        const res = await getEventsByCategory(categoryId);
-        if (res.success) {
-            setEvents(res.data || []);
-        }
-        setLoadingEvents(false);
-    };
-
-    const handleEventChange = async (eventSlug: string) => {
-        setSelectedEvent(eventSlug);
+        setLoading(true);
         setLoadingResults(true);
         const res = await getEventResults(eventSlug);
         if (res.success) {
             setIsPublished(res.data?.isPublished ?? false);
+            setEventMeta({
+                name: res.data?.event?.name,
+                slug: res.data?.event?.slug,
+                Category: res.data?.event?.Category ? { name: res.data.event.Category.name } : null
+            });
             const evaluated: ParticipantResult[] = (res.data?.participants || [])
                 .filter((p: any) => p.isEvaluated && p.score > 0)
                 .map((p: any) => ({
@@ -93,6 +68,7 @@ export default function ResultsPage() {
             toast.error(res.error);
         }
         setLoadingResults(false);
+        setLoading(false);
     };
 
     const getRankInfo = (index: number, allResults: ParticipantResult[]) => {
@@ -121,42 +97,8 @@ export default function ResultsPage() {
 
 
 
-    // Initial Load
     useEffect(() => {
-        loadCategories();
-    }, []);
-
-    // Check query params
-    useEffect(() => {
-        const catId = searchParams.get('category');
-        const eventSlug = searchParams.get('event');
-
-        if (catId) {
-            setSelectedCategory(catId);
-
-            const loadDeepLink = async () => {
-                // We need to fetch events for this category
-                // We can't rely on handleCategoryChange because we need to await it and then fetch results
-                // And handleCategoryChange updates state which might not be immediate for next read?
-                // Actually async state updates are batched but we can await the PROMISE of the fetch.
-
-                // Fetch events
-                setLoadingEvents(true);
-                const eventsRes = await getEventsByCategory(catId);
-                if (eventsRes.success) {
-                    setEvents(eventsRes.data || []);
-                    setLoadingEvents(false);
-
-                    if (eventSlug) {
-                        setSelectedEvent(eventSlug);
-                        await handleEventChange(eventSlug);
-                    }
-                } else {
-                    setLoadingEvents(false);
-                }
-            };
-            loadDeepLink();
-        }
+        loadEventResults(selectedEvent);
     }, [searchParams]);
 
     if (loading) return <Loader />;
@@ -175,50 +117,18 @@ export default function ResultsPage() {
                         Event Results
                     </h1>
                     <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                        Check out the top performers and final standings for all events at Surabhi 2026.
+                        {eventMeta?.name ? (
+                            <>
+                                Showing results for <span className="text-white font-semibold">{eventMeta.name}</span>
+                                {eventMeta.Category?.name ? (
+                                    <> in <span className="text-white font-semibold">{eventMeta.Category.name}</span></>
+                                ) : null}
+                                .
+                            </>
+                        ) : (
+                            "Results are available per event."
+                        )}
                     </p>
-                </div>
-
-                {/* Filters */}
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 mb-12 max-w-3xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Category Select */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-300 ml-1">Select Category</label>
-                            <div className="relative">
-                                <select
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none focus:outline-none focus:border-red-500 transition-colors cursor-pointer"
-                                    value={selectedCategory}
-                                    onChange={(e) => handleCategoryChange(e.target.value)}
-                                >
-                                    <option value="">-- Choose Category --</option>
-                                    {categories.map(cat => (
-                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                    ))}
-                                </select>
-                                <FiChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                            </div>
-                        </div>
-
-                        {/* Event Select */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-300 ml-1">Select Event</label>
-                            <div className="relative">
-                                <select
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none focus:outline-none focus:border-red-500 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                                    value={selectedEvent}
-                                    onChange={(e) => handleEventChange(e.target.value)}
-                                    disabled={!selectedCategory || loadingEvents}
-                                >
-                                    <option value="">{loadingEvents ? "Loading Events..." : "-- Choose Event --"}</option>
-                                    {events.map(evt => (
-                                        <option key={evt.id} value={evt.slug}>{evt.name}</option>
-                                    ))}
-                                </select>
-                                <FiChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Results Display */}
@@ -312,7 +222,7 @@ export default function ResultsPage() {
                     ) : (
                         <div className="flex flex-col items-center justify-center py-20 opacity-50">
                             <FiFilter className="text-6xl text-gray-600 mb-6" />
-                            <p className="text-xl text-gray-400 font-medium">Select a category and event to view results</p>
+                            <p className="text-xl text-gray-400 font-medium">Open results from a specific competition to view them.</p>
                         </div>
                     )}
                 </div>
