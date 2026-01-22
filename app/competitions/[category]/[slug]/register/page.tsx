@@ -13,8 +13,10 @@ import {
     FiChevronLeft,
     FiUsers,
     FiX,
-    FiEdit2
+    FiEdit2,
+    FiFileText
 } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 import {
     registerForEvent,
     checkEventRegistration,
@@ -36,6 +38,8 @@ interface Event {
     isGroupEvent: boolean;
     minTeamSize: number;
     maxTeamSize: number;
+    whatsappLink?: string | null;
+    brochureLink?: string | null;
     _count: {
         registeredStudents: number;
     };
@@ -322,6 +326,34 @@ export default function EventRegistrationPage() {
                                 <p className="text-green-300 text-sm font-medium">
                                     🎉 Free Registration for KL University Students
                                 </p>
+                            </div>
+                        )}
+
+                        {/* WhatsApp and Brochure Links */}
+                        {(event.whatsappLink || event.brochureLink) && (
+                            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                                {event.whatsappLink && (
+                                    <a
+                                        href={event.whatsappLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-green-600/30 flex items-center justify-center gap-2 group"
+                                    >
+                                        <FaWhatsapp size={20} className="group-hover:scale-110 transition-transform duration-300" />
+                                        <span>Join WhatsApp Group</span>
+                                    </a>
+                                )}
+                                {event.brochureLink && (
+                                    <a
+                                        href={event.brochureLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 group"
+                                    >
+                                        <FiFileText size={20} className="group-hover:scale-110 transition-transform duration-300" />
+                                        <span>View Brochure</span>
+                                    </a>
+                                )}
                             </div>
                         )}
                     </div>

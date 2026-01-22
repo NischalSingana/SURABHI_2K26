@@ -642,32 +642,6 @@ function EventDetailPageContent() {
                 </a>
               )}
 
-              {/* WhatsApp Link */}
-              {event.whatsappLink && (
-                <a
-                  href={event.whatsappLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-green-600/30 flex items-center justify-center gap-2 mt-4 group"
-                >
-                  <FaWhatsapp size={20} className="group-hover:scale-110 transition-transform duration-300" />
-                  <span>Join WhatsApp Group</span>
-                </a>
-              )}
-
-              {/* Brochure Link */}
-              {event.brochureLink && (
-                <a
-                  href={event.brochureLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 mt-4 group"
-                >
-                  <FiFileText size={20} className="group-hover:scale-110 transition-transform duration-300" />
-                  <span>View Brochure</span>
-                </a>
-              )}
-
 
 
               {/* Register/Unregister Button */}
