@@ -30,6 +30,7 @@ interface Event {
   image: string;
   venue: string;
   isGroupEvent: boolean;
+  allowSubmissions?: boolean;
   minTeamSize: number;
   maxTeamSize: number;
   startTime: string;
@@ -68,6 +69,7 @@ export default function MultiStepEventForm({
     image: editingEvent?.image || "",
     venue: editingEvent?.venue || "",
     isGroupEvent: editingEvent?.isGroupEvent || false,
+    allowSubmissions: !!editingEvent?.allowSubmissions,
     minTeamSize: editingEvent?.minTeamSize?.toString() || "2",
     maxTeamSize: editingEvent?.maxTeamSize?.toString() || "5",
     startTime: editingEvent?.startTime || "",
@@ -717,6 +719,31 @@ export default function MultiStepEventForm({
                         : "Supported: JPG, PNG, WebP, GIF (Max 10MB)"}
                     </p>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">
+                    Submissions
+                  </label>
+                  <div className="flex items-center gap-3 bg-zinc-800 p-3 rounded-lg border border-zinc-700">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!formData.allowSubmissions}
+                        onChange={(e) =>
+                          setFormData({ ...formData, allowSubmissions: e.target.checked })
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                      <span className="ml-3 text-sm font-medium text-zinc-300">
+                        {formData.allowSubmissions ? "Enable submissions upload" : "Disable submissions upload"}
+                      </span>
+                    </label>
+                  </div>
+                  <p className="text-zinc-500 text-sm mt-2">
+                    If enabled, participants will see the “Submit Work” option in “My Competitions”.
+                  </p>
                 </div>
 
 

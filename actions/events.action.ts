@@ -75,6 +75,7 @@ export async function getCategories() {
             endTime: true,
             participantLimit: true,
             isGroupEvent: true,
+            allowSubmissions: true,
             minTeamSize: true,
             maxTeamSize: true,
             registrationLink: true,
@@ -281,6 +282,7 @@ interface EventData {
   image: string;
   venue: string;
   isGroupEvent: boolean;
+  allowSubmissions?: boolean;
   minTeamSize: number;
   maxTeamSize: number;
   startTime: string;
@@ -321,6 +323,7 @@ export async function createEvent(eventData: EventData) {
         image: eventData.image,
         venue: eventData.venue,
         isGroupEvent: eventData.isGroupEvent,
+        allowSubmissions: !!eventData.allowSubmissions,
         minTeamSize: eventData.minTeamSize,
         maxTeamSize: eventData.maxTeamSize,
         startTime: eventData.startTime,
@@ -358,6 +361,7 @@ interface EventUpdateData {
     image: string;
     venue: string;
     isGroupEvent: boolean;
+    allowSubmissions?: boolean;
     minTeamSize: number;
     maxTeamSize: number;
     startTime: string;
@@ -397,6 +401,7 @@ export async function updateEvent({ id, eventData }: EventUpdateData) {
         image: eventData.image,
         venue: eventData.venue,
         isGroupEvent: eventData.isGroupEvent,
+        allowSubmissions: !!eventData.allowSubmissions,
         minTeamSize: eventData.minTeamSize,
         maxTeamSize: eventData.maxTeamSize,
         startTime: eventData.startTime,

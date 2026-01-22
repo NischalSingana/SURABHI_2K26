@@ -16,6 +16,17 @@ export async function submitEventWork(eventId: string, submissionLink: string, n
             return { success: false, error: "Please login to submit your work" };
         }
 
+        const event = await prisma.event.findUnique({
+            where: { id: eventId },
+            select: { allowSubmissions: true }
+        });
+        if (!event) {
+            return { success: false, error: "Event not found" };
+        }
+        if (!event.allowSubmissions) {
+            return { success: false, error: "Submissions are disabled for this event" };
+        }
+
         // Validate URL format
         if (!submissionLink || !submissionLink.trim()) {
             return { success: false, error: "Submission link is required" };
