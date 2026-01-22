@@ -123,6 +123,9 @@ export default function EventRegistrationPage() {
             const result = await getEventBySlug(slug);
 
             if (result.success && result.data) {
+                console.log("Event data:", result.data);
+                console.log("WhatsApp Link:", result.data.whatsappLink);
+                console.log("Brochure Link:", result.data.brochureLink);
                 setEvent(result.data as any);
                 if (result.data.isGroupEvent) {
                     setTeamSize(result.data.minTeamSize);
