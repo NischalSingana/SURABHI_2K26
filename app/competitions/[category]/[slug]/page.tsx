@@ -644,6 +644,33 @@ function EventDetailPageContent() {
 
 
 
+              {/* WhatsApp and Brochure Links */}
+              <div className="space-y-3 mt-6">
+                {event.whatsappLink && (
+                  <a
+                    href={event.whatsappLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-green-600/30 flex items-center justify-center gap-2 group"
+                  >
+                    <FaWhatsapp size={20} className="group-hover:scale-110 transition-transform duration-300" />
+                    <span>Join WhatsApp Group</span>
+                  </a>
+                )}
+
+                {event.brochureLink && (
+                  <a
+                    href={event.brochureLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 group"
+                  >
+                    <FiFileText size={20} className="group-hover:scale-110 transition-transform duration-300" />
+                    <span>View Brochure</span>
+                  </a>
+                )}
+              </div>
+
               {/* Register/Unregister Button */}
               {isRegistered ? (
                 <div className="space-y-3 mt-6">
