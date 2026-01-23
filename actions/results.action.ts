@@ -54,46 +54,61 @@ export async function getEventResults(eventSlug: string) {
                 }
             });
 
-            // Fetch all evaluations for this event
+            // Fetch all evaluations for this event (include judge for per-judge breakdown)
             const evaluations = await prisma.evaluation.findMany({
-                where: { eventId: eventDetails.id }
+                where: { eventId: eventDetails.id },
+                include: {
+                    judge: { select: { id: true, name: true } },
+                },
             });
 
             // Construct result objects
             participants = groups.map(group => {
                 const members = group.members as any[]; // Array of { userId, name, ... }
 
-                // Get Leader Score
-                const leaderEval = evaluations.find(e => e.participantId === group.user.id);
-                let totalScore = leaderEval ? leaderEval.score : 0;
-                let evaluatedCount = leaderEval ? 1 : 0;
-
-                // Get Members Scores
+                // Team participantIds = leader + members (if present)
+                const participantIds = new Set<string>();
+                participantIds.add(group.user.id);
                 if (Array.isArray(members)) {
-                    members.forEach(member => {
-                        if (member.userId) {
-                            const memEval = evaluations.find(e => e.participantId === member.userId);
-                            if (memEval) {
-                                totalScore += memEval.score;
-                                evaluatedCount++;
-                            }
-                        }
+                    members.forEach((m) => {
+                        if (m?.userId) participantIds.add(String(m.userId));
                     });
                 }
 
-                const averageScore = evaluatedCount > 0 ? totalScore / evaluatedCount : 0;
+                const teamEvals = evaluations.filter((e) => participantIds.has(e.participantId));
 
-                // Collect all remarks
+                // Group evaluations by judge -> compute "team score per judge" as average across evaluated members
+                const byJudge = new Map<string, { judgeId: string; judgeName: string | null; scores: number[]; remarks: string[] }>();
+                for (const ev of teamEvals) {
+                    const judgeId = ev.judgeId;
+                    const judgeName = ev.judge?.name ?? null;
+                    const entry = byJudge.get(judgeId) ?? { judgeId, judgeName, scores: [], remarks: [] };
+                    entry.scores.push(ev.score);
+                    if (ev.remarks) entry.remarks.push(ev.remarks);
+                    byJudge.set(judgeId, entry);
+                }
+
+                const judgeScores = Array.from(byJudge.values()).map((j) => {
+                    const avg = j.scores.length > 0 ? j.scores.reduce((a, b) => a + b, 0) / j.scores.length : 0;
+                    return {
+                        judgeId: j.judgeId,
+                        judgeName: j.judgeName,
+                        score: parseFloat(avg.toFixed(2)),
+                        remarks: j.remarks.length ? j.remarks.join(" | ") : null,
+                    };
+                });
+
+                // Overall team average = average of per-judge averages (so each judge has equal weight)
+                const averageScore =
+                    judgeScores.length > 0
+                        ? judgeScores.reduce((sum, j) => sum + j.score, 0) / judgeScores.length
+                        : 0;
+
+                // Collect all remarks (all judges, all members) for legacy UI display
                 const allRemarks: string[] = [];
-                if (leaderEval?.remarks) allRemarks.push(leaderEval.remarks);
-                if (Array.isArray(members)) {
-                    members.forEach(member => {
-                        if (member.userId) {
-                            const memEval = evaluations.find(e => e.participantId === member.userId);
-                            if (memEval?.remarks) allRemarks.push(memEval.remarks);
-                        }
-                    });
-                }
+                judgeScores.forEach((j) => {
+                    if (j.remarks) allRemarks.push(j.remarks);
+                });
 
                 return {
                     id: group.id,
@@ -101,8 +116,9 @@ export async function getEventResults(eventSlug: string) {
                     type: 'GROUP',
                     collageId: group.user.collageId,
                     score: parseFloat(averageScore.toFixed(2)), // Keep 2 decimals
-                    isEvaluated: evaluatedCount > 0,
-                    remarks: allRemarks.length > 0 ? allRemarks.join(' | ') : null
+                    isEvaluated: judgeScores.length > 0,
+                    remarks: allRemarks.length > 0 ? allRemarks.join(' | ') : null,
+                    judgeScores,
                 };
             });
 
@@ -126,7 +142,10 @@ export async function getEventResults(eventSlug: string) {
             });
 
             const evaluations = await prisma.evaluation.findMany({
-                where: { eventId: eventDetails.id }
+                where: { eventId: eventDetails.id },
+                include: {
+                    judge: { select: { id: true, name: true } },
+                },
             });
 
             participants = (eventWithParticipants?.individualRegistrations || []).map(reg => {
@@ -136,11 +155,18 @@ export async function getEventResults(eventSlug: string) {
                 // Assuming single judge per participant for now as per current schema allowing one eval per judge per participant.
                 // But if multiple judges evaluate same participant, we should average them.
 
+                const judgeScores = evals.map((e) => ({
+                    judgeId: e.judgeId,
+                    judgeName: e.judge?.name ?? null,
+                    score: parseFloat(e.score.toFixed(2)),
+                    remarks: e.remarks ?? null,
+                }));
+
                 let totalScore = 0;
                 const allRemarks: string[] = [];
-                if (evals.length > 0) {
-                    totalScore = evals.reduce((sum, e) => sum + e.score, 0) / evals.length;
-                    evals.forEach(e => {
+                if (judgeScores.length > 0) {
+                    totalScore = judgeScores.reduce((sum, e) => sum + e.score, 0) / judgeScores.length;
+                    judgeScores.forEach(e => {
                         if (e.remarks) allRemarks.push(e.remarks);
                     });
                 }
@@ -152,7 +178,8 @@ export async function getEventResults(eventSlug: string) {
                     collageId: student.collageId,
                     score: parseFloat(totalScore.toFixed(2)),
                     isEvaluated: evals.length > 0,
-                    remarks: allRemarks.length > 0 ? allRemarks.join(' | ') : null
+                    remarks: allRemarks.length > 0 ? allRemarks.join(' | ') : null,
+                    judgeScores,
                 };
             });
         }
