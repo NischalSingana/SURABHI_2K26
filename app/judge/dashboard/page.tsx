@@ -85,10 +85,16 @@ export default function JudgeDashboard() {
 
     const handleEvaluationSubmit = async () => {
         if (!selectedEvent || !evaluatingParticipant) return;
-        if (score === "" || Number(score) < 0 || Number(score) > 10) {
-            toast.error("Please enter a valid score (0-10)");
+        
+        // Validate score: must be number (can be decimal) between 1 and 10
+        const scoreNum = Number(score);
+        if (score === "" || isNaN(scoreNum) || scoreNum < 1 || scoreNum > 10) {
+            toast.error("Please enter a valid score between 1 and 10 (decimals allowed)");
             return;
         }
+        
+        // Round to 2 decimal places
+        const roundedScore = Math.round(scoreNum * 100) / 100;
 
         setSubmitting(true);
         try {
@@ -98,7 +104,7 @@ export default function JudgeDashboard() {
                 body: JSON.stringify({
                     eventId: selectedEvent.id,
                     participantId: evaluatingParticipant.id,
-                    score: Number(score),
+                    score: roundedScore,
                     remarks
                 })
             });
@@ -264,16 +270,33 @@ export default function JudgeDashboard() {
             return nameA.localeCompare(nameB);
         });
 
-        // Filter by search query
+        // Enhanced filter by search query
         if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
+            const query = searchQuery.toLowerCase().trim();
             return list.filter(p => {
+                // Search in display name
                 const matchesName = (p.displayName || "").toLowerCase().includes(query);
+                // Search in subtitle (college ID, leader name, etc.)
                 const matchesSubtitle = (p.subtitle || "").toLowerCase().includes(query);
-                const matchesMembers = p.members?.some((m: any) =>
-                    (m.name || m || "").toLowerCase().includes(query)
+                // Search in team members
+                const matchesMembers = p.members?.some((m: any) => {
+                    const memberName = (m.name || m || "").toLowerCase();
+                    const memberId = (m.rollNo || m.collageId || "").toLowerCase();
+                    const memberEmail = (m.email || "").toLowerCase();
+                    return memberName.includes(query) || memberId.includes(query) || memberEmail.includes(query);
+                });
+                // Search in evaluation status
+                const matchesStatus = query === "pending" && !p.isEvaluated;
+                const matchesEvaluated = query === "evaluated" && p.isEvaluated;
+                // Search by score range (e.g., "7", "8-9", "high", "low")
+                const matchesScore = p.score !== undefined && (
+                    query === String(p.score) ||
+                    (query === "high" && p.score >= 7) ||
+                    (query === "low" && p.score < 4) ||
+                    (query === "medium" && p.score >= 4 && p.score < 7)
                 );
-                return matchesName || matchesSubtitle || matchesMembers;
+                
+                return matchesName || matchesSubtitle || matchesMembers || matchesStatus || matchesEvaluated || matchesScore;
             });
         }
 
@@ -339,53 +362,133 @@ export default function JudgeDashboard() {
                             <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">{selectedEvent.name}</h2>
                             <p className="text-gray-400 text-sm sm:text-base mb-4 sm:mb-6">{selectedEvent.description}</p>
 
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 text-sm">
-                                <div className="bg-[#161616] p-3 sm:p-4 rounded-xl border border-white/5">
-                                    <p className="text-gray-500 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"><FiCalendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Event Date</p>
-                                    <p className="font-medium text-xs sm:text-sm">
-                                        {formatDateShort(selectedEvent.date)}
-                                        {selectedEvent.startTime && (
-                                            <span className="text-gray-500"> | {selectedEvent.startTime}</span>
-                                        )}
-                                    </p>
-                                </div>
-                                <div className="bg-[#161616] p-3 sm:p-4 rounded-xl border border-white/5">
-                                    <p className="text-gray-500 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"><FiFilter className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Venue</p>
-                                    <p className="font-medium text-xs sm:text-sm truncate" title={selectedEvent.venue}>{selectedEvent.venue}</p>
-                                </div>
-                                <div className="bg-[#161616] p-3 sm:p-4 rounded-xl border border-white/5">
-                                    <p className="text-gray-500 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"><FiUsers className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Participants</p>
-                                    <p className="font-medium text-xs sm:text-sm">{getDisplayParticipants(selectedEvent).length} {selectedEvent.isGroupEvent ? "Teams" : "Entries"}</p>
-                                </div>
-                                <div className="bg-[#161616] p-3 sm:p-4 rounded-xl border border-white/5">
-                                    <p className="text-gray-500 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"><FiCheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Status</p>
-                                    <p className="font-medium text-xs sm:text-sm">
-                                        {getDisplayParticipants(selectedEvent).filter(p => p.isEvaluated).length} / {getDisplayParticipants(selectedEvent).length} Evaluated
-                                    </p>
-                                </div>
-                            </div>
+                            {/* Statistics Cards */}
+                            {(() => {
+                                const participants = getDisplayParticipants(selectedEvent);
+                                const total = participants.length;
+                                const evaluated = participants.filter(p => p.isEvaluated).length;
+                                const pending = total - evaluated;
+                                
+                                // For group events, count individual members too
+                                let totalIndividuals = total;
+                                let evaluatedIndividuals = evaluated;
+                                let pendingIndividuals = pending;
+                                
+                                if (selectedEvent.isGroupEvent) {
+                                    totalIndividuals = participants.reduce((sum, p) => {
+                                        if (p.type === "GROUP" && p.members) {
+                                            return sum + 1 + (p.members.length || 0); // leader + members
+                                        }
+                                        return sum + 1;
+                                    }, 0);
+                                    
+                                    evaluatedIndividuals = participants.reduce((sum, p) => {
+                                        if (p.type === "GROUP" && p.members) {
+                                            let count = 0;
+                                            // Check leader
+                                            if (getEvaluation(selectedEvent.id, p.actualUserId || "")) count++;
+                                            // Check members
+                                            p.members.forEach((m: any) => {
+                                                if (m.userId && getEvaluation(selectedEvent.id, m.userId)) count++;
+                                            });
+                                            return sum + count;
+                                        } else if (p.isEvaluated) {
+                                            return sum + 1;
+                                        }
+                                        return sum;
+                                    }, 0);
+                                    
+                                    pendingIndividuals = totalIndividuals - evaluatedIndividuals;
+                                }
+                                
+                                return (
+                                    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                                        <div className="bg-gradient-to-br from-blue-950/40 to-blue-900/20 p-3 sm:p-4 rounded-xl border border-blue-500/20">
+                                            <p className="text-blue-400 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium">
+                                                <FiUsers className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Total {selectedEvent.isGroupEvent ? "Teams" : "Students"}
+                                            </p>
+                                            <p className="font-bold text-lg sm:text-2xl text-white">{total}</p>
+                                            {selectedEvent.isGroupEvent && (
+                                                <p className="text-[10px] sm:text-xs text-blue-300/70 mt-1">{totalIndividuals} individuals</p>
+                                            )}
+                                        </div>
+                                        <div className="bg-gradient-to-br from-green-950/40 to-green-900/20 p-3 sm:p-4 rounded-xl border border-green-500/20">
+                                            <p className="text-green-400 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium">
+                                                <FiCheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Evaluated
+                                            </p>
+                                            <p className="font-bold text-lg sm:text-2xl text-white">{evaluated}</p>
+                                            {selectedEvent.isGroupEvent && (
+                                                <p className="text-[10px] sm:text-xs text-green-300/70 mt-1">{evaluatedIndividuals} individuals</p>
+                                            )}
+                                            {total > 0 && (
+                                                <div className="mt-2 w-full bg-black/20 rounded-full h-1.5">
+                                                    <div 
+                                                        className="bg-green-500 h-1.5 rounded-full transition-all"
+                                                        style={{ width: `${(evaluated / total) * 100}%` }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="bg-gradient-to-br from-yellow-950/40 to-yellow-900/20 p-3 sm:p-4 rounded-xl border border-yellow-500/20">
+                                            <p className="text-yellow-400 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium">
+                                                <FiLoader className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Pending
+                                            </p>
+                                            <p className="font-bold text-lg sm:text-2xl text-white">{pending}</p>
+                                            {selectedEvent.isGroupEvent && (
+                                                <p className="text-[10px] sm:text-xs text-yellow-300/70 mt-1">{pendingIndividuals} individuals</p>
+                                            )}
+                                            {total > 0 && (
+                                                <p className="text-[10px] sm:text-xs text-yellow-300/70 mt-1">
+                                                    {Math.round((pending / total) * 100)}% remaining
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div className="bg-[#161616] p-3 sm:p-4 rounded-xl border border-white/5">
+                                            <p className="text-gray-500 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"><FiCalendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Event Date</p>
+                                            <p className="font-medium text-xs sm:text-sm">
+                                                {formatDateShort(selectedEvent.date)}
+                                                {selectedEvent.startTime && (
+                                                    <span className="text-gray-500"> | {selectedEvent.startTime}</span>
+                                                )}
+                                            </p>
+                                        </div>
+                                        <div className="bg-[#161616] p-3 sm:p-4 rounded-xl border border-white/5">
+                                            <p className="text-gray-500 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"><FiFilter className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Venue</p>
+                                            <p className="font-medium text-xs sm:text-sm truncate" title={selectedEvent.venue}>{selectedEvent.venue}</p>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                         </div>
 
-                        {/* Search Bar */}
+                        {/* Enhanced Search Bar */}
                         <div className="mb-4 sm:mb-6">
                             <div className="relative">
-                                <FiSearch className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4 sm:w-5 sm:h-5" />
+                                <FiSearch className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4 sm:w-5 sm:h-5 z-10" />
                                 <input
                                     type="text"
-                                    placeholder={`Search ${selectedEvent.isGroupEvent ? 'teams' : 'participants'}...`}
+                                    placeholder={`Search ${selectedEvent.isGroupEvent ? 'teams or members' : 'participants'} by name, ID, or college...`}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full bg-[#161616] border border-white/10 rounded-xl pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 text-white text-sm sm:text-base placeholder:text-gray-500 focus:outline-none focus:border-red-500 transition-colors"
+                                    className="w-full bg-[#161616] border border-white/10 rounded-xl pl-10 sm:pl-12 pr-20 sm:pr-24 py-2.5 sm:py-3 text-white text-sm sm:text-base placeholder:text-gray-500 focus:outline-none focus:border-red-500 transition-colors"
                                 />
                                 {searchQuery && (
-                                    <button
-                                        onClick={() => setSearchQuery("")}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white text-xs"
-                                    >
-                                        Clear
-                                    </button>
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                        <span className="text-xs text-gray-500 hidden sm:inline">
+                                            {getDisplayParticipants(selectedEvent).length} result{getDisplayParticipants(selectedEvent).length !== 1 ? 's' : ''}
+                                        </span>
+                                        <button
+                                            onClick={() => setSearchQuery("")}
+                                            className="text-gray-500 hover:text-white text-xs sm:text-sm font-medium px-2 py-1 rounded hover:bg-white/5 transition-colors"
+                                        >
+                                            Clear
+                                        </button>
+                                    </div>
                                 )}
                             </div>
+                            {searchQuery && getDisplayParticipants(selectedEvent).length === 0 && (
+                                <p className="text-sm text-gray-500 mt-2 ml-1">No results found. Try a different search term.</p>
+                            )}
                         </div>
 
                         <div className="space-y-3">
@@ -639,20 +742,49 @@ export default function JudgeDashboard() {
 
                             <div className="space-y-4 sm:space-y-6">
                                 <div>
-                                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Score (out of 10)</label>
+                                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                                        Score <span className="text-red-400">*</span> (1-10, decimals allowed)
+                                    </label>
                                     <div className="relative">
                                         <FiStar className="absolute left-4 top-1/2 -translate-y-1/2 text-yellow-500" />
                                         <input
                                             type="number"
-                                            min="0"
+                                            min="1"
                                             max="10"
-                                            step="0.1"
+                                            step="0.01"
                                             value={score}
-                                            onChange={(e) => setScore(e.target.value === "" ? "" : parseFloat(e.target.value))}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (val === "") {
+                                                    setScore("");
+                                                    return;
+                                                }
+                                                const num = parseFloat(val);
+                                                if (!isNaN(num) && num >= 1 && num <= 10) {
+                                                    // Allow up to 2 decimal places
+                                                    const rounded = Math.round(num * 100) / 100;
+                                                    setScore(rounded);
+                                                } else if (val === "" || val === "-") {
+                                                    setScore("");
+                                                }
+                                            }}
+                                            onBlur={(e) => {
+                                                const val = e.target.value;
+                                                const num = parseFloat(val);
+                                                if (val !== "" && (isNaN(num) || num < 1 || num > 10)) {
+                                                    toast.error("Score must be between 1 and 10");
+                                                    setScore("");
+                                                } else if (val !== "" && !isNaN(num)) {
+                                                    // Round to 2 decimal places on blur
+                                                    const rounded = Math.round(num * 100) / 100;
+                                                    setScore(rounded);
+                                                }
+                                            }}
                                             className="w-full bg-[#111] border border-white/10 rounded-xl px-3 pl-12 sm:px-4 sm:pl-12 py-2.5 sm:py-3 text-white text-base sm:text-lg focus:outline-none focus:border-red-500 transition-colors"
-                                            placeholder="0.0"
+                                            placeholder="Enter 1.00-10.00"
                                         />
                                     </div>
+                                    <p className="text-xs text-gray-500 mt-1.5">Enter a score between 1.00 and 10.00 (up to 2 decimal places)</p>
                                 </div>
 
                                 <div>
