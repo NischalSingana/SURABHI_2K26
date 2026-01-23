@@ -1140,7 +1140,7 @@ export default function EventsManagement() {
                                               e.stopPropagation();
                                               handleDeleteRegistration(reg.id, "INDIVIDUAL");
                                             }}
-                                            className="text-zinc-500 hover:text-red-500 p-2 rounded-full hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
+                                            className="text-zinc-500 hover:text-red-500 p-2 rounded-full hover:bg-red-500/10 transition-colors"
                                             title="Delete Registration"
                                           >
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
