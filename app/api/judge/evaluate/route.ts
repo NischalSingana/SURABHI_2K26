@@ -21,10 +21,14 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
-        // Ensure score is within valid range (0-10)
-        if (score < 0 || score > 10) {
-            return NextResponse.json({ error: "Score must be between 0 and 10" }, { status: 400 });
+        // Ensure score is within valid range (1-10), can be decimal
+        const scoreNum = typeof score === 'number' ? score : parseFloat(score);
+        if (isNaN(scoreNum) || scoreNum < 1 || scoreNum > 10) {
+            return NextResponse.json({ error: "Score must be a number between 1 and 10 (decimals allowed)" }, { status: 400 });
         }
+        
+        // Round to 2 decimal places for storage
+        const roundedScore = Math.round(scoreNum * 100) / 100;
 
         const evaluation = await prisma.evaluation.upsert({
             where: {
@@ -35,14 +39,14 @@ export async function POST(req: Request) {
                 }
             },
             update: {
-                score,
+                score: roundedScore,
                 remarks
             },
             create: {
                 judgeId: session.user.id,
                 eventId,
                 participantId,
-                score,
+                score: roundedScore,
                 remarks
             }
         });
