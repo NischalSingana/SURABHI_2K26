@@ -52,6 +52,12 @@ interface ProcessedEntry {
     evaluationsCount: number; // Number of evaluations (1 for individual, N for group)
     members?: any[]; // For groups
     individualEvaluations?: Evaluation[]; // For deeper view
+    judgeScores?: Array<{
+        judgeId: string;
+        judgeName: string | null;
+        score: number;
+        remarks: string | null;
+    }>;
 }
 
 export default function AdminEvaluationsPage() {
@@ -97,16 +103,38 @@ export default function AdminEvaluationsPage() {
 
     const processEventData = (event: EventData): ProcessedEntry[] => {
         if (!event.isGroupEvent) {
-            // Simple mapping for individual events
-            return event.evaluations.map(ev => ({
-                id: ev.participant.id,
-                type: "INDIVIDUAL" as const,
-                name: ev.participant.name || "Unknown",
-                subtitle: ev.participant.collageId,
-                score: ev.score,
-                evaluationsCount: 1,
-                individualEvaluations: [ev]
-            })).sort((a, b) => (typeof b.score === 'number' ? b.score : 0) - (typeof a.score === 'number' ? a.score : 0));
+            // Group evaluations by participant so multiple judges don't duplicate rows
+            const byParticipant = new Map<string, Evaluation[]>();
+            for (const ev of event.evaluations) {
+                const pid = ev.participant.id;
+                const list = byParticipant.get(pid) ?? [];
+                list.push(ev);
+                byParticipant.set(pid, list);
+            }
+
+            const entries = Array.from(byParticipant.entries()).map(([participantId, evals]) => {
+                const total = evals.reduce((sum, e) => sum + e.score, 0);
+                const avg = evals.length ? parseFloat((total / evals.length).toFixed(2)) : 0;
+                const judgeScores = evals.map((e) => ({
+                    judgeId: e.judge.id,
+                    judgeName: e.judge.name,
+                    score: parseFloat(e.score.toFixed(2)),
+                    remarks: e.remarks ?? null,
+                }));
+
+                return {
+                    id: participantId,
+                    type: "INDIVIDUAL" as const,
+                    name: evals[0]?.participant?.name || "Unknown",
+                    subtitle: evals[0]?.participant?.collageId || null,
+                    score: avg,
+                    evaluationsCount: evals.length,
+                    individualEvaluations: evals,
+                    judgeScores,
+                };
+            });
+
+            return entries.sort((a, b) => (typeof b.score === 'number' ? b.score : 0) - (typeof a.score === 'number' ? a.score : 0));
         }
 
         // Group Event Logic
@@ -141,8 +169,30 @@ export default function AdminEvaluationsPage() {
             const teamEvaluations = event.evaluations.filter(ev => memberIds.has(ev.participant.id));
 
             if (teamEvaluations.length > 0) {
-                const totalScore = teamEvaluations.reduce((sum, ev) => sum + ev.score, 0);
-                const avgScore = parseFloat((totalScore / teamEvaluations.length).toFixed(2));
+                // Per-judge team score = avg across evaluated members; overall team score = avg of judge avgs
+                const byJudge = new Map<string, { judgeId: string; judgeName: string | null; scores: number[]; remarks: string[] }>();
+                for (const ev of teamEvaluations) {
+                    const jid = ev.judge.id;
+                    const jname = ev.judge.name ?? null;
+                    const entry = byJudge.get(jid) ?? { judgeId: jid, judgeName: jname, scores: [], remarks: [] };
+                    entry.scores.push(ev.score);
+                    if (ev.remarks) entry.remarks.push(ev.remarks);
+                    byJudge.set(jid, entry);
+                }
+
+                const judgeScores = Array.from(byJudge.values()).map((j) => {
+                    const avg = j.scores.length ? j.scores.reduce((a, b) => a + b, 0) / j.scores.length : 0;
+                    return {
+                        judgeId: j.judgeId,
+                        judgeName: j.judgeName,
+                        score: parseFloat(avg.toFixed(2)),
+                        remarks: j.remarks.length ? j.remarks.join(" | ") : null,
+                    };
+                });
+
+                const avgScore = judgeScores.length
+                    ? parseFloat((judgeScores.reduce((sum, j) => sum + j.score, 0) / judgeScores.length).toFixed(2))
+                    : 0;
 
                 entries.push({
                     id: reg.user.id,
@@ -152,7 +202,8 @@ export default function AdminEvaluationsPage() {
                     score: avgScore,
                     evaluationsCount: teamEvaluations.length,
                     members: membersList,
-                    individualEvaluations: teamEvaluations
+                    individualEvaluations: teamEvaluations,
+                    judgeScores,
                 });
 
                 // Mark these users as processed so we don't double count if logic is loose
@@ -320,6 +371,11 @@ export default function AdminEvaluationsPage() {
                                                                         <td className="py-4 font-bold text-3xl text-red-500">
                                                                             {entry.score}
                                                                             <span className="text-sm text-gray-600 font-normal ml-1">/10</span>
+                                                                            {entry.judgeScores?.length ? (
+                                                                                <div className="text-[10px] text-gray-500 font-normal mt-1">
+                                                                                    Avg of {entry.judgeScores.length} judge{entry.judgeScores.length === 1 ? "" : "s"}
+                                                                                </div>
+                                                                            ) : null}
                                                                         </td>
                                                                         {event.isGroupEvent && (
                                                                             <td className="py-4 text-gray-400 text-base">
@@ -335,9 +391,29 @@ export default function AdminEvaluationsPage() {
                                                                                     <FiUsers /> View Members
                                                                                 </button>
                                                                             ) : (
-                                                                                <div className="text-base text-gray-400">
-                                                                                    <span className="block text-gray-300 font-medium mb-1">{entry.individualEvaluations?.[0]?.remarks || "-"}</span>
-                                                                                    <span className="block text-sm text-gray-500">Judge: <span className="text-gray-400">{entry.individualEvaluations?.[0]?.judge.name}</span></span>
+                                                                                <div className="text-sm text-gray-400 space-y-1">
+                                                                                    {entry.judgeScores?.length ? (
+                                                                                        <>
+                                                                                            <div className="text-gray-300 font-medium">
+                                                                                                Judges:
+                                                                                            </div>
+                                                                                            <div className="space-y-0.5">
+                                                                                                {entry.judgeScores
+                                                                                                    .slice()
+                                                                                                    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+                                                                                                    .map((j) => (
+                                                                                                        <div key={j.judgeId} className="flex items-center justify-between gap-3">
+                                                                                                            <span className="truncate max-w-[180px]">
+                                                                                                                {j.judgeName || "Judge"}
+                                                                                                            </span>
+                                                                                                            <span className="font-bold text-gray-200">{j.score}/10</span>
+                                                                                                        </div>
+                                                                                                    ))}
+                                                                                            </div>
+                                                                                        </>
+                                                                                    ) : (
+                                                                                        <span className="block text-gray-500 italic">No judge scores</span>
+                                                                                    )}
                                                                                 </div>
                                                                             )}
                                                                         </td>
@@ -385,6 +461,25 @@ export default function AdminEvaluationsPage() {
                             </div>
 
                             <div className="space-y-4">
+                                {!!selectedTeam.judgeScores?.length && (
+                                    <div className="bg-black/40 border border-zinc-800 rounded-xl p-4">
+                                        <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Per-judge scores</h4>
+                                        <div className="space-y-2">
+                                            {selectedTeam.judgeScores
+                                                .slice()
+                                                .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+                                                .map((j) => (
+                                                    <div key={j.judgeId} className="flex items-center justify-between gap-3">
+                                                        <div className="min-w-0">
+                                                            <div className="text-sm text-gray-200 truncate">{j.judgeName || "Judge"}</div>
+                                                            {j.remarks && <div className="text-xs text-gray-500 truncate">{j.remarks}</div>}
+                                                        </div>
+                                                        <div className="text-sm font-bold text-white">{j.score}/10</div>
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </div>
+                                )}
                                 <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Member Evaluations</h4>
                                 <div className="space-y-3">
                                     {selectedTeam.individualEvaluations?.map((ev, idx) => (

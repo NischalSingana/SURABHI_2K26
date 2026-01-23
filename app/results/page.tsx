@@ -24,6 +24,12 @@ interface ParticipantResult {
     score: number;
     isEvaluated: boolean;
     remarks: string | null;
+    judgeScores?: Array<{
+        judgeId: string;
+        judgeName: string | null;
+        score: number;
+        remarks: string | null;
+    }>;
 }
 
 export default function ResultsPage() {
@@ -33,6 +39,7 @@ export default function ResultsPage() {
     const [results, setResults] = useState<ParticipantResult[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingResults, setLoadingResults] = useState(false);
+    const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
     const { data: session } = useSession();
     const [isPublished, setIsPublished] = useState(false);
@@ -61,7 +68,8 @@ export default function ResultsPage() {
                     collageId: p.collageId,
                     score: p.score,
                     isEvaluated: p.isEvaluated,
-                    remarks: p.remarks || null
+                    remarks: p.remarks || null,
+                    judgeScores: Array.isArray(p.judgeScores) ? p.judgeScores : []
                 }));
             setResults(evaluated);
         } else {
@@ -186,10 +194,70 @@ export default function ResultsPage() {
                                                         {result.score}
                                                     </div>
                                                     <div className="text-xs sm:text-sm text-gray-400 uppercase font-medium tracking-wider">
-                                                        Score
+                                                        Avg Score
                                                     </div>
+                                                    {!!result.judgeScores?.length && (
+                                                        <div className="text-[10px] sm:text-xs text-gray-500 mt-1">
+                                                            {result.judgeScores.length} Judge{result.judgeScores.length === 1 ? "" : "s"}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
+
+                                            {/* Per-judge breakdown */}
+                                            {!!result.judgeScores?.length && (
+                                                <div className="pt-4 border-t border-white/10">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const next = new Set(expandedIds);
+                                                            if (next.has(result.id)) next.delete(result.id);
+                                                            else next.add(result.id);
+                                                            setExpandedIds(next);
+                                                        }}
+                                                        className="text-sm text-gray-300 hover:text-white transition-colors font-medium"
+                                                    >
+                                                        {expandedIds.has(result.id) ? "Hide judge scores" : "Show judge scores"}
+                                                    </button>
+
+                                                    <AnimatePresence>
+                                                        {expandedIds.has(result.id) && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, height: 0 }}
+                                                                animate={{ opacity: 1, height: "auto" }}
+                                                                exit={{ opacity: 0, height: 0 }}
+                                                                className="overflow-hidden"
+                                                            >
+                                                                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                                    {result.judgeScores
+                                                                        .slice()
+                                                                        .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+                                                                        .map((j) => (
+                                                                            <div
+                                                                                key={j.judgeId}
+                                                                                className="bg-black/30 border border-white/10 rounded-lg px-3 py-2 flex items-center justify-between gap-3"
+                                                                            >
+                                                                                <div className="min-w-0">
+                                                                                    <div className="text-xs text-gray-400 truncate">
+                                                                                        {j.judgeName || "Judge"}
+                                                                                    </div>
+                                                                                    {j.remarks && (
+                                                                                        <div className="text-[11px] text-gray-500 truncate">
+                                                                                            {j.remarks}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                                <div className="text-sm font-bold text-white">
+                                                                                    {j.score}
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </div>
+                                            )}
 
                                             {/* Remarks */}
                                             {result.remarks && (
