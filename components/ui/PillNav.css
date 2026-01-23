@@ -34,16 +34,19 @@
   z-index: 10;
 }
 
-.pill-logo img {
-  height: 115px;
+.pill-logo img,
+.pill-logo-image {
   margin: -28px 0;
-  width: auto;
+  width: auto !important;
+  height: auto !important;
+  max-height: 115px;
   object-fit: contain;
   position: relative;
   z-index: 20;
   pointer-events: none;
   transition: transform 0.3s ease;
   /* Ensure clicks pass to the anchor tag */
+  /* Using max-height to maintain aspect ratio while allowing CSS control */
 }
 
 /* Logo hover effect: Zoom in */
