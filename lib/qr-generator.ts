@@ -50,12 +50,12 @@ export async function generateTicketQR(data: TicketData): Promise<string> {
 
     const verificationUrl = `${baseUrl}/verify/${pass.passToken}?${params.toString()}`;
 
-    // 3. Generate QR code
+    // 3. Generate QR code (higher resolution for better quality in PDF)
     const qrCodeDataURL = await QRCode.toDataURL(verificationUrl, {
         errorCorrectionLevel: 'M',
         type: 'image/png',
-        width: 400,
-        margin: 1,
+        width: 600, // Increased from 400 for better quality at larger size
+        margin: 2,
         color: {
             dark: '#000000',
             light: '#ffffff',
