@@ -27,7 +27,9 @@ const Events = () => {
 
   const fetchCategories = async () => {
     try {
+      const startTime = Date.now();
       const result = await getCategories();
+      
       if (result.success && result.data) {
         const categoriesData: CategoryData[] = result.data
           .map((cat) => ({
@@ -42,32 +44,39 @@ const Events = () => {
 
         setCategories(categoriesData);
 
-        // Smart Preloader Logic
-        const hasVisited = sessionStorage.getItem("competitions_visited");
+        // Check if this is first visit
+        const hasVisited = typeof window !== 'undefined' 
+          ? sessionStorage.getItem("competitions_visited") 
+          : null;
 
         if (!hasVisited) {
-          // First visit: Preload images and show loader for at least 2 seconds
-          const minLoaderTime = new Promise((resolve) =>
-            setTimeout(resolve, 2000)
-          );
+          // First visit: Ensure loader shows for at least 1.5 seconds
+          const elapsedTime = Date.now() - startTime;
+          const minDisplayTime = 1500; // 1.5 seconds
+          const remainingTime = Math.max(0, minDisplayTime - elapsedTime);
 
-          // Preload all images
-          const imagePromises = categoriesData.map((cat) => {
-            return new Promise((resolve) => {
-              const img = new window.Image();
-              img.src = cat.image;
-              img.onload = resolve;
-              img.onerror = resolve; // Continue even if one image fails
-            });
-          });
+          if (remainingTime > 0) {
+            await new Promise((resolve) => setTimeout(resolve, remainingTime));
+          }
 
-          // Wait for both minimum time AND image loading
-          await Promise.all([minLoaderTime, ...imagePromises]);
-
-          // Mark session as visited
-          sessionStorage.setItem("competitions_visited", "true");
+          // Mark as visited
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem("competitions_visited", "true");
+          }
         }
-        // If visited, we just flow through (loading set to false below immediately)
+        // On revisit, no forced wait - just show loader until data loads naturally
+
+        // Optimized: Start lazy loading images in background (non-blocking)
+        if (typeof window !== 'undefined') {
+          // Preload only first 3 images for better perceived performance
+          categoriesData.slice(0, 3).forEach((cat) => {
+            const link = document.createElement('link');
+            link.rel = 'preload';
+            link.as = 'image';
+            link.href = cat.image;
+            document.head.appendChild(link);
+          });
+        }
       }
     } catch (error) {
       console.error("Failed to fetch categories:", error);
