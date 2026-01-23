@@ -265,7 +265,7 @@ const PillNav: React.FC<PillNavProps> = ({
             alt={logoAlt}
             width={200}
             height={115}
-            style={{ width: 'auto', height: '115px' }} // CSS override handling
+            className="pill-logo-image"
             priority
           />
         </Link>
