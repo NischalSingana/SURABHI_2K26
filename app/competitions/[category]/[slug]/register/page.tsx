@@ -65,8 +65,8 @@ const scrollbarStyles = `
 export default function EventRegistrationPage() {
     const params = useParams();
     const router = useRouter();
-    const slug = params.slug as string;
-    const categoryName = decodeURIComponent(params.category as string);
+  const slug = params.slug as string;
+  const categorySlug = params.category as string;
     const { data: session } = useSession();
 
     const [event, setEvent] = useState<Event | null>(null);
@@ -129,7 +129,7 @@ export default function EventRegistrationPage() {
                 }
             } else {
                 toast.error("Event not found");
-                router.push(`/competitions/${categoryName}`);
+                router.push(`/competitions/${categorySlug}`);
             }
         } catch (e) {
             console.error("Error fetching event", e);
@@ -196,7 +196,7 @@ export default function EventRegistrationPage() {
             if (result.success) {
                 toast.success(isKLStudent ? "Registration Confirmed!" : "Registration Submitted! Pending Approval.");
                 setShowPaymentModal(false);
-                router.push(`/competitions/${categoryName}/${slug}`); // Redirect
+                router.push(`/competitions/${categorySlug}/${slug}`); // Redirect
             } else {
                 toast.error(result.error || "Registration failed");
             }
@@ -902,10 +902,19 @@ export default function EventRegistrationPage() {
                                                                 />
                                                             </div>
 
-                                                            <div className="p-3 rounded bg-yellow-500/10 border border-yellow-500/20 mt-2">
-                                                                <p className="text-[10px] md:text-xs text-yellow-500 leading-relaxed text-center font-medium">
-                                                                    PLEASE PAY THE FULL AMOUNT AS SHOWN. YOUR PAYMENT WILL BE VERIFIED ALONG WITH UTR ID AND ONLY THEN REGISTRATION WILL BE APPROVED.
-                                                                </p>
+                                                            <div className="p-3 rounded bg-yellow-500/10 border border-yellow-500/20 mt-2 space-y-2">
+                                                                <div className="flex gap-2 text-left">
+                                                                    <span className="text-yellow-500 text-[10px] md:text-xs flex-shrink-0">•</span>
+                                                                    <p className="text-[10px] md:text-xs text-yellow-500 leading-relaxed font-medium uppercase">
+                                                                        PLEASE PAY THE FULL AMOUNT AS SHOWN. YOUR PAYMENT WILL BE VERIFIED ALONG WITH UTR ID AND ONLY THEN REGISTRATION WILL BE APPROVED.
+                                                                    </p>
+                                                                </div>
+                                                                <div className="flex gap-2 text-left">
+                                                                    <span className="text-yellow-500 text-[10px] md:text-xs flex-shrink-0">•</span>
+                                                                    <p className="text-[10px] md:text-xs text-yellow-500 leading-relaxed font-medium uppercase">
+                                                                        The amount once paid will not be refunded under any circumstances.
+                                                                    </p>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>

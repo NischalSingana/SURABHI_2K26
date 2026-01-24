@@ -11,6 +11,7 @@ import { FiCalendar, FiClock } from "react-icons/fi";
 
 interface CategoryData {
   name: string;
+  slug: string;
   count: number;
   image: string;
 }
@@ -34,6 +35,7 @@ const Events = () => {
         const categoriesData: CategoryData[] = result.data
           .map((cat) => ({
             name: cat.name,
+            slug: cat.slug,
             count: cat.Event.length,
             // Use category image if available, otherwise fallback to first event image (if any), otherwise placeholder
             image:
@@ -219,7 +221,7 @@ const Events = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
             {filteredCategories.map((category, index) => (
               <motion.div
-                key={category.name}
+                key={category.slug}
                 initial={{ opacity: 0, y: 50, rotateX: -15 }}
                 animate={{ opacity: 1, y: 0, rotateX: 0 }}
                 transition={{ delay: index * 0.1, duration: 0.5 }}
@@ -231,7 +233,7 @@ const Events = () => {
                   transition: { duration: 0.3 },
                 }}
                 onClick={() =>
-                  router.push(`/competitions/${encodeURIComponent(category.name)}`)
+                  router.push(`/competitions/${category.slug}`)
                 }
                 className="cursor-pointer perspective-1000"
                 style={{ transformStyle: "preserve-3d" }}
