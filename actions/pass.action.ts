@@ -51,8 +51,14 @@ export async function generateVisitorPass(paymentDetails?: {
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
-                individualRegistrations: { select: { id: true } },
-                groupRegistrations: { select: { id: true } }
+                individualRegistrations: { 
+                    where: { paymentStatus: { not: "REJECTED" } },
+                    select: { id: true } 
+                },
+                groupRegistrations: { 
+                    where: { paymentStatus: { not: "REJECTED" } },
+                    select: { id: true } 
+                }
             }
         });
 
@@ -114,10 +120,19 @@ export async function checkVisitorPassStatus() {
         const user = await prisma.user.findUnique({
             where: { id: session.user.id },
             include: {
-                individualRegistrations: { select: { id: true } },
-                groupRegistrations: { select: { id: true } },
+                individualRegistrations: { 
+                    where: { paymentStatus: { not: "REJECTED" } },
+                    select: { id: true } 
+                },
+                groupRegistrations: { 
+                    where: { paymentStatus: { not: "REJECTED" } },
+                    select: { id: true } 
+                },
                 passes: {
-                    where: { passType: "VISITOR" }
+                    where: { 
+                        passType: "VISITOR",
+                        paymentStatus: { not: "REJECTED" }
+                    }
                 }
             }
         });
@@ -126,12 +141,15 @@ export async function checkVisitorPassStatus() {
 
         const isRegistered = user.individualRegistrations.length > 0 || user.groupRegistrations.length > 0;
 
+        // Only return pass info if it's not REJECTED (allow re-registration)
+        const activePass = user.passes.find(p => p.paymentStatus !== "REJECTED");
+
         return {
             success: true,
             isEligibleForFree: isRegistered,
-            hasPass: user.passes.length > 0,
-            passToken: user.passes[0]?.passToken,
-            paymentStatus: user.passes[0]?.paymentStatus
+            hasPass: !!activePass,
+            passToken: activePass?.passToken,
+            paymentStatus: activePass?.paymentStatus
         };
 
     } catch (error) {
