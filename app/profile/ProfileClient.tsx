@@ -900,10 +900,19 @@ export default function ProfileClient({
                         />
                       </div>
 
-                      <div className="p-3 rounded bg-yellow-500/10 border border-yellow-500/20 mt-2">
-                        <p className="text-[10px] md:text-xs text-yellow-500 leading-relaxed text-center font-medium">
-                          PLEASE PAY THE FULL AMOUNT AS SHOWN. YOUR PAYMENT WILL BE VERIFIED ALONG WITH UTR ID AND ONLY THEN YOUR PASS WILL BE APPROVED.
-                        </p>
+                      <div className="p-3 rounded bg-yellow-500/10 border border-yellow-500/20 mt-2 space-y-2">
+                        <div className="flex gap-2 text-left">
+                          <span className="text-yellow-500 text-[10px] md:text-xs flex-shrink-0">•</span>
+                          <p className="text-[10px] md:text-xs text-yellow-500 leading-relaxed font-medium uppercase">
+                            PLEASE PAY THE FULL AMOUNT AS SHOWN. YOUR PAYMENT WILL BE VERIFIED ALONG WITH UTR ID AND ONLY THEN YOUR PASS WILL BE APPROVED.
+                          </p>
+                        </div>
+                        <div className="flex gap-2 text-left">
+                          <span className="text-yellow-500 text-[10px] md:text-xs flex-shrink-0">•</span>
+                          <p className="text-[10px] md:text-xs text-yellow-500 leading-relaxed font-medium uppercase">
+                            The amount once paid will not be refunded under any circumstances.
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>

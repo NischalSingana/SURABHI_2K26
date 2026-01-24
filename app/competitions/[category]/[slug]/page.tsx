@@ -261,7 +261,7 @@ function EventDetailPageContent() {
   const params = useParams();
   const router = useRouter();
   const slug = params.slug as string;
-  const categoryName = decodeURIComponent(params.category as string);
+  const categorySlug = params.category as string;
 
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
@@ -458,7 +458,7 @@ function EventDetailPageContent() {
           whileTap={{ scale: 0.95 }}
           onClick={(e) => {
             e.stopPropagation();
-            router.push(`/competitions/${categoryName}`);
+            router.push(`/competitions/${categorySlug}`);
           }}
           className="absolute top-4 left-4 md:top-8 md:left-8 flex items-center gap-2 text-white hover:text-red-500 transition-colors bg-black/50 backdrop-blur-sm px-3 py-1.5 md:px-4 md:py-2 rounded-lg z-10 text-sm md:text-base"
         >
@@ -715,7 +715,7 @@ function EventDetailPageContent() {
                       toast.error("Please wait till admin approves your registration.");
                       return;
                     }
-                    router.push(`/competitions/${categoryName}/${slug}/register`);
+                    router.push(`/competitions/${categorySlug}/${slug}/register`);
                   }}
                   disabled={
                     (event._count.individualRegistrations + event._count.groupRegistrations) >= event.participantLimit ||

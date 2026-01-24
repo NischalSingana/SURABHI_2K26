@@ -39,7 +39,7 @@ interface Event {
 function CategoryPageContent() {
   const params = useParams();
   const router = useRouter();
-  const categoryName = decodeURIComponent(params.category as string);
+  const categoryParam = params.category as string;
 
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,6 +58,8 @@ function CategoryPageContent() {
   const [registeredEvents, setRegisteredEvents] = useState<Set<string>>(new Set());
   const [categoryVideo, setCategoryVideo] = useState<string | null>(null);
   const [categoryImage, setCategoryImage] = useState<string | null>(null);
+  const [categorySlug, setCategorySlug] = useState<string>("");
+  const [categoryDisplayName, setCategoryDisplayName] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [showPaymentStep, setShowPaymentStep] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState({
@@ -69,7 +71,7 @@ function CategoryPageContent() {
 
   useEffect(() => {
     fetchEvents();
-  }, [categoryName]);
+  }, [categoryParam]);
 
   const getEmbedUrl = (url: string) => {
     if (!url) return null;
@@ -92,43 +94,43 @@ function CategoryPageContent() {
     return url;
   };
 
-  /*
-   * Fetch Events implementation updated to use slugs is deferred until backend implementation is confirmed working with slugs.
-   * However, since we added 'slug' to schema, we can start using it.
-   * Ideally, this page [category] should be [slug] or we lookup category by name then get its slug.
-   * For now, let's keep fetching by category name but start linking to event slugs.
-   */
   const fetchEvents = async () => {
-    // Fetch Category Details
     const categoryResult = await getCategories();
+    let resolvedCategory: { slug: string; name: string } | null = null;
+
     if (categoryResult.success && categoryResult.data) {
+      const decoded = decodeURIComponent(categoryParam);
       const currentCategory = categoryResult.data.find(
-        (c) => c.name.toLowerCase() === categoryName.toLowerCase()
+        (c) => c.slug === categoryParam || c.name.toLowerCase() === decoded.toLowerCase()
       );
       if (currentCategory) {
+        resolvedCategory = { slug: currentCategory.slug, name: currentCategory.name };
         setCategoryVideo(currentCategory.video || null);
         setCategoryImage(currentCategory.image || null);
+        setCategorySlug(currentCategory.slug);
+        setCategoryDisplayName(currentCategory.name);
       }
     }
 
     const result = await getPublicEvents();
 
     if (result.success && result.data) {
-      const filtered = result.data.filter(
-        (event) => {
-          return event.Category.name.toLowerCase() === categoryName.toLowerCase();
-        }
-      );
+      const filtered = resolvedCategory
+        ? result.data.filter(
+            (event) => event.Category.name.toLowerCase() === resolvedCategory!.name.toLowerCase()
+          )
+        : [];
       setEvents(filtered);
 
-      // Check registration status
-      const regResult = await getUserRegistrations();
-      if (regResult.success) {
-        if (regResult.registeredEventIds) {
-          setRegisteredEvents(new Set(regResult.registeredEventIds));
-        }
-        if (regResult.email) {
-          setUserEmail(regResult.email);
+      if (resolvedCategory) {
+        const regResult = await getUserRegistrations();
+        if (regResult.success) {
+          if (regResult.registeredEventIds) {
+            setRegisteredEvents(new Set(regResult.registeredEventIds));
+          }
+          if (regResult.email) {
+            setUserEmail(regResult.email);
+          }
         }
       }
     } else {
@@ -146,9 +148,8 @@ function CategoryPageContent() {
     e.stopPropagation();
 
     toast.info("Redirecting to registration page...");
-    // Link using slug if available, fallback to ID
     const eventIdentifier = (event as any).slug || event.id;
-    router.push(`/competitions/${encodeURIComponent(categoryName)}/${eventIdentifier}`);
+    router.push(`/competitions/${categorySlug}/${eventIdentifier}`);
   };
 
   const handleRegistrationSubmit = async () => {
@@ -312,7 +313,7 @@ function CategoryPageContent() {
             <div className="relative aspect-[16/9] w-full">
               <Image
                 src={categoryImage}
-                alt={categoryName}
+                alt={categoryDisplayName || categoryParam}
                 fill
                 className="object-cover"
                 priority
@@ -330,7 +331,7 @@ function CategoryPageContent() {
             animate={{ opacity: 1, y: 0 }}
             className="text-3xl md:text-5xl font-bold text-red-500 mb-4 capitalize"
           >
-            {categoryName}
+            {categoryDisplayName || categoryParam}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: -20 }}
@@ -727,6 +728,15 @@ function CategoryPageContent() {
                         placeholder="Enter Name on UPI"
                         className="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-sm text-white focus:border-red-500 outline-none"
                       />
+                    </div>
+
+                    <div className="p-3 rounded bg-yellow-500/10 border border-yellow-500/20">
+                      <div className="flex gap-2 text-left">
+                        <span className="text-yellow-500 text-[10px] md:text-xs flex-shrink-0">•</span>
+                        <p className="text-[10px] md:text-xs text-yellow-500 leading-relaxed font-medium uppercase">
+                          The amount once paid will not be refunded under any circumstances.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
