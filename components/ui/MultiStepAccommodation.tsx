@@ -329,6 +329,28 @@ const MultiStepAccommodation = () => {
           </motion.div>
 
           <div className="space-y-6">
+            {/* Eligibility notice – highlighted */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.05 }}
+              className="bg-amber-500/10 border-2 border-amber-500/50 p-5 rounded-2xl"
+            >
+              <h3 className="font-bold text-amber-400 text-base mb-3 flex items-center gap-2">
+                <FiShield className="shrink-0" /> Who Can Book
+              </h3>
+              <ul className="space-y-2 text-amber-200/90 text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="mt-1.5 w-1.5 h-1.5 bg-amber-400 rounded-full shrink-0" />
+                  <span><strong>Only competition participants</strong> can book accommodation.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1.5 w-1.5 h-1.5 bg-amber-400 rounded-full shrink-0" />
+                  <span><strong>Visitor pass holders are not eligible</strong> for accommodation.</span>
+                </li>
+              </ul>
+            </motion.div>
+
             {/* Free Accommodation Card */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -338,7 +360,7 @@ const MultiStepAccommodation = () => {
             >
               <h3 className="font-semibold text-white text-lg mb-2">100% Free Stay</h3>
               <p className="text-zinc-400 text-sm leading-relaxed mb-4">
-                We provide free accommodation for all out-station participants registered for Surabhi events.
+                We provide free accommodation for out-station participants <strong className="text-zinc-300">registered for Surabhi competitions</strong> (not visitor pass).
               </p>
               <span className="inline-block px-3 py-1 bg-green-500/10 text-green-400 text-xs font-bold rounded-full border border-green-500/20">
                 ZERO COST
@@ -393,6 +415,13 @@ const MultiStepAccommodation = () => {
 
       {/* Right Panel - Form Wizard */}
       <div className="flex-1 flex flex-col p-6 lg:p-12 z-10 overflow-y-auto">
+        {/* Eligibility banner – visible above form */}
+        <div className="max-w-2xl mx-auto w-full mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40">
+          <p className="text-amber-200/90 text-sm font-medium">
+            <strong>Eligibility:</strong> Only competition participants can book. Visitor pass holders are not eligible.
+          </p>
+        </div>
+
         {/* Progress Steps */}
         <div className="max-w-2xl mx-auto w-full mb-12">
           <div className="flex justify-between items-start relative px-2">

@@ -78,9 +78,16 @@ export async function createAccommodationBooking(
       where: { id: session.user.id },
       include: {
         accommodationBookings: true,
-        individualRegistrations: { select: { id: true } },
-        groupRegistrations: { select: { id: true } }
-      }
+        individualRegistrations: {
+          where: { paymentStatus: { not: "REJECTED" } },
+          select: { id: true },
+        },
+        groupRegistrations: {
+          where: { paymentStatus: { not: "REJECTED" } },
+          select: { id: true },
+        },
+        passes: { select: { id: true } },
+      },
     });
 
     if (!userData) {
@@ -91,16 +98,21 @@ export async function createAccommodationBooking(
     if (userData.email.endsWith("@kluniversity.in")) {
       return {
         success: false,
-        error: "Accommodation booking is not available for KL University students."
+        error: "Accommodation booking is not available for KL University students.",
       };
     }
 
-    // Restriction 2: Must be registered for at least one competition
-    const isRegistered = userData.individualRegistrations.length > 0 || userData.groupRegistrations.length > 0;
-    if (!isRegistered) {
+    // Restriction 2: Only competition participants—visitor pass holders are NOT eligible
+    const hasCompetitionReg =
+      userData.individualRegistrations.length > 0 ||
+      userData.groupRegistrations.length > 0;
+    if (!hasCompetitionReg) {
+      const hasVisitorPass = userData.passes.length > 0;
       return {
         success: false,
-        error: "You must be registered for at least one competition to book accommodation."
+        error: hasVisitorPass
+          ? "Visitor pass holders cannot book accommodation. Only participants registered for competitions are eligible."
+          : "You must be registered for at least one competition to book accommodation.",
       };
     }
 
