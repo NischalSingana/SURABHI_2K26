@@ -99,12 +99,9 @@ export default function ContactClient({ categories }: ContactClientProps) {
                                         </div>
 
                                         <div className="relative z-10">
-                                            <h3 className="text-xl font-bold text-white mb-1">
+                                            <h3 className="text-xl font-bold text-white mb-6">
                                                 {coordinator.name}
                                             </h3>
-                                            <p className="text-red-400/80 text-xs font-medium uppercase tracking-wider mb-6">
-                                                Coordinator
-                                            </p>
 
                                             <div className="space-y-3">
                                                 <a
