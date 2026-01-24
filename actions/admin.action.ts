@@ -160,6 +160,19 @@ export async function updateRegistrationStatus(
         }
 
         if (type === "VISITOR_PASS") {
+            // Check if pass exists first
+            const existingPass = await prisma.pass.findUnique({
+                where: { id }
+            });
+
+            if (!existingPass) {
+                return { success: false, error: "Visitor pass not found" };
+            }
+
+            if (existingPass.passType !== "VISITOR") {
+                return { success: false, error: "This is not a visitor pass" };
+            }
+
             const pass = await prisma.pass.update({
                 where: { id },
                 data: {
@@ -209,7 +222,22 @@ export async function updateRegistrationStatus(
                 })();
             }
 
+            revalidatePath("/admin/registrations/approvals");
+            revalidatePath("/profile");
+            revalidatePath("/profile/competitions");
+            revalidatePath("/competitions");
+            return { success: true, message: `Visitor pass ${status.toLowerCase()} successfully` };
+
         } else if (type === "INDIVIDUAL") {
+            // Check if registration exists first
+            const existingReg = await prisma.individualRegistration.findUnique({
+                where: { id }
+            });
+
+            if (!existingReg) {
+                return { success: false, error: "Individual registration not found" };
+            }
+
             const registration = await prisma.individualRegistration.update({
                 where: { id },
                 data: { paymentStatus: status },
@@ -271,6 +299,15 @@ export async function updateRegistrationStatus(
             }
 
         } else {
+            // Check if registration exists first
+            const existingReg = await prisma.groupRegistration.findUnique({
+                where: { id }
+            });
+
+            if (!existingReg) {
+                return { success: false, error: "Group registration not found" };
+            }
+
             const registration = await prisma.groupRegistration.update({
                 where: { id },
                 data: { paymentStatus: status },
@@ -338,6 +375,8 @@ export async function updateRegistrationStatus(
 
         revalidatePath("/admin/registrations/approvals");
         revalidatePath("/profile");
+        revalidatePath("/profile/competitions");
+        revalidatePath("/competitions");
         return { success: true, message: `Registration ${status.toLowerCase()} successfully` };
 
     } catch (error) {

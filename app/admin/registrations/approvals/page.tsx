@@ -16,7 +16,7 @@ type Registration = {
         collage: string | null;
         collageId: string | null;
     };
-    event: {
+    event?: {
         name: string;
         date: Date;
     };
@@ -25,7 +25,7 @@ type Registration = {
     payeeName: string | null;
     paymentStatus: string;
     createdAt: Date;
-    type: "INDIVIDUAL" | "GROUP";
+    type: "INDIVIDUAL" | "GROUP" | "VISITOR";
     groupName?: string;
 };
 
@@ -49,9 +49,20 @@ export default function RegistrationApprovals() {
         if (result.success && result.data) {
             const individual = result.data.individual.map((r: any) => ({ ...r, type: "INDIVIDUAL" }));
             const group = result.data.group.map((r: any) => ({ ...r, type: "GROUP" }));
+            const visitor = (result.data.visitorPasses || []).map((p: any) => ({
+                id: p.id,
+                user: p.user || { name: null, email: "", phone: null, collage: null, collageId: null },
+                event: undefined, // Visitor passes don't have events
+                paymentScreenshot: p.paymentScreenshot || null,
+                utrId: p.utrId || null,
+                payeeName: p.payeeName || null,
+                paymentStatus: p.paymentStatus,
+                createdAt: p.createdAt,
+                type: "VISITOR" as const
+            }));
 
             // Combine and sort by date desc
-            const all = [...individual, ...group].sort((a, b) =>
+            const all = [...individual, ...group, ...visitor].sort((a, b) =>
                 new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
             );
 
@@ -62,9 +73,11 @@ export default function RegistrationApprovals() {
         setLoading(false);
     };
 
-    const handleStatusUpdate = async (id: string, type: "INDIVIDUAL" | "GROUP", status: "APPROVED" | "REJECTED") => {
+    const handleStatusUpdate = async (id: string, type: "INDIVIDUAL" | "GROUP" | "VISITOR", status: "APPROVED" | "REJECTED") => {
         toast.loading(`Updating status to ${status}...`);
-        const result = await updateRegistrationStatus(id, type, status);
+        // Convert VISITOR to VISITOR_PASS for backend
+        const backendType = type === "VISITOR" ? "VISITOR_PASS" : type;
+        const result = await updateRegistrationStatus(id, backendType as "INDIVIDUAL" | "GROUP" | "VISITOR_PASS", status);
         toast.dismiss();
 
         if (result.success) {
@@ -153,20 +166,32 @@ export default function RegistrationApprovals() {
                                         <td className="px-6 py-4">
                                             <div className="font-medium text-white">{reg.user.name || "Unknown"}</div>
                                             <div className="text-xs">{reg.user.email}</div>
-                                            <div className="text-xs">{reg.user.phone}</div>
-                                            <div className="text-xs text-zinc-500">{reg.user.collage || "N/A"} ({reg.user.collageId || "N/A"})</div>
+                                            <div className="text-xs">{reg.user.phone || "N/A"}</div>
+                                            <div className="text-xs text-zinc-500">{reg.user.collage || "N/A"} {reg.user.collageId ? `(${reg.user.collageId})` : ""}</div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="text-white font-medium">{reg.event.name}</div>
-                                            <div className="text-xs">{format(new Date(reg.event.date), "PPP")}</div>
-                                            {reg.type === "GROUP" && (
-                                                <div className="text-xs text-blue-400 mt-1">Group: {reg.groupName}</div>
+                                            {reg.type === "VISITOR" ? (
+                                                <div className="text-white font-medium">Visitor Pass</div>
+                                            ) : reg.event ? (
+                                                <>
+                                                    <div className="text-white font-medium">{reg.event.name}</div>
+                                                    <div className="text-xs">{format(new Date(reg.event.date), "PPP")}</div>
+                                                    {reg.type === "GROUP" && (
+                                                        <div className="text-xs text-blue-400 mt-1">Group: {reg.groupName}</div>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <div className="text-zinc-500 text-xs">N/A</div>
                                             )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="space-y-1">
-                                                <div><span className="text-zinc-500">UTR:</span> <span className="text-white font-mono">{reg.utrId}</span></div>
-                                                <div><span className="text-zinc-500">Payee:</span> <span className="text-white">{reg.payeeName}</span></div>
+                                                {reg.utrId && (
+                                                    <div><span className="text-zinc-500">UTR:</span> <span className="text-white font-mono">{reg.utrId}</span></div>
+                                                )}
+                                                {reg.payeeName && (
+                                                    <div><span className="text-zinc-500">Payee:</span> <span className="text-white">{reg.payeeName}</span></div>
+                                                )}
                                                 {reg.paymentScreenshot && (
                                                     <button
                                                         onClick={() => setSelectedRegistration(reg)}
@@ -174,6 +199,9 @@ export default function RegistrationApprovals() {
                                                     >
                                                         View Screenshot
                                                     </button>
+                                                )}
+                                                {!reg.utrId && !reg.payeeName && !reg.paymentScreenshot && (
+                                                    <span className="text-zinc-500 text-xs">No payment details</span>
                                                 )}
                                             </div>
                                         </td>
