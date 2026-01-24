@@ -50,6 +50,8 @@ export async function deleteRegistration(id: string, type: 'INDIVIDUAL' | 'GROUP
     revalidatePath("/admin/events");
     revalidatePath("/events");
     revalidatePath("/profile");
+    revalidatePath("/profile/competitions");
+    revalidatePath("/competitions");
 
     return { success: true, message: "Registration deleted successfully" };
   } catch (error) {
@@ -898,11 +900,17 @@ export async function checkEventRegistration(eventId: string) {
     const isGroupRegistered = groupReg && groupReg.paymentStatus !== "REJECTED";
     const isMemberRegistered = isMember && memberStatus !== "REJECTED";
 
+    // Only return registrationStatus if it's not REJECTED (allow re-registration)
+    const effectiveStatus = isIndivRegistered ? individualReg.paymentStatus 
+        : isGroupRegistered ? groupReg.paymentStatus 
+        : isMemberRegistered ? memberStatus 
+        : null;
+
     return {
       success: true,
       isRegistered: !!(isIndivRegistered || isGroupRegistered || isMemberRegistered),
       isApproved: !!user?.isApproved,
-      registrationStatus: individualReg?.paymentStatus || groupReg?.paymentStatus || memberStatus
+      registrationStatus: effectiveStatus
     };
   } catch (error) {
     console.error("Error checking registration:", error);
@@ -922,12 +930,18 @@ export async function getUserRegistrations() {
     }
 
     const individualRegs = await prisma.individualRegistration.findMany({
-      where: { userId: session.user.id },
+      where: { 
+        userId: session.user.id,
+        paymentStatus: { not: "REJECTED" }
+      },
       select: { eventId: true }
     });
 
     const groupRegs = await prisma.groupRegistration.findMany({
-      where: { userId: session.user.id },
+      where: { 
+        userId: session.user.id,
+        paymentStatus: { not: "REJECTED" }
+      },
       select: { eventId: true }
     });
 
@@ -935,7 +949,8 @@ export async function getUserRegistrations() {
       where: {
         members: {
           array_contains: [{ email: session.user.email }]
-        }
+        },
+        paymentStatus: { not: "REJECTED" }
       },
       select: { eventId: true }
     });

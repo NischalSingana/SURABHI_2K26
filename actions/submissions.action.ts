@@ -194,6 +194,9 @@ export async function getUserRegisteredEvents() {
             },
             include: {
                 individualRegistrations: {
+                    where: {
+                        paymentStatus: { not: "REJECTED" }
+                    },
                     include: {
                         event: {
                             include: {
@@ -209,6 +212,9 @@ export async function getUserRegisteredEvents() {
                     },
                 },
                 groupRegistrations: {
+                    where: {
+                        paymentStatus: { not: "REJECTED" }
+                    },
                     include: {
                         event: {
                             include: {
@@ -231,13 +237,14 @@ export async function getUserRegisteredEvents() {
             return { success: false, error: "User not found" };
         }
 
-        // Find groups where user is a member
+        // Find groups where user is a member (exclude REJECTED)
         const memberInGroups = await prisma.groupRegistration.findMany({
             where: {
                 members: {
                     array_contains: [{ email: session.user.email }]
                 },
-                userId: { not: session.user.id }
+                userId: { not: session.user.id },
+                paymentStatus: { not: "REJECTED" }
             },
             include: {
                 event: {
@@ -254,7 +261,7 @@ export async function getUserRegisteredEvents() {
             }
         });
 
-        // Combine events
+        // Combine events - REJECTED registrations already filtered at database level
         const individualEvents = user.individualRegistrations.map(reg => ({
             ...reg.event,
             registrationStatus: reg.paymentStatus as any

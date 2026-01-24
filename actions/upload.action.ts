@@ -147,26 +147,26 @@ export async function uploadPaymentScreenshot(formData: FormData) {
       return { success: false, error: "No file provided" };
     }
 
-    // Validate file type
-    if (!isValidImageType(file.type)) {
-      return { success: false, error: "Invalid file type. Only images are allowed." };
+    const { uploadToDOSpaces, isValidPaymentImageType, generateUniqueFilename } = await import("@/lib/do-spaces");
+
+    // Validate file type – allow all image formats
+    if (!isValidPaymentImageType(file.type)) {
+      return { success: false, error: "Invalid file type. Only images are allowed (e.g. JPEG, PNG, WebP, GIF, BMP, TIFF)." };
     }
 
-    // Validate file size (10MB max)
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    // Validate file size (5MB max)
+    const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
-      return { success: false, error: "File size too large. Maximum size is 10MB." };
+      return { success: false, error: "File size too large. Maximum size is 5MB." };
     }
 
     // Convert file to buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Generate unique filename
-    const filename = `payments/${generateUniqueFilename(file.name)}`;
-
-    // Upload to R2
-    const result = await uploadToR2(buffer, filename, file.type);
+    // Upload to DO Spaces – payments-screenshots folder (visitor pass + competition payments)
+    const filename = `payments-screenshots/${generateUniqueFilename(file.name)}`;
+    const result = await uploadToDOSpaces(buffer, filename, file.type);
 
     return result;
   } catch (error) {
