@@ -401,7 +401,7 @@ export default function EventsManagement() {
 
     const result = await deleteCategory(categoryToDelete.id);
     if (result.success) {
-      toast.success("Category deleted successfully");
+      toast.success(result.message ?? "Category deleted successfully");
       setShowDeleteCategoryModal(false);
       setCategoryToDelete(null);
       fetchCategoriesWithEvents();
@@ -415,7 +415,7 @@ export default function EventsManagement() {
 
     const result = await deleteEvent(eventToDelete.id);
     if (result.success) {
-      toast.success("Event deleted successfully");
+      toast.success(result.message ?? "Event deleted successfully");
       setShowDeleteEventModal(false);
       setEventToDelete(null);
       fetchCategoriesWithEvents();

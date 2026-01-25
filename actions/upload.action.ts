@@ -4,6 +4,7 @@ import { uploadToR2, isValidImageType, generateUniqueFilename } from "@/lib/r2";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { Role } from "@prisma/client";
+import { logAdminActivity } from "@/lib/admin-logs";
 
 export async function uploadEventImage(formData: FormData) {
   try {
@@ -39,6 +40,15 @@ export async function uploadEventImage(formData: FormData) {
 
     // Upload to R2
     const result = await uploadToR2(buffer, filename, file.type);
+
+    if (result.success) {
+      await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
+        action: "UPLOAD_EVENT_IMAGE",
+        entityType: "EVENT_IMAGE",
+        entityName: file.name,
+        details: { url: result.url },
+      });
+    }
 
     return result;
   } catch (error) {
@@ -81,6 +91,15 @@ export async function uploadCategoryImage(formData: FormData) {
 
     // Upload to R2
     const result = await uploadToR2(buffer, filename, file.type);
+
+    if (result.success) {
+      await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
+        action: "UPLOAD_CATEGORY_IMAGE",
+        entityType: "CATEGORY_IMAGE",
+        entityName: file.name,
+        details: { url: result.url },
+      });
+    }
 
     return result;
   } catch (error) {

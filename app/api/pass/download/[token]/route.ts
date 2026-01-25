@@ -32,8 +32,9 @@ export async function GET(
 
         const userId = session.user.id;
 
-        // Fetch Pass Details
-        const pass = await prisma.pass.findUnique({
+        let pass: { userId: string; user: { name: string | null; email: string; phone: string | null; collage: string | null; collageId: string | null; gender: string | null; state: string | null; city: string | null } } | null = null;
+
+        const visitorPass = await prisma.visitorPassRegistration.findUnique({
             where: { passToken: token },
             include: {
                 user: {
@@ -46,24 +47,48 @@ export async function GET(
                         gender: true,
                         state: true,
                         city: true,
-                    }
-                }
-            }
+                    },
+                },
+            },
         });
+
+        if (visitorPass && visitorPass.paymentStatus === "APPROVED") {
+            pass = { userId: visitorPass.userId, user: visitorPass.user };
+        }
+
+        if (!pass) {
+            const legacyPass = await prisma.pass.findUnique({
+                where: { passToken: token },
+                include: {
+                    user: {
+                        select: {
+                            name: true,
+                            email: true,
+                            phone: true,
+                            collage: true,
+                            collageId: true,
+                            gender: true,
+                            state: true,
+                            city: true,
+                        },
+                    },
+                },
+            });
+            if (legacyPass && legacyPass.passType === "VISITOR" && legacyPass.paymentStatus === "APPROVED") {
+                pass = { userId: legacyPass.userId, user: legacyPass.user };
+            }
+        }
 
         if (!pass) {
             return NextResponse.json({ error: "Pass not found" }, { status: 404 });
         }
 
-        // Verify ownership (optional, but good practice)
         if (pass.userId !== userId) {
             return NextResponse.json({ error: "Unauthorized to access this pass" }, { status: 403 });
         }
 
-        // Prepare Data for PDF Generator
-        // mimicking the structure used in generateTicketPDF
         const ticketData = {
-            userId: userId,
+            userId,
             name: pass.user.name || "Unknown",
             email: pass.user.email,
             phone: pass.user.phone,

@@ -39,6 +39,8 @@ export default function AdminLayoutWrapper({
     { href: "/admin/judges", label: "Judges", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/evaluations", label: "Evaluations", roles: ["ADMIN", "MANAGER", "MASTER"] },
     { href: "/admin/chatbot", label: "Chatbot", roles: ["ADMIN", "MASTER"] },
+    { href: "/admin/logs", label: "Logs", roles: ["MASTER"] },
+    { href: "/admin/approval", label: "Approval", roles: ["MASTER"] },
   ];
 
   const navLinks = allNavLinks.filter(link => link.roles.includes(session?.user?.role));

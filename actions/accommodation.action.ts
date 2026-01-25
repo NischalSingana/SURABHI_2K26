@@ -86,7 +86,7 @@ export async function createAccommodationBooking(
           where: { paymentStatus: { not: "REJECTED" } },
           select: { id: true },
         },
-        passes: { select: { id: true } },
+        visitorPassRegistrations: { select: { id: true } },
       },
     });
 
@@ -107,7 +107,7 @@ export async function createAccommodationBooking(
       userData.individualRegistrations.length > 0 ||
       userData.groupRegistrations.length > 0;
     if (!hasCompetitionReg) {
-      const hasVisitorPass = userData.passes.length > 0;
+      const hasVisitorPass = userData.visitorPassRegistrations.length > 0;
       return {
         success: false,
         error: hasVisitorPass
