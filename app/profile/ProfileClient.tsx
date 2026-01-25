@@ -236,8 +236,11 @@ export default function ProfileClient({
         toast.success(result.message || "Pass generated successfully!");
         setShowPaymentModal(false);
         setHasPass(true);
+        
         if (result.passToken) {
+          // KL students get auto-approved with passToken
           setPassToken(result.passToken);
+          setPassPaymentStatus("APPROVED");
 
           // Only download for KL students (auto-approved)
           if (isKLStudent) {
@@ -253,6 +256,19 @@ export default function ProfileClient({
               window.URL.revokeObjectURL(url);
               document.body.removeChild(a);
             }
+          }
+        } else {
+          // Non-KL students submit proofs and get PENDING status
+          setPassPaymentStatus("PENDING");
+          setPassToken(null);
+          
+          // Refresh status to get latest data from server
+          const { checkVisitorPassStatus } = await import("@/actions/pass.action");
+          const status = await checkVisitorPassStatus();
+          if (status.success && status.hasPass) {
+            setHasPass(true);
+            setPassToken(status.passToken || null);
+            setPassPaymentStatus(status.paymentStatus || "PENDING");
           }
         }
       } else {
