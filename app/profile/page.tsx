@@ -80,7 +80,7 @@ async function SessionData() {
   return (
     <div className="min-h-screen w-full bg-black flex flex-col">
       {/* Header */}
-      <div className="w-full px-6 py-6 mt-16">
+      <div className="w-full px-4 sm:px-6 py-4 sm:py-6 mt-14 sm:mt-16">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <ReturnButton href="/" label="Home" />
           {["ADMIN", "MASTER", "MANAGER"].includes(session.user.role) && (
@@ -98,8 +98,8 @@ async function SessionData() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 w-full px-6 pb-8">
+      {/* Main Content - iPhone 14 Pro Max–style padding; works on all phones */}
+      <div className="flex-1 w-full px-4 sm:px-6 pb-6 sm:pb-8 max-w-full overflow-x-hidden">
         <ProfileClient
           user={user as any}
           registeredEvents={registeredEvents as any}
