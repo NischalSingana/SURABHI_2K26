@@ -14,8 +14,8 @@ export async function getPendingRegistrations() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
-            return { success: false, error: "Unauthorized" };
+        if (!session || session.user.role !== Role.MASTER) {
+            return { success: false, error: "Unauthorized. Master only." };
         }
 
         const individualRegistrations = await prisma.individualRegistration.findMany({
@@ -71,8 +71,8 @@ export async function getRegistrationHistory() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
-            return { success: false, error: "Unauthorized" };
+        if (!session || session.user.role !== Role.MASTER) {
+            return { success: false, error: "Unauthorized. Master only." };
         }
 
         const individualRegistrationsRaw = await prisma.individualRegistration.findMany({
@@ -174,8 +174,8 @@ export async function updateRegistrationStatus(
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
-            return { success: false, error: "Unauthorized" };
+        if (!session || session.user.role !== Role.MASTER) {
+            return { success: false, error: "Unauthorized. Master only." };
         }
 
         if (type === "VISITOR_PASS") {
