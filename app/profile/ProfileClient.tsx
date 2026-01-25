@@ -294,11 +294,11 @@ export default function ProfileClient({
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto w-full min-w-0">
       {/* Header */}
-      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-0">
-        <div>
-          <h1 className="text-4xl font-bold text-white mb-4">My Profile</h1>
+      <div className="mb-6 sm:mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 md:gap-0">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">My Profile</h1>
           <div className="flex items-center gap-4">{getStatusBadge()}</div>
         </div>
 
@@ -331,11 +331,11 @@ export default function ProfileClient({
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-4 mb-8 border-b border-zinc-800">
+      {/* Tabs - scrollable on very narrow phones, iPhone 14 Pro Max–style on larger */}
+      <div className="profile-tabs-scroll flex gap-2.5 sm:gap-4 mb-6 sm:mb-8 border-b border-zinc-800 overflow-x-auto -mx-1 px-1 pb-px">
         <button
           onClick={() => setActiveTab("profile")}
-          className={`px-6 py-3 font-medium transition-all ${activeTab === "profile"
+          className={`px-3 sm:px-6 py-2.5 sm:py-3 font-medium text-base transition-all whitespace-nowrap shrink-0 ${activeTab === "profile"
             ? "text-red-500 border-b-2 border-red-500"
             : "text-zinc-400 hover:text-white"
             }`}
@@ -344,7 +344,7 @@ export default function ProfileClient({
         </button>
         <button
           onClick={() => setActiveTab("events")}
-          className={`px-6 py-3 font-medium transition-all ${activeTab === "events"
+          className={`px-3 sm:px-6 py-2.5 sm:py-3 font-medium text-base transition-all whitespace-nowrap shrink-0 ${activeTab === "events"
             ? "text-red-500 border-b-2 border-red-500"
             : "text-zinc-400 hover:text-white"
             }`}
@@ -354,7 +354,7 @@ export default function ProfileClient({
         {hasGoogleAccount && (
           <button
             onClick={() => setActiveTab("pass")}
-            className={`px-6 py-3 font-medium transition-all ${activeTab === "pass"
+            className={`px-3 sm:px-6 py-2.5 sm:py-3 font-medium text-base transition-all whitespace-nowrap shrink-0 ${activeTab === "pass"
               ? "text-red-500 border-b-2 border-red-500"
               : "text-zinc-400 hover:text-white"
               }`}
@@ -362,7 +362,6 @@ export default function ProfileClient({
             Visitor Pass
           </button>
         )}
-
       </div>
 
       {/* Profile Tab */}
@@ -372,35 +371,39 @@ export default function ProfileClient({
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
-          {/* Profile Image */}
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
-            <div className="flex items-center gap-6">
-              <div className="relative w-24 h-24 rounded-full overflow-hidden bg-zinc-800 border-2 border-red-600">
+          {/* Profile Image - circular on all phones (iPhone 14 Pro Max–style) */}
+          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 sm:p-6">
+            <div className="flex items-center gap-4 sm:gap-6 min-w-0">
+              <div
+                className="profile-avatar-circle relative w-24 h-24 min-w-[6rem] min-h-[6rem] shrink-0 aspect-square rounded-full overflow-hidden bg-zinc-800 border-2 border-red-600 isolate"
+                style={{ aspectRatio: "1" }}
+              >
                 {user.image ? (
                   <Image
                     src={user.image}
                     alt={user.name || "User"}
                     fill
-                    className="object-cover"
+                    sizes="96px"
+                    className="object-cover object-center"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-4xl text-zinc-400">
+                  <div className="absolute inset-0 flex items-center justify-center text-4xl text-zinc-400">
                     <FiUser />
                   </div>
                 )}
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-white">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-lg sm:text-xl font-bold text-white truncate">
                   {user.name || "No name set"}
                 </h3>
-                <p className="text-zinc-400">{user.email}</p>
+                <p className="text-zinc-400 text-sm sm:text-base truncate">{user.email}</p>
               </div>
             </div>
           </div>
 
           {/* Personal Information */}
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
-            <h2 className="text-2xl font-bold text-white mb-6">
+          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 sm:p-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">
               Personal Information
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

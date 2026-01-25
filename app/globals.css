@@ -1,1 +1,23 @@
 @import "tailwindcss";
+
+/* Profile avatar: enforce circle on all phones (iPhone 14 Pro Max–style) */
+.profile-avatar-circle {
+  border-radius: 50%;
+  overflow: hidden;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.profile-avatar-circle img {
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Profile tabs: hide horizontal scrollbar, keep scroll */
+.profile-tabs-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.profile-tabs-scroll::-webkit-scrollbar {
+  display: none;
+  height: 0;
+}
