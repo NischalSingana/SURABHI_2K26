@@ -47,9 +47,54 @@ export async function createPass(
 }
 
 /**
- * Verify a pass by token
+ * Verify a pass by token (visitor pass from VisitorPassRegistration or legacy Pass)
  */
 export async function verifyPass(passToken: string, scannerId?: string) {
+    const visitor = await prisma.visitorPassRegistration.findUnique({
+        where: { passToken },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    collage: true,
+                    collageId: true,
+                    branch: true,
+                    year: true,
+                    phone: true,
+                },
+            },
+        },
+    });
+
+    if (visitor && visitor.paymentStatus === "APPROVED") {
+        if (visitor.isUsed) {
+            return {
+                valid: false,
+                error: "Pass has already been used",
+                usedAt: visitor.usedAt,
+            };
+        }
+        await prisma.visitorPassRegistration.update({
+            where: { id: visitor.id },
+            data: {
+                isUsed: true,
+                usedAt: new Date(),
+                usedBy: scannerId ?? null,
+            },
+        });
+        return {
+            valid: true,
+            pass: {
+                id: visitor.id,
+                passType: "VISITOR",
+                user: visitor.user,
+                createdAt: visitor.createdAt,
+            },
+        };
+    }
+
     const pass = await prisma.pass.findUnique({
         where: { passToken },
         include: {
@@ -71,29 +116,15 @@ export async function verifyPass(passToken: string, scannerId?: string) {
     });
 
     if (!pass) {
-        return {
-            valid: false,
-            error: "Pass not found",
-        };
+        return { valid: false, error: "Pass not found" };
     }
 
-    // Check if pass is active
     if (!pass.isActive) {
-        return {
-            valid: false,
-            error: "Pass is inactive",
-        };
+        return { valid: false, error: "Pass is inactive" };
     }
-
-    // Check if pass is expired
     if (pass.expiresAt && pass.expiresAt < new Date()) {
-        return {
-            valid: false,
-            error: "Pass has expired",
-        };
+        return { valid: false, error: "Pass has expired" };
     }
-
-    // Check if pass is already used
     if (pass.isUsed) {
         return {
             valid: false,
@@ -101,22 +132,16 @@ export async function verifyPass(passToken: string, scannerId?: string) {
             usedAt: pass.usedAt,
         };
     }
-
-    // Check if user is approved
     if (!pass.user.isApproved || pass.user.paymentStatus !== "APPROVED") {
-        return {
-            valid: false,
-            error: "User is not approved details invalid",
-        };
+        return { valid: false, error: "User is not approved details invalid" };
     }
 
-    // Mark pass as used
     await prisma.pass.update({
         where: { id: pass.id },
         data: {
             isUsed: true,
             usedAt: new Date(),
-            usedBy: scannerId || null,
+            usedBy: scannerId ?? null,
         },
     });
 
@@ -142,9 +167,49 @@ export async function getUserPasses(userId: string) {
 }
 
 /**
- * Get pass details by token (without marking as used)
+ * Get pass details by token (without marking as used).
+ * Checks VisitorPassRegistration first, then legacy Pass.
  */
 export async function getPassDetails(passToken: string) {
+    const visitor = await prisma.visitorPassRegistration.findUnique({
+        where: { passToken },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    collage: true,
+                    collageId: true,
+                    branch: true,
+                    year: true,
+                    phone: true,
+                    isApproved: true,
+                    paymentStatus: true,
+                },
+            },
+        },
+    });
+
+    if (visitor && visitor.paymentStatus === "APPROVED") {
+        return {
+            id: visitor.id,
+            passToken: visitor.passToken,
+            userId: visitor.userId,
+            user: visitor.user,
+            paymentStatus: visitor.paymentStatus,
+            createdAt: visitor.createdAt,
+            updatedAt: visitor.updatedAt,
+            event: null,
+            groupRegistration: null,
+            expiresAt: null as Date | null,
+            isActive: true,
+            isUsed: visitor.isUsed,
+            usedAt: visitor.usedAt,
+            passType: "VISITOR",
+        };
+    }
+
     const pass = await prisma.pass.findUnique({
         where: { passToken },
         include: {
@@ -167,7 +232,6 @@ export async function getPassDetails(passToken: string) {
 
     if (!pass) return null;
 
-    // Fetch Event Details if eventId exists
     let event = null;
     let groupRegistration = null;
 

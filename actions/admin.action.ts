@@ -43,31 +43,19 @@ export async function getPendingRegistrations() {
             }
         });
 
-        const allVisitorPasses = await prisma.pass.findMany({
-            where: {
-                passType: "VISITOR"
-            },
-            orderBy: {
-                createdAt: "desc"
-            }
+        const visitorPasses = await prisma.visitorPassRegistration.findMany({
+            where: { paymentStatus: "PENDING" },
+            include: { user: true },
+            orderBy: { createdAt: "desc" },
         });
-
-        // Filter for pending passes and fetch user data
-        const pendingPasses = allVisitorPasses.filter(p => p.paymentStatus === "PENDING");
-        const visitorPasses = await Promise.all(
-            pendingPasses.map(async (pass) => {
-                const user = await prisma.user.findUnique({ where: { id: pass.userId } });
-                return { ...pass, user };
-            })
-        );
 
         return {
             success: true,
             data: {
                 individual: individualRegistrations,
                 group: groupRegistrations,
-                visitorPasses: visitorPasses
-            }
+                visitorPasses,
+            },
         };
     } catch (error) {
         console.error("Error fetching pending registrations:", error);
@@ -112,31 +100,19 @@ export async function getRegistrationHistory() {
             }
         });
 
-        const allVisitorPasses = await prisma.pass.findMany({
-            where: {
-                passType: "VISITOR",
-                paymentStatus: { in: ["APPROVED", "REJECTED"] }
-            },
-            orderBy: {
-                updatedAt: "desc"
-            }
+        const visitorPasses = await prisma.visitorPassRegistration.findMany({
+            where: { paymentStatus: { in: ["APPROVED", "REJECTED"] } },
+            include: { user: true },
+            orderBy: { updatedAt: "desc" },
         });
-
-        // Filter for user data
-        const visitorPasses = await Promise.all(
-            allVisitorPasses.map(async (pass) => {
-                const user = await prisma.user.findUnique({ where: { id: pass.userId } });
-                return { ...pass, user };
-            })
-        );
 
         return {
             success: true,
             data: {
                 individual: individualRegistrations,
                 group: groupRegistrations,
-                visitorPasses: visitorPasses
-            }
+                visitorPasses,
+            },
         };
     } catch (error) {
         console.error("Error fetching registration history:", error);
@@ -160,35 +136,29 @@ export async function updateRegistrationStatus(
         }
 
         if (type === "VISITOR_PASS") {
-            // Check if pass exists first
-            const existingPass = await prisma.pass.findUnique({
-                where: { id }
+            const existing = await prisma.visitorPassRegistration.findUnique({
+                where: { id },
+                include: { user: true },
             });
 
-            if (!existingPass) {
+            if (!existing) {
                 return { success: false, error: "Visitor pass not found" };
             }
 
-            if (existingPass.passType !== "VISITOR") {
-                return { success: false, error: "This is not a visitor pass" };
-            }
-
-            const pass = await prisma.pass.update({
+            await prisma.visitorPassRegistration.update({
                 where: { id },
                 data: {
                     paymentStatus: status,
-                    passToken: status === "APPROVED" ? crypto.randomUUID() : undefined,
-                    isActive: status === "APPROVED"
-                }
+                    ...(status === "APPROVED" && { passToken: crypto.randomUUID() }),
+                },
             });
 
-            const user = await prisma.user.findUnique({ where: { id: pass.userId } });
+            const user = existing.user;
             if (!user) {
                 return { success: false, error: "User not found" };
             }
 
             if (status === "APPROVED") {
-                // Generate Pass and Email
                 (async () => {
                     try {
                         const { generateTicketPDF } = await import("@/lib/pdf-generator");
@@ -206,7 +176,7 @@ export async function updateRegistrationStatus(
                             eventId: undefined,
                             gender: user.gender || "N/A",
                             state: user.state || "",
-                            city: user.city || ""
+                            city: user.city || "",
                         });
 
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
@@ -227,7 +197,6 @@ export async function updateRegistrationStatus(
             revalidatePath("/profile/competitions");
             revalidatePath("/competitions");
             return { success: true, message: `Visitor pass ${status.toLowerCase()} successfully` };
-
         } else if (type === "INDIVIDUAL") {
             // Check if registration exists first
             const existingReg = await prisma.individualRegistration.findUnique({
