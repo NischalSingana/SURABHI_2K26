@@ -39,6 +39,7 @@ model User {
   eventSubmissions      EventSubmission[]
   individualRegistrations IndividualRegistration[]
   groupRegistrations    GroupRegistration[]
+  visitorPassRegistrations VisitorPassRegistration[]
   evaluationsGiven      Evaluation[]             @relation("JudgeEvaluations")
   evaluationsReceived   Evaluation[]             @relation("ParticipantEvaluations")
 
@@ -310,6 +311,30 @@ model IndividualRegistration {
   @@map("individual_registrations")
 }
 
+model VisitorPassRegistration {
+  id                 String   @id @default(cuid())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  passToken          String?  @unique
+  paymentScreenshot  String?
+  utrId              String?
+  payeeName          String?
+  paymentStatus      PaymentStatus @default(PENDING)
+
+  isUsed             Boolean  @default(false)
+  usedAt             DateTime?
+  usedBy             String?
+
+  @@index([userId])
+  @@index([paymentStatus])
+  @@index([passToken])
+  @@map("visitor_pass_registrations")
+}
+
 
 
 model ChatbotCategory {
@@ -423,4 +448,43 @@ model GalleryImage {
   updatedAt DateTime @updatedAt
 
   @@map("gallery_images")
+}
+
+model AdminActivityLog {
+  id         String   @id @default(cuid())
+  userId     String
+  userEmail  String
+  userName   String?
+  userRole   String
+  action     String   // ADD_EVENT, EDIT_EVENT, UPLOAD_CATEGORY_IMAGE, etc.
+  entityType String   // CATEGORY, EVENT, etc.
+  entityId   String?
+  entityName String?
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("admin_activity_logs")
+}
+
+model DeleteRequest {
+  id              String   @id @default(cuid())
+  requestedById   String
+  requestedByEmail String
+  requestedByName String?
+  requestedByRole String
+  entityType      String   // CATEGORY | EVENT
+  entityId        String
+  entityName      String?
+  categoryId      String?  // For EVENT, parent category
+  status          String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  decidedById     String?
+  decidedAt       DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([status])
+  @@index([requestedById])
+  @@map("delete_requests")
 }

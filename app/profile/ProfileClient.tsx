@@ -827,12 +827,12 @@ export default function ProfileClient({
       {/* Payment Modal */}
       <AnimatePresence>
         {showPaymentModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm pt-28 pb-10">
+          <div className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden px-4 bg-black/80 backdrop-blur-sm pt-28 pb-20 flex flex-col items-center min-h-full">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md md:max-w-5xl overflow-hidden shadow-2xl"
+              className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md md:max-w-5xl overflow-hidden shadow-2xl my-auto md:my-8 shrink-0"
             >
               <div className="p-6">
                 <h2 className="text-2xl font-bold text-white mb-1">

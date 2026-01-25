@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { Role, Prisma } from "@prisma/client";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { logAdminActivity } from "@/lib/admin-logs";
+import { createDeleteRequest } from "@/actions/admin/approval.action";
 
 const EVENT_FULL_ERROR = "EVENT_FULL";
 
@@ -185,6 +187,13 @@ export async function createCategory(name: string, image?: string, video?: strin
       },
     });
 
+    await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
+      action: "ADD_CATEGORY",
+      entityType: "CATEGORY",
+      entityId: category.id,
+      entityName: category.name,
+    });
+
     revalidatePath("/admin/events");
     return { success: true, data: category };
   } catch (error) {
@@ -220,6 +229,14 @@ export async function updateCategory(id: string, name: string, image?: string, v
       },
     });
 
+    await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
+      action: "EDIT_CATEGORY",
+      entityType: "CATEGORY",
+      entityId: category.id,
+      entityName: category.name,
+      details: { imageChanged: !!image, videoChanged: !!video },
+    });
+
     revalidatePath("/admin/events");
     return { success: true, data: category };
   } catch (error) {
@@ -240,12 +257,9 @@ export async function deleteCategory(id: string) {
       return { success: false, error: "Unauthorized" };
     }
 
-
     const category = await prisma.category.findUnique({
       where: { id },
-      include: {
-        Event: true,
-      },
+      include: { Event: true },
     });
 
     if (!category) {
@@ -259,12 +273,46 @@ export async function deleteCategory(id: string) {
       };
     }
 
-    await prisma.category.delete({
-      where: { id },
+    const isMaster = session.user.role === Role.MASTER;
+
+    if (isMaster) {
+      await prisma.category.delete({ where: { id } });
+      await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
+        action: "DELETE_CATEGORY",
+        entityType: "CATEGORY",
+        entityId: category.id,
+        entityName: category.name,
+      });
+      revalidatePath("/admin/events");
+      return { success: true, message: "Category deleted successfully" };
+    }
+
+    const createResult = await createDeleteRequest({
+      requestedById: session.user.id,
+      requestedByEmail: session.user.email ?? "",
+      requestedByName: session.user.name ?? null,
+      requestedByRole: session.user.role,
+      entityType: "CATEGORY",
+      entityId: category.id,
+      entityName: category.name,
+      categoryId: null,
+    });
+
+    if (!createResult.success) {
+      return { success: false, error: createResult.error ?? "Failed to submit delete request" };
+    }
+
+    await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
+      action: "REQUEST_DELETE_CATEGORY",
+      entityType: "CATEGORY",
+      entityId: category.id,
+      entityName: category.name,
+      details: { requestId: createResult.data?.id },
     });
 
     revalidatePath("/admin/events");
-    return { success: true, message: "Category deleted successfully" };
+    revalidatePath("/admin/approval");
+    return { success: true, message: "Delete request submitted for master approval.", requestSubmitted: true };
   } catch (error) {
     console.error("Error deleting category:", error);
     return { success: false, error: "Failed to delete category" };
@@ -340,6 +388,14 @@ export async function createEvent(eventData: EventData) {
     });
 
     console.log("[createEvent] Event created successfully:", event.id);
+
+    await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
+      action: "ADD_EVENT",
+      entityType: "EVENT",
+      entityId: event.id,
+      entityName: event.name,
+      details: { categoryId: eventData.categoryId },
+    });
 
     revalidatePath("/admin/events");
     revalidatePath("/events");
@@ -417,6 +473,14 @@ export async function updateEvent({ id, eventData }: EventUpdateData) {
       },
     });
 
+    await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
+      action: "EDIT_EVENT",
+      entityType: "EVENT",
+      entityId: event.id,
+      entityName: event.name,
+      details: { categoryId: eventData.categoryId },
+    });
+
     revalidatePath("/admin/events");
     revalidatePath("/events");
     return { success: true, data: event };
@@ -438,13 +502,58 @@ export async function deleteEvent(id: string) {
       return { success: false, error: "Unauthorized" };
     }
 
-    await prisma.event.delete({
+    const event = await prisma.event.findUnique({
       where: { id },
+      include: { Category: true },
+    });
+
+    if (!event) {
+      return { success: false, error: "Event not found" };
+    }
+
+    const isMaster = session.user.role === Role.MASTER;
+
+    if (isMaster) {
+      await prisma.event.delete({ where: { id } });
+      await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
+        action: "DELETE_EVENT",
+        entityType: "EVENT",
+        entityId: event.id,
+        entityName: event.name,
+        details: { categoryId: event.categoryId },
+      });
+      revalidatePath("/admin/events");
+      revalidatePath("/events");
+      return { success: true, message: "Event deleted successfully" };
+    }
+
+    const createResult = await createDeleteRequest({
+      requestedById: session.user.id,
+      requestedByEmail: session.user.email ?? "",
+      requestedByName: session.user.name ?? null,
+      requestedByRole: session.user.role,
+      entityType: "EVENT",
+      entityId: event.id,
+      entityName: event.name,
+      categoryId: event.categoryId,
+    });
+
+    if (!createResult.success) {
+      return { success: false, error: createResult.error ?? "Failed to submit delete request" };
+    }
+
+    await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
+      action: "REQUEST_DELETE_EVENT",
+      entityType: "EVENT",
+      entityId: event.id,
+      entityName: event.name,
+      details: { requestId: createResult.data?.id, categoryId: event.categoryId },
     });
 
     revalidatePath("/admin/events");
     revalidatePath("/events");
-    return { success: true, message: "Event deleted successfully" };
+    revalidatePath("/admin/approval");
+    return { success: true, message: "Delete request submitted for master approval.", requestSubmitted: true };
   } catch (error) {
     console.error("Error deleting event:", error);
     return { success: false, error: "Failed to delete event" };
