@@ -151,6 +151,9 @@ export default function AccommodationPage() {
                                         User
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                        Competitions
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                                         Type
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
@@ -171,13 +174,39 @@ export default function AccommodationPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-700">
-                                {bookings.map((booking) => (
+                                {bookings.map((booking) => {
+                                    const individualEvents = booking.user?.individualRegistrations || [];
+                                    const groupEvents = booking.user?.groupRegistrations || [];
+                                    const allEvents = [...individualEvents, ...groupEvents];
+                                    
+                                    return (
                                     <tr key={booking.id} className="hover:bg-gray-700/50">
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-white">
                                             <div>
                                                 <div className="font-medium">{booking.user.name || "N/A"}</div>
                                                 <div className="text-gray-400 text-xs">{booking.user.email}</div>
                                             </div>
+                                        </td>
+                                        <td className="px-4 py-4 text-sm text-gray-300 max-w-xs">
+                                            {allEvents.length > 0 ? (
+                                                <div className="space-y-1.5">
+                                                    {allEvents.slice(0, 3).map((reg: any, idx: number) => (
+                                                        <div key={idx} className="text-xs bg-blue-900/20 text-blue-300 px-2 py-1 rounded border border-blue-800/30">
+                                                            <div className="font-medium truncate">{reg.event?.name || "Unknown Event"}</div>
+                                                            <div className="text-blue-400/70 text-[10px]">
+                                                                {reg.event?.Category?.name || "Category"}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {allEvents.length > 3 && (
+                                                        <div className="text-[10px] text-gray-500 italic">
+                                                            +{allEvents.length - 3} more
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <span className="text-gray-500 text-xs italic">No approved registrations</span>
+                                            )}
                                         </td>
                                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
                                             <span
@@ -243,7 +272,8 @@ export default function AccommodationPage() {
                                             </div>
                                         </td>
                                     </tr>
-                                ))}
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
@@ -265,7 +295,7 @@ export default function AccommodationPage() {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-bold text-white">Group Members</h2>
+                            <h2 className="text-xl font-bold text-white">Group Members & Competitions</h2>
                             <button
                                 onClick={() => setSelectedBooking(null)}
                                 className="text-gray-400 hover:text-white"
@@ -282,6 +312,33 @@ export default function AccommodationPage() {
                                     <div>Phone: {selectedBooking.primaryPhone}</div>
                                 </div>
                             </div>
+                            
+                            {/* Competitions for Primary User */}
+                            {(() => {
+                                const primaryUserEvents = [
+                                    ...(selectedBooking.user?.individualRegistrations || []),
+                                    ...(selectedBooking.user?.groupRegistrations || [])
+                                ];
+                                
+                                if (primaryUserEvents.length > 0) {
+                                    return (
+                                        <div className="bg-gray-700 rounded p-4">
+                                            <h3 className="text-white font-semibold mb-2">Primary Contact's Competitions</h3>
+                                            <div className="space-y-2">
+                                                {primaryUserEvents.map((reg: any, idx: number) => (
+                                                    <div key={idx} className="bg-blue-900/20 rounded p-2 text-sm">
+                                                        <div className="text-blue-300 font-medium">{reg.event?.name || "Unknown Event"}</div>
+                                                        <div className="text-blue-400/70 text-xs">
+                                                            {reg.event?.Category?.name || "Category"} • {reg.event?.venue || "Venue TBD"}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
                             {selectedBooking.groupMembers && Array.isArray(selectedBooking.groupMembers) && (
                                 <div className="bg-gray-700 rounded p-4">
                                     <h3 className="text-white font-semibold mb-2">

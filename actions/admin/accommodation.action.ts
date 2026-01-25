@@ -49,6 +49,50 @@ export async function getAllBookings(filters?: {
                         email: true,
                         phone: true,
                         collage: true,
+                        individualRegistrations: {
+                            where: {
+                                paymentStatus: "APPROVED",
+                            },
+                            include: {
+                                event: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        date: true,
+                                        venue: true,
+                                        startTime: true,
+                                        endTime: true,
+                                        Category: {
+                                            select: {
+                                                name: true,
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        groupRegistrations: {
+                            where: {
+                                paymentStatus: "APPROVED",
+                            },
+                            include: {
+                                event: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        date: true,
+                                        venue: true,
+                                        startTime: true,
+                                        endTime: true,
+                                        Category: {
+                                            select: {
+                                                name: true,
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
                     },
                 },
             },
@@ -57,12 +101,33 @@ export async function getAllBookings(filters?: {
             },
         });
 
-        // Convert Decimal to string for serialization
+        // Convert Decimal to string for serialization and handle nested dates
         const serializedBookings = bookings.map((booking) => ({
             ...booking,
             amount: booking.amount ? booking.amount.toString() : null,
             createdAt: booking.createdAt.toISOString(),
             updatedAt: booking.updatedAt.toISOString(),
+            user: {
+                ...booking.user,
+                individualRegistrations: booking.user.individualRegistrations.map((reg: any) => ({
+                    ...reg,
+                    createdAt: reg.createdAt.toISOString(),
+                    updatedAt: reg.updatedAt.toISOString(),
+                    event: reg.event ? {
+                        ...reg.event,
+                        date: reg.event.date.toISOString(),
+                    } : null,
+                })),
+                groupRegistrations: booking.user.groupRegistrations.map((reg: any) => ({
+                    ...reg,
+                    createdAt: reg.createdAt.toISOString(),
+                    updatedAt: reg.updatedAt.toISOString(),
+                    event: reg.event ? {
+                        ...reg.event,
+                        date: reg.event.date.toISOString(),
+                    } : null,
+                })),
+            },
         }));
 
         return { success: true, bookings: serializedBookings };
