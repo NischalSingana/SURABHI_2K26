@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Role } from "@prisma/client";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { logAdminActivity } from "@/lib/admin-logs";
 
 export async function getPendingRegistrations() {
     try {
@@ -74,7 +75,7 @@ export async function getRegistrationHistory() {
             return { success: false, error: "Unauthorized" };
         }
 
-        const individualRegistrations = await prisma.individualRegistration.findMany({
+        const individualRegistrationsRaw = await prisma.individualRegistration.findMany({
             where: {
                 paymentStatus: { in: ["APPROVED", "REJECTED"] }
             },
@@ -87,7 +88,21 @@ export async function getRegistrationHistory() {
             }
         });
 
-        const groupRegistrations = await prisma.groupRegistration.findMany({
+        // Fetch approver info for individual registrations
+        const individualRegistrations = await Promise.all(
+            individualRegistrationsRaw.map(async (reg) => {
+                let approver = null;
+                if (reg.approvedBy) {
+                    approver = await prisma.user.findUnique({
+                        where: { id: reg.approvedBy },
+                        select: { id: true, name: true, email: true, role: true },
+                    });
+                }
+                return { ...reg, approver };
+            })
+        );
+
+        const groupRegistrationsRaw = await prisma.groupRegistration.findMany({
             where: {
                 paymentStatus: { in: ["APPROVED", "REJECTED"] }
             },
@@ -100,11 +115,39 @@ export async function getRegistrationHistory() {
             }
         });
 
-        const visitorPasses = await prisma.visitorPassRegistration.findMany({
+        // Fetch approver info for group registrations
+        const groupRegistrations = await Promise.all(
+            groupRegistrationsRaw.map(async (reg) => {
+                let approver = null;
+                if (reg.approvedBy) {
+                    approver = await prisma.user.findUnique({
+                        where: { id: reg.approvedBy },
+                        select: { id: true, name: true, email: true, role: true },
+                    });
+                }
+                return { ...reg, approver };
+            })
+        );
+
+        const visitorPassesRaw = await prisma.visitorPassRegistration.findMany({
             where: { paymentStatus: { in: ["APPROVED", "REJECTED"] } },
             include: { user: true },
             orderBy: { updatedAt: "desc" },
         });
+
+        // Fetch approver info for visitor passes
+        const visitorPasses = await Promise.all(
+            visitorPassesRaw.map(async (pass) => {
+                let approver = null;
+                if (pass.approvedBy) {
+                    approver = await prisma.user.findUnique({
+                        where: { id: pass.approvedBy },
+                        select: { id: true, name: true, email: true, role: true },
+                    });
+                }
+                return { ...pass, approver };
+            })
+        );
 
         return {
             success: true,
@@ -150,6 +193,8 @@ export async function updateRegistrationStatus(
                 data: {
                     paymentStatus: status,
                     ...(status === "APPROVED" && { passToken: crypto.randomUUID() }),
+                    approvedBy: session.user.id,
+                    approvedAt: new Date(),
                 },
             });
 
@@ -157,6 +202,22 @@ export async function updateRegistrationStatus(
             if (!user) {
                 return { success: false, error: "User not found" };
             }
+
+            // Log the approval/rejection activity
+            await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
+                action: status === "APPROVED" ? "APPROVE_VISITOR_PASS" : "REJECT_VISITOR_PASS",
+                entityType: "VISITOR_PASS",
+                entityId: id,
+                entityName: `Visitor Pass - ${user.name || user.email}`,
+                details: {
+                    userId: user.id,
+                    userEmail: user.email,
+                    userName: user.name,
+                    status: status,
+                    utrId: existing.utrId,
+                    payeeName: existing.payeeName,
+                },
+            });
 
             if (status === "APPROVED") {
                 (async () => {
@@ -209,8 +270,30 @@ export async function updateRegistrationStatus(
 
             const registration = await prisma.individualRegistration.update({
                 where: { id },
-                data: { paymentStatus: status },
+                data: { 
+                    paymentStatus: status,
+                    approvedBy: session.user.id,
+                    approvedAt: new Date(),
+                },
                 include: { user: true, event: true }
+            });
+
+            // Log the approval/rejection activity
+            await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
+                action: status === "APPROVED" ? "APPROVE_INDIVIDUAL_REGISTRATION" : "REJECT_INDIVIDUAL_REGISTRATION",
+                entityType: "INDIVIDUAL_REGISTRATION",
+                entityId: id,
+                entityName: `${registration.event.name} - ${registration.user.name || registration.user.email}`,
+                details: {
+                    userId: registration.userId,
+                    userEmail: registration.user.email,
+                    userName: registration.user.name,
+                    eventId: registration.eventId,
+                    eventName: registration.event.name,
+                    status: status,
+                    utrId: registration.utrId,
+                    payeeName: registration.payeeName,
+                },
             });
 
             if (status === "APPROVED") {
@@ -279,8 +362,30 @@ export async function updateRegistrationStatus(
 
             const registration = await prisma.groupRegistration.update({
                 where: { id },
-                data: { paymentStatus: status },
+                data: { 
+                    paymentStatus: status,
+                    approvedBy: session.user.id,
+                    approvedAt: new Date(),
+                },
                 include: { user: true, event: true }
+            });
+
+            // Log the approval/rejection activity
+            await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
+                action: status === "APPROVED" ? "APPROVE_GROUP_REGISTRATION" : "REJECT_GROUP_REGISTRATION",
+                entityType: "GROUP_REGISTRATION",
+                entityId: id,
+                entityName: `${registration.event.name} - ${registration.groupName || "Team"} (${registration.user.name || registration.user.email})`,
+                details: {
+                    userId: registration.userId,
+                    userEmail: registration.user.email,
+                    userName: registration.user.name,
+                    eventId: registration.eventId,
+                    eventName: registration.event.name,
+                    groupName: registration.groupName,
+                    status: status,
+                    teamSize: Array.isArray(registration.members) ? (registration.members as any[]).length + 1 : 1,
+                },
             });
 
             if (status === "APPROVED") {

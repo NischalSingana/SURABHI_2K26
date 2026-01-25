@@ -17,6 +17,12 @@ const ACTION_LABELS: Record<string, string> = {
   UPLOAD_EVENT_IMAGE: "Uploaded event image",
   REQUEST_DELETE_CATEGORY: "Requested category deletion",
   REQUEST_DELETE_EVENT: "Requested event deletion",
+  APPROVE_INDIVIDUAL_REGISTRATION: "Approved individual registration",
+  REJECT_INDIVIDUAL_REGISTRATION: "Rejected individual registration",
+  APPROVE_GROUP_REGISTRATION: "Approved group registration",
+  REJECT_GROUP_REGISTRATION: "Rejected group registration",
+  APPROVE_VISITOR_PASS: "Approved visitor pass",
+  REJECT_VISITOR_PASS: "Rejected visitor pass",
 };
 
 export default function LogsClient() {
@@ -24,6 +30,7 @@ export default function LogsClient() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionFilter, setActionFilter] = useState<string>("");
+  const [showTodayOnly, setShowTodayOnly] = useState(false);
   const [limit] = useState(100);
 
   const loadLogs = async () => {
@@ -32,6 +39,7 @@ export default function LogsClient() {
       action: actionFilter || undefined,
       limit,
       offset: 0,
+      todayOnly: showTodayOnly,
     });
     if (result.success && result.data) {
       const res = result as { data: any[]; total?: number };
@@ -45,22 +53,44 @@ export default function LogsClient() {
 
   useEffect(() => {
     loadLogs();
-  }, [actionFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actionFilter, showTodayOnly]);
 
   return (
     <div className="p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h1 className="text-3xl font-bold text-white">Activity Logs</h1>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showTodayOnly}
+              onChange={(e) => setShowTodayOnly(e.target.checked)}
+              className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 checked:bg-red-600 checked:border-red-600 focus:ring-2 focus:ring-red-500"
+            />
+            <span className="text-sm text-zinc-300">Today only</span>
+          </label>
           <select
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
             className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
           >
             <option value="">All actions</option>
-            {Object.entries(ACTION_LABELS).map(([k, v]) => (
-              <option key={k} value={k}>{v}</option>
-            ))}
+            <optgroup label="Registration Approvals">
+              <option value="APPROVE_VISITOR_PASS">Approved visitor pass</option>
+              <option value="REJECT_VISITOR_PASS">Rejected visitor pass</option>
+              <option value="APPROVE_INDIVIDUAL_REGISTRATION">Approved individual registration</option>
+              <option value="REJECT_INDIVIDUAL_REGISTRATION">Rejected individual registration</option>
+              <option value="APPROVE_GROUP_REGISTRATION">Approved group registration</option>
+              <option value="REJECT_GROUP_REGISTRATION">Rejected group registration</option>
+            </optgroup>
+            <optgroup label="Events & Categories">
+              {Object.entries(ACTION_LABELS)
+                .filter(([k]) => !k.includes("REGISTRATION") && !k.includes("VISITOR"))
+                .map(([k, v]) => (
+                  <option key={k} value={k}>{v}</option>
+                ))}
+            </optgroup>
           </select>
           <button
             onClick={loadLogs}
@@ -74,8 +104,78 @@ export default function LogsClient() {
       </div>
 
       <p className="text-zinc-400 text-sm mb-6">
-        Master-only view. Tracks admin/manager actions: added/edited events &amp; categories, uploads, delete requests.
+        Master-only view. Tracks admin/manager actions: registration approvals, added/edited events &amp; categories, uploads, delete requests.
+        {showTodayOnly && (
+          <span className="ml-2 text-orange-400 font-medium">Showing today's activity only</span>
+        )}
       </p>
+
+      {/* Today's Visitor Pass Approvals Summary */}
+      {showTodayOnly && (() => {
+        const todayApprovals = logs.filter(
+          log => log.action === "APPROVE_VISITOR_PASS" && 
+          new Date(log.createdAt).toDateString() === new Date().toDateString()
+        );
+        
+        if (todayApprovals.length > 0) {
+          const approvalsByUser = todayApprovals.reduce((acc: any, log: any) => {
+            const key = log.userEmail;
+            if (!acc[key]) {
+              acc[key] = {
+                userName: log.userName || log.userEmail,
+                userEmail: log.userEmail,
+                userRole: log.userRole,
+                count: 0,
+                approvals: []
+              };
+            }
+            acc[key].count++;
+            acc[key].approvals.push(log);
+            return acc;
+          }, {});
+
+          return (
+            <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
+              <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                <FiActivity className="w-5 h-5 text-green-400" />
+                Today's Visitor Pass Approvals Summary
+              </h2>
+              <div className="space-y-3">
+                {Object.values(approvalsByUser).map((user: any) => (
+                  <div key={user.userEmail} className="bg-zinc-900/50 rounded-lg p-3 border border-zinc-800">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                          <FiUser className="w-5 h-5 text-green-400" />
+                        </div>
+                        <div>
+                          <p className="text-white font-medium">{user.userName}</p>
+                          <p className="text-zinc-400 text-sm">{user.userEmail} · {user.userRole}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-green-400">{user.count}</p>
+                        <p className="text-xs text-zinc-500">visitor pass{user.count !== 1 ? 'es' : ''} approved</p>
+                      </div>
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-zinc-800">
+                      <p className="text-xs text-zinc-400">Approved at:</p>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {user.approvals.map((approval: any, idx: number) => (
+                          <span key={idx} className="text-xs text-zinc-500 font-mono">
+                            {format(new Date(approval.createdAt), "HH:mm")}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
 
       {loading ? (
         <div className="text-center py-12 text-zinc-400">Loading logs...</div>
@@ -111,7 +211,13 @@ export default function LogsClient() {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-red-500/10 text-red-400 text-sm font-medium">
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-sm font-medium ${
+                      log.action.includes("APPROVE") 
+                        ? "bg-green-500/10 text-green-400" 
+                        : log.action.includes("REJECT")
+                        ? "bg-red-500/10 text-red-400"
+                        : "bg-red-500/10 text-red-400"
+                    }`}>
                       <FiActivity className="w-3.5 h-3.5" />
                       {ACTION_LABELS[log.action] ?? log.action}
                     </span>

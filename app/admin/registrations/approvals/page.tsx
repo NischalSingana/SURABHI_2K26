@@ -27,6 +27,14 @@ type Registration = {
     createdAt: Date;
     type: "INDIVIDUAL" | "GROUP" | "VISITOR";
     groupName?: string;
+    approvedBy?: string | null;
+    approvedAt?: Date | null;
+    approver?: {
+        id: string;
+        name: string | null;
+        email: string;
+        role: string;
+    } | null;
 };
 
 export default function RegistrationApprovals() {
@@ -58,6 +66,9 @@ export default function RegistrationApprovals() {
                 payeeName: p.payeeName || null,
                 paymentStatus: p.paymentStatus,
                 createdAt: p.createdAt,
+                approvedBy: p.approvedBy || null,
+                approvedAt: p.approvedAt || null,
+                approver: p.approver || null,
                 type: "VISITOR" as const
             }));
 
@@ -150,13 +161,14 @@ export default function RegistrationApprovals() {
                                 <th className="px-6 py-4">Event</th>
                                 <th className="px-6 py-4">Payment Details</th>
                                 <th className="px-6 py-4">Status</th>
+                                {viewMode === "HISTORY" && <th className="px-6 py-4">Approved By</th>}
                                 <th className="px-6 py-4">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-800">
                             {filteredRegistrations.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
+                                    <td colSpan={viewMode === "HISTORY" ? 6 : 5} className="px-6 py-12 text-center text-zinc-500">
                                         No {viewMode === "PENDING" ? "pending registrations" : "history"} found.
                                     </td>
                                 </tr>
@@ -206,10 +218,34 @@ export default function RegistrationApprovals() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-500">
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                reg.paymentStatus === "APPROVED" 
+                                                    ? "bg-green-500/10 text-green-500" 
+                                                    : reg.paymentStatus === "REJECTED"
+                                                    ? "bg-red-500/10 text-red-500"
+                                                    : "bg-yellow-500/10 text-yellow-500"
+                                            }`}>
                                                 {reg.paymentStatus}
                                             </span>
                                         </td>
+                                        {viewMode === "HISTORY" && (
+                                            <td className="px-6 py-4">
+                                                {reg.approver ? (
+                                                    <div>
+                                                        <div className="text-white text-sm font-medium">{reg.approver.name || "Unknown"}</div>
+                                                        <div className="text-xs text-zinc-400">{reg.approver.email}</div>
+                                                        <div className="text-xs text-zinc-500">{reg.approver.role}</div>
+                                                        {reg.approvedAt && (
+                                                            <div className="text-xs text-zinc-600 mt-1">
+                                                                {format(new Date(reg.approvedAt), "dd MMM yyyy, HH:mm")}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-zinc-500 text-xs italic">Not tracked</span>
+                                                )}
+                                            </td>
+                                        )}
                                         <td className="px-6 py-4">
                                             <div className="flex gap-2">
                                                 {viewMode === "PENDING" ? (

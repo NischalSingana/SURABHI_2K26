@@ -189,10 +189,15 @@ model GroupRegistration {
   payeeName        String?
   paymentStatus    PaymentStatus @default(PENDING)
 
+  // Approval tracking
+  approvedBy       String?  // User ID of who approved/rejected
+  approvedAt       DateTime?
+
   @@unique([userId, eventId])
   @@index([eventId])
   @@index([userId])
   @@index([paymentStatus])
+  @@index([approvedBy])
   @@map("group_registrations")
 }
 
@@ -304,10 +309,15 @@ model IndividualRegistration {
   payeeName        String?
   paymentStatus    PaymentStatus @default(PENDING)
 
+  // Approval tracking
+  approvedBy       String?  // User ID of who approved/rejected
+  approvedAt       DateTime?
+
   @@unique([userId, eventId])
   @@index([eventId])
   @@index([userId])
   @@index([paymentStatus])
+  @@index([approvedBy])
   @@map("individual_registrations")
 }
 
@@ -325,6 +335,10 @@ model VisitorPassRegistration {
   payeeName          String?
   paymentStatus      PaymentStatus @default(PENDING)
 
+  // Approval tracking
+  approvedBy         String?  // User ID of who approved/rejected
+  approvedAt         DateTime?
+
   isUsed             Boolean  @default(false)
   usedAt             DateTime?
   usedBy             String?
@@ -332,6 +346,7 @@ model VisitorPassRegistration {
   @@index([userId])
   @@index([paymentStatus])
   @@index([passToken])
+  @@index([approvedBy])
   @@map("visitor_pass_registrations")
 }
 
