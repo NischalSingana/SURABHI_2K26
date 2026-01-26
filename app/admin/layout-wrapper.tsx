@@ -38,8 +38,7 @@ export default function AdminLayoutWrapper({
     { href: "/admin/analytics", label: "Analytics", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/judges", label: "Judges", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/evaluations", label: "Evaluations", roles: ["ADMIN", "MANAGER", "MASTER"] },
-    { href: "/admin/chatbot", label: "Chatbot", roles: ["ADMIN", "MASTER"] },
-    { href: "/admin/registrations/approvals", label: "Registration Approvals", roles: ["MASTER"] },
+    { href: "/admin/registrations/approvals", label: "Registrations", roles: ["MASTER"] },
     { href: "/admin/logs", label: "Logs", roles: ["MASTER"] },
     { href: "/admin/approval", label: "Approval", roles: ["MASTER"] },
   ];
@@ -51,19 +50,19 @@ export default function AdminLayoutWrapper({
       <nav className="bg-gray-800 border-b border-gray-700 fixed top-0 left-0 right-0 z-50">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <Link href="/admin/dashboard" className="text-white font-bold text-xl">
+            <div className="flex items-center flex-1 min-w-0">
+              <Link href="/admin/dashboard" className="text-white font-bold text-xl shrink-0">
                 Admin Panel
               </Link>
 
               {/* Desktop Menu */}
-              <div className="hidden md:block ml-10">
-                <div className="flex items-baseline space-x-4">
+              <div className="hidden md:block ml-6 lg:ml-10 flex-1 overflow-x-auto">
+                <div className="flex items-center space-x-1 lg:space-x-2">
                   {navLinks.map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}
-                      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${pathname === link.href
+                      className={`px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${pathname === link.href
                         ? "bg-gray-900 text-white"
                         : "text-gray-300 hover:bg-gray-700 hover:text-white"
                         }`}
@@ -76,14 +75,14 @@ export default function AdminLayoutWrapper({
             </div>
 
             {/* Desktop User Info & Back Link */}
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-3 lg:gap-4 shrink-0">
               <Link
                 href="/"
-                className="text-gray-300 hover:text-white text-sm transition-colors"
+                className="text-gray-300 hover:text-white text-sm transition-colors whitespace-nowrap"
               >
                 ← Back to Site
               </Link>
-              <div className="text-gray-300 text-sm border-l border-gray-600 pl-4">
+              <div className="text-gray-300 text-sm border-l border-gray-600 pl-3 lg:pl-4 whitespace-nowrap">
                 {session?.user?.name || session?.user?.email}
               </div>
             </div>

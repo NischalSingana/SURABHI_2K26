@@ -1105,19 +1105,21 @@ export default function ProfileClient({
                           Results
                         </motion.button>
 
-                        {/* Unregister Button */}
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => {
-                            setEventToUnregister(event);
-                            setShowUnregisterModal(true);
-                          }}
-                          className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                        >
-                          <FiTrash2 size={16} />
-                          Unregister
-                        </motion.button>
+                        {/* Hide unregister button for Google login users or outsiders */}
+                        {!(hasGoogleAccount || !user.email.endsWith("@kluniversity.in")) && (
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => {
+                              setEventToUnregister(event);
+                              setShowUnregisterModal(true);
+                            }}
+                            className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                          >
+                            <FiTrash2 size={16} />
+                            Unregister
+                          </motion.button>
+                        )}
                       </div>
                     </div>
                   </motion.div>
