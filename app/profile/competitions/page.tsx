@@ -10,6 +10,7 @@ import { FiCalendar, FiMapPin, FiClock, FiUsers, FiUpload, FiCheckCircle, FiX, F
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
+import { useSession } from "@/lib/auth-client";
 
 interface Event {
     id: string;
@@ -56,6 +57,7 @@ interface GroupRegistration {
 
 export default function MyEventsPage() {
     const router = useRouter();
+    const { data: session } = useSession();
     const [events, setEvents] = useState<Event[]>([]);
     const [submissions, setSubmissions] = useState<Submission[]>([]);
     const [groupRegistrations, setGroupRegistrations] = useState<GroupRegistration[]>([]);
@@ -64,10 +66,30 @@ export default function MyEventsPage() {
     const [showSubmissionModal, setShowSubmissionModal] = useState(false);
     const [unregistering, setUnregistering] = useState<string | null>(null);
     const [showUnregisterConfirm, setShowUnregisterConfirm] = useState<string | null>(null);
+    const [hasGoogleAccount, setHasGoogleAccount] = useState(false);
+    const isOutsider = session?.user?.email && !session.user.email.endsWith("@kluniversity.in");
 
     useEffect(() => {
         fetchMyEvents();
     }, []);
+
+    // Check if user has Google account
+    useEffect(() => {
+        const checkGoogleAccount = async () => {
+            if (session?.user?.id) {
+                try {
+                    const response = await fetch(`/api/check-user-accounts?userId=${session.user.id}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setHasGoogleAccount(data.hasGoogleAccount || false);
+                    }
+                } catch (error) {
+                    console.error("Error checking Google account:", error);
+                }
+            }
+        };
+        checkGoogleAccount();
+    }, [session]);
 
     const fetchMyEvents = async () => {
         const result = await getUserRegisteredEvents();
@@ -336,26 +358,29 @@ export default function MyEventsPage() {
                                                 </>
                                             )}
 
-                                            <button
-                                                onClick={() => setShowUnregisterConfirm(event.id)}
-                                                disabled={unregistering === event.id}
-                                                className="sm:col-span-2 w-full px-4 py-2.5 rounded-lg font-medium transition-all duration-300 flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                {unregistering === event.id ? (
-                                                    <>
-                                                        <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                        </svg>
-                                                        Unregistering...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <FiTrash2 size={16} />
-                                                        Unregister
-                                                    </>
-                                                )}
-                                            </button>
+                                            {/* Hide unregister button for Google login users or outsiders */}
+                                            {!(hasGoogleAccount || isOutsider) && (
+                                                <button
+                                                    onClick={() => setShowUnregisterConfirm(event.id)}
+                                                    disabled={unregistering === event.id}
+                                                    className="sm:col-span-2 w-full px-4 py-2.5 rounded-lg font-medium transition-all duration-300 flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    {unregistering === event.id ? (
+                                                        <>
+                                                            <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                            </svg>
+                                                            Unregistering...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <FiTrash2 size={16} />
+                                                            Unregister
+                                                        </>
+                                                    )}
+                                                </button>
+                                            )}
                                         </div>
 
                                         {hasSubmission && submission && (

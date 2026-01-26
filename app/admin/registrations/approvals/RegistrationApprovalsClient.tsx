@@ -110,6 +110,11 @@ export default function RegistrationApprovalsClient() {
         return true;
     });
 
+    // Calculate counts for each registration type
+    const individualCount = registrations.filter((reg) => reg.type === "INDIVIDUAL").length;
+    const groupCount = registrations.filter((reg) => reg.type === "GROUP").length;
+    const visitorCount = registrations.filter((reg) => reg.type === "VISITOR").length;
+
     return (
         <div className="px-4 py-6">
             <div className="flex justify-between items-center mb-6">
@@ -143,21 +148,21 @@ export default function RegistrationApprovalsClient() {
                     className={`px-4 py-2 font-medium transition-colors ${activeTab === "INDIVIDUAL" ? "text-red-500 border-b-2 border-red-500" : "text-zinc-400 hover:text-white"
                         }`}
                 >
-                    Individual Registrations
+                    Individual Registrations ({individualCount})
                 </button>
                 <button
                     onClick={() => setActiveTab("GROUP")}
                     className={`px-4 py-2 font-medium transition-colors ${activeTab === "GROUP" ? "text-red-500 border-b-2 border-red-500" : "text-zinc-400 hover:text-white"
                         }`}
                 >
-                    Group Registrations
+                    Group Registrations ({groupCount})
                 </button>
                 <button
                     onClick={() => setActiveTab("VISITOR")}
                     className={`px-4 py-2 font-medium transition-colors ${activeTab === "VISITOR" ? "text-red-500 border-b-2 border-red-500" : "text-zinc-400 hover:text-white"
                         }`}
                 >
-                    Visitor Passes
+                    Visitor Passes ({visitorCount})
                 </button>
             </div>
 
@@ -320,3 +325,4 @@ export default function RegistrationApprovalsClient() {
         </div>
     );
 }
+

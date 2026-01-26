@@ -206,7 +206,7 @@ const HomePage = () => {
                             <FiUsers className="text-zinc-600 text-3xl md:text-4xl mb-2 group-hover:text-red-500 transition-colors duration-300 transform group-hover:scale-110" />
                             <span className="text-zinc-600 text-[10px] uppercase tracking-widest mb-1 font-medium">Till Date</span>
                             <h4 className="text-3xl md:text-4xl font-bold text-white font-[family-name:var(--font-Martian_Mono)] text-center">
-                                <CountUp from={0} to={21} duration={2.5} />K+
+                                <CountUp from={0} to={28} duration={3.5} />K+
                             </h4>
                             <p className="text-zinc-500 text-xs md:text-sm mt-1 font-medium tracking-wide uppercase">Participants</p>
                         </motion.div>
@@ -222,7 +222,7 @@ const HomePage = () => {
                             <FiAward className="text-zinc-600 text-3xl md:text-4xl mb-2 group-hover:text-orange-500 transition-colors duration-300 transform group-hover:scale-110" />
                             <span className="text-zinc-600 text-[10px] uppercase tracking-widest mb-1 font-medium">Till Date</span>
                             <h4 className="text-3xl md:text-4xl font-bold text-white font-[family-name:var(--font-Martian_Mono)] text-center">
-                                <CountUp from={0} to={35} duration={2.5} />+
+                                <CountUp from={0} to={250} duration={3.5} />+
                             </h4>
                             <p className="text-zinc-500 text-xs md:text-sm mt-1 font-medium tracking-wide uppercase">Competitions</p>
                         </motion.div>
