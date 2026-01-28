@@ -851,13 +851,37 @@ export default function ProfileClient({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md md:max-w-5xl overflow-hidden shadow-2xl my-auto md:my-8 shrink-0"
+              className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md md:max-w-5xl shadow-2xl my-auto md:my-8 shrink-0 max-h-[90vh] flex flex-col"
             >
-              <div className="p-6">
+              <div 
+                className="p-6 overflow-y-auto flex-1" 
+                style={{ WebkitOverflowScrolling: 'touch' }}
+                data-lenis-prevent
+                onWheel={(e) => {
+                  // Allow native scrolling within modal
+                  e.stopPropagation();
+                }}
+              >
                 <h2 className="text-2xl font-bold text-white mb-1">
                   Visitor Pass Payment
                 </h2>
                 <p className="text-zinc-400 text-sm mb-6">Complete payment to get your visitor pass</p>
+
+                {/* ID Card Mandatory Warning */}
+                <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <div className="text-red-500 text-xl font-bold shrink-0">⚠️</div>
+                    <div>
+                      <h3 className="text-red-400 font-bold text-sm md:text-base mb-1 uppercase tracking-wide">
+                        Important Notice
+                      </h3>
+                      <p className="text-red-300 text-xs md:text-sm font-medium leading-relaxed">
+                        COLLEGE PHYSICAL ID CARD IS MANDATORY TO BRING TO CAMPUS WHILE ATTENDING THE EVENT. 
+                        Please ensure you carry your valid college ID card with you on the day of the event.
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
                 <div className="bg-zinc-800/30 p-5 rounded-lg border border-zinc-800/50 mb-6">
                   <div className="flex flex-col md:flex-row gap-6 items-center">

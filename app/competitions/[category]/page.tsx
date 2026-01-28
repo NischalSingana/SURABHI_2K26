@@ -668,6 +668,22 @@ function CategoryPageContent() {
                     <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded">Required for Non-KL</span>
                   </h4>
 
+                  {/* ID Card Mandatory Warning */}
+                  <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-3 mb-4">
+                    <div className="flex items-start gap-3">
+                      <div className="text-red-500 text-xl font-bold shrink-0">⚠️</div>
+                      <div>
+                        <h3 className="text-red-400 font-bold text-xs mb-1 uppercase tracking-wide">
+                          Important Notice
+                        </h3>
+                        <p className="text-red-300 text-xs font-medium leading-relaxed">
+                          COLLEGE PHYSICAL ID CARD IS MANDATORY TO BRING TO CAMPUS WHILE ATTENDING THE EVENT. 
+                          Please ensure you carry your valid college ID card with you on the day of the event.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="flex flex-col items-center mb-4">
                     <div className="text-center mb-4">
                       <p className="text-zinc-400 text-xs">Total Amount</p>
