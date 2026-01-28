@@ -220,6 +220,7 @@ export async function updateRegistrationStatus(
             });
 
             if (status === "APPROVED") {
+                // Send email asynchronously but track errors
                 (async () => {
                     try {
                         const { generateTicketPDF } = await import("@/lib/pdf-generator");
@@ -241,14 +242,26 @@ export async function updateRegistrationStatus(
                         });
 
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
-                        await sendEventConfirmationEmail(
+                        const emailResult = await sendEventConfirmationEmail(
                             { name: user.name || "Visitor", email: user.email },
                             { name: "Surabhi 2026", date: new Date(), venue: "KL University" },
                             pdfBuffer,
                             "VISITOR"
                         );
-                    } catch (e) {
-                        console.error("Failed to send visitor pass approval email", e);
+
+                        if (!emailResult || !emailResult.success) {
+                            console.error(`Failed to send visitor pass approval email to ${user.email}:`, emailResult?.error || "Unknown error");
+                            console.error("Email result:", JSON.stringify(emailResult, null, 2));
+                        } else {
+                            console.log(`Successfully sent visitor pass approval email to ${user.email}`);
+                        }
+                    } catch (e: any) {
+                        console.error(`Failed to send visitor pass approval email to ${user.email}:`, e);
+                        console.error("Error details:", {
+                            message: e?.message,
+                            stack: e?.stack,
+                            name: e?.name,
+                        });
                     }
                 })();
             }

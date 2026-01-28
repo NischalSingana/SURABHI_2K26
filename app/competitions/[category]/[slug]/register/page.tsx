@@ -807,6 +807,22 @@ export default function EventRegistrationPage() {
                                                 </ul>
                                             </div>
 
+                                            {/* ID Card Mandatory Warning */}
+                                            <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-3 md:p-4">
+                                                <div className="flex items-start gap-2 md:gap-3">
+                                                    <div className="text-red-500 text-lg md:text-xl font-bold shrink-0">⚠️</div>
+                                                    <div>
+                                                        <h3 className="text-red-400 font-bold text-[10px] md:text-xs mb-1 uppercase tracking-wide">
+                                                            Important Notice
+                                                        </h3>
+                                                        <p className="text-red-300 text-[9px] md:text-xs font-medium leading-relaxed">
+                                                            COLLEGE PHYSICAL ID CARD IS MANDATORY TO BRING TO CAMPUS WHILE ATTENDING THE EVENT. 
+                                                            Please ensure you carry your valid college ID card with you on the day of the event.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             {/* Mobile Buttons - Now Visible on Desktop too */}
                                             <div className="pt-2">
                                                 {!isKLStudent && (
@@ -840,6 +856,22 @@ export default function EventRegistrationPage() {
                                                 <div className="hidden md:block">
                                                     <h2 className="text-lg md:text-2xl font-bold text-white mb-0.5">Payment</h2>
                                                     <p className="text-zinc-500 text-xs md:text-sm">Scan & Upload Screenshot</p>
+                                                </div>
+
+                                                {/* ID Card Mandatory Warning */}
+                                                <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-3 md:p-4">
+                                                    <div className="flex items-start gap-2 md:gap-3">
+                                                        <div className="text-red-500 text-lg md:text-xl font-bold shrink-0">⚠️</div>
+                                                        <div>
+                                                            <h3 className="text-red-400 font-bold text-[10px] md:text-xs mb-1 uppercase tracking-wide">
+                                                                Important Notice
+                                                            </h3>
+                                                            <p className="text-red-300 text-[9px] md:text-xs font-medium leading-relaxed">
+                                                                COLLEGE PHYSICAL ID CARD IS MANDATORY TO BRING TO CAMPUS WHILE ATTENDING THE EVENT. 
+                                                                Please ensure you carry your valid college ID card with you on the day of the event.
+                                                            </p>
+                                                        </div>
+                                                    </div>
                                                 </div>
 
                                                 <div className="bg-zinc-800/30 p-5 rounded-lg border border-zinc-800/50 flex flex-col gap-5">
