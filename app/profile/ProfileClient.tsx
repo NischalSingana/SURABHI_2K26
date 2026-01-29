@@ -876,8 +876,7 @@ export default function ProfileClient({
                         Important Notice
                       </h3>
                       <p className="text-red-300 text-xs md:text-sm font-medium leading-relaxed">
-                        COLLEGE PHYSICAL ID CARD IS MANDATORY TO BRING TO CAMPUS WHILE ATTENDING THE EVENT. 
-                        Please ensure you carry your valid college ID card with you on the day of the event.
+                        COLLEGE PHYSICAL ID CARD MANDATORY FOR ENTRY TO THE FEST
                       </p>
                     </div>
                   </div>

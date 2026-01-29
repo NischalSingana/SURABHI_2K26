@@ -571,6 +571,21 @@ function CategoryPageContent() {
                 Register for {selectedEvent.name}
               </h3>
 
+              {/* ID Card Mandatory Warning */}
+              <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-3 mb-6">
+                <div className="flex items-start gap-3">
+                  <div className="text-red-500 text-xl font-bold shrink-0">⚠️</div>
+                  <div>
+                    <h3 className="text-red-400 font-bold text-xs mb-1 uppercase tracking-wide">
+                      Important Notice
+                    </h3>
+                    <p className="text-red-300 text-xs font-medium leading-relaxed">
+                      COLLEGE PHYSICAL ID CARD MANDATORY FOR ENTRY TO THE FEST
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="mb-6">
                 <h4 className="text-lg font-semibold text-white mb-2">Event Details:</h4>
                 <div className="space-y-1 text-zinc-300 text-sm">
@@ -677,8 +692,7 @@ function CategoryPageContent() {
                           Important Notice
                         </h3>
                         <p className="text-red-300 text-xs font-medium leading-relaxed">
-                          COLLEGE PHYSICAL ID CARD IS MANDATORY TO BRING TO CAMPUS WHILE ATTENDING THE EVENT. 
-                          Please ensure you carry your valid college ID card with you on the day of the event.
+                          COLLEGE PHYSICAL ID CARD MANDATORY FOR ENTRY TO THE FEST
                         </p>
                       </div>
                     </div>
