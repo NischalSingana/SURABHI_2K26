@@ -58,7 +58,7 @@ export default function LenisProvider({ children }: LenisProviderProps) {
         smoothWheel: true,
         wheelMultiplier: isTrackpad ? 0.6 : 1.5, // Lower multiplier for trackpad
         touchMultiplier: 2,
-        smoothTouch: false,
+        syncTouch: false, // Native touch scroll (no smooth on touch)
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         infinite: false,
       }}
