@@ -21,11 +21,6 @@ const prismaClientSingleton = () => {
     }
   }
 
-  // Log in production if we want to track connection instantiation
-  // if (process.env.NODE_ENV === "production") {
-  //   console.log("Prisma Client initialized in production");
-  // }
-
   return new PrismaClient(adapterOptions);
 };
 

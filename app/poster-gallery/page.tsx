@@ -20,17 +20,13 @@ const PosterGalleryPage = () => {
                     return;
                 }
                 const data = await response.json();
-                console.log('Poster gallery API response:', data);
 
                 if (data.error) {
                     console.error('API returned error:', data.error, data.details);
                 }
 
                 if (data.items && data.items.length > 0) {
-                    // console.log(`Loaded ${data.items.length} posters:`, data.items.map((item: any) => item.image));
                     setPosterItems(data.items);
-                } else {
-                    console.log('No posters found in gallery. Response:', data);
                 }
             } catch (error) {
                 console.error('Error fetching posters:', error);

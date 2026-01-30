@@ -251,9 +251,6 @@ export async function updateRegistrationStatus(
 
                         if (!emailResult || !emailResult.success) {
                             console.error(`Failed to send visitor pass approval email to ${user.email}:`, emailResult?.error || "Unknown error");
-                            console.error("Email result:", JSON.stringify(emailResult, null, 2));
-                        } else {
-                            console.log(`Successfully sent visitor pass approval email to ${user.email}`);
                         }
                     } catch (e: any) {
                         console.error(`Failed to send visitor pass approval email to ${user.email}:`, e);
