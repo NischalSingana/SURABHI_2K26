@@ -16,10 +16,6 @@ export default function AccommodationPage() {
         status?: BookingStatus;
     }>({});
 
-    useEffect(() => {
-        loadBookings();
-    }, [filter]);
-
     const loadBookings = async () => {
         setLoading(true);
         const result = await getAllBookings(filter);
@@ -30,6 +26,10 @@ export default function AccommodationPage() {
         }
         setLoading(false);
     };
+
+    useEffect(() => {
+        loadBookings();
+    }, [filter]);
 
     const handleApprove = async (bookingId: string) => {
         const result = await approveBooking(bookingId);
