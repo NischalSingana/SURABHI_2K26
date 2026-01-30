@@ -38,7 +38,6 @@ export async function sendEmail({ to, subject, html, text, attachments }: EmailO
       attachments: attachments || [],
     });
 
-    console.log("Email sent: %s", info.messageId);
     return { success: true, messageId: info.messageId };
   } catch (error: any) {
     console.error("Email error:", error);

@@ -8,7 +8,6 @@ export async function GET() {
 
         // Check if directory exists
         if (!fs.existsSync(galleryDir)) {
-            console.log("poster-gallery directory does not exist, creating it...");
             try {
                 fs.mkdirSync(galleryDir, { recursive: true });
             } catch (err) {
@@ -21,7 +20,6 @@ export async function GET() {
         const files = fs.readdirSync(galleryDir);
 
         if (files.length === 0) {
-            console.log("No files found in public/poster-gallery");
             return NextResponse.json({ items: [] });
         }
 
@@ -50,8 +48,6 @@ export async function GET() {
                 };
             })
             .sort((a, b) => a.text.localeCompare(b.text));
-
-        console.log(`Found ${items.length} local poster images`);
 
         return NextResponse.json(
             { items },

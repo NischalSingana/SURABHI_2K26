@@ -351,14 +351,9 @@ export async function createEvent(eventData: EventData) {
       headers: headersList,
     });
 
-    console.log("[createEvent] Session:", session?.user?.id, "Role:", session?.user?.role);
-
     if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
-      console.log("[createEvent] Unauthorized - No session or not admin/manager");
       return { success: false, error: "Unauthorized" };
     }
-
-    console.log("[createEvent] Creating event:", eventData.name, "Category:", eventData.categoryId);
 
     const event = await prisma.event.create({
       data: {
@@ -386,8 +381,6 @@ export async function createEvent(eventData: EventData) {
         updatedAt: new Date(),
       },
     });
-
-    console.log("[createEvent] Event created successfully:", event.id);
 
     await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
       action: "ADD_EVENT",
@@ -607,7 +600,6 @@ export async function registerGroupEvent(
     payeeName: string;
   }
 ) {
-  console.log("registerGroupEvent started", { eventId, groupName, memberCount: members.length, mentorName, registrationDetails });
   try {
     const headersList = await headers();
     const session = await auth.api.getSession({
@@ -615,7 +607,6 @@ export async function registerGroupEvent(
     });
 
     if (!session || !session.user) {
-      console.log("registerGroupEvent: No session");
       return { success: false, error: "Please login to register for events" };
     }
 
@@ -647,7 +638,6 @@ export async function registerGroupEvent(
         if (!event) {
           throw new Error("Event not found");
         }
-        console.log("registerGroupEvent: Event found", event.name);
 
         const currentParticipants = event._count.individualRegistrations + event._count.groupRegistrations;
 
@@ -666,12 +656,10 @@ export async function registerGroupEvent(
         });
         if (existingRegistration) {
           if (existingRegistration.paymentStatus === "REJECTED") {
-            console.log("registerGroupEvent: Leader previously rejected, deleting old record");
             await tx.groupRegistration.delete({
               where: { id: existingRegistration.id }
             });
           } else {
-            console.log("registerGroupEvent: Leader already registered");
             throw new Error("You are already registered for this event");
           }
         }
@@ -694,7 +682,6 @@ export async function registerGroupEvent(
             paymentStatus: paymentStatus as any
           },
         });
-        console.log("registerGroupEvent: Group registration created");
 
         // Return details needed for email
         return { success: true, teamLead: null, event, groupName, members, paymentStatus }; // teamLead null here to fetch outside tx if needed, but we used tx above.
@@ -705,7 +692,6 @@ export async function registerGroupEvent(
 
     revalidatePath("/events");
     revalidatePath("/profile");
-    console.log("registerGroupEvent: Success");
 
     // Only generate tickets and send email if APPROVED (KL Students)
     // Non-KL students wait for admin approval

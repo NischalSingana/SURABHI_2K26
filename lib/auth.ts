@@ -57,11 +57,7 @@ export const auth = betterAuth({
             },
             verify: async ({ hash, password }) => {
                 const { compare } = await import("bcryptjs");
-                console.log("Auth Verify | Password:", !!password, "Hash Len:", hash?.length);
-                console.log("Auth Verify | Hash Start:", hash?.substring(0, 10));
-                const valid = await compare(password, hash);
-                console.log("Auth Verify | Valid:", valid);
-                return valid;
+                return compare(password, hash);
             }
         }
     },
