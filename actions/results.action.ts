@@ -10,7 +10,7 @@ export async function getCategories() {
             select: { id: true, name: true, slug: true },
         });
         return { success: true, data: categories };
-    } catch (error) {
+    } catch {
         return { success: false, error: "Failed to fetch categories" };
     }
 }
@@ -22,7 +22,7 @@ export async function getEventsByCategory(categoryId: string) {
             select: { id: true, name: true, slug: true, isGroupEvent: true },
         });
         return { success: true, data: events };
-    } catch (error) {
+    } catch {
         return { success: false, error: "Failed to fetch events" };
     }
 }
