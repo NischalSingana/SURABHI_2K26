@@ -70,7 +70,6 @@ export async function sendZeptoMail(options: ZeptoMailOptions) {
             return { success: false, error: data.message || "Failed to send email" };
         }
 
-        console.log("ZeptoMail Success:", data);
         return { success: true, data };
     } catch (error) {
         console.error("ZeptoMail Network Error:", error);

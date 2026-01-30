@@ -310,18 +310,7 @@ const HomePage = () => {
                                 <p className="text-lg mb-2">No posters found</p>
                                 <p className="text-sm mb-4">Upload posters to the poster-gallery folder in R2 bucket</p>
                                 <div className="text-xs text-gray-500 mt-4">
-                                    <p>Debug info: Check browser console for API response</p>
-                                    <button
-                                        onClick={() => {
-                                            fetch('/api/poster-gallery')
-                                                .then(r => r.json())
-                                                .then(d => console.log('API Response:', d))
-                                                .catch(e => console.error('API Error:', e));
-                                        }}
-                                        className="mt-2 px-4 py-2 bg-red-600/20 text-red-400 rounded-lg hover:bg-red-600/30 transition"
-                                    >
-                                        Test API
-                                    </button>
+                                    <p>Upload posters to public/poster-gallery or configure R2 bucket.</p>
                                 </div>
                             </div>
                         </div>

@@ -294,7 +294,6 @@ class Media {
     img.onload = () => {
       texture.image = img;
       this.program.uniforms.uImageSizes.value = [img.naturalWidth, img.naturalHeight];
-      console.log(`Successfully loaded image: ${this.image}`);
     };
     img.onerror = (error) => {
       console.error(`Failed to load image: ${this.image}`, error);
@@ -305,7 +304,6 @@ class Media {
       fallbackImg.onload = () => {
         texture.image = fallbackImg;
         this.program.uniforms.uImageSizes.value = [fallbackImg.naturalWidth, fallbackImg.naturalHeight];
-        console.log(`Successfully loaded image (fallback): ${this.image}`);
       };
       fallbackImg.onerror = (fallbackError) => {
         console.error(`Failed to load image even without CORS: ${this.image}`, fallbackError);
