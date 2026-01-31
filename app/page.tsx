@@ -18,15 +18,43 @@ import { FiGlobe, FiAward, FiUsers, FiFeather, FiHeart, FiTrendingUp, FiVolume2,
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Hero video: CDN first; Chrome often needs direct Spaces URL (Range/206), Safari works with CDN
+const HERO_VIDEO_CDN = "https://surabhi-images.sgp1.cdn.digitaloceanspaces.com/SurabhiPromo.mp4";
+const HERO_VIDEO_DIRECT = "https://surabhi-images.sgp1.digitaloceanspaces.com/SurabhiPromo.mp4";
+
 const HomePage = () => {
     const [posterItems, setPosterItems] = useState<{ image: string; text: string }[]>([]);
     const [loadingPosters, setLoadingPosters] = useState(true);
+    const [videoSrc, setVideoSrc] = useState(HERO_VIDEO_CDN);
+    const [usedFallback, setUsedFallback] = useState(false);
 
     const galleryRef = useRef<CircularGalleryHandle>(null);
     const competitionSectionRef = useRef<HTMLElement>(null);
     const videoFrameRef = useRef<HTMLDivElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isMuted, setIsMuted] = useState(true);
+    const [playFailed, setPlayFailed] = useState(false);
+
+    // Force play when video is ready (some browsers don’t start autoplay)
+    const handleCanPlay = () => {
+        videoRef.current?.play().catch(() => setPlayFailed(true));
+    };
+    const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+        const v = e.currentTarget;
+        const err = v.error;
+        if (err) {
+            console.error("Hero video failed:", err.code, err.message, videoSrc);
+        }
+        // Chrome often fails with CDN (Range/206); try direct Spaces URL once
+        if (!usedFallback && videoSrc === HERO_VIDEO_CDN) {
+            setUsedFallback(true);
+            setVideoSrc(HERO_VIDEO_DIRECT);
+        }
+    };
+    const handlePlayClick = () => {
+        setPlayFailed(false);
+        videoRef.current?.play().catch(() => setPlayFailed(true));
+    };
 
     // Sound on/off – must set native video in same click (browser requires user gesture for audio)
     const handleToggleMute = () => {
@@ -114,18 +142,30 @@ const HomePage = () => {
                     transition={{ duration: 1.0, ease: "easeOut" }}
                     className="absolute inset-0 w-full h-full"
                 >
-                    {/* Video background - muted by default for autoplay; user can unmute */}
+                    {/* Video: try CDN first; on error (e.g. Chrome) retry with direct Spaces URL */}
                     <video
+                        key={videoSrc}
                         ref={videoRef}
-                        src="/SurabhiPromo.mp4"
+                        src={videoSrc}
                         autoPlay
                         loop
                         muted={isMuted}
                         playsInline
                         preload="auto"
+                        onCanPlay={handleCanPlay}
+                        onError={handleVideoError}
                         aria-label="Surabhi 2K26 promo"
                         className="absolute left-0 top-0 w-full h-full min-w-full min-h-full object-cover object-center"
                     />
+                    {playFailed && (
+                        <button
+                            type="button"
+                            onClick={handlePlayClick}
+                            className="absolute inset-0 z-30 flex items-center justify-center bg-black/60 text-white text-lg font-medium"
+                        >
+                            Click to play video
+                        </button>
+                    )}
 
                     {/* Sound on/off – below navbar (top-left); icon only */}
                     <button
