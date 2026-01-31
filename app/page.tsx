@@ -2,8 +2,6 @@
 
 import Link from 'next/link';
 import { motion } from "framer-motion";
-import Image from "next/image";
-import MainPoster from "./MainPoster.png";
 import dynamic from 'next/dynamic';
 const CircularGallery = dynamic(() => import("@/components/ui/CircularGallery"), {
     ssr: false,
@@ -16,26 +14,40 @@ import gsap from 'gsap';
 
 import Footer from '@/components/ui/Footer';
 import CountUp from '@/components/ui/CountUp';
-import { FiGlobe, FiAward, FiUsers, FiFeather, FiHeart, FiTrendingUp } from "react-icons/fi";
+import { FiGlobe, FiAward, FiUsers, FiFeather, FiHeart, FiTrendingUp, FiVolume2, FiVolumeX } from "react-icons/fi";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const HomePage = () => {
     const [posterItems, setPosterItems] = useState<{ image: string; text: string }[]>([]);
     const [loadingPosters, setLoadingPosters] = useState(true);
-    const [particles, setParticles] = useState<Array<{ x: string; duration: number; delay: number }>>([]);
 
     const galleryRef = useRef<CircularGalleryHandle>(null);
     const competitionSectionRef = useRef<HTMLElement>(null);
+    const videoFrameRef = useRef<HTMLDivElement>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [isMuted, setIsMuted] = useState(true);
+
+    // Sound on/off – must set native video in same click (browser requires user gesture for audio)
+    const handleToggleMute = () => {
+        const video = videoRef.current;
+        if (video) {
+            video.muted = !video.muted;
+            setIsMuted(video.muted);
+            if (!video.muted) {
+                video.play().catch(() => {});
+            }
+        } else {
+            setIsMuted((m) => !m);
+        }
+    };
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.muted = isMuted;
+        }
+    }, [isMuted]);
 
     useEffect(() => {
-        // Generate particles on client side to avoid hydration mismatch
-        setParticles([...Array(12)].map(() => ({
-            x: `${Math.random() * 100}%`,
-            duration: 3 + Math.random() * 2,
-            delay: Math.random() * 2,
-        })));
-
         // Fetch poster gallery items from API
         const fetchPosters = async () => {
             try {
@@ -86,63 +98,59 @@ const HomePage = () => {
     }, [loadingPosters, posterItems]);
 
     return (
-        <main className="relative w-full">
+        <main className="relative w-full bg-[#0a0000]">
             <h1 className="sr-only">Surabhi International Cultural Fest 2026 - KL University</h1>
-            {/* Fiery Red Background - Edge to Edge */}
-            <div className="fixed inset-0 z-0 bg-gradient-to-br from-[#1a0000] via-[#4a0000] to-[#2a0000]">
-                {/* CSS animated gradient overlay - Optimized for performance */}
-                <div
-                    className="absolute inset-0 animate-gradient-slow opacity-30"
-                    style={{
-                        background: "radial-gradient(circle at 50% 50%, rgba(220, 38, 38, 0.4), transparent 70%), radial-gradient(circle at 0% 100%, rgba(185, 28, 28, 0.3), transparent 50%)"
-                    }}
-                />
-
-                {/* Fire-like particles effect - Optimized with CSS */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    {particles.map((particle, i) => (
-                        <div
-                            key={i}
-                            className="absolute w-1 h-1 bg-red-600 rounded-full animate-float"
-                            style={{
-                                left: particle.x,
-                                animationDuration: `${particle.duration}s`,
-                                animationDelay: `${particle.delay}s`,
-                                bottom: '-10px' // Start slightly below
-                            }}
-                        />
-                    ))}
-                </div>
-            </div>
-            {/* Poster Section - Edge to Edge (left, right, bottom), top space for navbar */}
-            <section className="relative w-full h-auto md:h-screen flex items-center justify-center overflow-hidden z-10 pt-16 pb-0">
-                <h2 className="sr-only">Event Poster</h2>
+            {/* Video Hero - Fixed full viewport, stays in place while scrolling */}
+            <section
+                ref={videoFrameRef}
+                id="video-frame"
+                className="fixed inset-0 z-10 w-full h-full overflow-hidden bg-black"
+                aria-label="Surabhi 2K26 hero video"
+            >
+                <h2 className="sr-only">Surabhi 2K26 - International Cultural Fest</h2>
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.0, ease: "easeOut" }}
-                    className="relative w-full h-auto md:h-full flex items-center justify-center bg-[#0f0505] py-0"
+                    className="absolute inset-0 w-full h-full"
                 >
-                    {/* Ambient Background Gradient - No duplicate image */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#1a0505] via-[#2d0a0a] to-[#0f0505]" />
+                    {/* Video background - muted by default for autoplay; user can unmute */}
+                    <video
+                        ref={videoRef}
+                        src="/SurabhiPromo.mp4"
+                        autoPlay
+                        loop
+                        muted={isMuted}
+                        playsInline
+                        preload="auto"
+                        aria-label="Surabhi 2K26 promo"
+                        className="absolute left-0 top-0 w-full h-full min-w-full min-h-full object-cover object-center"
+                    />
 
-                    {/* Subtle red glow in center */}
-                    <div className="absolute inset-0 bg-radial-gradient from-red-900/10 via-transparent to-transparent opacity-50" />
+                    {/* Sound on/off – below navbar (top-left); icon only */}
+                    <button
+                        type="button"
+                        onClick={handleToggleMute}
+                        className="absolute top-[5.5rem] left-4 z-50 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white transition-colors backdrop-blur-sm border border-white/10 shadow-lg"
+                        aria-label={isMuted ? "Turn sound on" : "Turn sound off"}
+                    >
+                        {isMuted ? <FiVolumeX size={22} /> : <FiVolume2 size={22} />}
+                    </button>
 
-                    {/* Poster Container */}
-                    <div className="relative w-full h-auto md:h-full flex items-center justify-center z-10 px-0">
-                        <Image
-                            src={MainPoster}
-                            alt="Surabhi International Cultural Fest 2026 Poster"
-                            className="w-full h-auto md:h-full object-contain md:object-fill drop-shadow-2xl"
-                            priority
-                            sizes="100vw"
-                            quality={85}
-                            fetchPriority="high"
-                        />
+                    {/* Text overlay - SURABHI-2K26 + subtitle */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-end pb-6 md:pb-10 px-4 z-40 pointer-events-none">
+                        <h1 className="text-white font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight drop-shadow-lg text-center [text-shadow:0_2px_20px_rgba(0,0,0,0.8)]">
+                            SURABHI<b>-2K26</b>
+                        </h1>
+                        <p className="text-white/90 text-sm sm:text-base md:text-lg mt-1 md:mt-2 tracking-[0.3em] md:tracking-[0.4em] uppercase font-medium [text-shadow:0_2px_12px_rgba(0,0,0,0.8)]">
+                            — international cultural fest
+                        </p>
                     </div>
                 </motion.div>
             </section>
+
+            {/* Spacer: reserves one viewport so content starts below; video stays fixed */}
+            <div className="relative z-0 h-screen w-full flex-shrink-0" aria-hidden="true" />
 
             {/* About Surabhi Section - Bento Grid Redesign */}
             <section className="relative z-10 w-full min-h-screen bg-[#0a0000] flex items-start md:items-center justify-center px-4 sm:px-6 lg:px-8 pt-12 pb-8 sm:py-16 md:py-20 lg:py-24 overflow-visible">
