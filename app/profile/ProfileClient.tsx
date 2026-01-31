@@ -46,6 +46,8 @@ interface User {
   gender: string | null;
   state: string | null;
   city: string | null;
+  isInternational?: boolean;
+  country: string | null;
 }
 
 interface Event {
@@ -129,6 +131,7 @@ export default function ProfileClient({
     gender: user.gender || "",
     state: user.state || "",
     city: user.city || "",
+    country: user.country || "",
   });
 
   const handleLogout = async () => {
@@ -168,6 +171,7 @@ export default function ProfileClient({
       gender: user.gender || "",
       state: user.state || "",
       city: user.city || "",
+      country: user.country || "",
     });
     setIsEditing(false);
   };
@@ -633,7 +637,29 @@ export default function ProfileClient({
               </div>
 
 
-              {/* State and City */}
+              {/* Country - International students */}
+              {(user.isInternational || user.country) && (
+                <div>
+                  <label className="block text-zinc-400 text-sm mb-2">Country</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={formData.country}
+                      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                      className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-600"
+                      placeholder="e.g. United States, United Kingdom"
+                    />
+                  ) : (
+                    <p className="text-white font-medium px-4 py-3 bg-zinc-800/50 rounded-lg">
+                      {user.country || "Not provided"}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* State and City - Domestic */}
+              {!user.isInternational && (
+              <>
               <div>
                 <label className="block text-zinc-400 text-sm mb-2">State</label>
                 {isEditing ? (
@@ -675,6 +701,8 @@ export default function ProfileClient({
                   </p>
                 )}
               </div>
+              </>
+              )}
             </div>
           </div>
 

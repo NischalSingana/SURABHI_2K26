@@ -15,6 +15,8 @@ type Registration = {
         phone: string | null;
         collage: string | null;
         collageId: string | null;
+        isInternational?: boolean;
+        country?: string | null;
     };
     event?: {
         name: string;
@@ -190,10 +192,19 @@ export default function RegistrationApprovalsClient() {
                                 filteredRegistrations.map((reg) => (
                                     <tr key={reg.id} className="hover:bg-zinc-800/50 transition-colors">
                                         <td className="px-6 py-4">
-                                            <div className="font-medium text-white">{reg.user.name || "Unknown"}</div>
+                                            <div className="font-medium text-white flex items-center gap-2">
+                                                {reg.user.name || "Unknown"}
+                                                {reg.user.isInternational && (
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-900/30 text-amber-400 border border-amber-700/50">
+                                                        International
+                                                    </span>
+                                                )}
+                                            </div>
                                             <div className="text-xs">{reg.user.email}</div>
                                             <div className="text-xs">{reg.user.phone || "N/A"}</div>
-                                            <div className="text-xs text-zinc-500">{reg.user.collage || "N/A"} {reg.user.collageId ? `(${reg.user.collageId})` : ""}</div>
+                                            <div className="text-xs text-zinc-500">
+                                                {reg.user.isInternational ? (reg.user.country || "—") : `${reg.user.collage || "N/A"} ${reg.user.collageId ? `(${reg.user.collageId})` : ""}`}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             {reg.type === "VISITOR" ? (

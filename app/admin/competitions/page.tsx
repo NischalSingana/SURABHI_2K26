@@ -48,6 +48,8 @@ interface Event {
       branch: string | null;
       year: number | null;
       collageId: string | null;
+      isInternational?: boolean;
+      country?: string | null;
     };
   }>;
   submissions?: Array<{
@@ -71,6 +73,8 @@ interface Event {
       collageId: string | null;
       state: string | null;
       city: string | null;
+      isInternational?: boolean;
+      country?: string | null;
     };
   }>;
 }
@@ -976,6 +980,7 @@ export default function EventsManagement() {
                 const teamLeadIds = new Set(groupRegistrations.map(g => g.user.id));
                 const soloStudents = individualRegistrations.filter(reg => !teamLeadIds.has(reg.user.id));
 
+                const isInternational = (user: any) => !!user?.isInternational;
                 const isKLStudent = (user: any) => {
                   return (
                     user.email?.toLowerCase().endsWith("@kluniversity.in") ||
@@ -985,18 +990,22 @@ export default function EventsManagement() {
                   );
                 };
 
-                // Split Groups
-                const klGroups = groupRegistrations.filter(g => isKLStudent(g.user));
-                const otherGroups = groupRegistrations.filter(g => !isKLStudent(g.user));
+                // Split: International first, then domestic (KL vs Other)
+                const internationalGroups = groupRegistrations.filter(g => isInternational(g.user));
+                const internationalSolo = soloStudents.filter(s => isInternational(s.user));
+                const domesticGroups = groupRegistrations.filter(g => !isInternational(g.user));
+                const domesticSolo = soloStudents.filter(s => !isInternational(s.user));
 
-                // Split Individual
-                const klSolo = soloStudents.filter(s => isKLStudent(s.user));
-                const otherSolo = soloStudents.filter(s => !isKLStudent(s.user));
+                const klGroups = domesticGroups.filter(g => isKLStudent(g.user));
+                const otherGroups = domesticGroups.filter(g => !isKLStudent(g.user));
+                const klSolo = domesticSolo.filter(s => isKLStudent(s.user));
+                const otherSolo = domesticSolo.filter(s => !isKLStudent(s.user));
 
+                const hasInternational = internationalGroups.length > 0 || internationalSolo.length > 0;
                 const hasKL = klGroups.length > 0 || klSolo.length > 0;
                 const hasOther = otherGroups.length > 0 || otherSolo.length > 0;
 
-                if (!hasKL && !hasOther) {
+                if (!hasKL && !hasOther && !hasInternational) {
                   return (
                     <div className="text-center py-12">
                       <p className="text-zinc-400">No registrations yet</p>
@@ -1004,13 +1013,18 @@ export default function EventsManagement() {
                   );
                 }
 
-                const renderRegistrationSection = (title: string, groups: typeof groupRegistrations, solo: typeof soloStudents) => {
+                const renderRegistrationSection = (title: string, groups: typeof groupRegistrations, solo: typeof soloStudents, isInternationalSection?: boolean) => {
                   if (groups.length === 0 && solo.length === 0) return null;
 
                   return (
                     <div className="mb-10 last:mb-0">
-                      <div className="flex items-center gap-3 mb-6 bg-zinc-800/50 p-4 rounded-lg border-l-4 border-red-600">
+                      <div className={`flex items-center gap-3 mb-6 p-4 rounded-lg border-l-4 ${isInternationalSection ? "bg-amber-900/20 border-amber-500" : "bg-zinc-800/50 border-red-600"}`}>
                         <h2 className="text-xl font-bold text-white uppercase tracking-wider">{title}</h2>
+                        {isInternationalSection && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-900/30 text-amber-400 border border-amber-700/50">
+                            Virtual
+                          </span>
+                        )}
                         <span className="px-3 py-1 bg-zinc-700 rounded-full text-xs text-zinc-300 font-mono">
                           {groups.length} Teams • {solo.length} Individuals
                         </span>
@@ -1049,8 +1063,13 @@ export default function EventsManagement() {
                                       </div>
                                       <div>
                                         <h4 className="text-white font-bold text-lg">{group.groupName}</h4>
-                                        <p className="text-zinc-400 text-sm flex items-center gap-2">
+                                        <p className="text-zinc-400 text-sm flex items-center gap-2 flex-wrap">
                                           <span className="bg-zinc-700/50 px-2 py-0.5 rounded text-xs text-zinc-300">Lead: {group.user.name}</span>
+                                          {group.user.isInternational && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-900/30 text-amber-400 border border-amber-700/50">
+                                              International
+                                            </span>
+                                          )}
                                           <span className="text-zinc-500">•</span>
                                           <span>{group.members ? (group.members as any[]).length + 1 : 1} Members</span>
                                         </p>
@@ -1115,8 +1134,13 @@ export default function EventsManagement() {
                                           {index + 1}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                          <h4 className="text-white font-semibold flex items-center gap-2">
+                                          <h4 className="text-white font-semibold flex items-center gap-2 flex-wrap">
                                             {student.name || "No name"}
+                                            {student.isInternational && (
+                                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-900/30 text-amber-400 border border-amber-700/50">
+                                                International
+                                              </span>
+                                            )}
                                             {getSubmissionForStudent(student.id) && (
                                               <span title="Submission Available" className="text-green-500">
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1163,6 +1187,7 @@ export default function EventsManagement() {
 
                 return (
                   <div className="space-y-4">
+                    {renderRegistrationSection("International Students", internationalGroups, internationalSolo, true)}
                     {renderRegistrationSection("KL University", klGroups, klSolo)}
                     {renderRegistrationSection("Other Colleges", otherGroups, otherSolo)}
                   </div>

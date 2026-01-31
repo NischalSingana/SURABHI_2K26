@@ -116,6 +116,8 @@ export async function getCategories() {
                     year: true,
                     state: true,
                     city: true,
+                    isInternational: true,
+                    country: true,
                   }
                 }
               }
@@ -137,6 +139,8 @@ export async function getCategories() {
                     collageId: true,
                     state: true,
                     city: true,
+                    isInternational: true,
+                    country: true,
                   }
                 }
               }
@@ -610,16 +614,14 @@ export async function registerGroupEvent(
       return { success: false, error: "Please login to register for events" };
     }
 
-    // Determine if user is KL student or outsider
     const isKLStudent = session.user.email.endsWith("@kluniversity.in");
+    const isInternational = !!(session.user as { isInternational?: boolean }).isInternational;
 
-    // Outsiders must provide payment details
-    if (!isKLStudent && !paymentDetails) {
-      return { success: false, error: "Payment details are required for non-KL students." };
+    if (!isKLStudent && !isInternational && !paymentDetails) {
+      return { success: false, error: "Payment details are required for non-KL and non-international students." };
     }
 
-    // Determine payment status
-    const paymentStatus = isKLStudent ? "APPROVED" : "PENDING";
+    const paymentStatus = (isKLStudent || isInternational) ? "APPROVED" : "PENDING";
 
     const registrationResult = await prisma.$transaction(
       async (tx) => {
@@ -790,16 +792,14 @@ export async function registerForEvent(
       return { success: false, error: "Please login to register for events" };
     }
 
-    // Determine if user is KL student or outsider
     const isKLStudent = session.user.email.endsWith("@kluniversity.in");
+    const isInternational = !!(session.user as { isInternational?: boolean }).isInternational;
 
-    // Outsiders must provide payment details
-    if (!isKLStudent && !paymentDetails) {
-      return { success: false, error: "Payment details are required for non-KL students." };
+    if (!isKLStudent && !isInternational && !paymentDetails) {
+      return { success: false, error: "Payment details are required for non-KL and non-international students." };
     }
 
-    // Determine payment status
-    const paymentStatus = isKLStudent ? "APPROVED" : "PENDING";
+    const paymentStatus = (isKLStudent || isInternational) ? "APPROVED" : "PENDING";
 
     // Check approval status
     const user = await prisma.user.findUnique({
