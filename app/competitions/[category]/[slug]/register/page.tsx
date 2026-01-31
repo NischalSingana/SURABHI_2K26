@@ -138,10 +138,11 @@ export default function EventRegistrationPage() {
     };
 
     const processPaymentAndRegister = async () => {
-        // Validation for Non-KL Students
         const isKLStudent = session?.user?.email?.endsWith("@kluniversity.in");
+        const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
 
-        if (!isKLStudent) {
+        // KL and International: free; others need payment
+        if (!isKLStudent && !isInternational) {
             if (!paymentDetails.screenshot || !paymentDetails.utrId || !paymentDetails.payeeName) {
                 toast.error("Please complete all payment details (Upload Screenshot, UTR, Payee Name)");
                 return;
@@ -154,8 +155,7 @@ export default function EventRegistrationPage() {
         try {
             let uploadedScreenshotUrl = "";
 
-            // Upload Screenshot if needed
-            if (!isKLStudent && paymentDetails.screenshot) {
+            if (!isKLStudent && !isInternational && paymentDetails.screenshot) {
                 const formData = new FormData();
                 formData.append("file", paymentDetails.screenshot);
 
@@ -168,7 +168,7 @@ export default function EventRegistrationPage() {
                 uploadedScreenshotUrl = uploadResult.url;
             }
 
-            const paymentData = !isKLStudent ? {
+            const paymentData = !isKLStudent && !isInternational ? {
                 paymentScreenshot: uploadedScreenshotUrl,
                 utrId: paymentDetails.utrId,
                 payeeName: paymentDetails.payeeName
@@ -194,7 +194,8 @@ export default function EventRegistrationPage() {
             }
 
             if (result.success) {
-                toast.success(isKLStudent ? "Registration Confirmed!" : "Registration Submitted! Pending Approval.");
+                const freeUser = isKLStudent || isInternational;
+                toast.success(freeUser ? "Registration Confirmed!" : "Registration Submitted! Pending Approval.");
                 setShowPaymentModal(false);
                 router.push(`/competitions/${categorySlug}/${slug}`); // Redirect
             } else {
@@ -296,11 +297,10 @@ export default function EventRegistrationPage() {
 
     if (!event) return null;
 
-    // Calculate Fees
     const isKLStudent = session?.user?.email?.endsWith("@kluniversity.in");
+    const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
     const memberCount = event.isGroupEvent ? teamSize : 1;
-    // Free for KL University students, 350 for others
-    const feePerPerson = isKLStudent ? 0 : 350;
+    const feePerPerson = (isKLStudent || isInternational) ? 0 : 350;
     const totalFee = memberCount * feePerPerson;
 
     return (
@@ -325,6 +325,13 @@ export default function EventRegistrationPage() {
                             <div className="mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg inline-block">
                                 <p className="text-green-300 text-sm font-medium">
                                     🎉 Free Registration for KL University Students
+                                </p>
+                            </div>
+                        )}
+                        {isInternational && (
+                            <div className="mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                                <p className="text-green-300 text-sm font-medium">
+                                    🎉 Free registration for international students. All competitions are virtual for international participants; evaluations will be conducted virtually by judges.
                                 </p>
                             </div>
                         )}
@@ -447,13 +454,14 @@ export default function EventRegistrationPage() {
                                     onClick={() => setShowPaymentModal(true)}
                                     className="flex-1 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-red-600/20"
                                 >
-                                    Proceed to {isKLStudent ? "Registration" : "Payment"}
+                                    Proceed to {(isKLStudent || isInternational) ? "Registration" : "Payment"}
                                 </button>
                             </div>
                         </div>
                     ) : (
                         <div className="space-y-8">
-                            {/* ID Card Mandatory Warning */}
+                            {/* ID Card Mandatory Warning - not for international (virtual) */}
+                            {!isInternational && (
                             <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-4">
                                 <div className="flex items-start gap-3">
                                     <div className="text-red-500 text-xl font-bold shrink-0">⚠️</div>
@@ -467,6 +475,14 @@ export default function EventRegistrationPage() {
                                     </div>
                                 </div>
                             </div>
+                            )}
+                            {isInternational && (
+                            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                                <p className="text-green-300 text-sm font-medium">
+                                    Virtual participation — no physical ID required. Evaluations will be conducted virtually by judges.
+                                </p>
+                            </div>
+                            )}
 
                             {/* Event Specific Logic */}
                             {event.isGroupEvent ? (

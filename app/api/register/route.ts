@@ -18,6 +18,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const formData = await request.formData();
+    const college = formData.get("college") as string;
+    const isInternational = formData.get("isInternational") === "true";
+
     // Check if user has already registered
     const existingUser = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -27,11 +31,19 @@ export async function POST(request: NextRequest) {
         branch: true,
         year: true,
         phone: true,
+        country: true,
+        isInternational: true,
       },
     });
 
-    // If user has already filled these fields, they've already registered
-    if (
+    if (isInternational) {
+      if (existingUser?.phone && existingUser?.country && existingUser?.isInternational) {
+        return NextResponse.json(
+          { error: "Account already registered. You cannot register again." },
+          { status: 409 }
+        );
+      }
+    } else if (
       existingUser?.collage &&
       existingUser?.collageId &&
       existingUser?.branch &&
@@ -44,39 +56,53 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const formData = await request.formData();
-
-    // Extract form fields
-    const college = formData.get("college") as string;
     const collegeName = formData.get("collegeName") as string;
     const phone = formData.get("phone") as string;
-    const collageId = formData.get("collageId") as string;
-    const branch = formData.get("branch") as string;
-    const year = parseInt(formData.get("year") as string);
+    const collageId = (formData.get("collageId") as string) || "";
+    const branch = (formData.get("branch") as string) || "";
+    const yearRaw = formData.get("year") as string;
+    const year = yearRaw ? parseInt(yearRaw) : 1;
     const gender = formData.get("gender") as string;
+    const country = (formData.get("country") as string) || null;
 
-    // Validate required fields
-    if (!collegeName || !phone || !collageId || !branch || !year || !gender) {
-      return NextResponse.json(
-        { error: "All required fields must be filled" },
-        { status: 400 }
-      );
+    if (isInternational) {
+      if (!phone || !country || !gender) {
+        return NextResponse.json(
+          { error: "Phone, country, and gender are required for international registration." },
+          { status: 400 }
+        );
+      }
+    } else {
+      if (!collegeName || !phone || !collageId || !branch || !year || !gender) {
+        return NextResponse.json(
+          { error: "All required fields must be filled" },
+          { status: 400 }
+        );
+      }
     }
 
-    // Payment fields are no longer required - free registration for all
-    const isKLStudent = college === "KL_UNIVERSITY";
-
-    // Update user with registration details
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: {
-        collage: collegeName,
-        collageId,
-        branch,
-        year,
-        phone,
-        gender,
-        // Auto-approve all users
+        ...(isInternational
+          ? {
+              isInternational: true,
+              country: country || undefined,
+              collage: (collegeName && collegeName !== "International Student") ? collegeName : null,
+              collageId: collageId || null,
+              branch: branch || null,
+              year: year || null,
+              phone,
+              gender,
+            }
+          : {
+              collage: collegeName,
+              collageId,
+              branch,
+              year,
+              phone,
+              gender,
+            }),
         isApproved: true,
         paymentStatus: "APPROVED",
       },

@@ -29,6 +29,8 @@ model User {
   judgePassword    String?
   state            String?
   city             String?
+  isInternational  Boolean       @default(false)
+  country          String?
   role             Role          @default(USER)
   accounts              Account[]
   sessions              Session[]
