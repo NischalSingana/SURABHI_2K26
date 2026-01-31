@@ -25,6 +25,8 @@ export async function GET() {
                         year: true,
                         state: true,
                         city: true,
+                        isInternational: true,
+                        country: true,
                     }
                 },
                 event: {
