@@ -84,6 +84,7 @@ export async function getCategories() {
             maxTeamSize: true,
             registrationLink: true,
             whatsappLink: true,
+            brochureLink: true,
             termsandconditions: true,
             categoryId: true,
             _count: {
@@ -695,11 +696,56 @@ export async function registerGroupEvent(
     revalidatePath("/events");
     revalidatePath("/profile");
 
-    // Only generate tickets and send email if APPROVED (KL Students)
-    // Non-KL students wait for admin approval
-    // Per requirements: KL students do NOT receive emails/tickets automatically.
-    if (registrationResult.success && registrationResult.paymentStatus === "APPROVED") {
-      // Logic removed as per requirement
+    // International: send virtual participation confirmation email with PDF
+    if (registrationResult.success && registrationResult.paymentStatus === "APPROVED" && isInternational && registrationResult.event) {
+      (async () => {
+        try {
+          const userFull = await prisma.user.findUnique({
+            where: { id: session.user!.id },
+            select: { id: true, name: true, email: true, phone: true, collage: true, collageId: true, gender: true, state: true, city: true },
+          });
+          if (!userFull) return;
+          const { generateTicketPDF } = await import("@/lib/pdf-generator");
+          const ev = registrationResult.event!;
+          const pdfBuffer = await generateTicketPDF({
+            userId: userFull.id,
+            name: userFull.name || "Team Lead",
+            email: userFull.email,
+            phone: userFull.phone,
+            collage: userFull.collage,
+            collageId: userFull.collageId,
+            paymentStatus: "APPROVED",
+            isApproved: true,
+            eventName: ev.name,
+            isGroupEvent: true,
+            groupName: registrationResult.groupName || "Team",
+            teamMembers: registrationResult.members || [],
+            eventId: ev.id,
+            gender: userFull.gender,
+            state: userFull.state,
+            city: userFull.city,
+            isInternational: true,
+          });
+          const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
+          await sendEventConfirmationEmail(
+            { name: userFull.name || "Team Lead", email: userFull.email },
+            {
+              name: ev.name,
+              date: ev.date,
+              venue: ev.venue,
+              startTime: ev.startTime ?? undefined,
+              endTime: ev.endTime ?? undefined,
+            },
+            pdfBuffer,
+            "GROUP",
+            { groupName: registrationResult.groupName || "Team", members: registrationResult.members || [] },
+            { description: ev.description, termsAndConditions: ev.termsandconditions, whatsappLink: ev.whatsappLink },
+            true
+          );
+        } catch (e) {
+          console.error("Failed to send international group registration email", e);
+        }
+      })();
     }
 
     // Special message for pending users
@@ -925,6 +971,56 @@ export async function registerForEvent(
     // Special message for pending users
     if (registrationResult.success && registrationResult.paymentStatus === "PENDING") {
       return { success: true, message: "Registration submitted! Please wait for admin to review and approve your registration. You'll receive an email when confirmed." };
+    }
+
+    // International: send virtual participation confirmation email with PDF
+    if (registrationResult.success && registrationResult.paymentStatus === "APPROVED" && isInternational && registrationResult.event) {
+      (async () => {
+        try {
+          const userFull = await prisma.user.findUnique({
+            where: { id: session.user!.id },
+            select: { id: true, name: true, email: true, phone: true, collage: true, collageId: true, gender: true, state: true, city: true },
+          });
+          if (!userFull) return;
+          const { generateTicketPDF } = await import("@/lib/pdf-generator");
+          const ev = registrationResult.event!;
+          const pdfBuffer = await generateTicketPDF({
+            userId: userFull.id,
+            name: userFull.name || "Participant",
+            email: userFull.email,
+            phone: userFull.phone,
+            collage: userFull.collage,
+            collageId: userFull.collageId,
+            paymentStatus: "APPROVED",
+            isApproved: true,
+            eventName: ev.name,
+            isGroupEvent: false,
+            eventId: ev.id,
+            gender: userFull.gender,
+            state: userFull.state,
+            city: userFull.city,
+            isInternational: true,
+          });
+          const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
+          await sendEventConfirmationEmail(
+            { name: userFull.name || "Participant", email: userFull.email },
+            {
+              name: ev.name,
+              date: ev.date,
+              venue: ev.venue,
+              startTime: ev.startTime ?? undefined,
+              endTime: ev.endTime ?? undefined,
+            },
+            pdfBuffer,
+            "INDIVIDUAL",
+            undefined,
+            { description: ev.description, termsAndConditions: ev.termsandconditions, whatsappLink: ev.whatsappLink },
+            true
+          );
+        } catch (e) {
+          console.error("Failed to send international registration email", e);
+        }
+      })();
     }
 
     // For approved registrations (KL students), just return success

@@ -21,12 +21,14 @@ export interface EventTicketData {
     isApproved: boolean;
     eventName: string;
     isGroupEvent: boolean;
-    eventId?: string; // Add eventId to interface
+    eventId?: string;
     groupName?: string | null;
-    gender?: string | null; // Add gender to interface
+    gender?: string | null;
     state?: string | null;
     city?: string | null;
     teamMembers?: MemberData[];
+    /** When true, venue shows Virtual, no time, and Virtual Participation Guidelines on page 2 */
+    isInternational?: boolean;
 }
 
 // Register fonts if needed, for now standard Helvetica is fine for speed/compatibility
@@ -412,7 +414,13 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                         {/* Event Details Footer */}
                         <View style={{ borderTop: '1px solid #27272a', paddingTop: 15, marginTop: 'auto' }}>
                             <Text style={styles.label}>VENUE</Text>
-                            <Text style={styles.valueSmall}>KL UNIVERSITY, VIJAYAWADA</Text>
+                            <Text style={styles.valueSmall}>{ticketData.isInternational ? 'VIRTUAL' : 'KL UNIVERSITY, VIJAYAWADA'}</Text>
+                            {ticketData.isInternational && (
+                                <>
+                                    <Text style={[styles.label, { marginTop: 10 }]}>TIME</Text>
+                                    <Text style={styles.valueSmall}>Will be announced later to your convenient timezone.</Text>
+                                </>
+                            )}
                         </View>
                     </View>
 
@@ -424,56 +432,104 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                 </View>
             </Page>
 
-            {/* Page 2: Rules */}
+            {/* Page 2: Rules – Virtual Participation Guidelines for international, else standard */}
             <Page size="A4" style={styles.page}>
                 <View style={styles.rulesContainer}>
-                    <Text style={styles.pageTitle}>RULES & REGULATIONS</Text>
+                    <Text style={styles.pageTitle}>{ticketData.isInternational ? 'VIRTUAL PARTICIPATION GUIDELINES, RULES AND REGULATIONS' : 'RULES & REGULATIONS'}</Text>
 
-                    <Text style={styles.sectionTitle}>GENERAL GUIDELINES</Text>
-                    <View style={styles.bulletRow}>
-                        <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>This Entry Pass is mandatory for admission. Digital or printed copies are accepted.</Text>
-                    </View>
-                    <View style={styles.bulletRow}>
-                        <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Attendees must carry a valid College ID / Govt ID proving their identity.</Text>
-                    </View>
-                    <View style={styles.bulletRow}>
-                        <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Participants should report to the venue at least 30 minutes before the event starts.</Text>
-                    </View>
-                    <View style={styles.bulletRow}>
-                        <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>The organizers reserve the right to admission.</Text>
-                    </View>
+                    {ticketData.isInternational ? (
+                        <>
+                            <Text style={styles.sectionTitle}>VIRTUAL PARTICIPATION</Text>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>This is your official virtual participation pass. Time slots will be announced later to your convenient timezone.</Text>
+                            </View>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>All sessions and evaluations will be conducted virtually. You will receive meeting links and instructions before the event.</Text>
+                            </View>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>Ensure a stable internet connection and a quiet environment for your participation.</Text>
+                            </View>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>The organizers reserve the right to admission and to modify the schedule as per convenience.</Text>
+                            </View>
 
-                    <Text style={styles.sectionTitle}>CODE OF CONDUCT</Text>
-                    <View style={styles.bulletRow}>
-                        <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Strict discipline must be maintained within the campus premises.</Text>
-                    </View>
-                    <View style={styles.bulletRow}>
-                        <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Possession or consumption of alcohol, drugs, or smoking is strictly prohibited.</Text>
-                    </View>
-                    <View style={styles.bulletRow}>
-                        <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Any form of misbehavior or harassment will lead to immediate disqualification and removal.</Text>
-                    </View>
-                    <View style={styles.bulletRow}>
-                        <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Damage to university property will result in penalties.</Text>
-                    </View>
+                            <Text style={styles.sectionTitle}>CODE OF CONDUCT</Text>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>Maintain decorum during virtual sessions. Any form of misbehavior or harassment will lead to immediate disqualification.</Text>
+                            </View>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>Recording or sharing of session links without permission is prohibited.</Text>
+                            </View>
 
-                    <Text style={styles.sectionTitle}>EVENT SPECIFIC</Text>
-                    <View style={styles.bulletRow}>
-                        <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>All team members must be present for group event verification.</Text>
-                    </View>
-                    <View style={styles.bulletRow}>
-                        <View style={styles.bullet} />
-                        <Text style={styles.ruleText}>Judges' decisions are final and binding.</Text>
-                    </View>
+                            <Text style={styles.sectionTitle}>EVENT SPECIFIC</Text>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>For group events, all team members must join the virtual call for verification.</Text>
+                            </View>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>Judges' decisions are final and binding.</Text>
+                            </View>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>For queries, contact: surabhi@kluniversity.in</Text>
+                            </View>
+                        </>
+                    ) : (
+                        <>
+                            <Text style={styles.sectionTitle}>GENERAL GUIDELINES</Text>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>This Entry Pass is mandatory for admission. Digital or printed copies are accepted.</Text>
+                            </View>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>Attendees must carry a valid College ID / Govt ID proving their identity.</Text>
+                            </View>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>Participants should report to the venue at least 30 minutes before the event starts.</Text>
+                            </View>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>The organizers reserve the right to admission.</Text>
+                            </View>
+
+                            <Text style={styles.sectionTitle}>CODE OF CONDUCT</Text>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>Strict discipline must be maintained within the campus premises.</Text>
+                            </View>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>Possession or consumption of alcohol, drugs, or smoking is strictly prohibited.</Text>
+                            </View>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>Any form of misbehavior or harassment will lead to immediate disqualification and removal.</Text>
+                            </View>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>Damage to university property will result in penalties.</Text>
+                            </View>
+
+                            <Text style={styles.sectionTitle}>EVENT SPECIFIC</Text>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>All team members must be present for group event verification.</Text>
+                            </View>
+                            <View style={styles.bulletRow}>
+                                <View style={styles.bullet} />
+                                <Text style={styles.ruleText}>Judges' decisions are final and binding.</Text>
+                            </View>
+                        </>
+                    )}
 
                     <View style={{ marginTop: 'auto', borderTop: '1px solid #333', paddingTop: 5, alignItems: 'center' }}>
                         {/* Footer Logo Section */}
