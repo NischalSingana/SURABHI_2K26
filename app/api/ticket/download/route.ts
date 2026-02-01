@@ -41,9 +41,10 @@ export async function GET(req: Request) {
                 phone: true,
                 collage: true,
                 collageId: true,
-                gender: true, // Fetch gender
+                gender: true,
                 state: true,
                 city: true,
+                isInternational: true,
             },
         });
 
@@ -68,14 +69,15 @@ export async function GET(req: Request) {
             phone: user.phone,
             collage: user.collage,
             collageId: user.collageId,
-            gender: user.gender || "-", // Add gender to ticket data
+            gender: user.gender || "-",
             state: user.state,
             city: user.city,
             eventName: event.name,
-            eventId: event.id, // Add eventId to pass to PDF/QR generator
+            eventId: event.id,
             isGroupEvent: event.isGroupEvent,
-            paymentStatus: 'CONFIRMED', // Defaulting since we check registration presence
-            isApproved: true, // Defaulting as confirmed registration
+            paymentStatus: 'CONFIRMED',
+            isApproved: true,
+            isInternational: !!user.isInternational,
         };
 
         if (event.isGroupEvent) {
