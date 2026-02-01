@@ -32,7 +32,7 @@ export async function GET(
 
         const userId = session.user.id;
 
-        let pass: { userId: string; user: { name: string | null; email: string; phone: string | null; collage: string | null; collageId: string | null; gender: string | null; state: string | null; city: string | null } } | null = null;
+        let pass: { userId: string; user: { name: string | null; email: string; phone: string | null; collage: string | null; collageId: string | null; gender: string | null; state: string | null; city: string | null; isInternational?: boolean } } | null = null;
 
         const visitorPass = await prisma.visitorPassRegistration.findUnique({
             where: { passToken: token },
@@ -47,6 +47,7 @@ export async function GET(
                         gender: true,
                         state: true,
                         city: true,
+                        isInternational: true,
                     },
                 },
             },
@@ -70,6 +71,7 @@ export async function GET(
                             gender: true,
                             state: true,
                             city: true,
+                            isInternational: true,
                         },
                     },
                 },
@@ -97,14 +99,12 @@ export async function GET(
             gender: pass.user.gender || "-",
             state: pass.user.state,
             city: pass.user.city,
-            eventName: "Surabhi 2026 - Visitor Pass", // Special event name for visitor pass
-            eventId: "VISITOR_PASS", // Placeholder
+            eventName: "Surabhi 2026 - Visitor Pass",
+            eventId: "VISITOR_PASS",
             isGroupEvent: false,
-            paymentStatus: 'PAID', // Visitor passes are effectively paid (or free waiver)
+            paymentStatus: 'PAID',
             isApproved: true,
-            // Additional fields specific for visitor pass can be handled here or in the PDF generator if needed
-            isVisitorPass: true,
-            validDates: "March 6th & 7th"
+            isInternational: !!(pass.user as { isInternational?: boolean }).isInternational,
         };
 
         // Generate PDF

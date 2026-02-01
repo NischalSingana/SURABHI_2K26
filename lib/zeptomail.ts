@@ -141,11 +141,11 @@ export async function sendEventConfirmationEmail(
         subjectLine = `Your Ticket for Visitor Pass - Surabhi 2026`;
     }
 
-    // International participants: no venue, no PDF, warm message, virtual + timezone
+    // International participants: virtual participation, PDF attached with venue Virtual and time announced later
     if (isInternational) {
-        headingTitle = "You're Registered – Welcome to Surabhi!";
-        welcomeMessage = `We are delighted to confirm your registration for <strong class="highlight">${event.name}</strong>. Thank you for being part of Surabhi International Cultural Fest 2026.`;
-        subjectLine = `Registration Confirmed: ${event.name} - Surabhi 2026 (Virtual)`;
+        headingTitle = "Virtual Participation – You're Registered!";
+        welcomeMessage = `We are delighted to confirm your <strong class="highlight">virtual participation</strong> for <strong class="highlight">${event.name}</strong>. Your ticket (PDF) is attached. Thank you for being part of Surabhi International Cultural Fest 2026.`;
+        subjectLine = `Registration Confirmed (Virtual): ${event.name} - Surabhi 2026`;
     }
 
     let additionalInfo = "";
@@ -244,8 +244,8 @@ export async function sendEventConfirmationEmail(
                 <div class="event-card">
                     <div class="event-name">${event.name}</div>
                     <div class="event-meta">📅 ${dateStr}</div>
-                    ${event.startTime && event.endTime ? `<div class="event-meta">⏰ ${event.startTime} - ${event.endTime}</div>` : ''}
-                    ${!isInternational ? `<div class="event-meta">📍 ${event.venue}</div>` : ''}
+                    ${!isInternational && event.startTime && event.endTime ? `<div class="event-meta">⏰ ${event.startTime} - ${event.endTime}</div>` : ''}
+                    ${isInternational ? `<div class="event-meta">📍 Virtual</div><div class="event-meta">⏰ Time will be announced later to your convenient timezone.</div>` : `<div class="event-meta">📍 ${event.venue}</div>`}
                 </div>
 
                 ${additionalInfo}
@@ -254,8 +254,12 @@ export async function sendEventConfirmationEmail(
                 <div style="background-color: #18181b; padding: 20px; border-left: 4px solid #dc2626; margin: 25px 0; border-radius: 0 8px 8px 0;">
                     <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 12px;">🌐 Virtual Participation</p>
                     <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; margin: 0;">
-                        This competition will be conducted <strong style="color: #ffffff;">virtually</strong>. All sessions and evaluations are scheduled to be <strong style="color: #ffffff;">convenient to your respective time zone</strong>. You will receive further instructions and meeting links before the event. We look forward to your participation from across the globe!
+                        This competition will be conducted <strong style="color: #ffffff;">virtually</strong>. Your ticket (PDF) is attached. Please follow the <strong style="color: #ffffff;">Virtual Participation Guidelines, Rules and Regulations</strong> in the attached ticket. Time will be announced later to your convenient timezone. You will receive further instructions and meeting links before the event. We look forward to your participation from across the globe!
                     </p>
+                </div>
+                <div style="background-color: #18181b; padding: 18px; border-radius: 8px; margin: 20px 0; border: 1px solid #333;">
+                    <p style="color: #a1a1aa; font-size: 13px; margin: 0 0 6px 0;">📧 For any queries, contact us at:</p>
+                    <p style="color: #dc2626; font-size: 15px; font-weight: 600; margin: 0;"><a href="mailto:surabhi@kluniversity.in" style="color: #dc2626; text-decoration: none;">surabhi@kluniversity.in</a></p>
                 </div>
                 ` : ''}
 
@@ -265,19 +269,13 @@ export async function sendEventConfirmationEmail(
 
                 <div class="divider"></div>
 
-                ${!isInternational ? `
                 <p style="color: #ffffff; font-size: 18px; text-align: center; margin-bottom: 15px;">
                     <strong>🎟️ Your Entry Pass is Attached</strong>
                 </p>
                 <p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-bottom: 0;">
-                    Please find your official entry pass (PDF) attached below.<br>
-                    Keep it handy for security checks at the venue.
+                    ${isInternational ? 'Please find your virtual participation ticket (PDF) attached. Follow the Virtual Participation Guidelines in the ticket.' : 'Please find your official entry pass (PDF) attached below. Keep it handy for security checks at the venue.'}
                 </p>
-                ` : `
-                <p style="color: #d4d4d8; font-size: 15px; text-align: center; line-height: 1.7; margin-bottom: 20px;">
-                    No physical ticket or QR is required. Your registration is confirmed and we will reach out with virtual access details.
-                </p>
-                `}
+                ${isInternational ? '<p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-top: 10px; margin-bottom: 0;">For queries: <a href="mailto:surabhi@kluniversity.in" style="color: #dc2626;">surabhi@kluniversity.in</a></p>' : ''}
 
                 <div style="margin-top: 40px; text-align: center;">
                     <p class="text-body" style="font-size: 14px; font-style: italic;">
@@ -290,22 +288,23 @@ export async function sendEventConfirmationEmail(
             <div class="footer">
                 <p>&copy; 2026 KL University. All rights reserved.</p>
                 <p>Koneru Lakshmaiah Education Foundation, Vijayawada, Andhra Pradesh.</p>
+                ${isInternational ? '<p style="margin-top: 12px;">For queries: <a href="mailto:surabhi@kluniversity.in" style="color: #dc2626;">surabhi@kluniversity.in</a></p>' : ''}
             </div>
         </div>
     </body>
     </html>
     `;
 
-    // 3. Send Email (no PDF attachment for international participants)
+    // 3. Send Email (attach PDF for all; international gets virtual ticket)
     return sendZeptoMail({
         to: [{ email: user.email, name: user.name }],
         subject: subjectLine,
         htmlBody: htmlBody,
-        ...(pdfBuffer && !isInternational && {
+        ...(pdfBuffer && {
             attachments: [{
                 content: pdfBuffer.toString('base64'),
                 mime_type: "application/pdf",
-                name: `Surabhi_2026_Ticket_${event.name.replace(/\s+/g, '_')}.pdf`
+                name: `Surabhi_2026_${isInternational ? 'Virtual_' : ''}Ticket_${event.name.replace(/\s+/g, '_')}.pdf`
             }],
         }),
         inlineImages: inlineImages
