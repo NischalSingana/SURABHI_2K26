@@ -305,7 +305,7 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
                 </div>
             </div>
 
-            {/* Tabs */}
+            {/* Tabs: KL, International (separate), Other College */}
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <button
                     onClick={() => setActiveTab("kl")}
@@ -322,20 +322,6 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
                 </button>
 
                 <button
-                    onClick={() => setActiveTab("other")}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${activeTab === "other"
-                        ? "bg-red-600 text-white shadow-lg shadow-red-600/20"
-                        : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                        }`}
-                >
-                    <FiGlobe />
-                    Other College Students
-                    <span className="ml-2 px-2 py-0.5 bg-white/20 rounded-full text-xs">
-                        {otherUsers.length}
-                    </span>
-                </button>
-
-                <button
                     onClick={() => setActiveTab("international")}
                     className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${activeTab === "international"
                         ? "bg-red-600 text-white shadow-lg shadow-red-600/20"
@@ -346,6 +332,20 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
                     International Students
                     <span className="ml-2 px-2 py-0.5 bg-white/20 rounded-full text-xs">
                         {internationalUsers.length}
+                    </span>
+                </button>
+
+                <button
+                    onClick={() => setActiveTab("other")}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${activeTab === "other"
+                        ? "bg-red-600 text-white shadow-lg shadow-red-600/20"
+                        : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                        }`}
+                >
+                    <FiGlobe />
+                    Other College Students
+                    <span className="ml-2 px-2 py-0.5 bg-white/20 rounded-full text-xs">
+                        {otherUsers.length}
                     </span>
                 </button>
             </div>
