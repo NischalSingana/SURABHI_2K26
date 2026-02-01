@@ -25,11 +25,14 @@ interface Registration {
     createdAt: string;
 }
 
+type FilterTab = "ALL" | "INTERNATIONAL" | "DOMESTIC";
+
 export default function IndividualRegistrationsTable() {
     const [registrations, setRegistrations] = useState<Registration[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
+    const [filterTab, setFilterTab] = useState<FilterTab>("ALL");
 
     useEffect(() => {
         fetch("/api/admin/registrations/individual")
@@ -44,23 +47,53 @@ export default function IndividualRegistrationsTable() {
             });
     }, []);
 
-    const filtered = registrations.filter((reg) =>
+    const byFilter = registrations.filter((reg) => {
+        if (filterTab === "INTERNATIONAL") return !!reg.user?.isInternational;
+        if (filterTab === "DOMESTIC") return !reg.user?.isInternational;
+        return true;
+    });
+
+    const filtered = byFilter.filter((reg) =>
         reg.user.name?.toLowerCase().includes(search.toLowerCase()) ||
         reg.user.collageId?.toLowerCase().includes(search.toLowerCase()) ||
         reg.user.country?.toLowerCase().includes(search.toLowerCase()) ||
         reg.event.name.toLowerCase().includes(search.toLowerCase())
     );
 
+    const internationalCount = registrations.filter((r) => r.user?.isInternational).length;
+    const domesticCount = registrations.filter((r) => !r.user?.isInternational).length;
+
     if (loading) return <div className="text-white">Loading...</div>;
 
     return (
         <>
             <div className="w-full">
-                <div className="mb-4">
+                <div className="mb-4 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+                    <div className="flex flex-wrap gap-2 border-b border-zinc-800 pb-2">
+                        <button
+                            onClick={() => setFilterTab("ALL")}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${filterTab === "ALL" ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white"}`}
+                        >
+                            All ({registrations.length})
+                        </button>
+                        <button
+                            onClick={() => setFilterTab("INTERNATIONAL")}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${filterTab === "INTERNATIONAL" ? "bg-amber-900/40 text-amber-400 border border-amber-700/50" : "text-zinc-400 hover:text-white"}`}
+                        >
+                            <span className="w-2 h-2 rounded-full bg-amber-500" />
+                            International ({internationalCount})
+                        </button>
+                        <button
+                            onClick={() => setFilterTab("DOMESTIC")}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${filterTab === "DOMESTIC" ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white"}`}
+                        >
+                            Domestic ({domesticCount})
+                        </button>
+                    </div>
                     <input
                         type="text"
-                        placeholder="Search by Name, ID, or Event..."
-                        className="w-full max-w-md p-2 rounded bg-zinc-800 text-white border border-zinc-700"
+                        placeholder="Search by Name, ID, Country, or Event..."
+                        className="w-full sm:max-w-xs p-2 rounded bg-zinc-800 text-white border border-zinc-700"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
