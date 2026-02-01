@@ -9,7 +9,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ isRegistered: false, userData: null }, { status: 200 });
     }
 
-    // Check if user exists in database
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -18,24 +17,23 @@ export async function POST(request: Request) {
         branch: true,
         year: true,
         phone: true,
+        isInternational: true,
+        country: true,
+        gender: true,
+        state: true,
+        city: true,
       },
     });
 
-    // If user doesn't exist in database (was deleted), return false
     if (!user) {
       return NextResponse.json({ isRegistered: false, userData: null }, { status: 200 });
     }
 
-    // If user exists but hasn't filled registration fields, return false
-    const isRegistered = !!(
-      user.collage &&
-      user.collageId &&
-      user.branch &&
-      user.year &&
-      user.phone
-    );
+    const isInternational = !!user.isInternational;
+    const isRegistered = isInternational
+      ? !!(user.phone && user.country)
+      : !!(user.collage && user.collageId && user.branch && user.year && user.phone);
 
-    // Return both registration status and existing user data
     return NextResponse.json({
       isRegistered,
       userData: {
@@ -44,6 +42,11 @@ export async function POST(request: Request) {
         branch: user.branch || "",
         year: user.year || 1,
         phone: user.phone || "",
+        isInternational: user.isInternational ?? false,
+        country: user.country || "",
+        gender: user.gender || "",
+        state: user.state || "",
+        city: user.city || "",
       }
     }, { status: 200 });
   } catch (error) {

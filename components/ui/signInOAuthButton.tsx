@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation"
 interface signInOAuthButtonProps {
   provider: "google" | "microsoft"
   signup?: boolean
-  collegeType?: "KL_UNIVERSITY" | "OTHER"
+  collegeType?: "KL_UNIVERSITY" | "OTHER" | "INTERNATIONAL"
 }
 const signInOAuthButton = ({ provider, signup, collegeType }: signInOAuthButtonProps) => {
   const [isPending, setIsPending] = useState(false)
@@ -22,7 +22,7 @@ const signInOAuthButton = ({ provider, signup, collegeType }: signInOAuthButtonP
     // Store college type before OAuth redirect
     if (collegeType) {
       localStorage.setItem("selectedCollege", collegeType);
-      const collegeName = collegeType === "KL_UNIVERSITY" ? "KL University" : "Other College";
+      const collegeName = collegeType === "KL_UNIVERSITY" ? "KL University" : collegeType === "INTERNATIONAL" ? "International Student" : "Other College";
       localStorage.setItem("selectedCollegeName", collegeName);
     }
 

@@ -6,6 +6,10 @@
 export function isRegistrationComplete(user: any): boolean {
     if (!user) return false;
 
+    if (user.isInternational) {
+        return !!(user.phone && user.country);
+    }
+
     return !!(
         user.collage &&
         user.collageId &&

@@ -220,7 +220,7 @@ export async function updateRegistrationStatus(
             });
 
             if (status === "APPROVED") {
-                // Send email asynchronously but track errors
+                const isInternational = !!(user as { isInternational?: boolean }).isInternational;
                 (async () => {
                     try {
                         const { generateTicketPDF } = await import("@/lib/pdf-generator");
@@ -239,26 +239,24 @@ export async function updateRegistrationStatus(
                             gender: user.gender || "N/A",
                             state: user.state || "",
                             city: user.city || "",
+                            isInternational: isInternational || undefined,
                         });
-
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
                         const emailResult = await sendEventConfirmationEmail(
                             { name: user.name || "Visitor", email: user.email },
                             { name: "Surabhi 2026", date: new Date(), venue: "KL University" },
                             pdfBuffer,
-                            "VISITOR"
+                            "VISITOR",
+                            undefined,
+                            undefined,
+                            isInternational
                         );
-
                         if (!emailResult || !emailResult.success) {
                             console.error(`Failed to send visitor pass approval email to ${user.email}:`, emailResult?.error || "Unknown error");
                         }
                     } catch (e: any) {
                         console.error(`Failed to send visitor pass approval email to ${user.email}:`, e);
-                        console.error("Error details:", {
-                            message: e?.message,
-                            stack: e?.stack,
-                            name: e?.name,
-                        });
+                        console.error("Error details:", { message: e?.message, stack: e?.stack, name: e?.name });
                     }
                 })();
             }
@@ -307,16 +305,15 @@ export async function updateRegistrationStatus(
             });
 
             if (status === "APPROVED") {
-                // Generate Ticket and Email
+                const userFull = await prisma.user.findUnique({
+                    where: { id: registration.userId },
+                    select: { id: true, name: true, email: true, phone: true, collage: true, collageId: true, gender: true, state: true, city: true, isInternational: true },
+                });
+                if (!userFull) return;
+
+                const isInternational = !!userFull.isInternational;
                 (async () => {
                     try {
-                        // Fetch full user details for PDF
-                        const userFull = await prisma.user.findUnique({
-                            where: { id: registration.userId }
-                        });
-
-                        if (!userFull) return;
-
                         const { generateTicketPDF } = await import("@/lib/pdf-generator");
                         const pdfBuffer = await generateTicketPDF({
                             userId: userFull.id,
@@ -332,9 +329,9 @@ export async function updateRegistrationStatus(
                             eventId: registration.event.id,
                             gender: userFull.gender,
                             state: userFull.state,
-                            city: userFull.city
+                            city: userFull.city,
+                            isInternational: isInternational || undefined,
                         });
-
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
                         await sendEventConfirmationEmail(
                             { name: userFull.name || "User", email: userFull.email },
@@ -352,7 +349,8 @@ export async function updateRegistrationStatus(
                                 description: registration.event.description,
                                 termsAndConditions: registration.event.termsandconditions,
                                 whatsappLink: registration.event.whatsappLink
-                            }
+                            },
+                            isInternational
                         );
                     } catch (e) {
                         console.error("Failed to send approval email", e);
@@ -399,18 +397,18 @@ export async function updateRegistrationStatus(
             });
 
             if (status === "APPROVED") {
-                // Generate Ticket and Email for Group
+                const lead = await prisma.user.findUnique({
+                    where: { id: registration.userId },
+                    select: { id: true, name: true, email: true, phone: true, collage: true, collageId: true, gender: true, state: true, city: true, isInternational: true },
+                });
+                if (!lead) return;
+
+                const members = registration.members as any || [];
+                const groupName = registration.groupName || "Team";
+                const isInternational = !!lead.isInternational;
+
                 (async () => {
                     try {
-                        const lead = await prisma.user.findUnique({
-                            where: { id: registration.userId }
-                        });
-
-                        if (!lead) return;
-
-                        const members = registration.members as any || [];
-                        const groupName = registration.groupName || "Team";
-
                         const { generateTicketPDF } = await import("@/lib/pdf-generator");
                         const pdfBuffer = await generateTicketPDF({
                             userId: lead.id,
@@ -428,9 +426,9 @@ export async function updateRegistrationStatus(
                             eventId: registration.event.id,
                             gender: lead.gender,
                             state: lead.state,
-                            city: lead.city
+                            city: lead.city,
+                            isInternational: isInternational || undefined,
                         });
-
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
                         await sendEventConfirmationEmail(
                             { name: lead.name || "User", email: lead.email },
@@ -448,7 +446,8 @@ export async function updateRegistrationStatus(
                                 description: registration.event.description,
                                 termsAndConditions: registration.event.termsandconditions,
                                 whatsappLink: registration.event.whatsappLink
-                            }
+                            },
+                            isInternational
                         );
                     } catch (e) {
                         console.error("Failed to send group approval email", e);

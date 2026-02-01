@@ -101,6 +101,37 @@ export default function MultiStepEventForm({
     }));
   }, [termsList]);
 
+  // Sync formData when editingEvent changes (e.g. open Edit modal or switch event)
+  useEffect(() => {
+    if (editingEvent) {
+      setFormData({
+        categoryId: editingEvent.categoryId,
+        name: editingEvent.name || "",
+        description: editingEvent.description || "",
+        date: new Date(editingEvent.date).toISOString().split("T")[0],
+        image: editingEvent.image || "",
+        venue: editingEvent.venue || "",
+        isGroupEvent: editingEvent.isGroupEvent || false,
+        allowSubmissions: !!editingEvent.allowSubmissions,
+        minTeamSize: editingEvent.minTeamSize?.toString() || "2",
+        maxTeamSize: editingEvent.maxTeamSize?.toString() || "5",
+        startTime: editingEvent.startTime || "",
+        endTime: editingEvent.endTime || "",
+        participantLimit: editingEvent.participantLimit?.toString() || "",
+        termsandconditions: editingEvent.termsandconditions || "",
+        registrationLink: editingEvent.registrationLink || "",
+        whatsappLink: editingEvent.whatsappLink || "",
+        brochureLink: editingEvent.brochureLink || "",
+      });
+      setImagePreview(editingEvent.image || "");
+      setTermsList(
+        editingEvent.termsandconditions
+          ? editingEvent.termsandconditions.split(/\r?\n/).filter((t) => t.trim())
+          : [""]
+      );
+    }
+  }, [editingEvent?.id]);
+
   // Lock body scroll when modal is open
   useEffect(() => {
     // Save original body overflow

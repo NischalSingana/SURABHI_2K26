@@ -51,6 +51,8 @@ export async function getAllUsers(filters?: {
                 paymentStatus: true,
                 role: true,
                 createdAt: true,
+                isInternational: true,
+                country: true,
                 _count: {
                     select: {
                         individualRegistrations: true,

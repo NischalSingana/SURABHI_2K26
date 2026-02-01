@@ -111,6 +111,14 @@ export const auth = betterAuth({
             paymentStatus: {
                 type: "string",
                 input: false
+            },
+            isInternational: {
+                type: "boolean",
+                input: false
+            },
+            country: {
+                type: "string",
+                input: false
             }
         }
     },
