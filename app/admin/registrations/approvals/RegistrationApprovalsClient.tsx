@@ -15,6 +15,8 @@ type Registration = {
         phone: string | null;
         collage: string | null;
         collageId: string | null;
+        isInternational?: boolean;
+        country?: string | null;
     };
     event?: {
         name: string;
@@ -41,7 +43,7 @@ export default function RegistrationApprovalsClient() {
     const [registrations, setRegistrations] = useState<Registration[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
-    const [activeTab, setActiveTab] = useState<"INDIVIDUAL" | "GROUP" | "VISITOR">("INDIVIDUAL");
+    const [activeTab, setActiveTab] = useState<"INDIVIDUAL" | "GROUP" | "VISITOR" | "INTERNATIONAL">("INDIVIDUAL");
     const [viewMode, setViewMode] = useState<"PENDING" | "HISTORY">("PENDING");
 
     useEffect(() => {
@@ -95,6 +97,10 @@ export default function RegistrationApprovalsClient() {
         const result = await updateRegistrationStatus(id, backendType as "INDIVIDUAL" | "GROUP" | "VISITOR_PASS", status);
         toast.dismiss(loadingToast);
 
+        if (!result) {
+            toast.error("Failed to update status");
+            return;
+        }
         if (result.success) {
             toast.success(result.message || `Registration ${status.toLowerCase()} successfully`);
             fetchRegistrations();
@@ -104,6 +110,7 @@ export default function RegistrationApprovalsClient() {
     };
 
     const filteredRegistrations = registrations.filter((reg) => {
+        if (activeTab === "INTERNATIONAL") return !!reg.user?.isInternational;
         if (activeTab === "INDIVIDUAL" && reg.type !== "INDIVIDUAL") return false;
         if (activeTab === "GROUP" && reg.type !== "GROUP") return false;
         if (activeTab === "VISITOR" && reg.type !== "VISITOR") return false;
@@ -114,6 +121,7 @@ export default function RegistrationApprovalsClient() {
     const individualCount = registrations.filter((reg) => reg.type === "INDIVIDUAL").length;
     const groupCount = registrations.filter((reg) => reg.type === "GROUP").length;
     const visitorCount = registrations.filter((reg) => reg.type === "VISITOR").length;
+    const internationalCount = registrations.filter((reg) => !!reg.user?.isInternational).length;
 
     return (
         <div className="px-4 py-6">
@@ -142,20 +150,28 @@ export default function RegistrationApprovalsClient() {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-4 mb-6 border-b border-zinc-800 pb-2">
+            <div className="flex flex-wrap gap-2 sm:gap-4 mb-6 border-b border-zinc-800 pb-2">
+                <button
+                    onClick={() => setActiveTab("INTERNATIONAL")}
+                    className={`px-4 py-2 font-medium transition-colors flex items-center gap-1.5 ${activeTab === "INTERNATIONAL" ? "text-amber-400 border-b-2 border-amber-500" : "text-zinc-400 hover:text-white"
+                        }`}
+                >
+                    <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />
+                    International ({internationalCount})
+                </button>
                 <button
                     onClick={() => setActiveTab("INDIVIDUAL")}
                     className={`px-4 py-2 font-medium transition-colors ${activeTab === "INDIVIDUAL" ? "text-red-500 border-b-2 border-red-500" : "text-zinc-400 hover:text-white"
                         }`}
                 >
-                    Individual Registrations ({individualCount})
+                    Individual ({individualCount})
                 </button>
                 <button
                     onClick={() => setActiveTab("GROUP")}
                     className={`px-4 py-2 font-medium transition-colors ${activeTab === "GROUP" ? "text-red-500 border-b-2 border-red-500" : "text-zinc-400 hover:text-white"
                         }`}
                 >
-                    Group Registrations ({groupCount})
+                    Group ({groupCount})
                 </button>
                 <button
                     onClick={() => setActiveTab("VISITOR")}
@@ -183,17 +199,28 @@ export default function RegistrationApprovalsClient() {
                             {filteredRegistrations.length === 0 ? (
                                 <tr>
                                     <td colSpan={viewMode === "HISTORY" ? 6 : 5} className="px-6 py-12 text-center text-zinc-500">
-                                        No {viewMode === "PENDING" ? "pending registrations" : "history"} found.
+                                        {activeTab === "INTERNATIONAL"
+                                            ? "No international registrations found."
+                                            : `No ${viewMode === "PENDING" ? "pending " : ""}${activeTab.toLowerCase().replace("_", " ")} registrations found.`}
                                     </td>
                                 </tr>
                             ) : (
                                 filteredRegistrations.map((reg) => (
                                     <tr key={reg.id} className="hover:bg-zinc-800/50 transition-colors">
                                         <td className="px-6 py-4">
-                                            <div className="font-medium text-white">{reg.user.name || "Unknown"}</div>
+                                            <div className="font-medium text-white flex items-center gap-2">
+                                                {reg.user.name || "Unknown"}
+                                                {reg.user.isInternational && (
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-900/30 text-amber-400 border border-amber-700/50">
+                                                        International
+                                                    </span>
+                                                )}
+                                            </div>
                                             <div className="text-xs">{reg.user.email}</div>
                                             <div className="text-xs">{reg.user.phone || "N/A"}</div>
-                                            <div className="text-xs text-zinc-500">{reg.user.collage || "N/A"} {reg.user.collageId ? `(${reg.user.collageId})` : ""}</div>
+                                            <div className="text-xs text-zinc-500">
+                                                {reg.user.isInternational ? (reg.user.country || "—") : `${reg.user.collage || "N/A"} ${reg.user.collageId ? `(${reg.user.collageId})` : ""}`}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             {reg.type === "VISITOR" ? (

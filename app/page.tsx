@@ -16,26 +16,79 @@ import gsap from 'gsap';
 
 import Footer from '@/components/ui/Footer';
 import CountUp from '@/components/ui/CountUp';
-import { FiGlobe, FiAward, FiUsers, FiFeather, FiHeart, FiTrendingUp } from "react-icons/fi";
+import { FiGlobe, FiAward, FiUsers, FiFeather, FiHeart, FiTrendingUp, FiVolume2, FiVolumeX } from "react-icons/fi";
 
 gsap.registerPlugin(ScrollTrigger);
+
+// Hero video: CDN first; Chrome often needs direct Spaces URL (Range/206), Safari works with CDN
+const HERO_VIDEO_CDN = "https://surabhi-images.sgp1.cdn.digitaloceanspaces.com/SurabhiPromo.mp4";
+const HERO_VIDEO_DIRECT = "https://surabhi-images.sgp1.digitaloceanspaces.com/SurabhiPromo.mp4";
+
+// Particles for fiery background (stable positions for SSR/hydration)
+const PARTICLES = Array.from({ length: 24 }, (_, i) => ({
+    x: `${(i * 4.5) % 100}%`,
+    duration: 4 + (i % 5),
+    delay: (i * 0.3) % 3,
+}));
 
 const HomePage = () => {
     const [posterItems, setPosterItems] = useState<{ image: string; text: string }[]>([]);
     const [loadingPosters, setLoadingPosters] = useState(true);
-    const [particles, setParticles] = useState<Array<{ x: string; duration: number; delay: number }>>([]);
-
     const galleryRef = useRef<CircularGalleryHandle>(null);
     const competitionSectionRef = useRef<HTMLElement>(null);
 
-    useEffect(() => {
-        // Generate particles on client side to avoid hydration mismatch
-        setParticles([...Array(12)].map(() => ({
-            x: `${Math.random() * 100}%`,
-            duration: 3 + Math.random() * 2,
-            delay: Math.random() * 2,
-        })));
+    /* 
+    Video related logic preserved for later use
+    const [videoSrc, setVideoSrc] = useState(HERO_VIDEO_CDN);
+    const [usedFallback, setUsedFallback] = useState(false);
+    const videoFrameRef = useRef<HTMLDivElement>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [isMuted, setIsMuted] = useState(true);
+    const [playFailed, setPlayFailed] = useState(false);
 
+    const handleCanPlay = () => {
+        videoRef.current?.play().catch(() => setPlayFailed(true));
+    };
+
+    const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+        const v = e.currentTarget;
+        const err = v.error;
+        if (err) {
+            console.error("Hero video failed:", err.code, err.message, videoSrc);
+        }
+        // Chrome often fails with CDN (Range/206); try direct Spaces URL once
+        if (!usedFallback && videoSrc === HERO_VIDEO_CDN) {
+            setUsedFallback(true);
+            setVideoSrc(HERO_VIDEO_DIRECT);
+        }
+    };
+    const handlePlayClick = () => {
+        setPlayFailed(false);
+        videoRef.current?.play().catch(() => setPlayFailed(true));
+    };
+
+    const handleToggleMute = () => {
+        const video = videoRef.current;
+        if (video) {
+            video.muted = !video.muted;
+            setIsMuted(video.muted);
+            if (!video.muted) {
+                video.play().catch(() => {});
+            }
+        } else {
+            setIsMuted((m) => !m);
+        }
+    };
+
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.muted = isMuted;
+        }
+    }, [isMuted]);
+    */
+
+
+    useEffect(() => {
         // Fetch poster gallery items from API
         const fetchPosters = async () => {
             try {
@@ -97,10 +150,9 @@ const HomePage = () => {
                         background: "radial-gradient(circle at 50% 50%, rgba(220, 38, 38, 0.4), transparent 70%), radial-gradient(circle at 0% 100%, rgba(185, 28, 28, 0.3), transparent 50%)"
                     }}
                 />
-
                 {/* Fire-like particles effect - Optimized with CSS */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    {particles.map((particle, i) => (
+                    {PARTICLES.map((particle, i) => (
                         <div
                             key={i}
                             className="absolute w-1 h-1 bg-red-600 rounded-full animate-float"
@@ -108,12 +160,72 @@ const HomePage = () => {
                                 left: particle.x,
                                 animationDuration: `${particle.duration}s`,
                                 animationDelay: `${particle.delay}s`,
-                                bottom: '-10px' // Start slightly below
+                                bottom: "-10px",
                             }}
                         />
                     ))}
                 </div>
             </div>
+            {/* 
+            Video Hero - Preserved for later use
+            <section
+                ref={videoFrameRef}
+                id="video-frame"
+                className="fixed inset-0 z-10 w-full h-full overflow-hidden bg-black"
+                aria-label="Surabhi 2K26 hero video"
+            >
+                <h2 className="sr-only">Surabhi 2K26 - International Cultural Fest</h2>
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1.0, ease: "easeOut" }}
+                    className="absolute inset-0 w-full h-full"
+                >
+                    <video
+                        key={videoSrc}
+                        ref={videoRef}
+                        src={videoSrc}
+                        autoPlay
+                        loop
+                        muted={isMuted}
+                        playsInline
+                        preload="auto"
+                        onCanPlay={handleCanPlay}
+                        onError={handleVideoError}
+                        className="absolute left-0 top-0 w-full h-full min-w-full min-h-full object-cover object-center"
+                    />
+                    {playFailed && (
+                        <button
+                            type="button"
+                            onClick={handlePlayClick}
+                            className="absolute inset-0 z-30 flex items-center justify-center bg-black/60 text-white text-lg font-medium"
+                        >
+                            Click to play video
+                        </button>
+                    )}
+
+                    <button
+                        type="button"
+                        onClick={handleToggleMute}
+                        className="absolute top-[5.5rem] left-4 z-50 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white transition-colors backdrop-blur-sm border border-white/10 shadow-lg"
+                    >
+                        {isMuted ? <FiVolumeX size={22} /> : <FiVolume2 size={22} />}
+                    </button>
+
+                    <div className="absolute inset-0 flex flex-col items-center justify-end pb-6 md:pb-10 px-4 z-40 pointer-events-none">
+                        <h1 className="text-white font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight drop-shadow-lg text-center [text-shadow:0_2px_20px_rgba(0,0,0,0.8)]">
+                            SURABHI<b>-2K26</b>
+                        </h1>
+                        <p className="text-white/90 text-sm sm:text-base md:text-lg mt-1 md:mt-2 tracking-[0.3em] md:tracking-[0.4em] uppercase font-medium [text-shadow:0_2px_12px_rgba(0,0,0,0.8)]">
+                            — international cultural fest
+                        </p>
+                    </div>
+                </motion.div>
+            </section>
+
+            <div className="relative z-0 h-screen w-full flex-shrink-0" aria-hidden="true" />
+            */}
+
             {/* Poster Section - Edge to Edge (left, right, bottom), top space for navbar */}
             <section className="relative w-full h-auto md:h-screen flex items-center justify-center overflow-hidden z-10 pt-16 pb-0">
                 <h2 className="sr-only">Event Poster</h2>
@@ -125,10 +237,8 @@ const HomePage = () => {
                 >
                     {/* Ambient Background Gradient - No duplicate image */}
                     <div className="absolute inset-0 bg-gradient-to-br from-[#1a0505] via-[#2d0a0a] to-[#0f0505]" />
-
                     {/* Subtle red glow in center */}
-                    <div className="absolute inset-0 bg-radial-gradient from-red-900/10 via-transparent to-transparent opacity-50" />
-
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(127,29,29,0.1)_0%,transparent_70%)] opacity-50" />
                     {/* Poster Container */}
                     <div className="relative w-full h-auto md:h-full flex items-center justify-center z-10 px-0">
                         <Image

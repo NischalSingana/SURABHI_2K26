@@ -15,6 +15,8 @@ interface Registration {
         year: number | null;
         state: string | null;
         city: string | null;
+        isInternational?: boolean;
+        country?: string | null;
     };
     event: {
         name: string;
@@ -23,11 +25,14 @@ interface Registration {
     createdAt: string;
 }
 
+type FilterTab = "ALL" | "INTERNATIONAL" | "DOMESTIC";
+
 export default function IndividualRegistrationsTable() {
     const [registrations, setRegistrations] = useState<Registration[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
+    const [filterTab, setFilterTab] = useState<FilterTab>("ALL");
 
     useEffect(() => {
         fetch("/api/admin/registrations/individual")
@@ -42,22 +47,53 @@ export default function IndividualRegistrationsTable() {
             });
     }, []);
 
-    const filtered = registrations.filter((reg) =>
+    const byFilter = registrations.filter((reg) => {
+        if (filterTab === "INTERNATIONAL") return !!reg.user?.isInternational;
+        if (filterTab === "DOMESTIC") return !reg.user?.isInternational;
+        return true;
+    });
+
+    const filtered = byFilter.filter((reg) =>
         reg.user.name?.toLowerCase().includes(search.toLowerCase()) ||
         reg.user.collageId?.toLowerCase().includes(search.toLowerCase()) ||
+        reg.user.country?.toLowerCase().includes(search.toLowerCase()) ||
         reg.event.name.toLowerCase().includes(search.toLowerCase())
     );
+
+    const internationalCount = registrations.filter((r) => r.user?.isInternational).length;
+    const domesticCount = registrations.filter((r) => !r.user?.isInternational).length;
 
     if (loading) return <div className="text-white">Loading...</div>;
 
     return (
         <>
             <div className="w-full">
-                <div className="mb-4">
+                <div className="mb-4 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+                    <div className="flex flex-wrap gap-2 border-b border-zinc-800 pb-2">
+                        <button
+                            onClick={() => setFilterTab("ALL")}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${filterTab === "ALL" ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white"}`}
+                        >
+                            All ({registrations.length})
+                        </button>
+                        <button
+                            onClick={() => setFilterTab("INTERNATIONAL")}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${filterTab === "INTERNATIONAL" ? "bg-amber-900/40 text-amber-400 border border-amber-700/50" : "text-zinc-400 hover:text-white"}`}
+                        >
+                            <span className="w-2 h-2 rounded-full bg-amber-500" />
+                            International ({internationalCount})
+                        </button>
+                        <button
+                            onClick={() => setFilterTab("DOMESTIC")}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${filterTab === "DOMESTIC" ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white"}`}
+                        >
+                            Domestic ({domesticCount})
+                        </button>
+                    </div>
                     <input
                         type="text"
-                        placeholder="Search by Name, ID, or Event..."
-                        className="w-full max-w-md p-2 rounded bg-zinc-800 text-white border border-zinc-700"
+                        placeholder="Search by Name, ID, Country, or Event..."
+                        className="w-full sm:max-w-xs p-2 rounded bg-zinc-800 text-white border border-zinc-700"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
@@ -67,7 +103,7 @@ export default function IndividualRegistrationsTable() {
                         <thead className="bg-zinc-900 text-zinc-200 uppercase">
                             <tr>
                                 <th className="px-6 py-3">Student</th>
-                                <th className="px-6 py-3">College ID</th>
+                                <th className="px-6 py-3">College / Country</th>
                                 <th className="px-6 py-3">Event</th>
                                 <th className="px-6 py-3">Phone</th>
                                 <th className="px-6 py-3">Registered At</th>
@@ -81,10 +117,17 @@ export default function IndividualRegistrationsTable() {
                                     onClick={() => setSelectedRegistration(reg)}
                                 >
                                     <td className="px-6 py-4 font-medium text-white">
-                                        {reg.user.name || "N/A"}
+                                        <div className="flex items-center gap-2">
+                                            {reg.user.name || "N/A"}
+                                            {reg.user.isInternational && (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-900/30 text-amber-400 border border-amber-700/50">
+                                                    International
+                                                </span>
+                                            )}
+                                        </div>
                                         <div className="text-xs text-zinc-500">{reg.user.email}</div>
                                     </td>
-                                    <td className="px-6 py-4">{reg.user.collageId || "-"}</td>
+                                    <td className="px-6 py-4">{reg.user.isInternational ? (reg.user.country || "—") : (reg.user.collageId || "-")}</td>
                                     <td className="px-6 py-4">{reg.event.name}</td>
                                     <td className="px-6 py-4">{reg.user.phone || "-"}</td>
                                     <td className="px-6 py-4">
@@ -163,32 +206,47 @@ function RegistrationModal({ registration, onClose }: { registration: Registrati
                             <div>
                                 <label className="text-xs text-zinc-500">Location</label>
                                 <p className="text-white font-medium">
-                                    {[user.city, user.state].filter(Boolean).join(", ") || "N/A"}
+                                    {user.isInternational ? (user.country || "N/A") : [user.city, user.state].filter(Boolean).join(", ") || "N/A"}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Academic Info */}
+                    {/* Academic / Location Info */}
                     <div className="bg-zinc-800/50 rounded-lg p-4">
-                        <h4 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">Academic Details</h4>
+                        <h4 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">{user.isInternational ? "Details" : "Academic Details"}</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
-                            <div>
-                                <label className="text-xs text-zinc-500">College / University</label>
-                                <p className="text-white font-medium">{user.collage || "N/A"}</p>
-                            </div>
-                            <div>
-                                <label className="text-xs text-zinc-500">College ID</label>
-                                <p className="text-white font-medium">{user.collageId || "N/A"}</p>
-                            </div>
-                            <div>
-                                <label className="text-xs text-zinc-500">Branch</label>
-                                <p className="text-white font-medium">{user.branch || "N/A"}</p>
-                            </div>
-                            <div>
-                                <label className="text-xs text-zinc-500">Year of Study</label>
-                                <p className="text-white font-medium">{user.year ? `${user.year} Year` : "N/A"}</p>
-                            </div>
+                            {user.isInternational ? (
+                                <>
+                                    <div>
+                                        <label className="text-xs text-zinc-500">Country</label>
+                                        <p className="text-white font-medium">{user.country || "N/A"}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-zinc-500">Type</label>
+                                        <p className="text-white font-medium">International Participant</p>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div>
+                                        <label className="text-xs text-zinc-500">College / University</label>
+                                        <p className="text-white font-medium">{user.collage || "N/A"}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-zinc-500">College ID</label>
+                                        <p className="text-white font-medium">{user.collageId || "N/A"}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-zinc-500">Branch</label>
+                                        <p className="text-white font-medium">{user.branch || "N/A"}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-zinc-500">Year of Study</label>
+                                        <p className="text-white font-medium">{user.year ? `${user.year} Year` : "N/A"}</p>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

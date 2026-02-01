@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getAllUsers, approveUser, rejectUser, updatePaymentStatus, updateUserRole } from "@/actions/admin/users.action";
 import { PaymentStatus, Role } from "@prisma/client";
 import { toast } from "sonner";
-import { FiSearch, FiUsers, FiGlobe } from "react-icons/fi";
+import { FiSearch, FiUsers, FiGlobe, FiMapPin } from "react-icons/fi";
 
 type User = {
     id: string;
@@ -14,6 +14,8 @@ type User = {
     paymentStatus: PaymentStatus;
     isApproved: boolean;
     role: Role;
+    isInternational?: boolean;
+    country?: string | null;
     _count?: {
         individualRegistrations: number;
         groupRegistrations: number;
@@ -24,9 +26,10 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
     const isMaster = currentRole === Role.MASTER;
     const [allUsers, setAllUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<"kl" | "other">("kl");
+    const [activeTab, setActiveTab] = useState<"kl" | "other" | "international">("kl");
     const [searchKL, setSearchKL] = useState("");
     const [searchOther, setSearchOther] = useState("");
+    const [searchInternational, setSearchInternational] = useState("");
     const [filter, setFilter] = useState<{
         paymentStatus?: PaymentStatus;
         isApproved?: boolean;
@@ -47,9 +50,12 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
         setLoading(false);
     };
 
-    // Separate users by email domain
-    const klUsers = allUsers.filter(user => user.email.endsWith("@kluniversity.in"));
-    const otherUsers = allUsers.filter(user => !user.email.endsWith("@kluniversity.in"));
+    // Separate users: KL, other domestic, international
+    const klUsers = allUsers.filter(user => user.email.endsWith("@kluniversity.in") && !user.isInternational);
+    const internationalUsers = allUsers.filter(user => !!user.isInternational);
+    const otherUsers = allUsers.filter(user =>
+        !user.email.endsWith("@kluniversity.in") && !user.isInternational
+    );
 
     // Filter by search
     const filteredKLUsers = klUsers.filter(user =>
@@ -62,6 +68,12 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
         user.name?.toLowerCase().includes(searchOther.toLowerCase()) ||
         user.email.toLowerCase().includes(searchOther.toLowerCase()) ||
         user.collage?.toLowerCase().includes(searchOther.toLowerCase())
+    );
+
+    const filteredInternationalUsers = internationalUsers.filter(user =>
+        user.name?.toLowerCase().includes(searchInternational.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchInternational.toLowerCase()) ||
+        user.country?.toLowerCase().includes(searchInternational.toLowerCase())
     );
 
     const handleApprove = async (userId: string) => {
@@ -104,7 +116,7 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
         }
     };
 
-    const UserTable = ({ users, isKL }: { users: User[], isKL: boolean }) => (
+    const UserTable = ({ users, isKL, isInternationalTab }: { users: User[], isKL: boolean; isInternationalTab?: boolean }) => (
         <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
             <div className="overflow-x-auto">
                 <table className="w-full">
@@ -117,12 +129,12 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
                                 Email
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                College
+                                {isInternationalTab ? "Country" : "College"}
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                                 Competitions
                             </th>
-                            {!isKL && (
+                            {(!isKL || isInternationalTab) && (
                                 <>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                                         Payment Status
@@ -152,12 +164,12 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
                                     {user.email}
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
-                                    {user.collage || "N/A"}
+                                    {isInternationalTab ? (user.country || "N/A") : (user.collage || "N/A")}
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
                                     {(user._count?.individualRegistrations || 0) + (user._count?.groupRegistrations || 0)}
                                 </td>
-                                {!isKL && (
+                                {(!isKL || isInternationalTab) && (
                                     <>
                                         <td className="px-4 py-4 whitespace-nowrap">
                                             <select
@@ -293,7 +305,7 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
                 </div>
             </div>
 
-            {/* Tabs */}
+            {/* Tabs: KL, International (separate), Other College */}
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <button
                     onClick={() => setActiveTab("kl")}
@@ -306,6 +318,20 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
                     KL University Students
                     <span className="ml-2 px-2 py-0.5 bg-white/20 rounded-full text-xs">
                         {klUsers.length}
+                    </span>
+                </button>
+
+                <button
+                    onClick={() => setActiveTab("international")}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${activeTab === "international"
+                        ? "bg-red-600 text-white shadow-lg shadow-red-600/20"
+                        : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                        }`}
+                >
+                    <FiMapPin />
+                    International Students
+                    <span className="ml-2 px-2 py-0.5 bg-white/20 rounded-full text-xs">
+                        {internationalUsers.length}
                     </span>
                 </button>
 
@@ -330,10 +356,10 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
                     <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     <input
                         type="text"
-                        placeholder={`Search ${activeTab === "kl" ? "KL University" : "Other College"} students...`}
-                        value={activeTab === "kl" ? searchKL : searchOther}
+                        placeholder={`Search ${activeTab === "kl" ? "KL University" : activeTab === "international" ? "International" : "Other College"} students...`}
+                        value={activeTab === "kl" ? searchKL : activeTab === "international" ? searchInternational : searchOther}
                         onChange={(e) =>
-                            activeTab === "kl" ? setSearchKL(e.target.value) : setSearchOther(e.target.value)
+                            activeTab === "kl" ? setSearchKL(e.target.value) : activeTab === "international" ? setSearchInternational(e.target.value) : setSearchOther(e.target.value)
                         }
                         className="w-full bg-gray-800 text-white rounded-lg pl-12 pr-4 py-3 border border-gray-700 focus:border-red-600 focus:outline-none transition-colors"
                     />
@@ -353,6 +379,19 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
                         <UserTable users={filteredKLUsers} isKL={true} />
                         <div className="mt-4 text-sm text-gray-400">
                             Showing {filteredKLUsers.length} of {klUsers.length} KL University students
+                        </div>
+                    </>
+                )
+            ) : activeTab === "international" ? (
+                filteredInternationalUsers.length === 0 ? (
+                    <div className="text-center text-gray-400 py-12 bg-gray-800 rounded-lg border border-gray-700">
+                        No international students found
+                    </div>
+                ) : (
+                    <>
+                        <UserTable users={filteredInternationalUsers} isKL={false} isInternationalTab={true} />
+                        <div className="mt-4 text-sm text-gray-400">
+                            Showing {filteredInternationalUsers.length} of {internationalUsers.length} international students
                         </div>
                     </>
                 )

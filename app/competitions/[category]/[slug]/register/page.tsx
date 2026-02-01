@@ -138,10 +138,11 @@ export default function EventRegistrationPage() {
     };
 
     const processPaymentAndRegister = async () => {
-        // Validation for Non-KL Students
         const isKLStudent = session?.user?.email?.endsWith("@kluniversity.in");
+        const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
 
-        if (!isKLStudent) {
+        // KL and International: free; others need payment
+        if (!isKLStudent && !isInternational) {
             if (!paymentDetails.screenshot || !paymentDetails.utrId || !paymentDetails.payeeName) {
                 toast.error("Please complete all payment details (Upload Screenshot, UTR, Payee Name)");
                 return;
@@ -154,8 +155,7 @@ export default function EventRegistrationPage() {
         try {
             let uploadedScreenshotUrl = "";
 
-            // Upload Screenshot if needed
-            if (!isKLStudent && paymentDetails.screenshot) {
+            if (!isKLStudent && !isInternational && paymentDetails.screenshot) {
                 const formData = new FormData();
                 formData.append("file", paymentDetails.screenshot);
 
@@ -168,7 +168,7 @@ export default function EventRegistrationPage() {
                 uploadedScreenshotUrl = uploadResult.url;
             }
 
-            const paymentData = !isKLStudent ? {
+            const paymentData = !isKLStudent && !isInternational ? {
                 paymentScreenshot: uploadedScreenshotUrl,
                 utrId: paymentDetails.utrId,
                 payeeName: paymentDetails.payeeName
@@ -194,7 +194,8 @@ export default function EventRegistrationPage() {
             }
 
             if (result.success) {
-                toast.success(isKLStudent ? "Registration Confirmed!" : "Registration Submitted! Pending Approval.");
+                const freeUser = isKLStudent || isInternational;
+                toast.success(freeUser ? "Registration Confirmed!" : "Registration Submitted! Pending Approval.");
                 setShowPaymentModal(false);
                 router.push(`/competitions/${categorySlug}/${slug}`); // Redirect
             } else {
@@ -296,11 +297,10 @@ export default function EventRegistrationPage() {
 
     if (!event) return null;
 
-    // Calculate Fees
     const isKLStudent = session?.user?.email?.endsWith("@kluniversity.in");
+    const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
     const memberCount = event.isGroupEvent ? teamSize : 1;
-    // Free for KL University students, 350 for others
-    const feePerPerson = isKLStudent ? 0 : 350;
+    const feePerPerson = (isKLStudent || isInternational) ? 0 : 350;
     const totalFee = memberCount * feePerPerson;
 
     return (
@@ -325,6 +325,13 @@ export default function EventRegistrationPage() {
                             <div className="mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg inline-block">
                                 <p className="text-green-300 text-sm font-medium">
                                     🎉 Free Registration for KL University Students
+                                </p>
+                            </div>
+                        )}
+                        {isInternational && (
+                            <div className="mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                                <p className="text-green-300 text-sm font-medium">
+                                    🎉 Free registration for international students. All competitions are virtual for international participants; evaluations will be conducted virtually by judges.
                                 </p>
                             </div>
                         )}
@@ -447,13 +454,14 @@ export default function EventRegistrationPage() {
                                     onClick={() => setShowPaymentModal(true)}
                                     className="flex-1 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-red-600/20"
                                 >
-                                    Proceed to {isKLStudent ? "Registration" : "Payment"}
+                                    Proceed to {(isKLStudent || isInternational) ? "Registration" : "Payment"}
                                 </button>
                             </div>
                         </div>
                     ) : (
                         <div className="space-y-8">
-                            {/* ID Card Mandatory Warning */}
+                            {/* ID Card Mandatory Warning - not for international (virtual) */}
+                            {!isInternational && (
                             <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-4">
                                 <div className="flex items-start gap-3">
                                     <div className="text-red-500 text-xl font-bold shrink-0">⚠️</div>
@@ -467,6 +475,14 @@ export default function EventRegistrationPage() {
                                     </div>
                                 </div>
                             </div>
+                            )}
+                            {isInternational && (
+                            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                                <p className="text-green-300 text-sm font-medium">
+                                    Virtual participation — no physical ID required. Evaluations will be conducted virtually by judges.
+                                </p>
+                            </div>
+                            )}
 
                             {/* Event Specific Logic */}
                             {event.isGroupEvent ? (
@@ -739,7 +755,7 @@ export default function EventRegistrationPage() {
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
-                                className={`bg-zinc-900 border border-zinc-800 rounded-2xl w-full shadow-2xl max-h-full flex flex-col transition-all duration-300 ${!isKLStudent ? 'max-w-md md:max-w-5xl' : 'max-w-md'}`}
+                                className={`bg-zinc-900 border border-zinc-800 rounded-2xl w-full shadow-2xl max-h-full flex flex-col transition-all duration-300 ${(isKLStudent || isInternational) ? 'max-w-md' : 'max-w-md md:max-w-5xl'}`}
                             >
                                 <div className="p-0 h-full flex flex-col">
                                     {/* Mobile Only Header */}
@@ -752,16 +768,18 @@ export default function EventRegistrationPage() {
                                         </button>
                                         <div>
                                             <h2 className="text-xl font-bold text-white">
-                                                {isKLStudent ? "Confirm Registration" : "Payment Summary"}
+                                                {(isKLStudent || isInternational) ? "Confirm Registration" : "Payment Summary"}
                                             </h2>
-                                            <p className="text-zinc-400 text-xs">Complete your registration</p>
+                                            <p className="text-zinc-400 text-xs">
+                                                {isInternational ? "Virtual participation – free registration" : "Complete your registration"}
+                                            </p>
                                         </div>
                                     </div>
 
                                     <div className="h-full flex flex-col">
                                         {/* LEFT COLUMN: Summary & Details */}
-                                        <div className={`p-5 md:p-6 bg-zinc-950/50 space-y-5 w-full ${paymentStep === 1 && !isKLStudent ? 'hidden' : 'block'}`}>
-                                            {!isKLStudent && (
+                                        <div className={`p-5 md:p-6 bg-zinc-950/50 space-y-5 w-full ${paymentStep === 1 && !isKLStudent && !isInternational ? 'hidden' : 'block'}`}>
+                                            {!isKLStudent && !isInternational && (
                                                 <div className="hidden md:flex items-center gap-3">
                                                     <button
                                                         onClick={() => setShowPaymentModal(false)}
@@ -780,7 +798,7 @@ export default function EventRegistrationPage() {
                                                 <div className="flex justify-between items-center text-xs md:text-base">
                                                     <span className="text-zinc-400">Fee per person</span>
                                                     <span className="text-white">
-                                                        {isKLStudent ? (
+                                                        {(isKLStudent || isInternational) ? (
                                                             <span className="text-green-500 font-bold">Waived</span>
                                                         ) : (
                                                             `₹${feePerPerson}`
@@ -795,7 +813,7 @@ export default function EventRegistrationPage() {
                                                 <div className="flex justify-between items-center font-bold text-sm md:text-xl">
                                                     <span className="text-white">Total</span>
                                                     <span className="text-red-500 text-base md:text-2xl">
-                                                        {isKLStudent ? (
+                                                        {(isKLStudent || isInternational) ? (
                                                             <span className="text-green-500">Free</span>
                                                         ) : (
                                                             `₹${totalFee}`
@@ -805,41 +823,64 @@ export default function EventRegistrationPage() {
                                             </div>
 
                                             <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800/50">
-                                                <h3 className="text-[10px] md:text-xs font-semibold text-zinc-500 mb-2 uppercase tracking-wider">Also Includes Complimentary:</h3>
+                                                <h3 className="text-[10px] md:text-xs font-semibold text-zinc-500 mb-2 uppercase tracking-wider">
+                                                    {isInternational ? "Virtual Participation Includes:" : "Also Includes Complimentary:"}
+                                                </h3>
                                                 <ul className="space-y-1.5 md:space-y-2 text-xs md:text-base text-zinc-300">
-                                                    <li className="flex items-start gap-2">
-                                                        <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
-                                                        <span>Accommodation (1 Day)</span>
-                                                    </li>
-                                                    <li className="flex items-start gap-2">
-                                                        <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
-                                                        <span>Lunch</span>
-                                                    </li>
-                                                    <li className="flex items-start gap-2">
-                                                        <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
-                                                        <span>6th and 7th march free visitor access</span>
-                                                    </li>
+                                                    {isInternational ? (
+                                                        <>
+                                                            <li className="flex items-start gap-2">
+                                                                <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
+                                                                <span>Virtual participation – compete from anywhere</span>
+                                                            </li>
+                                                            <li className="flex items-start gap-2">
+                                                                <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
+                                                                <span>Online submission & virtual evaluation by judges</span>
+                                                            </li>
+                                                            <li className="flex items-start gap-2">
+                                                                <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
+                                                                <span>Free registration – no payment required</span>
+                                                            </li>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <li className="flex items-start gap-2">
+                                                                <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
+                                                                <span>Accommodation (1 Day)</span>
+                                                            </li>
+                                                            <li className="flex items-start gap-2">
+                                                                <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
+                                                                <span>Lunch</span>
+                                                            </li>
+                                                            <li className="flex items-start gap-2">
+                                                                <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
+                                                                <span>6th and 7th march free visitor access</span>
+                                                            </li>
+                                                        </>
+                                                    )}
                                                 </ul>
                                             </div>
 
-                                            {/* ID Card Mandatory Warning */}
-                                            <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-3 md:p-4">
-                                                <div className="flex items-start gap-2 md:gap-3">
-                                                    <div className="text-red-500 text-lg md:text-xl font-bold shrink-0">⚠️</div>
-                                                    <div>
-                                                        <h3 className="text-red-400 font-bold text-[10px] md:text-xs mb-1 uppercase tracking-wide">
-                                                            Important Notice
-                                                        </h3>
-                                                        <p className="text-red-300 text-[9px] md:text-xs font-medium leading-relaxed">
-                                                            COLLEGE PHYSICAL ID CARD MANDATORY FOR ENTRY TO THE FEST
-                                                        </p>
+                                            {/* ID Card Mandatory Warning – not shown for international (virtual participation) */}
+                                            {!isInternational && (
+                                                <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-3 md:p-4">
+                                                    <div className="flex items-start gap-2 md:gap-3">
+                                                        <div className="text-red-500 text-lg md:text-xl font-bold shrink-0">⚠️</div>
+                                                        <div>
+                                                            <h3 className="text-red-400 font-bold text-[10px] md:text-xs mb-1 uppercase tracking-wide">
+                                                                Important Notice
+                                                            </h3>
+                                                            <p className="text-red-300 text-[9px] md:text-xs font-medium leading-relaxed">
+                                                                COLLEGE PHYSICAL ID CARD MANDATORY FOR ENTRY TO THE FEST
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            )}
 
                                             {/* Mobile Buttons - Now Visible on Desktop too */}
                                             <div className="pt-2">
-                                                {!isKLStudent && (
+                                                {!isKLStudent && !isInternational && (
                                                     <button
                                                         onClick={() => setPaymentStep(1)}
                                                         className="w-full py-2.5 md:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-sm md:text-base shadow-lg shadow-red-600/20 active:scale-95 transition-all"
@@ -847,7 +888,7 @@ export default function EventRegistrationPage() {
                                                         Proceed
                                                     </button>
                                                 )}
-                                                {isKLStudent && (
+                                                {(isKLStudent || isInternational) && (
                                                     <button
                                                         onClick={processPaymentAndRegister}
                                                         disabled={paymentProcessing}
@@ -864,8 +905,8 @@ export default function EventRegistrationPage() {
                                             </div>
                                         </div>
 
-                                        {/* RIGHT COLUMN: Payment Details */}
-                                        {!isKLStudent && (
+                                        {/* RIGHT COLUMN: Payment Details – not shown for international (virtual participation) */}
+                                        {!isKLStudent && !isInternational && (
                                             <div className={`p-5 md:p-6 space-y-5 w-full ${paymentStep === 1 ? 'block' : 'hidden'}`}>
                                                 <div className="hidden md:block">
                                                     <h2 className="text-lg md:text-2xl font-bold text-white mb-0.5">Payment</h2>
@@ -997,8 +1038,8 @@ export default function EventRegistrationPage() {
                                 </div>
                                 <div className="px-6 py-3 bg-zinc-950 border-t border-zinc-800 text-center">
                                     <p className="text-xs text-zinc-500 flex items-center justify-center gap-1">
-                                        <span className="w-2 h-2 rounded-full bg-yellow-500" />
-                                        {isKLStudent ? "KL University Student Verification Active" : "Payment Verification Required"}
+                                        <span className={`w-2 h-2 rounded-full ${isInternational ? "bg-green-500" : "bg-yellow-500"}`} />
+                                        {isKLStudent ? "KL University Student Verification Active" : isInternational ? "Virtual Participation – Free Registration" : "Payment Verification Required"}
                                     </p>
                                 </div>
                             </motion.div>

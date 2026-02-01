@@ -20,6 +20,9 @@
 .DS_Store
 *.pem
 
+# large video (use CDN only)
+public/SurabhiPromo.mp4
+
 # IDE / editor
 .idea/
 .vscode/

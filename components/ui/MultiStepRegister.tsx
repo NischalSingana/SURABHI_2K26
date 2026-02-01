@@ -17,8 +17,10 @@ import {
 import { useSession, signOut } from "@/lib/auth-client";
 import SignInOAuthButton from "./signInOAuthButton";
 import { BRANCHES } from "@/lib/constants";
+import SearchableSelect from "./SearchableSelect";
+import { COUNTRIES_WITH_DIAL, PROGRAMS_OF_STUDY, getCountryFlag } from "@/lib/registration-data";
 
-type College = "KL_UNIVERSITY" | "OTHER" | "";
+type College = "KL_UNIVERSITY" | "OTHER" | "INTERNATIONAL" | "";
 
 interface RegistrationData {
   college: College;
@@ -30,11 +32,20 @@ interface RegistrationData {
   branch: string;
   year: number;
   gender: string;
+  isInternational?: boolean;
+  country?: string;
+  state?: string;
+  city?: string;
+  /** International: dial code for phone (e.g. +1) */
+  phoneCountryCode?: string;
+  /** International: rest of phone number without country code */
+  phoneNumber?: string;
 }
 
 const COLLEGES = [
-  "KL University",
-  "Other College"
+  { label: "KL University", value: "KL University" },
+  { label: "Other College (India)", value: "Other College" },
+  { label: "International Student", value: "International Student" },
 ];
 
 const GENDERS = [
@@ -63,6 +74,11 @@ const MultiStepRegister = () => {
     branch: "",
     year: 1,
     gender: "",
+    country: "",
+    state: "",
+    city: "",
+    phoneCountryCode: "+1",
+    phoneNumber: "",
   });
 
   // Auto-detect college from localStorage and skip to registration
@@ -139,15 +155,37 @@ const MultiStepRegister = () => {
           // Don't redirect or show error - just pre-fill data if available
           // Backend will handle duplicate registration attempts
           if (data.userData) {
-            // Pre-fill existing user data
-            setFormData(prev => ({
+            const ud = data.userData as { collage?: string; phone?: string; collageId?: string; branch?: string; year?: number; gender?: string; isInternational?: boolean; country?: string; state?: string; city?: string };
+            const phone = ud.phone || "";
+            let phoneCountryCode = "+1";
+            let phoneNumber = "";
+            if (ud.isInternational && phone && phone.startsWith("+")) {
+              const match = COUNTRIES_WITH_DIAL.slice()
+                .sort((a, b) => b.dialCode.length - a.dialCode.length)
+                .find((c) => phone.startsWith(c.dialCode));
+              if (match) {
+                phoneCountryCode = match.dialCode;
+                phoneNumber = phone.replace(match.dialCode, "").trim();
+              } else {
+                phoneNumber = phone;
+              }
+            } else if (phone) {
+              phoneNumber = phone;
+            }
+            setFormData((prev) => ({
               ...prev,
-              collegeName: data.userData.collage || prev.collegeName,
-              phone: data.userData.phone || prev.phone,
-              collageId: data.userData.collageId || prev.collageId,
-              branch: data.userData.branch || prev.branch,
-              year: data.userData.year || prev.year,
-              gender: data.userData.gender || prev.gender,
+              collegeName: ud.collage || prev.collegeName,
+              phone: phone || prev.phone,
+              phoneCountryCode,
+              phoneNumber,
+              collageId: ud.collageId || prev.collageId,
+              branch: ud.branch || prev.branch,
+              year: ud.year ?? prev.year,
+              gender: ud.gender || prev.gender,
+              isInternational: ud.isInternational ?? prev.isInternational,
+              country: ud.country || prev.country || "",
+              state: ud.state || prev.state || "",
+              city: ud.city || prev.city || "",
             }));
           }
         }
@@ -161,7 +199,7 @@ const MultiStepRegister = () => {
   }, [session?.user?.id]);
 
   const handleCollegeSelect = async (college: string) => {
-    const collegeType = college === "KL University" ? "KL_UNIVERSITY" : "OTHER";
+    const collegeType: College = college === "KL University" ? "KL_UNIVERSITY" : college === "International Student" ? "INTERNATIONAL" : "OTHER";
 
     // If user is already authenticated but switching college type, sign them out
     if (session?.user && formData.college && formData.college !== collegeType) {
@@ -182,13 +220,15 @@ const MultiStepRegister = () => {
       }
     }
 
-    // If it's OTHER college, we want to preserve the existing college name if it was autofilled
-    // effectively, if formData.collegeName is NOT "Other College" (default) and NOT empty, keep it.
+    // If it's OTHER college, preserve existing college name if autofilled
     let finalCollegeName = college;
     if (collegeType === "OTHER") {
       if (formData.collegeName && formData.collegeName !== "Other College") {
         finalCollegeName = formData.collegeName;
       }
+    }
+    if (collegeType === "INTERNATIONAL") {
+      finalCollegeName = "International Student";
     }
 
     // Save to localStorage before OAuth redirect
@@ -221,7 +261,7 @@ const MultiStepRegister = () => {
         return;
       }
 
-      // Validate KL University email domain
+      // Validate KL University email domain (not for international)
       if (formData.college === "KL_UNIVERSITY") {
         const emailDomain = formData.email.split("@")[1];
         if (emailDomain !== "kluniversity.in") {
@@ -232,8 +272,14 @@ const MultiStepRegister = () => {
       }
 
       const submitData = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null && value !== "") {
+      const dataToSubmit = { ...formData };
+      if (formData.college === "INTERNATIONAL") {
+        const fullPhone = [formData.phoneCountryCode || "+1", (formData.phoneNumber || "").trim()].filter(Boolean).join(" ").trim() || formData.phone;
+        dataToSubmit.phone = fullPhone;
+        submitData.set("isInternational", "true");
+      }
+      Object.entries(dataToSubmit).forEach(([key, value]) => {
+        if (value !== null && value !== "" && key !== "phoneCountryCode" && key !== "phoneNumber") {
           submitData.append(key, String(value));
         }
       });
@@ -278,6 +324,21 @@ const MultiStepRegister = () => {
   };
 
   const canSubmit = () => {
+    // International: name, email, phone, country, state, institution, program, gender
+    if (formData.college === "INTERNATIONAL") {
+      const fullPhone = [formData.phoneCountryCode || "+1", (formData.phoneNumber || "").trim()].filter(Boolean).join(" ").trim();
+      const institution = formData.collegeName && formData.collegeName.trim() !== "" && formData.collegeName !== "International Student";
+      const program = formData.branch && formData.branch.trim() && formData.branch !== "Other";
+      return !!(
+        fullPhone &&
+        formData.country &&
+        formData.state?.trim() &&
+        formData.gender &&
+        institution &&
+        program
+      );
+    }
+
     const basicFieldsFilled =
       formData.phone &&
       formData.collageId &&
@@ -285,7 +346,6 @@ const MultiStepRegister = () => {
       formData.year &&
       formData.gender;
 
-    // Other college students need basic fields and college name
     if (formData.college === "OTHER") {
       return (
         basicFieldsFilled &&
@@ -419,24 +479,29 @@ const MultiStepRegister = () => {
                 </div>
 
                 <div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {COLLEGES.map((college) => (
                       <motion.button
-                        key={college}
+                        key={college.value}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => handleCollegeSelect(college)}
+                        onClick={() => handleCollegeSelect(college.value)}
                         className="p-8 rounded-xl border-2 border-zinc-700 bg-zinc-800/50 hover:border-red-600 hover:bg-red-600/10 transition-all text-left"
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-lg font-semibold text-white">
-                            {college}
+                            {college.label}
                           </span>
                           <FiChevronRight className="text-zinc-400 text-2xl" />
                         </div>
-                        {college === "KL University" && (
+                        {college.value === "KL University" && (
                           <p className="text-base text-zinc-400 mt-3">
                             Microsoft authentication required
+                          </p>
+                        )}
+                        {college.value === "International Student" && (
+                          <p className="text-base text-zinc-400 mt-3">
+                            Free registration · Google sign-in · Virtual participation
                           </p>
                         )}
                       </motion.button>
@@ -486,6 +551,17 @@ const MultiStepRegister = () => {
                         <SignInOAuthButton provider="google" signup={true} collegeType="OTHER" />
                       )}
 
+                      {formData.college === "INTERNATIONAL" && (
+                        <>
+                          <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+                            <p className="text-green-300 text-base font-medium">
+                              Free registration for international students. Sign in with Google to continue. All competitions are virtual with virtual evaluation by judges.
+                            </p>
+                          </div>
+                          <SignInOAuthButton provider="google" signup={true} collegeType="INTERNATIONAL" />
+                        </>
+                      )}
+
                       <button
                         onClick={() => setCurrentStep(1)}
                         className="w-full px-8 py-3 bg-zinc-800 text-white rounded-xl hover:bg-zinc-700 transition-all font-medium flex items-center justify-center gap-2"
@@ -526,6 +602,7 @@ const MultiStepRegister = () => {
                               collegeName: savedCollegeName,
                               name: session.user.name || "",
                               email: session.user.email || "",
+                              isInternational: savedCollege === "INTERNATIONAL",
                             }));
                           }
                           setCurrentStep(3);
@@ -577,6 +654,15 @@ const MultiStepRegister = () => {
                 </div>
 
                 <div className="space-y-8 pr-2">
+                  {/* International Student: Free registration, virtual participation */}
+                  {formData.college === "INTERNATIONAL" && (
+                    <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+                      <p className="text-green-300 text-sm font-medium">
+                        ✓ Free registration. All competitions are virtual for international students; evaluations will be conducted virtually by judges.
+                      </p>
+                    </div>
+                  )}
+
                   {/* College Name - Only for Other College */}
                   {formData.college === "OTHER" && (
                     <div>
@@ -637,27 +723,145 @@ const MultiStepRegister = () => {
                     </div>
                   </div>
 
-                  {/* Phone */}
+                  {/* Phone - Domestic: single input; International: country code dropdown + number */}
                   <div>
                     <label className="block text-sm font-medium text-zinc-300 mb-2">
-                      Phone Number *
+                      Phone Number * {formData.college === "INTERNATIONAL" && "(with country code)"}
                     </label>
-                    <div className="relative">
-                      <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        required
-                        pattern="[0-9]{10}"
-                        className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
-                        placeholder="10-digit mobile number"
-                      />
-                    </div>
+                    {formData.college === "INTERNATIONAL" ? (
+                      <div className="flex gap-2">
+                        <div className="w-[200px] shrink-0">
+                          <SearchableSelect
+                            options={COUNTRIES_WITH_DIAL.map((c) => ({
+                              value: c.dialCode,
+                              label: `${getCountryFlag(c.iso2)} ${c.iso3} (${c.dialCode})`,
+                            }))}
+                            value={formData.phoneCountryCode || "+1"}
+                            onChange={(v) => setFormData((prev) => ({ ...prev, phoneCountryCode: v }))}
+                            placeholder="Country / Code"
+                            searchPlaceholder="Search country or code..."
+                            required
+                            displayLabel={true}
+                            matchInputHeight
+                          />
+                        </div>
+                        <div className="relative flex-1">
+                          <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg pointer-events-none" />
+                          <input
+                            type="tel"
+                            name="phoneNumber"
+                            value={formData.phoneNumber || ""}
+                            onChange={(e) => setFormData((prev) => ({ ...prev, phoneNumber: e.target.value }))}
+                            required
+                            className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
+                            placeholder="e.g. 234 567 8900"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          required
+                          pattern="[0-9]{10}"
+                          className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
+                          placeholder="10-digit mobile number"
+                        />
+                      </div>
+                    )}
                   </div>
 
-                  {/* College ID */}
+                  {/* Country - International only: searchable dropdown */}
+                  {formData.college === "INTERNATIONAL" && (
+                    <SearchableSelect
+                      label="Country"
+                      options={COUNTRIES_WITH_DIAL.map((c) => ({
+                        value: c.name,
+                        label: `${getCountryFlag(c.iso2)} ${c.name}`,
+                      }))}
+                      value={formData.country || ""}
+                      onChange={(v) => setFormData((prev) => ({ ...prev, country: v }))}
+                      placeholder="Select your country"
+                      searchPlaceholder="Search country..."
+                      required
+                    />
+                  )}
+
+                  {/* State/Region - International only, mandatory */}
+                  {formData.college === "INTERNATIONAL" && (
+                    <div>
+                      <label className="block text-sm font-medium text-zinc-300 mb-2">
+                        State / Region *
+                      </label>
+                      <div className="relative">
+                        <FiBook className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
+                        <input
+                          type="text"
+                          name="state"
+                          value={formData.state || ""}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
+                          placeholder="e.g. California, England"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Institution / University - International: mandatory, manual text input */}
+                  {formData.college === "INTERNATIONAL" && (
+                    <div>
+                      <label className="block text-sm font-medium text-zinc-300 mb-2">
+                        Institution / University *
+                      </label>
+                      <div className="relative">
+                        <FiBook className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
+                        <input
+                          type="text"
+                          name="collegeName"
+                          value={formData.collegeName === "International Student" ? "" : (formData.collegeName || "")}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
+                          placeholder="Enter your institution or university name"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Program of study - International: searchable dropdown + Other */}
+                  {formData.college === "INTERNATIONAL" && (
+                    <div className="space-y-2">
+                      <SearchableSelect
+                        label="Program of Study"
+                        options={PROGRAMS_OF_STUDY.map((name) => ({ value: name, label: name }))}
+                        value={PROGRAMS_OF_STUDY.includes(formData.branch || "") ? (formData.branch || "") : (formData.branch ? "Other" : "")}
+                        onChange={(v) => setFormData((prev) => ({ ...prev, branch: v }))}
+                        placeholder="Select or search your program"
+                        searchPlaceholder="Search program..."
+                        required
+                      />
+                      {(formData.branch === "Other" || (formData.branch && !PROGRAMS_OF_STUDY.includes(formData.branch))) && (
+                        <div className="relative">
+                          <FiBook className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
+                          <input
+                            type="text"
+                            value={PROGRAMS_OF_STUDY.includes(formData.branch || "") ? "" : (formData.branch || "")}
+                            onChange={(e) => setFormData((prev) => ({ ...prev, branch: e.target.value || "Other" }))}
+                            className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
+                            placeholder="Enter your program of study"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* College ID - Not for International */}
+                  {formData.college !== "INTERNATIONAL" && (
                   <div>
                     <label className="block text-sm font-medium text-zinc-300 mb-2">
                       College ID / Roll Number *
@@ -675,8 +879,10 @@ const MultiStepRegister = () => {
                       />
                     </div>
                   </div>
+                  )}
 
-                  {/* Branch */}
+                  {/* Branch - Not for International */}
+                  {formData.college !== "INTERNATIONAL" && (
                   <div>
                     <label className="block text-sm font-medium text-zinc-300 mb-2">
                       Branch / Department *
@@ -723,8 +929,9 @@ const MultiStepRegister = () => {
                       </div>
                     )}
                   </div>
+                  )}
 
-                  {/* Year */}
+                  {/* Year - Optional for International */}
                   <div>
                     <label className="block text-sm font-medium text-zinc-300 mb-2">
                       Year of Study *
@@ -735,9 +942,10 @@ const MultiStepRegister = () => {
                         name="year"
                         value={formData.year}
                         onChange={handleInputChange}
-                        required
+                        required={formData.college !== "INTERNATIONAL"}
                         className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all appearance-none"
                       >
+                        {formData.college === "INTERNATIONAL" && <option value={0}>Prefer not to say</option>}
                         <option value={1}>1st Year</option>
                         <option value={2}>2nd Year</option>
                         <option value={3}>3rd Year</option>
@@ -768,8 +976,6 @@ const MultiStepRegister = () => {
                       </select>
                     </div>
                   </div>
-
-
 
                   {/* Info message for KL students */}
                   {formData.college === "KL_UNIVERSITY" && (
