@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+/* Main poster hero: gradient and particle animations */
+@keyframes gradient-slow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.5; }
+}
+@keyframes float-up {
+  0% { transform: translateY(0) scale(1); opacity: 0.8; }
+  100% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+}
+.animate-gradient-slow {
+  animation: gradient-slow 8s ease-in-out infinite;
+}
+.animate-float {
+  animation: float-up linear infinite;
+}
+
 /* Profile avatar: enforce circle on all phones (iPhone 14 Pro Max–style) */
 .profile-avatar-circle {
   border-radius: 50%;

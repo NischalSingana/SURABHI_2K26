@@ -121,6 +121,12 @@ export default function ProfileClient({
     }
   }, [hasGoogleAccount]);
 
+  useEffect(() => {
+    if (user.isInternational && activeTab === "pass") {
+      setActiveTab("profile");
+    }
+  }, [user.isInternational, activeTab]);
+
   const [formData, setFormData] = useState({
     name: user.name || "",
     phone: user.phone || "",
@@ -371,7 +377,7 @@ export default function ProfileClient({
         >
           My Events ({registeredEvents.length})
         </button>
-        {hasGoogleAccount && (
+        {hasGoogleAccount && !user.isInternational && (
           <button
             onClick={() => setActiveTab("pass")}
             className={`px-3 sm:px-6 py-2.5 sm:py-3 font-medium text-base transition-all whitespace-nowrap shrink-0 ${activeTab === "pass"
@@ -790,8 +796,8 @@ export default function ProfileClient({
       }
 
 
-      {/* Visitor Pass Tab */}
-      {activeTab === "pass" && hasGoogleAccount && (
+      {/* Visitor Pass Tab – hidden for international students */}
+      {activeTab === "pass" && hasGoogleAccount && !user.isInternational && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

@@ -8,7 +8,7 @@ import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-type College = "KL_UNIVERSITY" | "OTHER" | "";
+type College = "KL_UNIVERSITY" | "OTHER" | "INTERNATIONAL" | "";
 
 const LoginFlow = () => {
   const [step, setStep] = useState(1);
@@ -128,6 +128,25 @@ const LoginFlow = () => {
                   <FiChevronRight className="text-zinc-400 text-xl" />
                 </span>
               </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => handleCollegeSelect("INTERNATIONAL")}
+                className="w-full p-6 rounded-xl border-2 border-zinc-700 bg-zinc-800/50 hover:border-red-600 hover:bg-red-600/10 transition-all text-left"
+              >
+                <span className="flex items-center justify-between w-full">
+                  <span>
+                    <span className="text-lg font-semibold text-white block">
+                      International Student
+                    </span>
+                    <span className="text-sm text-zinc-400 mt-1 block">
+                      Free registration · Google sign-in · Virtual participation
+                    </span>
+                  </span>
+                  <FiChevronRight className="text-zinc-400 text-xl" />
+                </span>
+              </motion.button>
             </div>
           </motion.div>
         )}
@@ -146,6 +165,8 @@ const LoginFlow = () => {
               <p className="text-zinc-400">
                 {selectedCollege === "KL_UNIVERSITY"
                   ? "KL University - Sign in with Microsoft"
+                  : selectedCollege === "INTERNATIONAL"
+                  ? "International Student - Sign in with Google"
                   : "Other College - Sign in with Google"}
               </p>
             </div>
@@ -165,6 +186,12 @@ const LoginFlow = () => {
             {selectedCollege === "OTHER" && (
               <div className="space-y-6">
                 <SignInOAuthButton provider="google" collegeType="OTHER" />
+              </div>
+            )}
+
+            {selectedCollege === "INTERNATIONAL" && (
+              <div className="space-y-6">
+                <SignInOAuthButton provider="google" collegeType="INTERNATIONAL" />
               </div>
             )}
 
