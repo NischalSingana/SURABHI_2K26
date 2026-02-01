@@ -17,6 +17,8 @@ import {
 import { useSession, signOut } from "@/lib/auth-client";
 import SignInOAuthButton from "./signInOAuthButton";
 import { BRANCHES } from "@/lib/constants";
+import SearchableSelect from "./SearchableSelect";
+import { COUNTRIES_WITH_DIAL, PROGRAMS_OF_STUDY, getCountryFlag } from "@/lib/registration-data";
 
 type College = "KL_UNIVERSITY" | "OTHER" | "INTERNATIONAL" | "";
 
@@ -32,6 +34,12 @@ interface RegistrationData {
   gender: string;
   isInternational?: boolean;
   country?: string;
+  state?: string;
+  city?: string;
+  /** International: dial code for phone (e.g. +1) */
+  phoneCountryCode?: string;
+  /** International: rest of phone number without country code */
+  phoneNumber?: string;
 }
 
 const COLLEGES = [
@@ -67,6 +75,10 @@ const MultiStepRegister = () => {
     year: 1,
     gender: "",
     country: "",
+    state: "",
+    city: "",
+    phoneCountryCode: "+1",
+    phoneNumber: "",
   });
 
   // Auto-detect college from localStorage and skip to registration
@@ -143,17 +155,37 @@ const MultiStepRegister = () => {
           // Don't redirect or show error - just pre-fill data if available
           // Backend will handle duplicate registration attempts
           if (data.userData) {
-            const ud = data.userData as { collage?: string; phone?: string; collageId?: string; branch?: string; year?: number; gender?: string; isInternational?: boolean; country?: string };
-            setFormData(prev => ({
+            const ud = data.userData as { collage?: string; phone?: string; collageId?: string; branch?: string; year?: number; gender?: string; isInternational?: boolean; country?: string; state?: string; city?: string };
+            const phone = ud.phone || "";
+            let phoneCountryCode = "+1";
+            let phoneNumber = "";
+            if (ud.isInternational && phone && phone.startsWith("+")) {
+              const match = COUNTRIES_WITH_DIAL.slice()
+                .sort((a, b) => b.dialCode.length - a.dialCode.length)
+                .find((c) => phone.startsWith(c.dialCode));
+              if (match) {
+                phoneCountryCode = match.dialCode;
+                phoneNumber = phone.replace(match.dialCode, "").trim();
+              } else {
+                phoneNumber = phone;
+              }
+            } else if (phone) {
+              phoneNumber = phone;
+            }
+            setFormData((prev) => ({
               ...prev,
               collegeName: ud.collage || prev.collegeName,
-              phone: ud.phone || prev.phone,
+              phone: phone || prev.phone,
+              phoneCountryCode,
+              phoneNumber,
               collageId: ud.collageId || prev.collageId,
               branch: ud.branch || prev.branch,
               year: ud.year ?? prev.year,
               gender: ud.gender || prev.gender,
               isInternational: ud.isInternational ?? prev.isInternational,
               country: ud.country || prev.country || "",
+              state: ud.state || prev.state || "",
+              city: ud.city || prev.city || "",
             }));
           }
         }
@@ -240,14 +272,17 @@ const MultiStepRegister = () => {
       }
 
       const submitData = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null && value !== "") {
+      const dataToSubmit = { ...formData };
+      if (formData.college === "INTERNATIONAL") {
+        const fullPhone = [formData.phoneCountryCode || "+1", (formData.phoneNumber || "").trim()].filter(Boolean).join(" ").trim() || formData.phone;
+        dataToSubmit.phone = fullPhone;
+        submitData.set("isInternational", "true");
+      }
+      Object.entries(dataToSubmit).forEach(([key, value]) => {
+        if (value !== null && value !== "" && key !== "phoneCountryCode" && key !== "phoneNumber") {
           submitData.append(key, String(value));
         }
       });
-      if (formData.college === "INTERNATIONAL") {
-        submitData.set("isInternational", "true");
-      }
 
       // TODO: Replace with your actual API endpoint
       const response = await fetch("/api/register", {
@@ -289,12 +324,18 @@ const MultiStepRegister = () => {
   };
 
   const canSubmit = () => {
-    // International: name, email, phone, country, gender
+    // International: name, email, phone, country, state, institution, program, gender
     if (formData.college === "INTERNATIONAL") {
+      const fullPhone = [formData.phoneCountryCode || "+1", (formData.phoneNumber || "").trim()].filter(Boolean).join(" ").trim();
+      const institution = formData.collegeName && formData.collegeName.trim() !== "" && formData.collegeName !== "International Student";
+      const program = formData.branch && formData.branch.trim() && formData.branch !== "Other";
       return !!(
-        formData.phone &&
+        fullPhone &&
         formData.country &&
-        formData.gender
+        formData.state?.trim() &&
+        formData.gender &&
+        institution &&
+        program
       );
     }
 
@@ -682,52 +723,100 @@ const MultiStepRegister = () => {
                     </div>
                   </div>
 
-                  {/* Phone */}
+                  {/* Phone - Domestic: single input; International: country code dropdown + number */}
                   <div>
                     <label className="block text-sm font-medium text-zinc-300 mb-2">
                       Phone Number * {formData.college === "INTERNATIONAL" && "(with country code)"}
                     </label>
-                    <div className="relative">
-                      <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        required
-                        pattern={formData.college === "INTERNATIONAL" ? undefined : "[0-9]{10}"}
-                        className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
-                        placeholder={formData.college === "INTERNATIONAL" ? "e.g. +1 234 567 8900" : "10-digit mobile number"}
-                      />
-                    </div>
+                    {formData.college === "INTERNATIONAL" ? (
+                      <div className="flex gap-2">
+                        <div className="w-[200px] shrink-0">
+                          <SearchableSelect
+                            options={COUNTRIES_WITH_DIAL.map((c) => ({
+                              value: c.dialCode,
+                              label: `${getCountryFlag(c.iso2)} ${c.iso3} (${c.dialCode})`,
+                            }))}
+                            value={formData.phoneCountryCode || "+1"}
+                            onChange={(v) => setFormData((prev) => ({ ...prev, phoneCountryCode: v }))}
+                            placeholder="Country / Code"
+                            searchPlaceholder="Search country or code..."
+                            required
+                            displayLabel={true}
+                            matchInputHeight
+                          />
+                        </div>
+                        <div className="relative flex-1">
+                          <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg pointer-events-none" />
+                          <input
+                            type="tel"
+                            name="phoneNumber"
+                            value={formData.phoneNumber || ""}
+                            onChange={(e) => setFormData((prev) => ({ ...prev, phoneNumber: e.target.value }))}
+                            required
+                            className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
+                            placeholder="e.g. 234 567 8900"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          required
+                          pattern="[0-9]{10}"
+                          className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
+                          placeholder="10-digit mobile number"
+                        />
+                      </div>
+                    )}
                   </div>
 
-                  {/* Country - International only */}
+                  {/* Country - International only: searchable dropdown */}
+                  {formData.college === "INTERNATIONAL" && (
+                    <SearchableSelect
+                      label="Country"
+                      options={COUNTRIES_WITH_DIAL.map((c) => ({
+                        value: c.name,
+                        label: `${getCountryFlag(c.iso2)} ${c.name}`,
+                      }))}
+                      value={formData.country || ""}
+                      onChange={(v) => setFormData((prev) => ({ ...prev, country: v }))}
+                      placeholder="Select your country"
+                      searchPlaceholder="Search country..."
+                      required
+                    />
+                  )}
+
+                  {/* State/Region - International only, mandatory */}
                   {formData.college === "INTERNATIONAL" && (
                     <div>
                       <label className="block text-sm font-medium text-zinc-300 mb-2">
-                        Country *
+                        State / Region *
                       </label>
                       <div className="relative">
                         <FiBook className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
                         <input
                           type="text"
-                          name="country"
-                          value={formData.country || ""}
+                          name="state"
+                          value={formData.state || ""}
                           onChange={handleInputChange}
                           required
                           className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
-                          placeholder="e.g. United States, United Kingdom"
+                          placeholder="e.g. California, England"
                         />
                       </div>
                     </div>
                   )}
 
-                  {/* Institution - International optional */}
+                  {/* Institution / University - International: mandatory, manual text input */}
                   {formData.college === "INTERNATIONAL" && (
                     <div>
                       <label className="block text-sm font-medium text-zinc-300 mb-2">
-                        Institution / University (optional)
+                        Institution / University *
                       </label>
                       <div className="relative">
                         <FiBook className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
@@ -736,10 +825,38 @@ const MultiStepRegister = () => {
                           name="collegeName"
                           value={formData.collegeName === "International Student" ? "" : (formData.collegeName || "")}
                           onChange={handleInputChange}
+                          required
                           className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
-                          placeholder="Your university or institution name"
+                          placeholder="Enter your institution or university name"
                         />
                       </div>
+                    </div>
+                  )}
+
+                  {/* Program of study - International: searchable dropdown + Other */}
+                  {formData.college === "INTERNATIONAL" && (
+                    <div className="space-y-2">
+                      <SearchableSelect
+                        label="Program of Study"
+                        options={PROGRAMS_OF_STUDY.map((name) => ({ value: name, label: name }))}
+                        value={PROGRAMS_OF_STUDY.includes(formData.branch || "") ? (formData.branch || "") : (formData.branch ? "Other" : "")}
+                        onChange={(v) => setFormData((prev) => ({ ...prev, branch: v }))}
+                        placeholder="Select or search your program"
+                        searchPlaceholder="Search program..."
+                        required
+                      />
+                      {(formData.branch === "Other" || (formData.branch && !PROGRAMS_OF_STUDY.includes(formData.branch))) && (
+                        <div className="relative">
+                          <FiBook className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
+                          <input
+                            type="text"
+                            value={PROGRAMS_OF_STUDY.includes(formData.branch || "") ? "" : (formData.branch || "")}
+                            onChange={(e) => setFormData((prev) => ({ ...prev, branch: e.target.value || "Other" }))}
+                            className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
+                            placeholder="Enter your program of study"
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -859,8 +976,6 @@ const MultiStepRegister = () => {
                       </select>
                     </div>
                   </div>
-
-
 
                   {/* Info message for KL students */}
                   {formData.college === "KL_UNIVERSITY" && (
