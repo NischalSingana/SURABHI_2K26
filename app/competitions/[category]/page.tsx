@@ -5,12 +5,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { getPublicEvents, registerForEvent, getUserRegistrations, getCategories } from "@/actions/events.action";
-import { FiArrowLeft, FiCalendar, FiMapPin, FiClock, FiUsers } from "react-icons/fi";
+import { FiArrowLeft, FiCalendar, FiMapPin, FiClock, FiUsers, FiFileText } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import SubmissionModal from "@/components/ui/SubmissionModal";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
 import { formatTime } from "@/lib/utils";
+import { useSession } from "@/lib/auth-client";
 
 interface Event {
   id: string;
@@ -25,6 +26,7 @@ interface Event {
   termsandconditions: string;
   registrationLink: string;
   whatsappLink?: string | null;
+  brochureLink?: string | null;
   Category: {
     id: string;
     name: string;
@@ -68,6 +70,9 @@ function CategoryPageContent() {
     payeeName: "",
   });
   const [uploadingPayment, setUploadingPayment] = useState(false);
+
+  const { data: session } = useSession();
+  const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
 
   useEffect(() => {
     fetchEvents();
@@ -481,7 +486,7 @@ function CategoryPageContent() {
                                     <div className="w-8 h-8 rounded-lg bg-red-600/10 flex items-center justify-center mr-3 shrink-0">
                                       <FiMapPin className="text-red-500" size={16} />
                                     </div>
-                                    <span className="text-sm font-medium">{event.venue}</span>
+                                    <span className="text-sm font-medium">{isInternational ? "Virtual" : event.venue}</span>
                                   </div>
 
                                   <div className="w-full h-px bg-zinc-800/50" />
@@ -506,13 +511,24 @@ function CategoryPageContent() {
                                     <div className="w-8 h-8 rounded-lg bg-red-600/10 flex items-center justify-center mr-3 shrink-0">
                                       <FiClock className="text-red-500" size={16} />
                                     </div>
-                                    <span className="text-sm font-medium">{formatTime(event.startTime)} - {formatTime(event.endTime)}</span>
+                                    <span className="text-sm font-medium">{isInternational ? "Will be announced later (to your convenient timezone)" : `${formatTime(event.startTime)} - ${formatTime(event.endTime)}`}</span>
                                   </div>
                                 </div>
                               </div>
 
-                              {/* Register Button */}
-                              <div className="pt-2">
+                              {/* Register & View Brochure */}
+                              <div className="pt-2 flex flex-wrap gap-2">
+                                {event.brochureLink && (
+                                  <a
+                                    href={event.brochureLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 bg-zinc-700 hover:bg-zinc-600 text-white px-5 py-2 rounded-md transition-all duration-300 border border-zinc-600"
+                                  >
+                                    <FiFileText size={16} />
+                                    View Brochure
+                                  </a>
+                                )}
                                 {registeredEvents.has(event.id) ? (
                                   <button
                                     disabled
@@ -589,9 +605,9 @@ function CategoryPageContent() {
               <div className="mb-6">
                 <h4 className="text-lg font-semibold text-white mb-2">Event Details:</h4>
                 <div className="space-y-1 text-zinc-300 text-sm">
-                  <p><span className="text-zinc-400">Venue:</span> {selectedEvent.venue}</p>
+                  <p><span className="text-zinc-400">Venue:</span> {isInternational ? "Virtual" : selectedEvent.venue}</p>
                   <p><span className="text-zinc-400">Date:</span> {new Date(selectedEvent.date).toLocaleDateString()}</p>
-                  <p><span className="text-zinc-400">Time:</span> {formatTime(selectedEvent.startTime)} - {formatTime(selectedEvent.endTime)}</p>
+                  <p><span className="text-zinc-400">Time:</span> {isInternational ? "Will be announced later to your convenient timezone" : `${formatTime(selectedEvent.startTime)} - ${formatTime(selectedEvent.endTime)}`}</p>
                 </div>
               </div>
 

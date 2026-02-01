@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { motion } from "framer-motion";
+import Image from "next/image";
+import MainPoster from "./MainPoster.png";
 import dynamic from 'next/dynamic';
 const CircularGallery = dynamic(() => import("@/components/ui/CircularGallery"), {
     ssr: false,
@@ -22,23 +24,32 @@ gsap.registerPlugin(ScrollTrigger);
 const HERO_VIDEO_CDN = "https://surabhi-images.sgp1.cdn.digitaloceanspaces.com/SurabhiPromo.mp4";
 const HERO_VIDEO_DIRECT = "https://surabhi-images.sgp1.digitaloceanspaces.com/SurabhiPromo.mp4";
 
+// Particles for fiery background (stable positions for SSR/hydration)
+const PARTICLES = Array.from({ length: 24 }, (_, i) => ({
+    x: `${(i * 4.5) % 100}%`,
+    duration: 4 + (i % 5),
+    delay: (i * 0.3) % 3,
+}));
+
 const HomePage = () => {
     const [posterItems, setPosterItems] = useState<{ image: string; text: string }[]>([]);
     const [loadingPosters, setLoadingPosters] = useState(true);
-    const [videoSrc, setVideoSrc] = useState(HERO_VIDEO_CDN);
-    const [usedFallback, setUsedFallback] = useState(false);
-
     const galleryRef = useRef<CircularGalleryHandle>(null);
     const competitionSectionRef = useRef<HTMLElement>(null);
+
+    /* 
+    Video related logic preserved for later use
+    const [videoSrc, setVideoSrc] = useState(HERO_VIDEO_CDN);
+    const [usedFallback, setUsedFallback] = useState(false);
     const videoFrameRef = useRef<HTMLDivElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isMuted, setIsMuted] = useState(true);
     const [playFailed, setPlayFailed] = useState(false);
 
-    // Force play when video is ready (some browsers don’t start autoplay)
     const handleCanPlay = () => {
         videoRef.current?.play().catch(() => setPlayFailed(true));
     };
+
     const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
         const v = e.currentTarget;
         const err = v.error;
@@ -56,7 +67,6 @@ const HomePage = () => {
         videoRef.current?.play().catch(() => setPlayFailed(true));
     };
 
-    // Sound on/off – must set native video in same click (browser requires user gesture for audio)
     const handleToggleMute = () => {
         const video = videoRef.current;
         if (video) {
@@ -69,11 +79,14 @@ const HomePage = () => {
             setIsMuted((m) => !m);
         }
     };
+
     useEffect(() => {
         if (videoRef.current) {
             videoRef.current.muted = isMuted;
         }
     }, [isMuted]);
+    */
+
 
     useEffect(() => {
         // Fetch poster gallery items from API
@@ -126,9 +139,35 @@ const HomePage = () => {
     }, [loadingPosters, posterItems]);
 
     return (
-        <main className="relative w-full bg-[#0a0000]">
+        <main className="relative w-full">
             <h1 className="sr-only">Surabhi International Cultural Fest 2026 - KL University</h1>
-            {/* Video Hero - Fixed full viewport, stays in place while scrolling */}
+            {/* Fiery Red Background - Edge to Edge */}
+            <div className="fixed inset-0 z-0 bg-gradient-to-br from-[#1a0000] via-[#4a0000] to-[#2a0000]">
+                {/* CSS animated gradient overlay - Optimized for performance */}
+                <div
+                    className="absolute inset-0 animate-gradient-slow opacity-30"
+                    style={{
+                        background: "radial-gradient(circle at 50% 50%, rgba(220, 38, 38, 0.4), transparent 70%), radial-gradient(circle at 0% 100%, rgba(185, 28, 28, 0.3), transparent 50%)"
+                    }}
+                />
+                {/* Fire-like particles effect - Optimized with CSS */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    {PARTICLES.map((particle, i) => (
+                        <div
+                            key={i}
+                            className="absolute w-1 h-1 bg-red-600 rounded-full animate-float"
+                            style={{
+                                left: particle.x,
+                                animationDuration: `${particle.duration}s`,
+                                animationDelay: `${particle.delay}s`,
+                                bottom: "-10px",
+                            }}
+                        />
+                    ))}
+                </div>
+            </div>
+            {/* 
+            Video Hero - Preserved for later use
             <section
                 ref={videoFrameRef}
                 id="video-frame"
@@ -142,7 +181,6 @@ const HomePage = () => {
                     transition={{ duration: 1.0, ease: "easeOut" }}
                     className="absolute inset-0 w-full h-full"
                 >
-                    {/* Video: try CDN first; on error (e.g. Chrome) retry with direct Spaces URL */}
                     <video
                         key={videoSrc}
                         ref={videoRef}
@@ -154,7 +192,6 @@ const HomePage = () => {
                         preload="auto"
                         onCanPlay={handleCanPlay}
                         onError={handleVideoError}
-                        aria-label="Surabhi 2K26 promo"
                         className="absolute left-0 top-0 w-full h-full min-w-full min-h-full object-cover object-center"
                     />
                     {playFailed && (
@@ -167,17 +204,14 @@ const HomePage = () => {
                         </button>
                     )}
 
-                    {/* Sound on/off – below navbar (top-left); icon only */}
                     <button
                         type="button"
                         onClick={handleToggleMute}
                         className="absolute top-[5.5rem] left-4 z-50 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white transition-colors backdrop-blur-sm border border-white/10 shadow-lg"
-                        aria-label={isMuted ? "Turn sound on" : "Turn sound off"}
                     >
                         {isMuted ? <FiVolumeX size={22} /> : <FiVolume2 size={22} />}
                     </button>
 
-                    {/* Text overlay - SURABHI-2K26 + subtitle */}
                     <div className="absolute inset-0 flex flex-col items-center justify-end pb-6 md:pb-10 px-4 z-40 pointer-events-none">
                         <h1 className="text-white font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight drop-shadow-lg text-center [text-shadow:0_2px_20px_rgba(0,0,0,0.8)]">
                             SURABHI<b>-2K26</b>
@@ -189,8 +223,36 @@ const HomePage = () => {
                 </motion.div>
             </section>
 
-            {/* Spacer: reserves one viewport so content starts below; video stays fixed */}
             <div className="relative z-0 h-screen w-full flex-shrink-0" aria-hidden="true" />
+            */}
+
+            {/* Poster Section - Edge to Edge (left, right, bottom), top space for navbar */}
+            <section className="relative w-full h-auto md:h-screen flex items-center justify-center overflow-hidden z-10 pt-16 pb-0">
+                <h2 className="sr-only">Event Poster</h2>
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1.0, ease: "easeOut" }}
+                    className="relative w-full h-auto md:h-full flex items-center justify-center bg-[#0f0505] py-0"
+                >
+                    {/* Ambient Background Gradient - No duplicate image */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#1a0505] via-[#2d0a0a] to-[#0f0505]" />
+                    {/* Subtle red glow in center */}
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(127,29,29,0.1)_0%,transparent_70%)] opacity-50" />
+                    {/* Poster Container */}
+                    <div className="relative w-full h-auto md:h-full flex items-center justify-center z-10 px-0">
+                        <Image
+                            src={MainPoster}
+                            alt="Surabhi International Cultural Fest 2026 Poster"
+                            className="w-full h-auto md:h-full object-contain md:object-fill drop-shadow-2xl"
+                            priority
+                            sizes="100vw"
+                            quality={85}
+                            fetchPriority="high"
+                        />
+                    </div>
+                </motion.div>
+            </section>
 
             {/* About Surabhi Section - Bento Grid Redesign */}
             <section className="relative z-10 w-full min-h-screen bg-[#0a0000] flex items-start md:items-center justify-center px-4 sm:px-6 lg:px-8 pt-12 pb-8 sm:py-16 md:py-20 lg:py-24 overflow-visible">

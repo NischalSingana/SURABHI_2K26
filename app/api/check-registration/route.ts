@@ -20,6 +20,8 @@ export async function POST(request: Request) {
         isInternational: true,
         country: true,
         gender: true,
+        state: true,
+        city: true,
       },
     });
 
@@ -43,6 +45,8 @@ export async function POST(request: Request) {
         isInternational: user.isInternational ?? false,
         country: user.country || "",
         gender: user.gender || "",
+        state: user.state || "",
+        city: user.city || "",
       }
     }, { status: 200 });
   } catch (error) {

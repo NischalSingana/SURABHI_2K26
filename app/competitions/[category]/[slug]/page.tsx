@@ -276,6 +276,7 @@ function EventDetailPageContent() {
   const [hasGoogleAccount, setHasGoogleAccount] = useState(false);
   const { data: session } = useSession();
   const isOutsider = session?.user?.email && !session.user.email.endsWith("@kluniversity.in");
+  const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
 
 
 
@@ -632,7 +633,7 @@ function EventDetailPageContent() {
                   <div>
                     <p className="text-zinc-400 text-sm">Time</p>
                     <p className="text-white font-medium">
-                      {formatTime(event.startTime)} - {formatTime(event.endTime)}
+                      {isInternational ? "Will be announced later to your convenient timezone" : `${formatTime(event.startTime)} - ${formatTime(event.endTime)}`}
                     </p>
                   </div>
                 </div>
@@ -641,7 +642,7 @@ function EventDetailPageContent() {
                   <FiMapPin className="text-red-500 mt-1" size={20} />
                   <div>
                     <p className="text-zinc-400 text-sm">Venue</p>
-                    <p className="text-white font-medium">{event.venue}</p>
+                    <p className="text-white font-medium">{isInternational ? "Virtual" : event.venue}</p>
                   </div>
                 </div>
 
