@@ -64,11 +64,13 @@ export async function POST(request: NextRequest) {
     const year = yearRaw ? parseInt(yearRaw) : 1;
     const gender = formData.get("gender") as string;
     const country = (formData.get("country") as string) || null;
+    const state = (formData.get("state") as string) || null;
+    const city = (formData.get("city") as string) || null;
 
     if (isInternational) {
-      if (!phone || !country || !gender) {
+      if (!phone || !country || !state?.trim() || !gender || !collegeName || collegeName === "International Student" || !branch) {
         return NextResponse.json(
-          { error: "Phone, country, and gender are required for international registration." },
+          { error: "Please fill all required fields: phone (with country code), country, state/region, institution, program of study, and gender." },
           { status: 400 }
         );
       }
@@ -94,6 +96,8 @@ export async function POST(request: NextRequest) {
               year: year || null,
               phone,
               gender,
+              state: state || undefined,
+              city: city || undefined,
             }
           : {
               collage: collegeName,
