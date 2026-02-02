@@ -77,9 +77,6 @@ export default function AnalyticsPage() {
                     "City": reg.user.city || "",
                     "State": reg.user.state || "",
                     "Country": reg.user.country || "",
-                    "Type": reg.user.isInternational ? "International" : "Domestic",
-                    "Payment": reg.paymentStatus || "N/A",
-                    "Registered": new Date(reg.createdAt).toLocaleDateString('en-IN'),
                 });
             });
 
@@ -104,9 +101,6 @@ export default function AnalyticsPage() {
                     "City": reg.user.city || "",
                     "State": reg.user.state || "",
                     "Country": reg.user.country || "",
-                    "Type": reg.user.isInternational ? "International" : "Domestic",
-                    "Payment": reg.paymentStatus || "N/A",
-                    "Registered": new Date(reg.createdAt).toLocaleDateString('en-IN'),
                 });
             });
 
@@ -121,47 +115,79 @@ export default function AnalyticsPage() {
             // Add Individual Registrations sheet
             if (individualData.length > 0) {
                 const ws1 = XLSX.utils.json_to_sheet(individualData);
+                
+                // Set column widths
                 ws1['!cols'] = [
                     { wch: 20 }, // Name
-                    { wch: 25 }, // Email
+                    { wch: 28 }, // Email
                     { wch: 15 }, // Phone
                     { wch: 10 }, // Gender
-                    { wch: 30 }, // College
-                    { wch: 15 }, // College ID
+                    { wch: 35 }, // College
+                    { wch: 18 }, // College ID
                     { wch: 20 }, // Branch
                     { wch: 10 }, // Year
-                    { wch: 15 }, // City
-                    { wch: 15 }, // State
-                    { wch: 15 }, // Country
-                    { wch: 12 }, // Type
-                    { wch: 12 }, // Payment
-                    { wch: 12 }, // Registered
+                    { wch: 18 }, // City
+                    { wch: 18 }, // State
+                    { wch: 18 }, // Country
                 ];
+
+                // Add auto-filter
+                const ref = XLSX.utils.decode_range(ws1['!ref'] || 'A1');
+                ws1['!autofilter'] = { ref: XLSX.utils.encode_range(ref) };
+
+                // Style header row with sky blue background
+                const headerRange = XLSX.utils.decode_range(ws1['!ref'] || 'A1');
+                for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+                    if (!ws1[cellAddress]) continue;
+                    ws1[cellAddress].s = {
+                        fill: { fgColor: { rgb: "87CEEB" } }, // Sky blue
+                        font: { bold: true, color: { rgb: "000000" } },
+                        alignment: { horizontal: "center", vertical: "center" }
+                    };
+                }
+
                 XLSX.utils.book_append_sheet(wb, ws1, "Individual");
             }
 
             // Add Group Registrations sheet
             if (groupData.length > 0) {
                 const ws2 = XLSX.utils.json_to_sheet(groupData);
+                
+                // Set column widths
                 ws2['!cols'] = [
                     { wch: 25 }, // Group Name
                     { wch: 20 }, // Leader
-                    { wch: 25 }, // Email
+                    { wch: 28 }, // Email
                     { wch: 15 }, // Phone
                     { wch: 10 }, // Gender
-                    { wch: 10 }, // Team Size
-                    { wch: 40 }, // Members
+                    { wch: 12 }, // Team Size
+                    { wch: 45 }, // Members
                     { wch: 20 }, // Mentor
                     { wch: 15 }, // Mentor Phone
-                    { wch: 30 }, // College
-                    { wch: 15 }, // College ID
-                    { wch: 15 }, // City
-                    { wch: 15 }, // State
-                    { wch: 15 }, // Country
-                    { wch: 12 }, // Type
-                    { wch: 12 }, // Payment
-                    { wch: 12 }, // Registered
+                    { wch: 35 }, // College
+                    { wch: 18 }, // College ID
+                    { wch: 18 }, // City
+                    { wch: 18 }, // State
+                    { wch: 18 }, // Country
                 ];
+
+                // Add auto-filter
+                const ref = XLSX.utils.decode_range(ws2['!ref'] || 'A1');
+                ws2['!autofilter'] = { ref: XLSX.utils.encode_range(ref) };
+
+                // Style header row with sky blue background
+                const headerRange = XLSX.utils.decode_range(ws2['!ref'] || 'A1');
+                for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+                    if (!ws2[cellAddress]) continue;
+                    ws2[cellAddress].s = {
+                        fill: { fgColor: { rgb: "87CEEB" } }, // Sky blue
+                        font: { bold: true, color: { rgb: "000000" } },
+                        alignment: { horizontal: "center", vertical: "center" }
+                    };
+                }
+
                 XLSX.utils.book_append_sheet(wb, ws2, "Group");
             }
 
@@ -197,9 +223,6 @@ export default function AnalyticsPage() {
                         "City": reg.user.city || "",
                         "State": reg.user.state || "",
                         "Country": reg.user.country || "",
-                        "Type": reg.user.isInternational ? "International" : "Domestic",
-                        "Payment": reg.paymentStatus || "N/A",
-                        "Registered": new Date(reg.createdAt).toLocaleDateString('en-IN'),
                     });
                 });
             });
@@ -228,9 +251,6 @@ export default function AnalyticsPage() {
                         "City": reg.user.city || "",
                         "State": reg.user.state || "",
                         "Country": reg.user.country || "",
-                        "Type": reg.user.isInternational ? "International" : "Domestic",
-                        "Payment": reg.paymentStatus || "N/A",
-                        "Registered": new Date(reg.createdAt).toLocaleDateString('en-IN'),
                     });
                 });
             });
@@ -246,51 +266,83 @@ export default function AnalyticsPage() {
             // Add Individual Registrations sheet
             if (individualData.length > 0) {
                 const ws1 = XLSX.utils.json_to_sheet(individualData);
+                
+                // Set column widths
                 ws1['!cols'] = [
-                    { wch: 20 }, // Event
-                    { wch: 15 }, // Category
+                    { wch: 22 }, // Event
+                    { wch: 18 }, // Category
                     { wch: 20 }, // Name
-                    { wch: 25 }, // Email
+                    { wch: 28 }, // Email
                     { wch: 15 }, // Phone
                     { wch: 10 }, // Gender
-                    { wch: 30 }, // College
-                    { wch: 15 }, // College ID
+                    { wch: 35 }, // College
+                    { wch: 18 }, // College ID
                     { wch: 20 }, // Branch
                     { wch: 10 }, // Year
-                    { wch: 15 }, // City
-                    { wch: 15 }, // State
-                    { wch: 15 }, // Country
-                    { wch: 12 }, // Type
-                    { wch: 12 }, // Payment
-                    { wch: 12 }, // Registered
+                    { wch: 18 }, // City
+                    { wch: 18 }, // State
+                    { wch: 18 }, // Country
                 ];
+
+                // Add auto-filter
+                const ref = XLSX.utils.decode_range(ws1['!ref'] || 'A1');
+                ws1['!autofilter'] = { ref: XLSX.utils.encode_range(ref) };
+
+                // Style header row with sky blue background
+                const headerRange = XLSX.utils.decode_range(ws1['!ref'] || 'A1');
+                for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+                    if (!ws1[cellAddress]) continue;
+                    ws1[cellAddress].s = {
+                        fill: { fgColor: { rgb: "87CEEB" } }, // Sky blue
+                        font: { bold: true, color: { rgb: "000000" } },
+                        alignment: { horizontal: "center", vertical: "center" }
+                    };
+                }
+
                 XLSX.utils.book_append_sheet(wb, ws1, "Individual");
             }
 
             // Add Group Registrations sheet
             if (groupData.length > 0) {
                 const ws2 = XLSX.utils.json_to_sheet(groupData);
+                
+                // Set column widths
                 ws2['!cols'] = [
-                    { wch: 20 }, // Event
-                    { wch: 15 }, // Category
+                    { wch: 22 }, // Event
+                    { wch: 18 }, // Category
                     { wch: 25 }, // Group Name
                     { wch: 20 }, // Leader
-                    { wch: 25 }, // Email
+                    { wch: 28 }, // Email
                     { wch: 15 }, // Phone
                     { wch: 10 }, // Gender
-                    { wch: 10 }, // Team Size
-                    { wch: 40 }, // Members
+                    { wch: 12 }, // Team Size
+                    { wch: 45 }, // Members
                     { wch: 20 }, // Mentor
                     { wch: 15 }, // Mentor Phone
-                    { wch: 30 }, // College
-                    { wch: 15 }, // College ID
-                    { wch: 15 }, // City
-                    { wch: 15 }, // State
-                    { wch: 15 }, // Country
-                    { wch: 12 }, // Type
-                    { wch: 12 }, // Payment
-                    { wch: 12 }, // Registered
+                    { wch: 35 }, // College
+                    { wch: 18 }, // College ID
+                    { wch: 18 }, // City
+                    { wch: 18 }, // State
+                    { wch: 18 }, // Country
                 ];
+
+                // Add auto-filter
+                const ref = XLSX.utils.decode_range(ws2['!ref'] || 'A1');
+                ws2['!autofilter'] = { ref: XLSX.utils.encode_range(ref) };
+
+                // Style header row with sky blue background
+                const headerRange = XLSX.utils.decode_range(ws2['!ref'] || 'A1');
+                for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+                    if (!ws2[cellAddress]) continue;
+                    ws2[cellAddress].s = {
+                        fill: { fgColor: { rgb: "87CEEB" } }, // Sky blue
+                        font: { bold: true, color: { rgb: "000000" } },
+                        alignment: { horizontal: "center", vertical: "center" }
+                    };
+                }
+
                 XLSX.utils.book_append_sheet(wb, ws2, "Group");
             }
 
