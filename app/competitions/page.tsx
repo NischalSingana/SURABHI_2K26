@@ -5,7 +5,7 @@ import CompetitionsClient, {
 } from "./CompetitionsClient";
 
 export default async function CompetitionsPage() {
-  const result = await getCategories();
+  const result = await getCategories(false);
 
   if (!result.success || !result.data) {
     return <Loader />;

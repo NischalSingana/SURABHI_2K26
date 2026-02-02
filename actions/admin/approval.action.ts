@@ -124,6 +124,8 @@ export async function approveDeleteRequest(id: string) {
 
     revalidatePath("/admin/approval");
     revalidatePath("/admin/competitions");
+    revalidatePath("/competitions");
+    revalidatePath("/events");
     revalidatePath("/admin/logs");
     return { success: true, message: `${req.entityType === "CATEGORY" ? "Category" : "Event"} deleted successfully` };
   } catch (e) {

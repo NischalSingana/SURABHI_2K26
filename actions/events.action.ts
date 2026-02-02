@@ -62,102 +62,131 @@ export async function deleteRegistration(id: string, type: 'INDIVIDUAL' | 'GROUP
   }
 }
 
-export async function getCategories() {
+export async function getCategories(includeFullData: boolean = true) {
   try {
-    const categories = await prisma.category.findMany({
-      include: {
-        Event: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            description: true,
-            image: true,
-            date: true,
-            venue: true,
-            startTime: true,
-            endTime: true,
-            participantLimit: true,
-            isGroupEvent: true,
-            allowSubmissions: true,
-            minTeamSize: true,
-            maxTeamSize: true,
-            registrationLink: true,
-            whatsappLink: true,
-            brochureLink: true,
-            termsandconditions: true,
-            categoryId: true,
-            _count: {
-              select: {
-                individualRegistrations: true,
-                groupRegistrations: true,
+    if (includeFullData) {
+      // Full data for admin pages
+      const categories = await prisma.category.findMany({
+        include: {
+          Event: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              description: true,
+              image: true,
+              date: true,
+              venue: true,
+              startTime: true,
+              endTime: true,
+              participantLimit: true,
+              isGroupEvent: true,
+              allowSubmissions: true,
+              minTeamSize: true,
+              maxTeamSize: true,
+              registrationLink: true,
+              whatsappLink: true,
+              brochureLink: true,
+              termsandconditions: true,
+              categoryId: true,
+              _count: {
+                select: {
+                  individualRegistrations: true,
+                  groupRegistrations: true,
+                },
               },
-            },
-            submissions: {
-              select: {
-                id: true,
-                userId: true,
-                submissionLink: true,
-                notes: true,
+              submissions: {
+                select: {
+                  id: true,
+                  userId: true,
+                  submissionLink: true,
+                  notes: true,
+                },
               },
-            },
-            individualRegistrations: {
-              select: {
-                id: true,
-                paymentStatus: true,
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    phone: true,
-                    collage: true,
-                    collageId: true,
-                    branch: true,
-                    year: true,
-                    state: true,
-                    city: true,
-                    isInternational: true,
-                    country: true,
+              individualRegistrations: {
+                select: {
+                  id: true,
+                  paymentStatus: true,
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      email: true,
+                      phone: true,
+                      collage: true,
+                      collageId: true,
+                      branch: true,
+                      year: true,
+                      state: true,
+                      city: true,
+                      isInternational: true,
+                      country: true,
+                    }
+                  }
+                }
+              },
+              groupRegistrations: {
+                select: {
+                  id: true,
+                  groupName: true,
+                  mentorName: true,
+                  mentorPhone: true,
+                  members: true,
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      email: true,
+                      phone: true,
+                      collage: true,
+                      collageId: true,
+                      state: true,
+                      city: true,
+                      isInternational: true,
+                      country: true,
+                    }
                   }
                 }
               }
             },
-            groupRegistrations: {
-              select: {
-                id: true,
-                groupName: true,
-                mentorName: true,
-                mentorPhone: true,
-                members: true,
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    phone: true,
-                    collage: true,
-                    collageId: true,
-                    state: true,
-                    city: true,
-                    isInternational: true,
-                    country: true,
-                  }
-                }
-              }
-            }
-          },
-          orderBy: {
-            date: "asc",
+            orderBy: {
+              date: "asc",
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    return { success: true, data: categories };
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+      return { success: true, data: categories };
+    } else {
+      // Lightweight data for public pages
+      const categories = await prisma.category.findMany({
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          image: true,
+          video: true,
+          Event: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              image: true,
+              categoryId: true,
+            },
+            orderBy: {
+              date: "asc",
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+      return { success: true, data: categories };
+    }
   } catch (error) {
     console.error("Error fetching categories:", error);
     return { success: false, error: "Failed to fetch categories" };
@@ -200,6 +229,7 @@ export async function createCategory(name: string, image?: string, video?: strin
     });
 
     revalidatePath("/admin/events");
+    revalidatePath("/competitions");
     return { success: true, data: category };
   } catch (error) {
     console.error("Error creating category:", error);
@@ -243,6 +273,7 @@ export async function updateCategory(id: string, name: string, image?: string, v
     });
 
     revalidatePath("/admin/events");
+    revalidatePath("/competitions");
     return { success: true, data: category };
   } catch (error) {
     console.error("Error updating category:", error);
@@ -289,6 +320,7 @@ export async function deleteCategory(id: string) {
         entityName: category.name,
       });
       revalidatePath("/admin/events");
+      revalidatePath("/competitions");
       return { success: true, message: "Category deleted successfully" };
     }
 
@@ -316,6 +348,7 @@ export async function deleteCategory(id: string) {
     });
 
     revalidatePath("/admin/events");
+    revalidatePath("/competitions");
     revalidatePath("/admin/approval");
     return { success: true, message: "Delete request submitted for master approval.", requestSubmitted: true };
   } catch (error) {
@@ -397,6 +430,7 @@ export async function createEvent(eventData: EventData) {
 
     revalidatePath("/admin/events");
     revalidatePath("/events");
+    revalidatePath("/competitions");
     return { success: true, data: event };
   } catch (error) {
     console.error("[createEvent] Error creating event:", error);
@@ -481,6 +515,7 @@ export async function updateEvent({ id, eventData }: EventUpdateData) {
 
     revalidatePath("/admin/events");
     revalidatePath("/events");
+    revalidatePath("/competitions");
     return { success: true, data: event };
   } catch (error) {
     console.error("Error updating event:", error);
@@ -522,6 +557,7 @@ export async function deleteEvent(id: string) {
       });
       revalidatePath("/admin/events");
       revalidatePath("/events");
+      revalidatePath("/competitions");
       return { success: true, message: "Event deleted successfully" };
     }
 
@@ -550,6 +586,7 @@ export async function deleteEvent(id: string) {
 
     revalidatePath("/admin/events");
     revalidatePath("/events");
+    revalidatePath("/competitions");
     revalidatePath("/admin/approval");
     return { success: true, message: "Delete request submitted for master approval.", requestSubmitted: true };
   } catch (error) {

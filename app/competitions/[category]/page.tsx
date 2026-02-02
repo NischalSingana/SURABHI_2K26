@@ -100,7 +100,7 @@ function CategoryPageContent() {
   };
 
   const fetchEvents = async () => {
-    const categoryResult = await getCategories();
+    const categoryResult = await getCategories(false);
     let resolvedCategory: { slug: string; name: string } | null = null;
 
     if (categoryResult.success && categoryResult.data) {
