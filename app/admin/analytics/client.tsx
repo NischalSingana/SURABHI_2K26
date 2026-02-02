@@ -76,7 +76,7 @@ export default function AnalyticsPage() {
                     "Year": reg.user.year || "",
                     "City": reg.user.city || "",
                     "State": reg.user.state || "",
-                    "Country": reg.user.country || "",
+                    "Country": reg.user.isInternational ? (reg.user.country || "") : "India",
                 });
             });
 
@@ -100,7 +100,7 @@ export default function AnalyticsPage() {
                     "College ID": reg.user.collageId || "",
                     "City": reg.user.city || "",
                     "State": reg.user.state || "",
-                    "Country": reg.user.country || "",
+                    "Country": reg.user.isInternational ? (reg.user.country || "") : "India",
                 });
             });
 
@@ -222,7 +222,7 @@ export default function AnalyticsPage() {
                         "Year": reg.user.year || "",
                         "City": reg.user.city || "",
                         "State": reg.user.state || "",
-                        "Country": reg.user.country || "",
+                        "Country": reg.user.isInternational ? (reg.user.country || "") : "India",
                     });
                 });
             });
@@ -250,7 +250,7 @@ export default function AnalyticsPage() {
                         "College ID": reg.user.collageId || "",
                         "City": reg.user.city || "",
                         "State": reg.user.state || "",
-                        "Country": reg.user.country || "",
+                        "Country": reg.user.isInternational ? (reg.user.country || "") : "India",
                     });
                 });
             });
