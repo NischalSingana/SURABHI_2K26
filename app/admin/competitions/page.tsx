@@ -161,11 +161,11 @@ export default function EventsManagement() {
     setLoading(true);
     const result = await getCategories(true);
     if (result.success && result.data) {
-      setCategories(result.data);
+      setCategories(result.data as Category[]);
       // Update selected event if open
       if (selectedEventForRegistrations) {
-        const updatedCategory = result.data.find(c => c.Event.find(e => e.id === selectedEventForRegistrations.id));
-        const updatedEvent = updatedCategory?.Event.find(e => e.id === selectedEventForRegistrations.id);
+        const updatedCategory = (result.data as Category[]).find((c: Category) => c.Event.find((e: Event) => e.id === selectedEventForRegistrations.id));
+        const updatedEvent = updatedCategory?.Event.find((e: Event) => e.id === selectedEventForRegistrations.id);
         if (updatedEvent) setSelectedEventForRegistrations(updatedEvent);
       }
     } else {
