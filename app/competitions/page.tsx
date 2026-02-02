@@ -11,8 +11,8 @@ export default async function CompetitionsPage() {
     return <Loader />;
   }
 
-  const categories: CategoryData[] = result.data
-    .map((cat) => ({
+  const categories: CategoryData[] = (result.data as Array<{ id: string; name: string; slug: string; image: string | null; video: string | null; Event: Array<{ id: string; name: string; slug: string; image: string; categoryId: string }> }>)
+    .map((cat: { id: string; name: string; slug: string; image: string | null; video: string | null; Event: Array<{ id: string; name: string; slug: string; image: string; categoryId: string }> }) => ({
       name: cat.name,
       slug: cat.slug,
       count: cat.Event.length,
