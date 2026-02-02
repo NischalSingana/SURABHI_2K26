@@ -62,7 +62,7 @@ export async function deleteRegistration(id: string, type: 'INDIVIDUAL' | 'GROUP
   }
 }
 
-export async function getCategories(includeFullData: boolean = true) {
+export async function getCategories(includeFullData: boolean = true): Promise<{ success: true; data: any } | { success: false; error: string }> {
   try {
     if (includeFullData) {
       // Full data for admin pages
