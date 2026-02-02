@@ -168,7 +168,7 @@ export default function EventsManagement() {
         const updatedEvent = updatedCategory?.Event.find((e: Event) => e.id === selectedEventForRegistrations.id);
         if (updatedEvent) setSelectedEventForRegistrations(updatedEvent);
       }
-    } else {
+    } else if (!result.success) {
       toast.error(result.error || "Failed to fetch categories");
     }
     setLoading(false);
