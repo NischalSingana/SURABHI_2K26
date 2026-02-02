@@ -5,14 +5,19 @@ import {
     getUserStats,
     getEventStats,
     getAccommodationStats,
+    getDetailedEventRegistrations,
 } from "@/actions/admin/analytics.action";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 export default function AnalyticsPage() {
     const [userStats, setUserStats] = useState<any>(null);
     const [eventStats, setEventStats] = useState<any>(null);
     const [accommodationStats, setAccommodationStats] = useState<any>(null);
+    const [detailedEvents, setDetailedEvents] = useState<any[]>([]);
+    const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [loadingDetails, setLoadingDetails] = useState(false);
 
     useEffect(() => {
         loadStats();
@@ -21,10 +26,11 @@ export default function AnalyticsPage() {
     const loadStats = async () => {
         setLoading(true);
 
-        const [userResult, eventResult, accommodationResult] = await Promise.all([
+        const [userResult, eventResult, accommodationResult, detailedResult] = await Promise.all([
             getUserStats(),
             getEventStats(),
             getAccommodationStats(),
+            getDetailedEventRegistrations(),
         ]);
 
         if (userResult.success) {
@@ -45,7 +51,183 @@ export default function AnalyticsPage() {
             toast.error("Failed to load accommodation stats");
         }
 
+        if (detailedResult.success) {
+            setDetailedEvents(detailedResult.events);
+        } else {
+            toast.error("Failed to load detailed registrations");
+        }
+
         setLoading(false);
+    };
+
+    const downloadEventRegistrations = (event: any) => {
+        try {
+            const data: any[] = [];
+
+            // Add individual registrations
+            event.individualRegistrations.forEach((reg: any) => {
+                data.push({
+                    "Registration Type": "Individual",
+                    "Registration ID": reg.id,
+                    "Event Name": event.name,
+                    "Category": event.category,
+                    "Name": reg.user.name || "",
+                    "Email": reg.user.email || "",
+                    "Phone": reg.user.phone || "",
+                    "College": reg.user.collage || "",
+                    "College ID": reg.user.collageId || "",
+                    "Branch": reg.user.branch || "",
+                    "Year": reg.user.year || "",
+                    "State": reg.user.state || "",
+                    "City": reg.user.city || "",
+                    "Country": reg.user.country || "",
+                    "International": reg.user.isInternational ? "Yes" : "No",
+                    "Gender": reg.user.gender || "",
+                    "Payment Status": reg.paymentStatus || "",
+                    "Registered On": new Date(reg.createdAt).toLocaleString(),
+                });
+            });
+
+            // Add group registrations
+            event.groupRegistrations.forEach((reg: any) => {
+                const members = reg.members || {};
+                const memberNames = Object.values(members).map((m: any) => m.name).join(", ");
+                
+                data.push({
+                    "Registration Type": "Group",
+                    "Registration ID": reg.id,
+                    "Event Name": event.name,
+                    "Category": event.category,
+                    "Group Name": reg.groupName || "",
+                    "Leader Name": reg.user.name || "",
+                    "Leader Email": reg.user.email || "",
+                    "Leader Phone": reg.user.phone || "",
+                    "Mentor Name": reg.mentorName || "",
+                    "Mentor Phone": reg.mentorPhone || "",
+                    "Members": memberNames,
+                    "College": reg.user.collage || "",
+                    "College ID": reg.user.collageId || "",
+                    "State": reg.user.state || "",
+                    "City": reg.user.city || "",
+                    "Country": reg.user.country || "",
+                    "International": reg.user.isInternational ? "Yes" : "No",
+                    "Payment Status": reg.paymentStatus || "",
+                    "Registered On": new Date(reg.createdAt).toLocaleString(),
+                });
+            });
+
+            if (data.length === 0) {
+                toast.error("No registrations to download");
+                return;
+            }
+
+            // Create worksheet
+            const ws = XLSX.utils.json_to_sheet(data);
+            
+            // Auto-size columns
+            const cols = Object.keys(data[0]).map(key => ({ wch: Math.max(key.length, 15) }));
+            ws['!cols'] = cols;
+
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Registrations");
+
+            // Generate filename
+            const filename = `${event.name.replace(/[^a-z0-9]/gi, '_')}_Registrations_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+            // Download
+            XLSX.writeFile(wb, filename);
+            toast.success("Registration data downloaded successfully");
+        } catch (error) {
+            console.error("Error downloading registrations:", error);
+            toast.error("Failed to download registrations");
+        }
+    };
+
+    const downloadAllRegistrations = () => {
+        try {
+            const data: any[] = [];
+
+            detailedEvents.forEach(event => {
+                // Add individual registrations
+                event.individualRegistrations.forEach((reg: any) => {
+                    data.push({
+                        "Registration Type": "Individual",
+                        "Registration ID": reg.id,
+                        "Event Name": event.name,
+                        "Category": event.category,
+                        "Name": reg.user.name || "",
+                        "Email": reg.user.email || "",
+                        "Phone": reg.user.phone || "",
+                        "College": reg.user.collage || "",
+                        "College ID": reg.user.collageId || "",
+                        "Branch": reg.user.branch || "",
+                        "Year": reg.user.year || "",
+                        "State": reg.user.state || "",
+                        "City": reg.user.city || "",
+                        "Country": reg.user.country || "",
+                        "International": reg.user.isInternational ? "Yes" : "No",
+                        "Gender": reg.user.gender || "",
+                        "Payment Status": reg.paymentStatus || "",
+                        "Registered On": new Date(reg.createdAt).toLocaleString(),
+                    });
+                });
+
+                // Add group registrations
+                event.groupRegistrations.forEach((reg: any) => {
+                    const members = reg.members || {};
+                    const memberNames = Object.values(members).map((m: any) => m.name).join(", ");
+                    
+                    data.push({
+                        "Registration Type": "Group",
+                        "Registration ID": reg.id,
+                        "Event Name": event.name,
+                        "Category": event.category,
+                        "Group Name": reg.groupName || "",
+                        "Leader Name": reg.user.name || "",
+                        "Leader Email": reg.user.email || "",
+                        "Leader Phone": reg.user.phone || "",
+                        "Mentor Name": reg.mentorName || "",
+                        "Mentor Phone": reg.mentorPhone || "",
+                        "Members": memberNames,
+                        "College": reg.user.collage || "",
+                        "College ID": reg.user.collageId || "",
+                        "State": reg.user.state || "",
+                        "City": reg.user.city || "",
+                        "Country": reg.user.country || "",
+                        "International": reg.user.isInternational ? "Yes" : "No",
+                        "Payment Status": reg.paymentStatus || "",
+                        "Registered On": new Date(reg.createdAt).toLocaleString(),
+                    });
+                });
+            });
+
+            if (data.length === 0) {
+                toast.error("No registrations to download");
+                return;
+            }
+
+            // Create worksheet
+            const ws = XLSX.utils.json_to_sheet(data);
+            
+            // Auto-size columns
+            const cols = Object.keys(data[0]).map(key => ({ wch: Math.max(key.length, 15) }));
+            ws['!cols'] = cols;
+
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "All Registrations");
+
+            // Generate filename
+            const filename = `All_Competition_Registrations_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+            // Download
+            XLSX.writeFile(wb, filename);
+            toast.success("All registration data downloaded successfully");
+        } catch (error) {
+            console.error("Error downloading all registrations:", error);
+            toast.error("Failed to download all registrations");
+        }
     };
 
     if (loading) {
@@ -178,8 +360,31 @@ export default function AnalyticsPage() {
 
             {/* Event Statistics */}
             <div className="mb-8">
-                <h2 className="text-xl font-semibold text-white mb-4">Competition Statistics</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-white">Competition Statistics</h2>
+                    <button
+                        onClick={downloadAllRegistrations}
+                        disabled={loading || detailedEvents.length === 0}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                        </svg>
+                        Download All (XLSX)
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
                         <div className="flex items-center justify-between mb-4">
                             <div>
@@ -234,6 +439,272 @@ export default function AnalyticsPage() {
                                 )}
                         </div>
                     </div>
+                </div>
+
+                {/* Detailed Event Registrations */}
+                <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-white">Detailed Registration Data by Event</h3>
+                    {detailedEvents.length === 0 ? (
+                        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 text-center text-gray-400">
+                            No events with registrations found
+                        </div>
+                    ) : (
+                        detailedEvents
+                            .filter(event => event.totalRegistrations > 0)
+                            .sort((a, b) => b.totalRegistrations - a.totalRegistrations)
+                            .map((event) => (
+                                <div key={event.id} className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+                                    {/* Event Header */}
+                                    <div
+                                        className="p-4 cursor-pointer hover:bg-gray-750 transition-colors"
+                                        onClick={() => setExpandedEvent(expandedEvent === event.id ? null : event.id)}
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3">
+                                                    <h4 className="text-lg font-semibold text-white">{event.name}</h4>
+                                                    <span className="text-xs px-2 py-1 rounded-full bg-red-600/20 text-red-400 border border-red-600/30">
+                                                        {event.category}
+                                                    </span>
+                                                    <span className="text-xs px-2 py-1 rounded-full bg-blue-600/20 text-blue-400 border border-blue-600/30">
+                                                        {event.isGroupEvent ? "Group Event" : "Solo Event"}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-4 mt-2 text-sm">
+                                                    <span className="text-gray-400">
+                                                        Total: <span className="text-white font-semibold">{event.totalRegistrations}</span>
+                                                    </span>
+                                                    {event.individualCount > 0 && (
+                                                        <span className="text-gray-400">
+                                                            Individual: <span className="text-green-400 font-semibold">{event.individualCount}</span>
+                                                        </span>
+                                                    )}
+                                                    {event.groupCount > 0 && (
+                                                        <span className="text-gray-400">
+                                                            Group: <span className="text-blue-400 font-semibold">{event.groupCount}</span>
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        downloadEventRegistrations(event);
+                                                    }}
+                                                    className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                                                >
+                                                    <svg
+                                                        className="w-4 h-4"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                        />
+                                                    </svg>
+                                                    Download
+                                                </button>
+                                                <svg
+                                                    className={`w-5 h-5 text-gray-400 transition-transform ${
+                                                        expandedEvent === event.id ? "rotate-180" : ""
+                                                    }`}
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M19 9l-7 7-7-7"
+                                                    />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Expanded Registration Details */}
+                                    {expandedEvent === event.id && (
+                                        <div className="border-t border-gray-700 p-4 bg-gray-850">
+                                            {/* Individual Registrations */}
+                                            {event.individualRegistrations.length > 0 && (
+                                                <div className="mb-6">
+                                                    <h5 className="text-md font-semibold text-white mb-3 flex items-center gap-2">
+                                                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                                                        Individual Registrations ({event.individualCount})
+                                                    </h5>
+                                                    <div className="overflow-x-auto">
+                                                        <table className="w-full text-sm">
+                                                            <thead className="bg-gray-900 text-gray-400">
+                                                                <tr>
+                                                                    <th className="px-3 py-2 text-left">Name</th>
+                                                                    <th className="px-3 py-2 text-left">Email</th>
+                                                                    <th className="px-3 py-2 text-left">Phone</th>
+                                                                    <th className="px-3 py-2 text-left">College</th>
+                                                                    <th className="px-3 py-2 text-left">Branch</th>
+                                                                    <th className="px-3 py-2 text-left">Year</th>
+                                                                    <th className="px-3 py-2 text-left">Location</th>
+                                                                    <th className="px-3 py-2 text-left">Type</th>
+                                                                    <th className="px-3 py-2 text-left">Payment</th>
+                                                                    <th className="px-3 py-2 text-left">Registered</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-gray-700">
+                                                                {event.individualRegistrations.map((reg: any) => (
+                                                                    <tr key={reg.id} className="text-gray-300 hover:bg-gray-900/50">
+                                                                        <td className="px-3 py-2">{reg.user.name || "—"}</td>
+                                                                        <td className="px-3 py-2 text-xs">{reg.user.email}</td>
+                                                                        <td className="px-3 py-2">{reg.user.phone || "—"}</td>
+                                                                        <td className="px-3 py-2 max-w-[150px] truncate" title={reg.user.collage || ""}>
+                                                                            {reg.user.collage || "—"}
+                                                                        </td>
+                                                                        <td className="px-3 py-2">{reg.user.branch || "—"}</td>
+                                                                        <td className="px-3 py-2">{reg.user.year || "—"}</td>
+                                                                        <td className="px-3 py-2">
+                                                                            {reg.user.isInternational ? (
+                                                                                <span className="text-xs px-2 py-1 rounded bg-purple-600/20 text-purple-400 border border-purple-600/30">
+                                                                                    {reg.user.country || "International"}
+                                                                                </span>
+                                                                            ) : (
+                                                                                <span className="text-xs">{reg.user.state || reg.user.city || "—"}</span>
+                                                                            )}
+                                                                        </td>
+                                                                        <td className="px-3 py-2">
+                                                                            {reg.user.isInternational ? (
+                                                                                <span className="text-xs px-2 py-1 rounded bg-purple-600/20 text-purple-400 border border-purple-600/30">
+                                                                                    International
+                                                                                </span>
+                                                                            ) : (
+                                                                                <span className="text-xs">Domestic</span>
+                                                                            )}
+                                                                        </td>
+                                                                        <td className="px-3 py-2">
+                                                                            <span
+                                                                                className={`text-xs px-2 py-1 rounded ${
+                                                                                    reg.paymentStatus === "APPROVED"
+                                                                                        ? "bg-green-600/20 text-green-400 border border-green-600/30"
+                                                                                        : reg.paymentStatus === "PENDING"
+                                                                                        ? "bg-orange-600/20 text-orange-400 border border-orange-600/30"
+                                                                                        : "bg-red-600/20 text-red-400 border border-red-600/30"
+                                                                                }`}
+                                                                            >
+                                                                                {reg.paymentStatus || "N/A"}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="px-3 py-2 text-xs">
+                                                                            {new Date(reg.createdAt).toLocaleDateString()}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Group Registrations */}
+                                            {event.groupRegistrations.length > 0 && (
+                                                <div>
+                                                    <h5 className="text-md font-semibold text-white mb-3 flex items-center gap-2">
+                                                        <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                                                        Group Registrations ({event.groupCount})
+                                                    </h5>
+                                                    <div className="overflow-x-auto">
+                                                        <table className="w-full text-sm">
+                                                            <thead className="bg-gray-900 text-gray-400">
+                                                                <tr>
+                                                                    <th className="px-3 py-2 text-left">Group Name</th>
+                                                                    <th className="px-3 py-2 text-left">Leader</th>
+                                                                    <th className="px-3 py-2 text-left">Email</th>
+                                                                    <th className="px-3 py-2 text-left">Phone</th>
+                                                                    <th className="px-3 py-2 text-left">Mentor</th>
+                                                                    <th className="px-3 py-2 text-left">Members</th>
+                                                                    <th className="px-3 py-2 text-left">College</th>
+                                                                    <th className="px-3 py-2 text-left">Location</th>
+                                                                    <th className="px-3 py-2 text-left">Type</th>
+                                                                    <th className="px-3 py-2 text-left">Payment</th>
+                                                                    <th className="px-3 py-2 text-left">Registered</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-gray-700">
+                                                                {event.groupRegistrations.map((reg: any) => {
+                                                                    const members = reg.members || {};
+                                                                    const memberCount = Object.keys(members).length;
+                                                                    return (
+                                                                        <tr key={reg.id} className="text-gray-300 hover:bg-gray-900/50">
+                                                                            <td className="px-3 py-2 font-medium">{reg.groupName || "—"}</td>
+                                                                            <td className="px-3 py-2">{reg.user.name || "—"}</td>
+                                                                            <td className="px-3 py-2 text-xs">{reg.user.email}</td>
+                                                                            <td className="px-3 py-2">{reg.user.phone || "—"}</td>
+                                                                            <td className="px-3 py-2">
+                                                                                {reg.mentorName || "—"}
+                                                                                {reg.mentorPhone && <div className="text-xs text-gray-500">{reg.mentorPhone}</div>}
+                                                                            </td>
+                                                                            <td className="px-3 py-2">
+                                                                                <span className="text-xs px-2 py-1 rounded bg-blue-600/20 text-blue-400 border border-blue-600/30">
+                                                                                    {memberCount} members
+                                                                                </span>
+                                                                            </td>
+                                                                            <td className="px-3 py-2 max-w-[150px] truncate" title={reg.user.collage || ""}>
+                                                                                {reg.user.collage || "—"}
+                                                                            </td>
+                                                                            <td className="px-3 py-2">
+                                                                                {reg.user.isInternational ? (
+                                                                                    <span className="text-xs px-2 py-1 rounded bg-purple-600/20 text-purple-400 border border-purple-600/30">
+                                                                                        {reg.user.country || "International"}
+                                                                                    </span>
+                                                                                ) : (
+                                                                                    <span className="text-xs">{reg.user.state || reg.user.city || "—"}</span>
+                                                                                )}
+                                                                            </td>
+                                                                            <td className="px-3 py-2">
+                                                                                {reg.user.isInternational ? (
+                                                                                    <span className="text-xs px-2 py-1 rounded bg-purple-600/20 text-purple-400 border border-purple-600/30">
+                                                                                        International
+                                                                                    </span>
+                                                                                ) : (
+                                                                                    <span className="text-xs">Domestic</span>
+                                                                                )}
+                                                                            </td>
+                                                                            <td className="px-3 py-2">
+                                                                                <span
+                                                                                    className={`text-xs px-2 py-1 rounded ${
+                                                                                        reg.paymentStatus === "APPROVED"
+                                                                                            ? "bg-green-600/20 text-green-400 border border-green-600/30"
+                                                                                            : reg.paymentStatus === "PENDING"
+                                                                                            ? "bg-orange-600/20 text-orange-400 border border-orange-600/30"
+                                                                                            : "bg-red-600/20 text-red-400 border border-red-600/30"
+                                                                                    }`}
+                                                                                >
+                                                                                    {reg.paymentStatus || "N/A"}
+                                                                                </span>
+                                                                            </td>
+                                                                            <td className="px-3 py-2 text-xs">
+                                                                                {new Date(reg.createdAt).toLocaleDateString()}
+                                                                            </td>
+                                                                        </tr>
+                                                                    );
+                                                                })}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {event.totalRegistrations === 0 && (
+                                                <div className="text-gray-500 text-sm text-center py-4">
+                                                    No registrations for this event yet
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                    )}
                 </div>
             </div>
 
