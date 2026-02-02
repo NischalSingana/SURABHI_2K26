@@ -159,7 +159,7 @@ export default function EventsManagement() {
 
   const fetchCategoriesWithEvents = async () => {
     setLoading(true);
-    const result = await getCategories();
+    const result = await getCategories(true);
     if (result.success && result.data) {
       setCategories(result.data);
       // Update selected event if open
