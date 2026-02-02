@@ -62,78 +62,93 @@ export default function AnalyticsPage() {
 
     const downloadEventRegistrations = (event: any) => {
         try {
-            const data: any[] = [];
-
-            // Add individual registrations
+            // Prepare Individual Registrations Data
+            const individualData: any[] = [];
             event.individualRegistrations.forEach((reg: any) => {
-                data.push({
-                    "Registration Type": "Individual",
-                    "Registration ID": reg.id,
-                    "Event Name": event.name,
-                    "Category": event.category,
+                individualData.push({
                     "Name": reg.user.name || "",
                     "Email": reg.user.email || "",
                     "Phone": reg.user.phone || "",
                     "College": reg.user.collage || "",
-                    "College ID": reg.user.collageId || "",
-                    "Branch": reg.user.branch || "",
-                    "Year": reg.user.year || "",
-                    "State": reg.user.state || "",
-                    "City": reg.user.city || "",
-                    "Country": reg.user.country || "",
-                    "International": reg.user.isInternational ? "Yes" : "No",
-                    "Gender": reg.user.gender || "",
-                    "Payment Status": reg.paymentStatus || "",
-                    "Registered On": new Date(reg.createdAt).toLocaleString(),
+                    "Branch/Year": reg.user.branch && reg.user.year ? `${reg.user.branch} - ${reg.user.year}` : (reg.user.branch || reg.user.year || ""),
+                    "Location": reg.user.isInternational ? reg.user.country : `${reg.user.city || ""}, ${reg.user.state || ""}`.trim().replace(/^,|,$/g, '').trim() || "—",
+                    "Type": reg.user.isInternational ? "International" : "Domestic",
+                    "Payment": reg.paymentStatus || "N/A",
+                    "Registered": new Date(reg.createdAt).toLocaleDateString('en-IN'),
                 });
             });
 
-            // Add group registrations
+            // Prepare Group Registrations Data
+            const groupData: any[] = [];
             event.groupRegistrations.forEach((reg: any) => {
                 const members = reg.members || {};
-                const memberNames = Object.values(members).map((m: any) => m.name).join(", ");
+                const memberList = Object.values(members).map((m: any) => m.name).filter(Boolean);
                 
-                data.push({
-                    "Registration Type": "Group",
-                    "Registration ID": reg.id,
-                    "Event Name": event.name,
-                    "Category": event.category,
+                groupData.push({
                     "Group Name": reg.groupName || "",
-                    "Leader Name": reg.user.name || "",
-                    "Leader Email": reg.user.email || "",
-                    "Leader Phone": reg.user.phone || "",
-                    "Mentor Name": reg.mentorName || "",
-                    "Mentor Phone": reg.mentorPhone || "",
-                    "Members": memberNames,
+                    "Leader": reg.user.name || "",
+                    "Email": reg.user.email || "",
+                    "Phone": reg.user.phone || "",
+                    "Team Size": memberList.length,
+                    "Members": memberList.join(", "),
+                    "Mentor": reg.mentorName || "—",
+                    "Mentor Phone": reg.mentorPhone || "—",
                     "College": reg.user.collage || "",
-                    "College ID": reg.user.collageId || "",
-                    "State": reg.user.state || "",
-                    "City": reg.user.city || "",
-                    "Country": reg.user.country || "",
-                    "International": reg.user.isInternational ? "Yes" : "No",
-                    "Payment Status": reg.paymentStatus || "",
-                    "Registered On": new Date(reg.createdAt).toLocaleString(),
+                    "Location": reg.user.isInternational ? reg.user.country : `${reg.user.city || ""}, ${reg.user.state || ""}`.trim().replace(/^,|,$/g, '').trim() || "—",
+                    "Type": reg.user.isInternational ? "International" : "Domestic",
+                    "Payment": reg.paymentStatus || "N/A",
+                    "Registered": new Date(reg.createdAt).toLocaleDateString('en-IN'),
                 });
             });
 
-            if (data.length === 0) {
+            if (individualData.length === 0 && groupData.length === 0) {
                 toast.error("No registrations to download");
                 return;
             }
 
-            // Create worksheet
-            const ws = XLSX.utils.json_to_sheet(data);
-            
-            // Auto-size columns
-            const cols = Object.keys(data[0]).map(key => ({ wch: Math.max(key.length, 15) }));
-            ws['!cols'] = cols;
-
             // Create workbook
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Registrations");
+
+            // Add Individual Registrations sheet
+            if (individualData.length > 0) {
+                const ws1 = XLSX.utils.json_to_sheet(individualData);
+                ws1['!cols'] = [
+                    { wch: 20 }, // Name
+                    { wch: 25 }, // Email
+                    { wch: 15 }, // Phone
+                    { wch: 30 }, // College
+                    { wch: 20 }, // Branch/Year
+                    { wch: 20 }, // Location
+                    { wch: 12 }, // Type
+                    { wch: 12 }, // Payment
+                    { wch: 12 }, // Registered
+                ];
+                XLSX.utils.book_append_sheet(wb, ws1, "Individual");
+            }
+
+            // Add Group Registrations sheet
+            if (groupData.length > 0) {
+                const ws2 = XLSX.utils.json_to_sheet(groupData);
+                ws2['!cols'] = [
+                    { wch: 25 }, // Group Name
+                    { wch: 20 }, // Leader
+                    { wch: 25 }, // Email
+                    { wch: 15 }, // Phone
+                    { wch: 10 }, // Team Size
+                    { wch: 40 }, // Members
+                    { wch: 20 }, // Mentor
+                    { wch: 15 }, // Mentor Phone
+                    { wch: 30 }, // College
+                    { wch: 20 }, // Location
+                    { wch: 12 }, // Type
+                    { wch: 12 }, // Payment
+                    { wch: 12 }, // Registered
+                ];
+                XLSX.utils.book_append_sheet(wb, ws2, "Group");
+            }
 
             // Generate filename
-            const filename = `${event.name.replace(/[^a-z0-9]/gi, '_')}_Registrations_${new Date().toISOString().split('T')[0]}.xlsx`;
+            const filename = `${event.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
 
             // Download
             XLSX.writeFile(wb, filename);
@@ -146,80 +161,105 @@ export default function AnalyticsPage() {
 
     const downloadAllRegistrations = () => {
         try {
-            const data: any[] = [];
-
+            // Prepare Individual Registrations Data
+            const individualData: any[] = [];
             detailedEvents.forEach(event => {
-                // Add individual registrations
                 event.individualRegistrations.forEach((reg: any) => {
-                    data.push({
-                        "Registration Type": "Individual",
-                        "Registration ID": reg.id,
-                        "Event Name": event.name,
+                    individualData.push({
+                        "Event": event.name,
                         "Category": event.category,
                         "Name": reg.user.name || "",
                         "Email": reg.user.email || "",
                         "Phone": reg.user.phone || "",
                         "College": reg.user.collage || "",
-                        "College ID": reg.user.collageId || "",
-                        "Branch": reg.user.branch || "",
-                        "Year": reg.user.year || "",
-                        "State": reg.user.state || "",
-                        "City": reg.user.city || "",
-                        "Country": reg.user.country || "",
-                        "International": reg.user.isInternational ? "Yes" : "No",
-                        "Gender": reg.user.gender || "",
-                        "Payment Status": reg.paymentStatus || "",
-                        "Registered On": new Date(reg.createdAt).toLocaleString(),
-                    });
-                });
-
-                // Add group registrations
-                event.groupRegistrations.forEach((reg: any) => {
-                    const members = reg.members || {};
-                    const memberNames = Object.values(members).map((m: any) => m.name).join(", ");
-                    
-                    data.push({
-                        "Registration Type": "Group",
-                        "Registration ID": reg.id,
-                        "Event Name": event.name,
-                        "Category": event.category,
-                        "Group Name": reg.groupName || "",
-                        "Leader Name": reg.user.name || "",
-                        "Leader Email": reg.user.email || "",
-                        "Leader Phone": reg.user.phone || "",
-                        "Mentor Name": reg.mentorName || "",
-                        "Mentor Phone": reg.mentorPhone || "",
-                        "Members": memberNames,
-                        "College": reg.user.collage || "",
-                        "College ID": reg.user.collageId || "",
-                        "State": reg.user.state || "",
-                        "City": reg.user.city || "",
-                        "Country": reg.user.country || "",
-                        "International": reg.user.isInternational ? "Yes" : "No",
-                        "Payment Status": reg.paymentStatus || "",
-                        "Registered On": new Date(reg.createdAt).toLocaleString(),
+                        "Branch/Year": reg.user.branch && reg.user.year ? `${reg.user.branch} - ${reg.user.year}` : (reg.user.branch || reg.user.year || ""),
+                        "Location": reg.user.isInternational ? reg.user.country : `${reg.user.city || ""}, ${reg.user.state || ""}`.trim().replace(/^,|,$/g, '').trim() || "—",
+                        "Type": reg.user.isInternational ? "International" : "Domestic",
+                        "Payment": reg.paymentStatus || "N/A",
+                        "Registered": new Date(reg.createdAt).toLocaleDateString('en-IN'),
                     });
                 });
             });
 
-            if (data.length === 0) {
+            // Prepare Group Registrations Data
+            const groupData: any[] = [];
+            detailedEvents.forEach(event => {
+                event.groupRegistrations.forEach((reg: any) => {
+                    const members = reg.members || {};
+                    const memberList = Object.values(members).map((m: any) => m.name).filter(Boolean);
+                    
+                    groupData.push({
+                        "Event": event.name,
+                        "Category": event.category,
+                        "Group Name": reg.groupName || "",
+                        "Leader": reg.user.name || "",
+                        "Email": reg.user.email || "",
+                        "Phone": reg.user.phone || "",
+                        "Team Size": memberList.length,
+                        "Members": memberList.join(", "),
+                        "Mentor": reg.mentorName || "—",
+                        "Mentor Phone": reg.mentorPhone || "—",
+                        "College": reg.user.collage || "",
+                        "Location": reg.user.isInternational ? reg.user.country : `${reg.user.city || ""}, ${reg.user.state || ""}`.trim().replace(/^,|,$/g, '').trim() || "—",
+                        "Type": reg.user.isInternational ? "International" : "Domestic",
+                        "Payment": reg.paymentStatus || "N/A",
+                        "Registered": new Date(reg.createdAt).toLocaleDateString('en-IN'),
+                    });
+                });
+            });
+
+            if (individualData.length === 0 && groupData.length === 0) {
                 toast.error("No registrations to download");
                 return;
             }
 
-            // Create worksheet
-            const ws = XLSX.utils.json_to_sheet(data);
-            
-            // Auto-size columns
-            const cols = Object.keys(data[0]).map(key => ({ wch: Math.max(key.length, 15) }));
-            ws['!cols'] = cols;
-
             // Create workbook
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "All Registrations");
+
+            // Add Individual Registrations sheet
+            if (individualData.length > 0) {
+                const ws1 = XLSX.utils.json_to_sheet(individualData);
+                ws1['!cols'] = [
+                    { wch: 20 }, // Event
+                    { wch: 15 }, // Category
+                    { wch: 20 }, // Name
+                    { wch: 25 }, // Email
+                    { wch: 15 }, // Phone
+                    { wch: 30 }, // College
+                    { wch: 20 }, // Branch/Year
+                    { wch: 20 }, // Location
+                    { wch: 12 }, // Type
+                    { wch: 12 }, // Payment
+                    { wch: 12 }, // Registered
+                ];
+                XLSX.utils.book_append_sheet(wb, ws1, "Individual");
+            }
+
+            // Add Group Registrations sheet
+            if (groupData.length > 0) {
+                const ws2 = XLSX.utils.json_to_sheet(groupData);
+                ws2['!cols'] = [
+                    { wch: 20 }, // Event
+                    { wch: 15 }, // Category
+                    { wch: 25 }, // Group Name
+                    { wch: 20 }, // Leader
+                    { wch: 25 }, // Email
+                    { wch: 15 }, // Phone
+                    { wch: 10 }, // Team Size
+                    { wch: 40 }, // Members
+                    { wch: 20 }, // Mentor
+                    { wch: 15 }, // Mentor Phone
+                    { wch: 30 }, // College
+                    { wch: 20 }, // Location
+                    { wch: 12 }, // Type
+                    { wch: 12 }, // Payment
+                    { wch: 12 }, // Registered
+                ];
+                XLSX.utils.book_append_sheet(wb, ws2, "Group");
+            }
 
             // Generate filename
-            const filename = `All_Competition_Registrations_${new Date().toISOString().split('T')[0]}.xlsx`;
+            const filename = `All_Registrations_${new Date().toISOString().split('T')[0]}.xlsx`;
 
             // Download
             XLSX.writeFile(wb, filename);
