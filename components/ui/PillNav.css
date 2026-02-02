@@ -13,7 +13,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.25rem 1.5rem;
+  padding: 0.25rem clamp(0.75rem, 3vw, 2rem);
   max-width: 100%;
   width: 100%;
   pointer-events: auto;
@@ -36,17 +36,17 @@
 
 .pill-logo img,
 .pill-logo-image {
-  margin: -28px 0;
+  margin: clamp(-30px, -2.5vw, -20px) 0;
   width: auto !important;
   height: auto !important;
-  max-height: 115px;
+  max-height: clamp(80px, 10vw, 115px);
   object-fit: contain;
   position: relative;
   z-index: 20;
   pointer-events: none;
   transition: transform 0.3s ease;
   /* Ensure clicks pass to the anchor tag */
-  /* Using max-height to maintain aspect ratio while allowing CSS control */
+  /* Using max-height with clamp for fluid responsive scaling */
 }
 
 /* Logo hover effect: Zoom in */
@@ -64,7 +64,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  gap: 2.5rem;
+  gap: clamp(1rem, 2vw, 2.5rem);
   align-items: center;
 }
 
@@ -73,18 +73,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 0.75rem;
-  /* Reduced horizontal padding */
+  padding: clamp(0.35rem, 0.8vw, 0.5rem) clamp(0.5rem, 1.2vw, 0.75rem);
   color: var(--pill-text, #ffffff);
   text-decoration: none;
   font-weight: 500;
-  font-size: 1.15rem;
+  font-size: clamp(0.9rem, 1.8vw, 1.15rem);
   letter-spacing: 0.02em;
   overflow: hidden;
   border-radius: 9999px;
   transition: color 0.3s ease;
   /* Smoother text color transition */
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .pill.is-active {
@@ -262,8 +262,24 @@
   /* Ensure bottom border color applies */
 }
 
-/* Mobile Styles - Tablets and Below */
-@media (max-width: 1024px) {
+/* Tablet Styles - iPad and similar (768px - 1024px) */
+@media (max-width: 1024px) and (min-width: 768px) {
+  /* Keep desktop navigation visible but let clamp() handle sizing */
+  .desktop-only {
+    display: flex !important;
+  }
+
+  .mobile-only {
+    display: none !important;
+  }
+
+  .pill-nav {
+    gap: clamp(0.5rem, 1vw, 1rem);
+  }
+}
+
+/* Mobile Styles - Phones and Small Tablets */
+@media (max-width: 767px) {
   .desktop-only {
     display: none !important;
   }
@@ -281,7 +297,6 @@
   .pill-nav {
     padding: 0.5rem 0.75rem;
     min-height: 70px;
-    /* Increased for professional look */
     display: flex !important;
     visibility: visible !important;
     justify-content: space-between !important;
@@ -297,7 +312,6 @@
 
   .pill-logo img {
     height: 64px;
-    /* Increased size */
     margin: -8px 0;
     visibility: visible !important;
   }
@@ -323,25 +337,20 @@
 
   /* Sidebar Transformation */
   .mobile-menu-popover {
-    /* Reset overriding full-screen styles */
     position: fixed;
     top: 0;
     right: 0;
     bottom: auto;
-    /* Allow auto height */
     height: auto;
-    /* Dynamic height */
     max-height: 85vh;
     width: 280px;
     max-width: 75vw;
-    /* Reuse base backgrounds/borders or redefine if needed, but let's keep consistency */
     background: linear-gradient(180deg, rgba(20, 5, 5, 0.98) 0%, rgba(30, 0, 0, 0.96) 100%);
     backdrop-filter: blur(24px);
     border-left: 1px solid rgba(255, 107, 53, 0.2);
     border-bottom: 1px solid rgba(255, 107, 53, 0.2);
     border-bottom-left-radius: 20px;
     padding: 5rem 2rem 2rem 2rem;
-    /* Adjusted for taller nav */
     box-shadow: -10px 0 40px rgba(0, 0, 0, 0.7);
     overflow-y: auto;
     overflow-x: hidden;
@@ -424,18 +433,20 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .pill-profile-link {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0.5rem;
+  gap: clamp(0.3rem, 0.8vw, 0.5rem);
+  padding: clamp(0.2rem, 0.5vw, 0.25rem) clamp(0.4rem, 0.8vw, 0.5rem);
   border-radius: 9999px;
   background: rgba(255, 107, 53, 0.1);
   border: 1px solid rgba(255, 107, 53, 0.2);
   text-decoration: none;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .pill-profile-link:hover {
@@ -444,8 +455,8 @@
 }
 
 .pill-profile-avatar {
-  width: 2rem;
-  height: 2rem;
+  width: clamp(1.5rem, 3vw, 2rem);
+  height: clamp(1.5rem, 3vw, 2rem);
   border-radius: 50%;
   background: linear-gradient(135deg, #ff6b35 0%, #ff4757 100%);
   display: flex;
@@ -456,6 +467,8 @@
 
 .pill-profile-icon {
   color: white;
+  width: clamp(14px, 2.5vw, 18px);
+  height: clamp(14px, 2.5vw, 18px);
 }
 
 .pill-profile-info {
@@ -466,30 +479,31 @@
 
 .pill-profile-name {
   color: white;
-  font-size: 0.8rem;
+  font-size: clamp(0.7rem, 1.4vw, 0.8rem);
   font-weight: 500;
   line-height: 1.1;
 }
 
 .pill-profile-label {
   color: rgba(255, 255, 255, 0.6);
-  font-size: 0.7rem;
+  font-size: clamp(0.65rem, 1.2vw, 0.7rem);
   line-height: 1;
 }
 
 .pill-login-button {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.8rem;
+  gap: clamp(0.3rem, 0.6vw, 0.4rem);
+  padding: clamp(0.35rem, 0.7vw, 0.4rem) clamp(0.6rem, 1.2vw, 0.8rem);
   background: linear-gradient(135deg, #ff6b35 0%, #ff4757 100%);
   color: white;
   border-radius: 9999px;
   font-weight: 500;
-  font-size: 0.85rem;
+  font-size: clamp(0.75rem, 1.4vw, 0.85rem);
   text-decoration: none;
   transition: all 0.2s;
   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  white-space: nowrap;
 }
 
 .pill-login-button:hover {
@@ -517,7 +531,8 @@
   background: linear-gradient(135deg, #ff5722 0%, #e63946 100%);
 }
 
-@media (min-width: 1025px) {
+/* Desktop - Full Navigation */
+@media (min-width: 768px) {
   .desktop-only {
     display: flex !important;
   }
