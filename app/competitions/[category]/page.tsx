@@ -105,8 +105,8 @@ function CategoryPageContent() {
 
     if (categoryResult.success && categoryResult.data) {
       const decoded = decodeURIComponent(categoryParam);
-      const currentCategory = categoryResult.data.find(
-        (c) => c.slug === categoryParam || c.name.toLowerCase() === decoded.toLowerCase()
+      const currentCategory = (categoryResult.data as Array<{ id: string; name: string; slug: string; image: string | null; video: string | null; Event: any[] }>).find(
+        (c: { id: string; name: string; slug: string; image: string | null; video: string | null; Event: any[] }) => c.slug === categoryParam || c.name.toLowerCase() === decoded.toLowerCase()
       );
       if (currentCategory) {
         resolvedCategory = { slug: currentCategory.slug, name: currentCategory.name };
