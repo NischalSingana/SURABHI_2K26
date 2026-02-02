@@ -69,9 +69,14 @@ export default function AnalyticsPage() {
                     "Name": reg.user.name || "",
                     "Email": reg.user.email || "",
                     "Phone": reg.user.phone || "",
+                    "Gender": reg.user.gender || "",
                     "College": reg.user.collage || "",
-                    "Branch/Year": reg.user.branch && reg.user.year ? `${reg.user.branch} - ${reg.user.year}` : (reg.user.branch || reg.user.year || ""),
-                    "Location": reg.user.isInternational ? reg.user.country : `${reg.user.city || ""}, ${reg.user.state || ""}`.trim().replace(/^,|,$/g, '').trim() || "—",
+                    "College ID": reg.user.collageId || "",
+                    "Branch": reg.user.branch || "",
+                    "Year": reg.user.year || "",
+                    "City": reg.user.city || "",
+                    "State": reg.user.state || "",
+                    "Country": reg.user.country || "",
                     "Type": reg.user.isInternational ? "International" : "Domestic",
                     "Payment": reg.paymentStatus || "N/A",
                     "Registered": new Date(reg.createdAt).toLocaleDateString('en-IN'),
@@ -89,12 +94,16 @@ export default function AnalyticsPage() {
                     "Leader": reg.user.name || "",
                     "Email": reg.user.email || "",
                     "Phone": reg.user.phone || "",
+                    "Gender": reg.user.gender || "",
                     "Team Size": memberList.length,
                     "Members": memberList.join(", "),
                     "Mentor": reg.mentorName || "—",
                     "Mentor Phone": reg.mentorPhone || "—",
                     "College": reg.user.collage || "",
-                    "Location": reg.user.isInternational ? reg.user.country : `${reg.user.city || ""}, ${reg.user.state || ""}`.trim().replace(/^,|,$/g, '').trim() || "—",
+                    "College ID": reg.user.collageId || "",
+                    "City": reg.user.city || "",
+                    "State": reg.user.state || "",
+                    "Country": reg.user.country || "",
                     "Type": reg.user.isInternational ? "International" : "Domestic",
                     "Payment": reg.paymentStatus || "N/A",
                     "Registered": new Date(reg.createdAt).toLocaleDateString('en-IN'),
@@ -116,9 +125,14 @@ export default function AnalyticsPage() {
                     { wch: 20 }, // Name
                     { wch: 25 }, // Email
                     { wch: 15 }, // Phone
+                    { wch: 10 }, // Gender
                     { wch: 30 }, // College
-                    { wch: 20 }, // Branch/Year
-                    { wch: 20 }, // Location
+                    { wch: 15 }, // College ID
+                    { wch: 20 }, // Branch
+                    { wch: 10 }, // Year
+                    { wch: 15 }, // City
+                    { wch: 15 }, // State
+                    { wch: 15 }, // Country
                     { wch: 12 }, // Type
                     { wch: 12 }, // Payment
                     { wch: 12 }, // Registered
@@ -134,12 +148,16 @@ export default function AnalyticsPage() {
                     { wch: 20 }, // Leader
                     { wch: 25 }, // Email
                     { wch: 15 }, // Phone
+                    { wch: 10 }, // Gender
                     { wch: 10 }, // Team Size
                     { wch: 40 }, // Members
                     { wch: 20 }, // Mentor
                     { wch: 15 }, // Mentor Phone
                     { wch: 30 }, // College
-                    { wch: 20 }, // Location
+                    { wch: 15 }, // College ID
+                    { wch: 15 }, // City
+                    { wch: 15 }, // State
+                    { wch: 15 }, // Country
                     { wch: 12 }, // Type
                     { wch: 12 }, // Payment
                     { wch: 12 }, // Registered
@@ -161,7 +179,7 @@ export default function AnalyticsPage() {
 
     const downloadAllRegistrations = () => {
         try {
-            // Prepare Individual Registrations Data
+            // Prepare Individual Registrations Data (from ALL events)
             const individualData: any[] = [];
             detailedEvents.forEach(event => {
                 event.individualRegistrations.forEach((reg: any) => {
@@ -171,9 +189,14 @@ export default function AnalyticsPage() {
                         "Name": reg.user.name || "",
                         "Email": reg.user.email || "",
                         "Phone": reg.user.phone || "",
+                        "Gender": reg.user.gender || "",
                         "College": reg.user.collage || "",
-                        "Branch/Year": reg.user.branch && reg.user.year ? `${reg.user.branch} - ${reg.user.year}` : (reg.user.branch || reg.user.year || ""),
-                        "Location": reg.user.isInternational ? reg.user.country : `${reg.user.city || ""}, ${reg.user.state || ""}`.trim().replace(/^,|,$/g, '').trim() || "—",
+                        "College ID": reg.user.collageId || "",
+                        "Branch": reg.user.branch || "",
+                        "Year": reg.user.year || "",
+                        "City": reg.user.city || "",
+                        "State": reg.user.state || "",
+                        "Country": reg.user.country || "",
                         "Type": reg.user.isInternational ? "International" : "Domestic",
                         "Payment": reg.paymentStatus || "N/A",
                         "Registered": new Date(reg.createdAt).toLocaleDateString('en-IN'),
@@ -181,7 +204,7 @@ export default function AnalyticsPage() {
                 });
             });
 
-            // Prepare Group Registrations Data
+            // Prepare Group Registrations Data (from ALL events)
             const groupData: any[] = [];
             detailedEvents.forEach(event => {
                 event.groupRegistrations.forEach((reg: any) => {
@@ -195,12 +218,16 @@ export default function AnalyticsPage() {
                         "Leader": reg.user.name || "",
                         "Email": reg.user.email || "",
                         "Phone": reg.user.phone || "",
+                        "Gender": reg.user.gender || "",
                         "Team Size": memberList.length,
                         "Members": memberList.join(", "),
                         "Mentor": reg.mentorName || "—",
                         "Mentor Phone": reg.mentorPhone || "—",
                         "College": reg.user.collage || "",
-                        "Location": reg.user.isInternational ? reg.user.country : `${reg.user.city || ""}, ${reg.user.state || ""}`.trim().replace(/^,|,$/g, '').trim() || "—",
+                        "College ID": reg.user.collageId || "",
+                        "City": reg.user.city || "",
+                        "State": reg.user.state || "",
+                        "Country": reg.user.country || "",
                         "Type": reg.user.isInternational ? "International" : "Domestic",
                         "Payment": reg.paymentStatus || "N/A",
                         "Registered": new Date(reg.createdAt).toLocaleDateString('en-IN'),
@@ -225,9 +252,14 @@ export default function AnalyticsPage() {
                     { wch: 20 }, // Name
                     { wch: 25 }, // Email
                     { wch: 15 }, // Phone
+                    { wch: 10 }, // Gender
                     { wch: 30 }, // College
-                    { wch: 20 }, // Branch/Year
-                    { wch: 20 }, // Location
+                    { wch: 15 }, // College ID
+                    { wch: 20 }, // Branch
+                    { wch: 10 }, // Year
+                    { wch: 15 }, // City
+                    { wch: 15 }, // State
+                    { wch: 15 }, // Country
                     { wch: 12 }, // Type
                     { wch: 12 }, // Payment
                     { wch: 12 }, // Registered
@@ -245,12 +277,16 @@ export default function AnalyticsPage() {
                     { wch: 20 }, // Leader
                     { wch: 25 }, // Email
                     { wch: 15 }, // Phone
+                    { wch: 10 }, // Gender
                     { wch: 10 }, // Team Size
                     { wch: 40 }, // Members
                     { wch: 20 }, // Mentor
                     { wch: 15 }, // Mentor Phone
                     { wch: 30 }, // College
-                    { wch: 20 }, // Location
+                    { wch: 15 }, // College ID
+                    { wch: 15 }, // City
+                    { wch: 15 }, // State
+                    { wch: 15 }, // Country
                     { wch: 12 }, // Type
                     { wch: 12 }, // Payment
                     { wch: 12 }, // Registered
