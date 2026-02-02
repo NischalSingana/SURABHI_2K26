@@ -157,3 +157,101 @@ export async function getAccommodationStats() {
         return { success: false, error: error.message };
     }
 }
+
+export async function getDetailedEventRegistrations() {
+    try {
+        const headersList = await headers();
+        const session = await auth.api.getSession({
+            headers: headersList,
+        });
+
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+            throw new Error("Unauthorized");
+        }
+
+        const events = await prisma.event.findMany({
+            select: {
+                id: true,
+                name: true,
+                isGroupEvent: true,
+                Category: {
+                    select: {
+                        name: true,
+                    },
+                },
+                individualRegistrations: {
+                    select: {
+                        id: true,
+                        createdAt: true,
+                        paymentStatus: true,
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                phone: true,
+                                collage: true,
+                                collageId: true,
+                                branch: true,
+                                year: true,
+                                state: true,
+                                city: true,
+                                country: true,
+                                isInternational: true,
+                                gender: true,
+                            },
+                        },
+                    },
+                },
+                groupRegistrations: {
+                    select: {
+                        id: true,
+                        groupName: true,
+                        mentorName: true,
+                        mentorPhone: true,
+                        members: true,
+                        createdAt: true,
+                        paymentStatus: true,
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                phone: true,
+                                collage: true,
+                                collageId: true,
+                                state: true,
+                                city: true,
+                                country: true,
+                                isInternational: true,
+                                gender: true,
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: {
+                name: "asc",
+            },
+        });
+
+        return {
+            success: true,
+            events: events.map((event) => ({
+                id: event.id,
+                name: event.name,
+                category: event.Category.name,
+                isGroupEvent: event.isGroupEvent,
+                totalRegistrations:
+                    event.individualRegistrations.length + event.groupRegistrations.length,
+                individualCount: event.individualRegistrations.length,
+                groupCount: event.groupRegistrations.length,
+                individualRegistrations: event.individualRegistrations,
+                groupRegistrations: event.groupRegistrations,
+            })),
+        };
+    } catch (error: any) {
+        console.error("Error fetching detailed event registrations:", error);
+        return { success: false, error: error.message };
+    }
+}
