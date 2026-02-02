@@ -51,7 +51,7 @@ export default function AnalyticsPage() {
             toast.error("Failed to load accommodation stats");
         }
 
-        if (detailedResult.success) {
+        if (detailedResult.success && detailedResult.events) {
             setDetailedEvents(detailedResult.events);
         } else {
             toast.error("Failed to load detailed registrations");
