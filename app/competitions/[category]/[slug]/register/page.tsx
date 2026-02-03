@@ -474,8 +474,8 @@ export default function EventRegistrationPage() {
                         </div>
                     ) : (
                         <div className="space-y-8">
-                            {/* ID Card Mandatory Warning - not for international (virtual) */}
-                            {!isInternational && (
+                            {/* ID Card Mandatory Warning - not for virtual participation */}
+                            {!isVirtual && !isInternational && (
                             <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-4">
                                 <div className="flex items-start gap-3">
                                     <div className="text-red-500 text-xl font-bold shrink-0">⚠️</div>
@@ -490,7 +490,7 @@ export default function EventRegistrationPage() {
                                 </div>
                             </div>
                             )}
-                            {isInternational && (
+                            {(isVirtual || isInternational) && (
                             <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
                                 <p className="text-green-300 text-sm font-medium">
                                     Virtual participation — no physical ID required. Evaluations will be conducted virtually by judges.
@@ -710,18 +710,18 @@ export default function EventRegistrationPage() {
                                         </label>
 
                                         {/* Virtual Option */}
-                                        <label className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${isVirtual ? 'border-purple-600 bg-purple-600/10' : 'border-zinc-700 bg-zinc-800/30 hover:border-zinc-600'}`}>
+                                        <label className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${isVirtual ? 'border-zinc-500 bg-zinc-800/50' : 'border-zinc-700 bg-zinc-800/30 hover:border-zinc-600'}`}>
                                             <input
                                                 type="radio"
                                                 name="participationMode"
                                                 checked={isVirtual}
                                                 onChange={() => setIsVirtual(true)}
-                                                className="mt-1 w-5 h-5 text-emerald-500 focus:ring-emerald-500"
+                                                className="mt-1 w-5 h-5 text-zinc-500 focus:ring-zinc-500"
                                             />
                                             <div className="flex-1">
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-white font-semibold">Virtual Participation</span>
-                                                    <span className="text-emerald-400 font-bold">₹{REGISTRATION_FEES.VIRTUAL}</span>
+                                                    <span className="text-red-500 font-bold">₹{REGISTRATION_FEES.VIRTUAL}</span>
                                                 </div>
                                                 <p className="text-zinc-400 text-sm mt-1">
                                                     Participate online via proctored platform
@@ -731,15 +731,15 @@ export default function EventRegistrationPage() {
                                                     <p className="text-zinc-200 font-semibold text-xs mb-2">✨ Virtual Benefits:</p>
                                                     <ul className="space-y-1 text-xs text-zinc-300">
                                                         <li className="flex items-center gap-2">
-                                                            <FiCheck className="text-emerald-400" size={12} />
-                                                            Proctored online competition room
+                                                            <FiCheck className="text-zinc-400" size={12} />
+                                                            Proctored virtual meeting for competition
                                                         </li>
                                                         <li className="flex items-center gap-2">
-                                                            <FiCheck className="text-emerald-400" size={12} />
+                                                            <FiCheck className="text-zinc-400" size={12} />
                                                             Eligible for cash prizes
                                                         </li>
                                                         <li className="flex items-center gap-2">
-                                                            <FiCheck className="text-emerald-400" size={12} />
+                                                            <FiCheck className="text-zinc-400" size={12} />
                                                             Participation certificate provided
                                                         </li>
                                                     </ul>
@@ -915,22 +915,22 @@ export default function EventRegistrationPage() {
 
                                             <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800/50">
                                                 <h3 className="text-[10px] md:text-xs font-semibold text-zinc-500 mb-2 uppercase tracking-wider">
-                                                    {isInternational ? "Virtual Participation Includes:" : "Also Includes Complimentary:"}
+                                                    {isVirtual || isInternational ? "Virtual Participation Includes:" : "Also Includes Complimentary:"}
                                                 </h3>
                                                 <ul className="space-y-1.5 md:space-y-2 text-xs md:text-base text-zinc-300">
-                                                    {isInternational ? (
+                                                    {isVirtual || isInternational ? (
                                                         <>
                                                             <li className="flex items-start gap-2">
                                                                 <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
-                                                                <span>Virtual participation – compete from anywhere</span>
+                                                                <span>Proctored virtual meeting for competition</span>
                                                             </li>
                                                             <li className="flex items-start gap-2">
                                                                 <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
-                                                                <span>Online submission & virtual evaluation by judges</span>
+                                                                <span>Eligible for cash prizes</span>
                                                             </li>
                                                             <li className="flex items-start gap-2">
                                                                 <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
-                                                                <span>Free registration – no payment required</span>
+                                                                <span>Participation certificate provided</span>
                                                             </li>
                                                         </>
                                                     ) : (
@@ -952,8 +952,8 @@ export default function EventRegistrationPage() {
                                                 </ul>
                                             </div>
 
-                                            {/* ID Card Mandatory Warning – not shown for international (virtual participation) */}
-                                            {!isInternational && (
+                                            {/* ID Card Mandatory Warning – not shown for virtual participation */}
+                                            {!isVirtual && !isInternational && (
                                                 <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-3 md:p-4">
                                                     <div className="flex items-start gap-2 md:gap-3">
                                                         <div className="text-red-500 text-lg md:text-xl font-bold shrink-0">⚠️</div>
@@ -1004,20 +1004,22 @@ export default function EventRegistrationPage() {
                                                     <p className="text-zinc-500 text-xs md:text-sm">Scan & Upload Screenshot</p>
                                                 </div>
 
-                                                {/* ID Card Mandatory Warning */}
-                                                <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-3 md:p-4">
-                                                    <div className="flex items-start gap-2 md:gap-3">
-                                                        <div className="text-red-500 text-lg md:text-xl font-bold shrink-0">⚠️</div>
-                                                        <div>
-                                                            <h3 className="text-red-400 font-bold text-[10px] md:text-xs mb-1 uppercase tracking-wide">
-                                                                Important Notice
-                                                            </h3>
-                                                            <p className="text-red-300 text-[9px] md:text-xs font-medium leading-relaxed">
-                                                                COLLEGE PHYSICAL ID CARD MANDATORY FOR ENTRY TO THE FEST
-                                                            </p>
+                                                {/* ID Card Mandatory Warning - only for physical participation */}
+                                                {!isVirtual && (
+                                                    <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-3 md:p-4">
+                                                        <div className="flex items-start gap-2 md:gap-3">
+                                                            <div className="text-red-500 text-lg md:text-xl font-bold shrink-0">⚠️</div>
+                                                            <div>
+                                                                <h3 className="text-red-400 font-bold text-[10px] md:text-xs mb-1 uppercase tracking-wide">
+                                                                    Important Notice
+                                                                </h3>
+                                                                <p className="text-red-300 text-[9px] md:text-xs font-medium leading-relaxed">
+                                                                    COLLEGE PHYSICAL ID CARD MANDATORY FOR ENTRY TO THE FEST
+                                                                </p>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                )}
 
                                                 <div className="bg-zinc-800/30 p-5 rounded-lg border border-zinc-800/50 flex flex-col gap-5">
                                                     <div className="flex flex-col md:flex-row gap-6 items-center">
