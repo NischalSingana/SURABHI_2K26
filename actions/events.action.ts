@@ -82,6 +82,7 @@ export async function getCategories(includeFullData: boolean = true): Promise<{ 
               participantLimit: true,
               isGroupEvent: true,
               allowSubmissions: true,
+              virtualEnabled: true,
               minTeamSize: true,
               maxTeamSize: true,
               registrationLink: true,
@@ -407,6 +408,7 @@ export async function createEvent(eventData: EventData) {
         venue: eventData.venue,
         isGroupEvent: eventData.isGroupEvent,
         allowSubmissions: !!eventData.allowSubmissions,
+        virtualEnabled: !!(eventData as any).virtualEnabled,
         minTeamSize: eventData.minTeamSize,
         maxTeamSize: eventData.maxTeamSize,
         startTime: eventData.startTime,
@@ -492,6 +494,7 @@ export async function updateEvent({ id, eventData }: EventUpdateData) {
         venue: eventData.venue,
         isGroupEvent: eventData.isGroupEvent,
         allowSubmissions: !!eventData.allowSubmissions,
+        virtualEnabled: !!(eventData as any).virtualEnabled,
         minTeamSize: eventData.minTeamSize,
         maxTeamSize: eventData.maxTeamSize,
         startTime: eventData.startTime,
@@ -640,7 +643,8 @@ export async function registerGroupEvent(
     paymentScreenshot: string;
     utrId: string;
     payeeName: string;
-  }
+  },
+  isVirtual?: boolean
 ) {
   try {
     const headersList = await headers();
@@ -715,6 +719,7 @@ export async function registerGroupEvent(
             mentorName,
             mentorPhone,
             members: members as any, // Storing manual details
+            isVirtual: isVirtual || false,
             registrationDetails: registrationDetails || undefined,
             paymentScreenshot: paymentDetails?.paymentScreenshot || null,
             utrId: paymentDetails?.utrId || null,
@@ -863,7 +868,8 @@ export async function registerForEvent(
     paymentScreenshot: string;
     utrId: string;
     payeeName: string;
-  }
+  },
+  isVirtual?: boolean
 ) {
   try {
     const headersList = await headers();
@@ -947,6 +953,7 @@ export async function registerForEvent(
           data: {
             userId: session.user.id,
             eventId: eventId,
+            isVirtual: isVirtual || false,
             registrationDetails: registrationDetails || undefined,
             paymentScreenshot: paymentDetails?.paymentScreenshot || null,
             utrId: paymentDetails?.utrId || null,

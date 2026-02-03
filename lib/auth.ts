@@ -35,6 +35,11 @@ export const auth = betterAuth({
             redirectURI: isProduction
                 ? "https://klusurabhi.in/api/auth/callback/google"
                 : "http://localhost:3000/api/auth/callback/google",
+            scopes: ["openid", "email", "profile"], // Explicit scopes
+            authorizationParams: {
+                access_type: "offline",
+                prompt: "consent",
+            },
         },
         microsoft: {
             clientId: process.env.MICROSOFT_CLIENT_ID as string,
@@ -69,9 +74,11 @@ export const auth = betterAuth({
         expiresIn: 60 * 60 * 24 * 7, // 7 days
         updateAge: 60 * 60 * 24, // 1 day
         cookieOptions: {
-            secure: process.env.NODE_ENV === 'production',
+            secure: process.env.NODE_ENV === 'production', // MUST be true for HTTPS in production
             sameSite: 'lax',
             path: '/',
+            domain: process.env.NODE_ENV === 'production' ? '.klusurabhi.in' : undefined,
+            httpOnly: true,
         }
     },
     user: {

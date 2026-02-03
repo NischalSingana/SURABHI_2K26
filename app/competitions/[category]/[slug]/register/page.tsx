@@ -23,6 +23,8 @@ import {
     registerGroupEvent
 } from "@/actions/events.action";
 import { useSession } from "@/lib/auth-client";
+import { checkVirtualEligibility, getRegistrationFee, getFeeDisplay } from "@/lib/virtual-eligibility";
+import { REGISTRATION_FEES } from "@/lib/constants";
 
 interface Event {
     id: string;
@@ -36,6 +38,7 @@ interface Event {
     participantLimit: number;
     termsandconditions: string;
     isGroupEvent: boolean;
+    virtualEnabled?: boolean;
     minTeamSize: number;
     maxTeamSize: number;
     whatsappLink?: string | null;
@@ -74,6 +77,9 @@ export default function EventRegistrationPage() {
     const [registering, setRegistering] = useState(false);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [hasScrolled, setHasScrolled] = useState(false);
+    
+    // Virtual Participation State
+    const [isVirtual, setIsVirtual] = useState(false);
 
     // Group Registration State
     const [teamSize, setTeamSize] = useState(0);
@@ -183,13 +189,15 @@ export default function EventRegistrationPage() {
                     mentorName,
                     mentorPhone,
                     isVastranaut ? { styleDNA } : undefined,
-                    paymentData
+                    paymentData,
+                    isVirtual
                 );
             } else {
                 result = await registerForEvent(
                     event.id,
                     isVastranaut ? { styleDNA } : undefined,
-                    paymentData
+                    paymentData,
+                    isVirtual
                 );
             }
 
@@ -299,8 +307,14 @@ export default function EventRegistrationPage() {
 
     const isKLStudent = session?.user?.email?.endsWith("@kluniversity.in");
     const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
+    const virtualEligibility = session?.user ? checkVirtualEligibility({
+        email: session.user.email,
+        state: (session.user as any).state,
+        isInternational: isInternational
+    }) : { isEligible: false };
+    
     const memberCount = event.isGroupEvent ? teamSize : 1;
-    const feePerPerson = (isKLStudent || isInternational) ? 0 : 350;
+    const feePerPerson = (isKLStudent || isInternational) ? 0 : getRegistrationFee(isVirtual);
     const totalFee = memberCount * feePerPerson;
 
     return (
@@ -667,6 +681,87 @@ export default function EventRegistrationPage() {
                                         ))}
                                     </div>
                                     {!styleDNA && <p className="text-zinc-500 text-xs mt-2">Please select one style option.</p>}
+                                </div>
+                            )}
+
+                            {/* Virtual Participation Selection */}
+                            {event.virtualEnabled && virtualEligibility.isEligible && !isKLStudent && !isInternational && (
+                                <div className="border-t border-zinc-800 pt-6">
+                                    <h3 className="text-lg font-semibold text-white mb-4">Participation Mode</h3>
+                                    <div className="space-y-3">
+                                        {/* Physical Option */}
+                                        <label className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${!isVirtual ? 'border-red-600 bg-red-600/10' : 'border-zinc-700 bg-zinc-800/30 hover:border-zinc-600'}`}>
+                                            <input
+                                                type="radio"
+                                                name="participationMode"
+                                                checked={!isVirtual}
+                                                onChange={() => setIsVirtual(false)}
+                                                className="mt-1 w-5 h-5 text-red-600 focus:ring-red-600"
+                                            />
+                                            <div className="flex-1">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-white font-semibold">Physical Participation</span>
+                                                    <span className="text-red-500 font-bold">₹{REGISTRATION_FEES.PHYSICAL}</span>
+                                                </div>
+                                                <p className="text-zinc-400 text-sm mt-1">
+                                                    Attend in-person at KL University, Vijayawada
+                                                </p>
+                                            </div>
+                                        </label>
+
+                                        {/* Virtual Option */}
+                                        <label className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${isVirtual ? 'border-purple-600 bg-purple-600/10' : 'border-zinc-700 bg-zinc-800/30 hover:border-zinc-600'}`}>
+                                            <input
+                                                type="radio"
+                                                name="participationMode"
+                                                checked={isVirtual}
+                                                onChange={() => setIsVirtual(true)}
+                                                className="mt-1 w-5 h-5 text-purple-600 focus:ring-purple-600"
+                                            />
+                                            <div className="flex-1">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-white font-semibold">Virtual Participation</span>
+                                                    <span className="text-purple-500 font-bold">₹{REGISTRATION_FEES.VIRTUAL}</span>
+                                                </div>
+                                                <p className="text-zinc-400 text-sm mt-1">
+                                                    Participate online via proctored platform
+                                                </p>
+                                                {/* Virtual Benefits */}
+                                                <div className="mt-3 p-3 bg-purple-900/20 rounded-lg border border-purple-800/30">
+                                                    <p className="text-purple-300 font-semibold text-xs mb-2">✨ Virtual Benefits:</p>
+                                                    <ul className="space-y-1 text-xs text-purple-200/80">
+                                                        <li className="flex items-center gap-2">
+                                                            <FiCheck className="text-purple-400" size={12} />
+                                                            Proctored online competition room
+                                                        </li>
+                                                        <li className="flex items-center gap-2">
+                                                            <FiCheck className="text-purple-400" size={12} />
+                                                            Eligible for cash prizes
+                                                        </li>
+                                                        <li className="flex items-center gap-2">
+                                                            <FiCheck className="text-purple-400" size={12} />
+                                                            Participation certificate provided
+                                                        </li>
+                                                        <li className="flex items-center gap-2">
+                                                            <FiCheck className="text-purple-400" size={12} />
+                                                            Save on travel & accommodation costs
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Show ineligibility message if virtual is enabled but user is not eligible */}
+                            {event.virtualEnabled && !virtualEligibility.isEligible && !isKLStudent && !isInternational && (
+                                <div className="border-t border-zinc-800 pt-6">
+                                    <div className="bg-zinc-800/50 border border-zinc-700 rounded-lg p-4">
+                                        <p className="text-zinc-400 text-sm">
+                                            <span className="text-zinc-300 font-semibold">ℹ️ Note:</span> {virtualEligibility.reason}
+                                        </p>
+                                    </div>
                                 </div>
                             )}
 
