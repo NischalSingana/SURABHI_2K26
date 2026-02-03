@@ -5,6 +5,7 @@ import { format } from "date-fns";
 
 interface Registration {
     id: string;
+    isVirtual?: boolean;
     user: {
         name: string | null;
         email: string;
@@ -25,7 +26,7 @@ interface Registration {
     createdAt: string;
 }
 
-type FilterTab = "ALL" | "INTERNATIONAL" | "DOMESTIC";
+type FilterTab = "ALL" | "INTERNATIONAL" | "DOMESTIC" | "VIRTUAL" | "PHYSICAL";
 
 export default function IndividualRegistrationsTable() {
     const [registrations, setRegistrations] = useState<Registration[]>([]);
@@ -50,6 +51,8 @@ export default function IndividualRegistrationsTable() {
     const byFilter = registrations.filter((reg) => {
         if (filterTab === "INTERNATIONAL") return !!reg.user?.isInternational;
         if (filterTab === "DOMESTIC") return !reg.user?.isInternational;
+        if (filterTab === "VIRTUAL") return !!reg.isVirtual;
+        if (filterTab === "PHYSICAL") return !reg.isVirtual;
         return true;
     });
 
@@ -62,19 +65,35 @@ export default function IndividualRegistrationsTable() {
 
     const internationalCount = registrations.filter((r) => r.user?.isInternational).length;
     const domesticCount = registrations.filter((r) => !r.user?.isInternational).length;
+    const virtualCount = registrations.filter((r) => r.isVirtual).length;
+    const physicalCount = registrations.filter((r) => !r.isVirtual).length;
 
     if (loading) return <div className="text-white">Loading...</div>;
 
     return (
         <>
             <div className="w-full">
-                <div className="mb-4 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+                <div className="mb-4 flex flex-col gap-4">
                     <div className="flex flex-wrap gap-2 border-b border-zinc-800 pb-2">
                         <button
                             onClick={() => setFilterTab("ALL")}
                             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${filterTab === "ALL" ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white"}`}
                         >
                             All ({registrations.length})
+                        </button>
+                        <button
+                            onClick={() => setFilterTab("PHYSICAL")}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${filterTab === "PHYSICAL" ? "bg-blue-900/40 text-blue-400 border border-blue-700/50" : "text-zinc-400 hover:text-white"}`}
+                        >
+                            <span className="w-2 h-2 rounded-full bg-blue-500" />
+                            Physical ({physicalCount})
+                        </button>
+                        <button
+                            onClick={() => setFilterTab("VIRTUAL")}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${filterTab === "VIRTUAL" ? "bg-emerald-900/40 text-emerald-400 border border-emerald-700/50" : "text-zinc-400 hover:text-white"}`}
+                        >
+                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                            Virtual ({virtualCount})
                         </button>
                         <button
                             onClick={() => setFilterTab("INTERNATIONAL")}
@@ -117,8 +136,13 @@ export default function IndividualRegistrationsTable() {
                                     onClick={() => setSelectedRegistration(reg)}
                                 >
                                     <td className="px-6 py-4 font-medium text-white">
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-wrap">
                                             {reg.user.name || "N/A"}
+                                            {reg.isVirtual && (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-900/30 text-emerald-400 border border-emerald-700/50">
+                                                    Virtual
+                                                </span>
+                                            )}
                                             {reg.user.isInternational && (
                                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-900/30 text-amber-400 border border-amber-700/50">
                                                     International
@@ -183,6 +207,26 @@ function RegistrationModal({ registration, onClose }: { registration: Registrati
                             <div>
                                 <label className="text-xs text-zinc-500">Registration Date</label>
                                 <p className="text-white font-medium">{format(new Date(registration.createdAt), "PPP p")}</p>
+                            </div>
+                            <div>
+                                <label className="text-xs text-zinc-500">Participation Mode</label>
+                                <p className="text-white font-medium flex items-center gap-2">
+                                    {registration.isVirtual ? (
+                                        <>
+                                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                                            Virtual Participation
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="w-2 h-2 rounded-full bg-blue-500" />
+                                            Physical Participation
+                                        </>
+                                    )}
+                                </p>
+                            </div>
+                            <div>
+                                <label className="text-xs text-zinc-500">Registration Fee</label>
+                                <p className="text-white font-medium">{registration.isVirtual ? "₹150" : "₹350"}</p>
                             </div>
                         </div>
                     </div>
