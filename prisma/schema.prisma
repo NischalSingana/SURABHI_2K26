@@ -152,6 +152,7 @@ model Event {
   isGroupEvent       Boolean  @default(false)
   isResultPublished  Boolean  @default(false)
   allowSubmissions   Boolean  @default(false)
+  virtualEnabled     Boolean  @default(false)
   minTeamSize        Int      @default(1)
   maxTeamSize        Int      @default(1)
   termsandconditions String
@@ -183,6 +184,7 @@ model GroupRegistration {
   mentorName String?
   mentorPhone String?
   members   Json
+  isVirtual Boolean  @default(false)
   registrationDetails Json?
 
   // Payment Verification
@@ -198,6 +200,7 @@ model GroupRegistration {
   @@unique([userId, eventId])
   @@index([eventId])
   @@index([userId])
+  @@index([isVirtual])
   @@index([paymentStatus])
   @@index([approvedBy])
   @@map("group_registrations")
@@ -303,6 +306,7 @@ model IndividualRegistration {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  isVirtual Boolean  @default(false)
   registrationDetails Json? // For any future extra fields
 
   // Payment Verification
@@ -318,6 +322,7 @@ model IndividualRegistration {
   @@unique([userId, eventId])
   @@index([eventId])
   @@index([userId])
+  @@index([isVirtual])
   @@index([paymentStatus])
   @@index([approvedBy])
   @@map("individual_registrations")

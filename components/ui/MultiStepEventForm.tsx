@@ -31,6 +31,7 @@ interface Event {
   venue: string;
   isGroupEvent: boolean;
   allowSubmissions?: boolean;
+  virtualEnabled?: boolean;
   minTeamSize: number;
   maxTeamSize: number;
   startTime: string;
@@ -70,6 +71,7 @@ export default function MultiStepEventForm({
     venue: editingEvent?.venue || "",
     isGroupEvent: editingEvent?.isGroupEvent || false,
     allowSubmissions: !!editingEvent?.allowSubmissions,
+    virtualEnabled: !!editingEvent?.virtualEnabled,
     minTeamSize: editingEvent?.minTeamSize?.toString() || "2",
     maxTeamSize: editingEvent?.maxTeamSize?.toString() || "5",
     startTime: editingEvent?.startTime || "",
@@ -113,6 +115,7 @@ export default function MultiStepEventForm({
         venue: editingEvent.venue || "",
         isGroupEvent: editingEvent.isGroupEvent || false,
         allowSubmissions: !!editingEvent.allowSubmissions,
+        virtualEnabled: !!editingEvent.virtualEnabled,
         minTeamSize: editingEvent.minTeamSize?.toString() || "2",
         maxTeamSize: editingEvent.maxTeamSize?.toString() || "5",
         startTime: editingEvent.startTime || "",
@@ -777,7 +780,30 @@ export default function MultiStepEventForm({
                   </p>
                 </div>
 
-
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">
+                    Virtual Participation
+                  </label>
+                  <div className="flex items-center gap-3 bg-zinc-800 p-3 rounded-lg border border-zinc-700">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!formData.virtualEnabled}
+                        onChange={(e) =>
+                          setFormData({ ...formData, virtualEnabled: e.target.checked })
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
+                      <span className="ml-3 text-sm font-medium text-zinc-300">
+                        {formData.virtualEnabled ? "Virtual participation enabled" : "Physical participation only"}
+                      </span>
+                    </label>
+                  </div>
+                  <p className="text-zinc-500 text-sm mt-2">
+                    Allows eligible students (Google OAuth, outside AP/Telangana) to register virtually at ₹150 instead of ₹350.
+                  </p>
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-zinc-300 mb-2">
