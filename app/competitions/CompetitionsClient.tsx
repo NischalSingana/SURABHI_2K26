@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { FiCalendar, FiClock } from "react-icons/fi";
+import Loader from "@/components/ui/Loader";
 
 export interface CategoryData {
   name: string;
@@ -22,13 +23,80 @@ export default function CompetitionsClient({
 }: CompetitionsClientProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [imagesLoaded, setImagesLoaded] = useState(0);
+  const minLoadTime = 1200; // 1.2 seconds minimum
+  const startTimeRef = useRef<number>(Date.now());
+
+  // Preload images and manage loading state
+  useEffect(() => {
+    const imagesToPreload = Math.min(6, initialCategories.length); // Preload first 6 priority images
+    
+    if (imagesToPreload === 0) {
+      // No images to load, just wait minimum time
+      const elapsed = Date.now() - startTimeRef.current;
+      const remaining = Math.max(0, minLoadTime - elapsed);
+      
+      setTimeout(() => {
+        setIsLoading(false);
+      }, remaining);
+      return;
+    }
+
+    // When all priority images are loaded or minimum time has passed
+    const checkComplete = () => {
+      const elapsed = Date.now() - startTimeRef.current;
+      const allImagesLoaded = imagesLoaded >= imagesToPreload;
+      const minTimeElapsed = elapsed >= minLoadTime;
+
+      if (allImagesLoaded && minTimeElapsed) {
+        setIsLoading(false);
+      } else if (allImagesLoaded && !minTimeElapsed) {
+        // Images loaded but minimum time not elapsed
+        setTimeout(() => setIsLoading(false), minLoadTime - elapsed);
+      } else if (!allImagesLoaded && minTimeElapsed) {
+        // Minimum time elapsed but images not all loaded (timeout protection)
+        setTimeout(() => setIsLoading(false), 500);
+      }
+    };
+
+    checkComplete();
+  }, [imagesLoaded, initialCategories.length]);
+
+  const handleImageLoad = () => {
+    setImagesLoaded((prev) => prev + 1);
+  };
 
   const filteredCategories = initialCategories.filter((category) =>
     category.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Tiny transparent placeholder for blur effect
+  const blurDataURL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+
   return (
-    <div className="min-h-screen bg-black py-8 sm:py-10 md:py-12 px-4 sm:px-6 lg:px-8">
+    <>
+      <AnimatePresence mode="wait">
+        {isLoading && (
+          <motion.div
+            key="loader"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black"
+          >
+            <Loader />
+            <p className="absolute bottom-20 text-zinc-400 text-sm">Loading competitions...</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isLoading ? 0 : 1 }}
+        transition={{ duration: 0.3 }}
+        className="min-h-screen bg-black py-8 sm:py-10 md:py-12 px-4 sm:px-6 lg:px-8"
+      >
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8 sm:mb-10 md:mb-12 mt-20 sm:mt-14 md:mt-16">
           <div className="flex justify-center items-center gap-4 mb-6">
@@ -164,7 +232,7 @@ export default function CompetitionsClient({
                 style={{ transformStyle: "preserve-3d" }}
               >
                 <div className="relative h-60 md:h-80 rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 hover:border-red-600/50 transition-all duration-300 shadow-2xl hover:shadow-red-600/20">
-                  <div className="absolute inset-0">
+                  <div className="absolute inset-0 bg-zinc-900">
                     <Image
                       src={category.image}
                       alt={category.name}
@@ -172,7 +240,11 @@ export default function CompetitionsClient({
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       className="object-cover transition-transform duration-500 hover:scale-110"
                       priority={index < 6}
-                      quality={75}
+                      quality={70}
+                      loading={index < 6 ? "eager" : "lazy"}
+                      onLoad={index < 6 ? handleImageLoad : undefined}
+                      placeholder="blur"
+                      blurDataURL={blurDataURL}
                     />
                     <div className="absolute inset-0 bg-linear-to-t from-black via-black/70 to-transparent" />
                   </div>
@@ -231,6 +303,7 @@ export default function CompetitionsClient({
           </div>
         )}
       </div>
-    </div>
+      </motion.div>
+    </>
   );
 }
