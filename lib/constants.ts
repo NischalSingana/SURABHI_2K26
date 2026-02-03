@@ -50,3 +50,12 @@ export const INDIAN_STATES = [
     "Ladakh",
     "Jammu and Kashmir",
 ];
+
+// Registration Fees
+export const REGISTRATION_FEES = {
+    PHYSICAL: 350, // Physical participation at KL University
+    VIRTUAL: 150,  // Virtual participation (proctored online)
+} as const;
+
+// States eligible for virtual participation (outside AP & Telangana)
+export const VIRTUAL_EXCLUDED_STATES = ["Andhra Pradesh", "Telangana"];
