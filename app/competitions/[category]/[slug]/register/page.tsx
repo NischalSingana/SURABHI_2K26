@@ -716,35 +716,31 @@ export default function EventRegistrationPage() {
                                                 name="participationMode"
                                                 checked={isVirtual}
                                                 onChange={() => setIsVirtual(true)}
-                                                className="mt-1 w-5 h-5 text-purple-600 focus:ring-purple-600"
+                                                className="mt-1 w-5 h-5 text-emerald-500 focus:ring-emerald-500"
                                             />
                                             <div className="flex-1">
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-white font-semibold">Virtual Participation</span>
-                                                    <span className="text-purple-500 font-bold">₹{REGISTRATION_FEES.VIRTUAL}</span>
+                                                    <span className="text-emerald-400 font-bold">₹{REGISTRATION_FEES.VIRTUAL}</span>
                                                 </div>
                                                 <p className="text-zinc-400 text-sm mt-1">
                                                     Participate online via proctored platform
                                                 </p>
                                                 {/* Virtual Benefits */}
-                                                <div className="mt-3 p-3 bg-purple-900/20 rounded-lg border border-purple-800/30">
-                                                    <p className="text-purple-300 font-semibold text-xs mb-2">✨ Virtual Benefits:</p>
-                                                    <ul className="space-y-1 text-xs text-purple-200/80">
+                                                <div className="mt-3 p-3 bg-zinc-900/50 rounded-lg border border-zinc-800/50">
+                                                    <p className="text-zinc-200 font-semibold text-xs mb-2">✨ Virtual Benefits:</p>
+                                                    <ul className="space-y-1 text-xs text-zinc-300">
                                                         <li className="flex items-center gap-2">
-                                                            <FiCheck className="text-purple-400" size={12} />
+                                                            <FiCheck className="text-emerald-400" size={12} />
                                                             Proctored online competition room
                                                         </li>
                                                         <li className="flex items-center gap-2">
-                                                            <FiCheck className="text-purple-400" size={12} />
+                                                            <FiCheck className="text-emerald-400" size={12} />
                                                             Eligible for cash prizes
                                                         </li>
                                                         <li className="flex items-center gap-2">
-                                                            <FiCheck className="text-purple-400" size={12} />
+                                                            <FiCheck className="text-emerald-400" size={12} />
                                                             Participation certificate provided
-                                                        </li>
-                                                        <li className="flex items-center gap-2">
-                                                            <FiCheck className="text-purple-400" size={12} />
-                                                            Save on travel & accommodation costs
                                                         </li>
                                                     </ul>
                                                 </div>
