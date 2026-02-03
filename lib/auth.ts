@@ -74,10 +74,10 @@ export const auth = betterAuth({
         expiresIn: 60 * 60 * 24 * 7, // 7 days
         updateAge: 60 * 60 * 24, // 1 day
         cookieOptions: {
-            secure: false, // Allow cookies on HTTP for localhost
+            secure: process.env.NODE_ENV === 'production', // MUST be true for HTTPS in production
             sameSite: 'lax',
             path: '/',
-            domain: undefined, // Important for localhost
+            domain: process.env.NODE_ENV === 'production' ? '.klusurabhi.in' : undefined,
             httpOnly: true,
         }
     },
