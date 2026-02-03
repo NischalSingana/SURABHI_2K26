@@ -34,6 +34,7 @@ interface Event {
   brochureLink?: string | null;
   isGroupEvent: boolean;
   allowSubmissions?: boolean;
+  virtualEnabled?: boolean;
   minTeamSize: number;
   maxTeamSize: number;
   createdAt?: Date;
@@ -636,9 +637,16 @@ export default function EventsManagement() {
 
                         {/* Event Details */}
                         <div className="flex-1 min-w-0 w-full">
-                          <h3 className="text-white font-semibold text-lg">
-                            {event.name}
-                          </h3>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="text-white font-semibold text-lg">
+                              {event.name}
+                            </h3>
+                            {event.virtualEnabled && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-900/30 text-purple-400 border border-purple-700/50">
+                                Virtual Enabled
+                              </span>
+                            )}
+                          </div>
                           <p className="text-zinc-300 mt-2 text-sm line-clamp-2">
                             {event.description}
                           </p>

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { FiChevronLeft, FiChevronRight, FiFilter } from "react-icons/fi";
 import { cn } from "@/lib/utils";
+import Loader from "./Loader";
 
 interface CarouselItem {
   image: string;
@@ -19,6 +20,12 @@ interface CarouselGalleryProps {
 }
 
 const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
+  // Loading state
+  const [isLoading, setIsLoading] = useState(true);
+  const [imagesLoaded, setImagesLoaded] = useState(0);
+  const minLoadTime = 1500; // Minimum 1.5 seconds loading
+  const startTime = useRef(Date.now());
+
   // Extract unique years and sort them (newest first)
   const years = useMemo(
     () => Array.from(new Set(items.map((item) => item.year))).sort((a, b) => b.localeCompare(a)),
@@ -45,6 +52,27 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
   useEffect(() => {
     setActiveIndex(0);
   }, [selectedYear]);
+
+  // Handle preloading with minimum time
+  useEffect(() => {
+    const totalImages = filteredItems.length;
+    const visibleCount = Math.min(3, totalImages); // Only preload visible images
+    
+    if (imagesLoaded >= visibleCount) {
+      const elapsed = Date.now() - startTime.current;
+      const remaining = Math.max(0, minLoadTime - elapsed);
+      
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, remaining);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [imagesLoaded, filteredItems.length]);
+
+  const handleImageLoad = useCallback(() => {
+    setImagesLoaded(prev => prev + 1);
+  }, []);
 
   // Handle client-side mobile detection to prevent hydration errors
   const [isMobile, setIsMobile] = useState(false);
@@ -158,7 +186,33 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-neutral-950 text-white relative overflow-hidden flex flex-col items-center">
+    <>
+      {/* Loading Screen */}
+      <AnimatePresence mode="wait">
+        {isLoading && (
+          <motion.div
+            key="loader"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 z-[200] bg-neutral-950 flex items-center justify-center"
+          >
+            <div className="text-center">
+              <Loader />
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="mt-6 text-neutral-400 text-sm"
+              >
+                Loading gallery...
+              </motion.p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="w-full min-h-screen bg-neutral-950 text-white relative overflow-hidden flex flex-col items-center">
       {/* Dynamic Background */}
       <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
         {/* Animated Active Image Background */}
@@ -303,15 +357,19 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                   }}
                 >
                   {/* Clean Image Tag for better Border Clip */}
-                  <div className="absolute inset-0 w-full h-full">
+                  <div className="absolute inset-0 w-full h-full bg-neutral-900">
                     <Image
                       src={item.image}
                       alt={item.name || "Gallery Image"}
                       fill
                       className="object-cover rounded-3xl"
                       sizes="(max-width: 768px) 75vw, 600px"
-                      priority={isActive} // High priority for the active image
-                      quality={85}
+                      priority={index < 3} // Preload first 3 images
+                      quality={75} // Reduced quality for faster loading
+                      loading={index < 3 ? "eager" : "lazy"}
+                      onLoad={index < 3 ? handleImageLoad : undefined}
+                      placeholder="blur"
+                      blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
                     />
                   </div>
 
@@ -433,7 +491,8 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
         )}
       </AnimatePresence>
 
-    </div >
+      </div>
+    </>
   );
 };
 
