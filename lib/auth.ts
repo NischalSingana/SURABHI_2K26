@@ -126,6 +126,14 @@ export const auth = betterAuth({
             country: {
                 type: "string",
                 input: false
+            },
+            state: {
+                type: "string",
+                input: false
+            },
+            city: {
+                type: "string",
+                input: false
             }
         }
     },
