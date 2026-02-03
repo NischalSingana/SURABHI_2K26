@@ -372,12 +372,14 @@ interface EventData {
   venue: string;
   isGroupEvent: boolean;
   allowSubmissions?: boolean;
+  virtualEnabled?: boolean;
   minTeamSize: number;
   maxTeamSize: number;
   startTime: string;
   endTime: string;
   participantLimit: string;
   termsandconditions: string;
+  virtualTermsAndConditions?: string;
   registrationLink: string;
   whatsappLink?: string;
   brochureLink?: string;
@@ -408,13 +410,14 @@ export async function createEvent(eventData: EventData) {
         venue: eventData.venue,
         isGroupEvent: eventData.isGroupEvent,
         allowSubmissions: !!eventData.allowSubmissions,
-        virtualEnabled: !!(eventData as any).virtualEnabled,
+        virtualEnabled: !!eventData.virtualEnabled,
         minTeamSize: eventData.minTeamSize,
         maxTeamSize: eventData.maxTeamSize,
         startTime: eventData.startTime,
         endTime: eventData.endTime,
         participantLimit: parseInt(eventData.participantLimit),
         termsandconditions: eventData.termsandconditions,
+        virtualTermsAndConditions: eventData.virtualTermsAndConditions || null,
         registrationLink: eventData.registrationLink,
         whatsappLink: eventData.whatsappLink || null,
         brochureLink: eventData.brochureLink || null,
@@ -454,12 +457,14 @@ interface EventUpdateData {
     venue: string;
     isGroupEvent: boolean;
     allowSubmissions?: boolean;
+    virtualEnabled?: boolean;
     minTeamSize: number;
     maxTeamSize: number;
     startTime: string;
     endTime: string;
     participantLimit: string;
     termsandconditions: string;
+    virtualTermsAndConditions?: string;
     registrationLink: string;
     whatsappLink?: string;
     brochureLink?: string;
@@ -494,13 +499,14 @@ export async function updateEvent({ id, eventData }: EventUpdateData) {
         venue: eventData.venue,
         isGroupEvent: eventData.isGroupEvent,
         allowSubmissions: !!eventData.allowSubmissions,
-        virtualEnabled: !!(eventData as any).virtualEnabled,
+        virtualEnabled: !!eventData.virtualEnabled,
         minTeamSize: eventData.minTeamSize,
         maxTeamSize: eventData.maxTeamSize,
         startTime: eventData.startTime,
         endTime: eventData.endTime,
         participantLimit: parseInt(eventData.participantLimit),
         termsandconditions: eventData.termsandconditions,
+        virtualTermsAndConditions: eventData.virtualTermsAndConditions || null,
         registrationLink: eventData.registrationLink,
         whatsappLink: eventData.whatsappLink || null,
         brochureLink: eventData.brochureLink || null,
