@@ -710,13 +710,13 @@ export default function EventRegistrationPage() {
                                         </label>
 
                                         {/* Virtual Option */}
-                                        <label className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${isVirtual ? 'border-zinc-500 bg-zinc-800/50' : 'border-zinc-700 bg-zinc-800/30 hover:border-zinc-600'}`}>
+                                        <label className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${isVirtual ? 'border-red-600 bg-red-600/10' : 'border-zinc-700 bg-zinc-800/30 hover:border-zinc-600'}`}>
                                             <input
                                                 type="radio"
                                                 name="participationMode"
                                                 checked={isVirtual}
                                                 onChange={() => setIsVirtual(true)}
-                                                className="mt-1 w-5 h-5 text-zinc-500 focus:ring-zinc-500"
+                                                className="mt-1 w-5 h-5 text-red-600 focus:ring-red-600"
                                             />
                                             <div className="flex-1">
                                                 <div className="flex items-center justify-between">
