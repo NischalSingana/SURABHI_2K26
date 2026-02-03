@@ -33,8 +33,16 @@ export function checkVirtualEligibility(user: {
     };
   }
 
+  // State is required for virtual participation eligibility check
+  if (!user.state || user.state.trim() === "") {
+    return {
+      isEligible: false,
+      reason: "Please update your profile with state information to check virtual participation eligibility",
+    };
+  }
+
   // Check if user is from excluded states (AP or Telangana)
-  if (user.state && VIRTUAL_EXCLUDED_STATES.includes(user.state)) {
+  if (VIRTUAL_EXCLUDED_STATES.includes(user.state)) {
     return {
       isEligible: false,
       reason: `Students from ${user.state} must participate physically at KL University`,
