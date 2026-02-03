@@ -37,6 +37,7 @@ interface Event {
     endTime: string;
     participantLimit: number;
     termsandconditions: string;
+    virtualTermsAndConditions?: string | null;
     isGroupEvent: boolean;
     virtualEnabled?: boolean;
     minTeamSize: number;
@@ -763,7 +764,12 @@ export default function EventRegistrationPage() {
 
                             {/* Terms and Conditions */}
                             <div className="border-t border-zinc-800 pt-6">
-                                <h3 className="text-lg font-semibold text-white mb-3">Terms and Conditions</h3>
+                                <h3 className="text-lg font-semibold text-white mb-3">
+                                    Terms and Conditions
+                                    {isVirtual && event.virtualTermsAndConditions && (
+                                        <span className="ml-2 text-xs font-normal text-emerald-400">(Virtual Participation)</span>
+                                    )}
+                                </h3>
                                 <div
                                     className="bg-zinc-800 rounded-lg p-4 max-h-60 overflow-y-auto mb-4 border border-zinc-700"
                                     data-lenis-prevent
@@ -783,16 +789,22 @@ export default function EventRegistrationPage() {
                                 >
                                     <div className="space-y-2 text-sm text-zinc-300">
                                         {(() => {
-                                            let points = event.termsandconditions ? event.termsandconditions.split(/\r?\n/).filter(line => line.trim()) : [];
+                                            // Show virtual terms if virtual and they exist, otherwise show regular terms
+                                            const termsText = (isVirtual && event.virtualTermsAndConditions) 
+                                                ? event.virtualTermsAndConditions 
+                                                : event.termsandconditions;
+                                            
+                                            let points = termsText ? termsText.split(/\r?\n/).filter(line => line.trim()) : [];
                                             if (points.length === 1 && points[0].length > 50) {
                                                 const sentences = points[0].split(/\.\s+/).filter(s => s.trim());
                                                 if (sentences.length > 1) {
                                                     points = sentences.map(s => s.trim().endsWith('.') ? s : s + '.');
                                                 }
                                             }
+                                            const dotColor = (isVirtual && event.virtualTermsAndConditions) ? "bg-emerald-500" : "bg-red-500";
                                             return points.length > 0 ? points.map((point, index) => (
                                                 <div key={index} className="flex gap-2 text-start">
-                                                    <span className="text-red-500 mt-1.5 min-w-[5px] h-1.5 rounded-full bg-red-500 block shrink-0" />
+                                                    <span className={`${dotColor} mt-1.5 min-w-[5px] h-1.5 rounded-full block shrink-0`} />
                                                     <span>{point.replace(/^[•\-\*]\s*/, '')}</span>
                                                 </div>
                                             )) : <p>No specific terms for this event.</p>;

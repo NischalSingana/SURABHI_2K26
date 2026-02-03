@@ -38,6 +38,7 @@ interface Event {
   endTime: string;
   participantLimit: number;
   termsandconditions: string;
+  virtualTermsAndConditions?: string | null;
   registrationLink: string;
   whatsappLink?: string | null;
   brochureLink?: string | null;
@@ -78,6 +79,7 @@ export default function MultiStepEventForm({
     endTime: editingEvent?.endTime || "",
     participantLimit: editingEvent?.participantLimit.toString() || "",
     termsandconditions: editingEvent?.termsandconditions || "",
+    virtualTermsAndConditions: editingEvent?.virtualTermsAndConditions || "",
     registrationLink: editingEvent?.registrationLink || "",
     whatsappLink: editingEvent?.whatsappLink || "",
     brochureLink: editingEvent?.brochureLink || "",
@@ -95,6 +97,13 @@ export default function MultiStepEventForm({
       : [""]
   );
 
+  // Virtual terms list state management
+  const [virtualTermsList, setVirtualTermsList] = useState<string[]>(
+    formData.virtualTermsAndConditions
+      ? formData.virtualTermsAndConditions.split(/\r?\n/).filter(t => t.trim())
+      : [""]
+  );
+
   // Sync termsList to formData
   useEffect(() => {
     setFormData(prev => ({
@@ -102,6 +111,14 @@ export default function MultiStepEventForm({
       termsandconditions: termsList.join('\n')
     }));
   }, [termsList]);
+
+  // Sync virtualTermsList to formData
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      virtualTermsAndConditions: virtualTermsList.join('\n')
+    }));
+  }, [virtualTermsList]);
 
   // Sync formData when editingEvent changes (e.g. open Edit modal or switch event)
   useEffect(() => {
@@ -122,6 +139,7 @@ export default function MultiStepEventForm({
         endTime: editingEvent.endTime || "",
         participantLimit: editingEvent.participantLimit?.toString() || "",
         termsandconditions: editingEvent.termsandconditions || "",
+        virtualTermsAndConditions: editingEvent.virtualTermsAndConditions || "",
         registrationLink: editingEvent.registrationLink || "",
         whatsappLink: editingEvent.whatsappLink || "",
         brochureLink: editingEvent.brochureLink || "",
@@ -130,6 +148,11 @@ export default function MultiStepEventForm({
       setTermsList(
         editingEvent.termsandconditions
           ? editingEvent.termsandconditions.split(/\r?\n/).filter((t) => t.trim())
+          : [""]
+      );
+      setVirtualTermsList(
+        editingEvent.virtualTermsAndConditions
+          ? editingEvent.virtualTermsAndConditions.split(/\r?\n/).filter((t) => t.trim())
           : [""]
       );
     }
@@ -850,6 +873,57 @@ export default function MultiStepEventForm({
                     </button>
                   </div>
                 </div>
+
+                {/* Virtual Terms - Only show when virtual enabled */}
+                {formData.virtualEnabled && (
+                  <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
+                    <label className="block text-sm font-medium text-zinc-300 mb-2">
+                      Virtual Participation Terms <span className="text-zinc-500 text-xs">(Optional - if different from physical)</span>
+                    </label>
+                    <p className="text-zinc-500 text-xs mb-3">
+                      Specific terms and conditions for virtual participants. Leave empty to use same terms as physical participation.
+                    </p>
+                    <div className="space-y-3">
+                      {virtualTermsList.map((term, index) => (
+                        <div key={index} className="flex gap-2">
+                          <div className="relative flex-1">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                            <input
+                              type="text"
+                              value={term}
+                              onChange={(e) => {
+                                const newTerms = [...virtualTermsList];
+                                newTerms[index] = e.target.value;
+                                setVirtualTermsList(newTerms);
+                              }}
+                              className="w-full pl-8 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                              placeholder={`Virtual Point ${index + 1}`}
+                            />
+                          </div>
+                          {virtualTermsList.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newTerms = virtualTermsList.filter((_, i) => i !== index);
+                                setVirtualTermsList(newTerms);
+                              }}
+                              className="p-3 bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-lg border border-zinc-700 transition-all"
+                            >
+                              <FiMinus size={18} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setVirtualTermsList([...virtualTermsList, ""])}
+                        className="text-sm text-emerald-500 hover:text-emerald-400 font-medium flex items-center gap-2 mt-2 px-1"
+                      >
+                        <FiPlus /> Add Virtual Point
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium text-zinc-300 mb-2">
