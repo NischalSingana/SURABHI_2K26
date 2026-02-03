@@ -13,7 +13,10 @@ export async function GET() {
         }
 
         const registrations = await prisma.individualRegistration.findMany({
-            include: {
+            select: {
+                id: true,
+                createdAt: true,
+                isVirtual: true,
                 user: {
                     select: {
                         name: true,
