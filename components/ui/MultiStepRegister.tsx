@@ -153,6 +153,16 @@ const MultiStepRegister = () => {
     return { valid: true };
   };
 
+  const validateCity = (city: string): { valid: boolean; error?: string } => {
+    if (!city || !city.trim()) {
+      return { valid: false, error: "City/Town is required" };
+    }
+    if (city.trim().length < 2) {
+      return { valid: false, error: "City/Town must be at least 2 characters" };
+    }
+    return { valid: true };
+  };
+
   // Auto-detect college from localStorage and skip to registration
   useEffect(() => {
     if (session?.user && currentStep === 1 && !hasAutoAdvanced) {
@@ -388,16 +398,26 @@ const MultiStepRegister = () => {
         }
       }
 
-      // Validate state/region for international
-      if (formData.college === "INTERNATIONAL") {
-        const stateValidation = validateStateRegion(formData.state || "");
-        if (!stateValidation.valid) {
-          toast.error(stateValidation.error);
+      // Validate state for all users
+      const stateValidation = validateStateRegion(formData.state || "");
+      if (!stateValidation.valid) {
+        toast.error(stateValidation.error);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Validate city for KL and Other college students
+      if (formData.college !== "INTERNATIONAL") {
+        const cityValidation = validateCity(formData.city || "");
+        if (!cityValidation.valid) {
+          toast.error(cityValidation.error);
           setIsSubmitting(false);
           return;
         }
+      }
 
-        // Validate country is selected
+      // Validate country for international
+      if (formData.college === "INTERNATIONAL") {
         if (!formData.country || !formData.country.trim()) {
           toast.error("Please select your country");
           setIsSubmitting(false);
@@ -478,7 +498,9 @@ const MultiStepRegister = () => {
       formData.collageId &&
       formData.branch &&
       formData.year &&
-      formData.gender;
+      formData.gender &&
+      formData.state?.trim() &&
+      formData.city?.trim();
 
     if (formData.college === "OTHER") {
       return (
@@ -946,6 +968,66 @@ const MultiStepRegister = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* State - For KL and Other College (mandatory) */}
+                  {formData.college !== "INTERNATIONAL" && (
+                    <div>
+                      <label className="block text-sm font-medium text-zinc-300 mb-2">
+                        State *
+                      </label>
+                      <div className="relative">
+                        <FiBook className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
+                        <input
+                          type="text"
+                          name="state"
+                          value={formData.state || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value.length <= 50) {
+                              setFormData({ ...formData, state: value });
+                            }
+                          }}
+                          required
+                          maxLength={50}
+                          className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
+                          placeholder="Enter your state (e.g., Andhra Pradesh, Karnataka)"
+                        />
+                        {formData.state && formData.state.length < 2 && (
+                          <p className="text-xs text-amber-400 mt-1">State must be at least 2 characters</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* City/Town - For KL and Other College (mandatory) */}
+                  {formData.college !== "INTERNATIONAL" && (
+                    <div>
+                      <label className="block text-sm font-medium text-zinc-300 mb-2">
+                        City / Town *
+                      </label>
+                      <div className="relative">
+                        <FiBook className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
+                        <input
+                          type="text"
+                          name="city"
+                          value={formData.city || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value.length <= 50) {
+                              setFormData({ ...formData, city: value });
+                            }
+                          }}
+                          required
+                          maxLength={50}
+                          className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
+                          placeholder="Enter your city or town"
+                        />
+                        {formData.city && formData.city.length < 2 && (
+                          <p className="text-xs text-amber-400 mt-1">City/Town must be at least 2 characters</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Country - International only: searchable dropdown */}
                   {formData.college === "INTERNATIONAL" && (
