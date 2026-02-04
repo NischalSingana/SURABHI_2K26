@@ -273,6 +273,7 @@ function EventDetailPageContent() {
   const [showUnregisterConfirm, setShowUnregisterConfirm] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showVastranautTooltip, setShowVastranautTooltip] = useState(false);
   const [hasGoogleAccount, setHasGoogleAccount] = useState(false);
   const { data: session } = useSession();
   const isOutsider = session?.user?.email && !session.user.email.endsWith("@kluniversity.in");
@@ -734,6 +735,35 @@ function EventDetailPageContent() {
                       )}
                     </motion.button>
                   )}
+                </div>
+              ) : slug?.toLowerCase().includes('vastranaut') ? (
+                // Blocked button for Vastranaut with tooltip
+                <div className="relative group mt-6">
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      // Toggle tooltip on tap/click (for mobile)
+                      setShowVastranautTooltip(!showVastranautTooltip);
+                      // Auto-hide after 4 seconds
+                      setTimeout(() => setShowVastranautTooltip(false), 4000);
+                    }}
+                    onMouseEnter={() => setShowVastranautTooltip(true)}
+                    onMouseLeave={() => setShowVastranautTooltip(false)}
+                    className="w-full px-6 py-4 bg-zinc-700 text-zinc-400 font-bold rounded-lg cursor-not-allowed opacity-60 relative"
+                  >
+                    Register Now
+                  </motion.button>
+                  {/* Tooltip */}
+                  <div className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-zinc-800 text-white text-sm rounded-lg shadow-xl border border-zinc-700 transition-opacity duration-200 w-64 text-center z-10 ${showVastranautTooltip ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    <div className="font-semibold mb-1">Registration Closed</div>
+                    <div className="text-zinc-300 text-xs leading-relaxed">
+                      Finale registration opens for shortlisted teams after mood board round completion
+                    </div>
+                    {/* Arrow */}
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                      <div className="border-8 border-transparent border-t-zinc-800"></div>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <motion.button
