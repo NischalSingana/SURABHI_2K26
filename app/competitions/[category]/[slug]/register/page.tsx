@@ -116,6 +116,44 @@ export default function EventRegistrationPage() {
         payeeName: "",
     });
 
+    // Validation Functions
+    const validatePhone = (phone: string): { valid: boolean; error?: string } => {
+        if (!phone || !phone.trim()) {
+            return { valid: false, error: "Phone number is required" };
+        }
+        const cleaned = phone.trim().replace(/\s+/g, '');
+        if (!/^\d{10}$/.test(cleaned)) {
+            return { valid: false, error: "Phone number must be exactly 10 digits" };
+        }
+        return { valid: true };
+    };
+
+    const validateGroupName = (name: string): { valid: boolean; error?: string } => {
+        if (!name || !name.trim()) {
+            return { valid: false, error: "Group name is required" };
+        }
+        if (name.trim().length < 3) {
+            return { valid: false, error: "Group name must be at least 3 characters" };
+        }
+        if (name.trim().length > 50) {
+            return { valid: false, error: "Group name must not exceed 50 characters" };
+        }
+        return { valid: true };
+    };
+
+    const validateMemberName = (name: string): { valid: boolean; error?: string } => {
+        if (!name || !name.trim()) {
+            return { valid: false, error: "Name is required" };
+        }
+        if (name.trim().length < 2) {
+            return { valid: false, error: "Name must be at least 2 characters" };
+        }
+        if (!/^[a-zA-Z\s.]+$/.test(name.trim())) {
+            return { valid: false, error: "Name can only contain letters, spaces, and dots" };
+        }
+        return { valid: true };
+    };
+
 
 
     useEffect(() => {
@@ -148,10 +186,63 @@ export default function EventRegistrationPage() {
         const isKLStudent = session?.user?.email?.endsWith("@kluniversity.in");
         const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
 
+        // Validate Group Registration Fields
+        if (event?.isGroupEvent) {
+            // Validate group name
+            const groupNameValidation = validateGroupName(groupName);
+            if (!groupNameValidation.valid) {
+                toast.error(groupNameValidation.error);
+                return;
+            }
+
+            // Validate team size
+            if (teamMembers.length + 1 !== teamSize) {
+                toast.error(`Please add exactly ${teamSize - 1} team members (you are counted as 1)`);
+                return;
+            }
+
+            // Validate mentor name if provided
+            if (mentorName && mentorName.trim()) {
+                const mentorNameValidation = validateMemberName(mentorName);
+                if (!mentorNameValidation.valid) {
+                    toast.error(`Mentor ${mentorNameValidation.error}`);
+                    return;
+                }
+            }
+
+            // Validate mentor phone if provided
+            if (mentorPhone && mentorPhone.trim()) {
+                const mentorPhoneValidation = validatePhone(mentorPhone);
+                if (!mentorPhoneValidation.valid) {
+                    toast.error(`Mentor ${mentorPhoneValidation.error}`);
+                    return;
+                }
+            }
+
+            // Validate Vastranaut style DNA
+            if (isVastranaut && !styleDNA) {
+                toast.error("Please select a Style DNA for Vastranaut competition");
+                return;
+            }
+        }
+
         // KL and International: free; others need payment
         if (!isKLStudent && !isInternational) {
             if (!paymentDetails.screenshot || !paymentDetails.utrId || !paymentDetails.payeeName) {
                 toast.error("Please complete all payment details (Upload Screenshot, UTR, Payee Name)");
+                return;
+            }
+
+            // Validate UTR ID format (12 digits)
+            if (!/^\d{12}$/.test(paymentDetails.utrId.trim())) {
+                toast.error("UTR ID must be exactly 12 digits");
+                return;
+            }
+
+            // Validate payee name
+            const payeeNameValidation = validateMemberName(paymentDetails.payeeName);
+            if (!payeeNameValidation.valid) {
+                toast.error(`Payee ${payeeNameValidation.error}`);
                 return;
             }
         }
@@ -252,25 +343,35 @@ export default function EventRegistrationPage() {
 
 
     const addManualMember = () => {
-        if (!currentMemberName.trim() || !currentMemberPhone.trim() || !currentMemberGender) {
-            toast.error("Please fill in all member details (Name, Phone, Gender)");
+        // Validate name
+        const nameValidation = validateMemberName(currentMemberName);
+        if (!nameValidation.valid) {
+            toast.error(nameValidation.error);
             return;
         }
 
+        // Validate phone
+        const phoneValidation = validatePhone(currentMemberPhone);
+        if (!phoneValidation.valid) {
+            toast.error(phoneValidation.error);
+            return;
+        }
+
+        // Validate gender
+        if (!currentMemberGender) {
+            toast.error("Please select gender");
+            return;
+        }
+
+        // Check team size limit
         if (teamMembers.length >= (teamSize - 1)) {
             toast.error(`You have reached the team size limit of ${teamSize} (including you).`);
             return;
         }
 
-        // Basic phone validation
-        if (currentMemberPhone.trim().length < 10) {
-            toast.error("Please enter a valid phone number");
-            return;
-        }
-
         setTeamMembers([...teamMembers, {
             name: currentMemberName.trim(),
-            phone: currentMemberPhone.trim(),
+            phone: currentMemberPhone.trim().replace(/\s+/g, ''),
             gender: currentMemberGender
         }]);
 
@@ -557,12 +658,21 @@ export default function EventRegistrationPage() {
                                             <div>
                                                 <label className="block text-sm font-medium text-zinc-300 mb-2">Phone</label>
                                                 <input
-                                                    type="text"
+                                                    type="tel"
                                                     value={mentorPhone}
-                                                    onChange={(e) => setMentorPhone(e.target.value)}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value.replace(/\D/g, '');
+                                                        if (value.length <= 10) {
+                                                            setMentorPhone(value);
+                                                        }
+                                                    }}
+                                                    maxLength={10}
                                                     className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none transition-all"
-                                                    placeholder="Mentor Phone"
+                                                    placeholder="10-digit phone number"
                                                 />
+                                                {mentorPhone && mentorPhone.length < 10 && (
+                                                    <p className="text-xs text-amber-400 mt-1">{10 - mentorPhone.length} digits remaining</p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -591,13 +701,26 @@ export default function EventRegistrationPage() {
                                                     placeholder="Full Name"
                                                     className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none"
                                                 />
-                                                <input
-                                                    type="text"
-                                                    value={currentMemberPhone}
-                                                    onChange={(e) => setCurrentMemberPhone(e.target.value)}
-                                                    placeholder="Phone Number"
-                                                    className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none"
-                                                />
+                                                <div className="relative">
+                                                    <input
+                                                        type="tel"
+                                                        value={currentMemberPhone}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value.replace(/\D/g, '');
+                                                            if (value.length <= 10) {
+                                                                setCurrentMemberPhone(value);
+                                                            }
+                                                        }}
+                                                        maxLength={10}
+                                                        placeholder="10-digit phone"
+                                                        className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none"
+                                                    />
+                                                    {currentMemberPhone && currentMemberPhone.length !== 10 && (
+                                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-amber-400">
+                                                            {currentMemberPhone.length}/10
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <select
                                                     value={currentMemberGender}
                                                     onChange={(e) => setCurrentMemberGender(e.target.value)}
@@ -1073,24 +1196,40 @@ export default function EventRegistrationPage() {
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Transaction ID</label>
+                                                                <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Transaction ID *</label>
                                                                 <input
-                                                                    type="text"
-                                                                    placeholder="UTR / UPI Ref ID"
+                                                                    type="tel"
+                                                                    placeholder="12-digit UTR / UPI Ref ID"
                                                                     value={paymentDetails.utrId}
-                                                                    onChange={(e) => setPaymentDetails({ ...paymentDetails, utrId: e.target.value })}
+                                                                    onChange={(e) => {
+                                                                        const value = e.target.value.replace(/\D/g, '');
+                                                                        if (value.length <= 12) {
+                                                                            setPaymentDetails({ ...paymentDetails, utrId: value });
+                                                                        }
+                                                                    }}
+                                                                    maxLength={12}
                                                                     className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm md:text-base text-white focus:border-red-500 outline-none placeholder:text-zinc-600 transition-all font-mono"
                                                                 />
+                                                                {paymentDetails.utrId && paymentDetails.utrId.length !== 12 && (
+                                                                    <p className="text-xs text-amber-400 mt-1">{paymentDetails.utrId.length}/12 digits</p>
+                                                                )}
                                                             </div>
                                                             <div>
-                                                                <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">PAYER NAME</label>
+                                                                <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">PAYER NAME *</label>
                                                                 <input
                                                                     type="text"
-                                                                    placeholder="Name as per your Bank records"
+                                                                    placeholder="Name as per Bank records"
                                                                     value={paymentDetails.payeeName}
-                                                                    onChange={(e) => setPaymentDetails({ ...paymentDetails, payeeName: e.target.value })}
+                                                                    onChange={(e) => {
+                                                                        const value = e.target.value.replace(/[^a-zA-Z\s.]/g, '');
+                                                                        setPaymentDetails({ ...paymentDetails, payeeName: value });
+                                                                    }}
+                                                                    maxLength={50}
                                                                     className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm md:text-base text-white focus:border-red-500 outline-none placeholder:text-zinc-600 transition-all"
                                                                 />
+                                                                {paymentDetails.payeeName && paymentDetails.payeeName.length < 2 && (
+                                                                    <p className="text-xs text-amber-400 mt-1">Name too short</p>
+                                                                )}
                                                             </div>
 
                                                             <div className="p-3 rounded bg-yellow-500/10 border border-yellow-500/20 mt-2 space-y-2">
