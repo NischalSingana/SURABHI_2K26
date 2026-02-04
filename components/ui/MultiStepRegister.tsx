@@ -81,6 +81,78 @@ const MultiStepRegister = () => {
     phoneNumber: "",
   });
 
+  // Validation Functions
+  const validatePhone = (phone: string): { valid: boolean; error?: string } => {
+    if (!phone || !phone.trim()) {
+      return { valid: false, error: "Phone number is required" };
+    }
+    const cleaned = phone.trim().replace(/\s+/g, '');
+    if (!/^\d{10}$/.test(cleaned)) {
+      return { valid: false, error: "Phone number must be exactly 10 digits" };
+    }
+    return { valid: true };
+  };
+
+  const validateInternationalPhone = (phone: string): { valid: boolean; error?: string } => {
+    if (!phone || !phone.trim()) {
+      return { valid: false, error: "Phone number is required" };
+    }
+    const cleaned = phone.trim().replace(/\s+/g, '');
+    if (!/^\d{6,15}$/.test(cleaned)) {
+      return { valid: false, error: "Phone number must be 6-15 digits" };
+    }
+    return { valid: true };
+  };
+
+  const validateName = (name: string): { valid: boolean; error?: string } => {
+    if (!name || !name.trim()) {
+      return { valid: false, error: "Name is required" };
+    }
+    if (name.trim().length < 2) {
+      return { valid: false, error: "Name must be at least 2 characters" };
+    }
+    if (!/^[a-zA-Z\s.'-]+$/.test(name.trim())) {
+      return { valid: false, error: "Name can only contain letters, spaces, dots, hyphens, and apostrophes" };
+    }
+    return { valid: true };
+  };
+
+  const validateCollegeName = (name: string): { valid: boolean; error?: string } => {
+    if (!name || !name.trim()) {
+      return { valid: false, error: "College/Institution name is required" };
+    }
+    if (name.trim().length < 3) {
+      return { valid: false, error: "College/Institution name must be at least 3 characters" };
+    }
+    if (name.trim().length > 100) {
+      return { valid: false, error: "College/Institution name must not exceed 100 characters" };
+    }
+    return { valid: true };
+  };
+
+  const validateCollegeId = (id: string): { valid: boolean; error?: string } => {
+    if (!id || !id.trim()) {
+      return { valid: false, error: "College ID is required" };
+    }
+    if (id.trim().length < 4) {
+      return { valid: false, error: "College ID must be at least 4 characters" };
+    }
+    if (!/^[a-zA-Z0-9\-/]+$/.test(id.trim())) {
+      return { valid: false, error: "College ID can only contain letters, numbers, hyphens, and slashes" };
+    }
+    return { valid: true };
+  };
+
+  const validateStateRegion = (state: string): { valid: boolean; error?: string } => {
+    if (!state || !state.trim()) {
+      return { valid: false, error: "State/Region is required" };
+    }
+    if (state.trim().length < 2) {
+      return { valid: false, error: "State/Region must be at least 2 characters" };
+    }
+    return { valid: true };
+  };
+
   // Auto-detect college from localStorage and skip to registration
   useEffect(() => {
     if (session?.user && currentStep === 1 && !hasAutoAdvanced) {
@@ -261,11 +333,73 @@ const MultiStepRegister = () => {
         return;
       }
 
+      // Validate name
+      const nameValidation = validateName(formData.name);
+      if (!nameValidation.valid) {
+        toast.error(nameValidation.error);
+        setIsSubmitting(false);
+        return;
+      }
+
       // Validate KL University email domain (not for international)
       if (formData.college === "KL_UNIVERSITY") {
         const emailDomain = formData.email.split("@")[1];
         if (emailDomain !== "kluniversity.in") {
           toast.error("Please login with your official KL University email ID (@kluniversity.in)");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // Validate phone number
+      if (formData.college === "INTERNATIONAL") {
+        const phoneValidation = validateInternationalPhone(formData.phoneNumber || "");
+        if (!phoneValidation.valid) {
+          toast.error(phoneValidation.error);
+          setIsSubmitting(false);
+          return;
+        }
+      } else {
+        const phoneValidation = validatePhone(formData.phone);
+        if (!phoneValidation.valid) {
+          toast.error(phoneValidation.error);
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // Validate college name for OTHER and INTERNATIONAL
+      if (formData.college === "OTHER" || formData.college === "INTERNATIONAL") {
+        const collegeNameValidation = validateCollegeName(formData.collegeName);
+        if (!collegeNameValidation.valid) {
+          toast.error(collegeNameValidation.error);
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // Validate college ID (not for international)
+      if (formData.college !== "INTERNATIONAL") {
+        const collegeIdValidation = validateCollegeId(formData.collageId);
+        if (!collegeIdValidation.valid) {
+          toast.error(collegeIdValidation.error);
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // Validate state/region for international
+      if (formData.college === "INTERNATIONAL") {
+        const stateValidation = validateStateRegion(formData.state || "");
+        if (!stateValidation.valid) {
+          toast.error(stateValidation.error);
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Validate country is selected
+        if (!formData.country || !formData.country.trim()) {
+          toast.error("Please select your country");
           setIsSubmitting(false);
           return;
         }
@@ -675,11 +809,20 @@ const MultiStepRegister = () => {
                           type="text"
                           name="collegeName"
                           value={formData.collegeName === "Other College" ? "" : formData.collegeName}
-                          onChange={handleInputChange}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value.length <= 100) {
+                              setFormData({ ...formData, collegeName: value });
+                            }
+                          }}
                           required
+                          maxLength={100}
                           className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
                           placeholder="Enter your college name"
                         />
+                        {formData.collegeName && formData.collegeName !== "Other College" && formData.collegeName.length < 3 && (
+                          <p className="text-xs text-amber-400 mt-1">College name must be at least 3 characters</p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -695,14 +838,24 @@ const MultiStepRegister = () => {
                         type="text"
                         name="name"
                         value={formData.name}
-                        onChange={handleInputChange}
+                        onChange={(e) => {
+                          if (formData.college === "KL_UNIVERSITY") return;
+                          const value = e.target.value.replace(/[^a-zA-Z\s.'-]/g, '');
+                          if (value.length <= 50) {
+                            setFormData({ ...formData, name: value });
+                          }
+                        }}
                         readOnly={formData.college === "KL_UNIVERSITY"}
+                        maxLength={50}
                         className={`w-full pl-12 pr-4 py-3 text-base border border-zinc-700 rounded-lg text-white ${formData.college === "KL_UNIVERSITY"
                           ? "bg-zinc-800/50 cursor-not-allowed"
                           : "bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
                           }`}
                         placeholder="Enter your full name"
                       />
+                      {formData.name && formData.name.length < 2 && formData.college !== "KL_UNIVERSITY" && (
+                        <p className="text-xs text-amber-400 mt-1">Name must be at least 2 characters</p>
+                      )}
                     </div>
                   </div>
 
@@ -751,11 +904,22 @@ const MultiStepRegister = () => {
                             type="tel"
                             name="phoneNumber"
                             value={formData.phoneNumber || ""}
-                            onChange={(e) => setFormData((prev) => ({ ...prev, phoneNumber: e.target.value }))}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, '');
+                              if (value.length <= 15) {
+                                setFormData((prev) => ({ ...prev, phoneNumber: value }));
+                              }
+                            }}
                             required
+                            maxLength={15}
                             className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
-                            placeholder="e.g. 234 567 8900"
+                            placeholder="e.g. 2345678900"
                           />
+                          {formData.phoneNumber && (formData.phoneNumber.length < 6 || formData.phoneNumber.length > 15) && (
+                            <p className="text-xs text-amber-400 mt-1">
+                              {formData.phoneNumber.length < 6 ? `${6 - formData.phoneNumber.length} more digits needed` : "Maximum 15 digits"}
+                            </p>
+                          )}
                         </div>
                       </div>
                     ) : (
@@ -765,12 +929,20 @@ const MultiStepRegister = () => {
                           type="tel"
                           name="phone"
                           value={formData.phone}
-                          onChange={handleInputChange}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            if (value.length <= 10) {
+                              setFormData({ ...formData, phone: value });
+                            }
+                          }}
                           required
-                          pattern="[0-9]{10}"
+                          maxLength={10}
                           className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
                           placeholder="10-digit mobile number"
                         />
+                        {formData.phone && formData.phone.length !== 10 && (
+                          <p className="text-xs text-amber-400 mt-1">{formData.phone.length}/10 digits</p>
+                        )}
                       </div>
                     )}
                   </div>
@@ -803,11 +975,20 @@ const MultiStepRegister = () => {
                           type="text"
                           name="state"
                           value={formData.state || ""}
-                          onChange={handleInputChange}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value.length <= 50) {
+                              setFormData({ ...formData, state: value });
+                            }
+                          }}
                           required
+                          maxLength={50}
                           className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
                           placeholder="e.g. California, England"
                         />
+                        {formData.state && formData.state.length < 2 && (
+                          <p className="text-xs text-amber-400 mt-1">State/Region must be at least 2 characters</p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -824,11 +1005,20 @@ const MultiStepRegister = () => {
                           type="text"
                           name="collegeName"
                           value={formData.collegeName === "International Student" ? "" : (formData.collegeName || "")}
-                          onChange={handleInputChange}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value.length <= 100) {
+                              setFormData({ ...formData, collegeName: value });
+                            }
+                          }}
                           required
+                          maxLength={100}
                           className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
                           placeholder="Enter your institution or university name"
                         />
+                        {formData.collegeName && formData.collegeName !== "International Student" && formData.collegeName.length < 3 && (
+                          <p className="text-xs text-amber-400 mt-1">Institution name must be at least 3 characters</p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -872,11 +1062,20 @@ const MultiStepRegister = () => {
                         type="text"
                         name="collageId"
                         value={formData.collageId}
-                        onChange={handleInputChange}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^a-zA-Z0-9\-/]/g, '').toUpperCase();
+                          if (value.length <= 20) {
+                            setFormData({ ...formData, collageId: value });
+                          }
+                        }}
                         required
+                        maxLength={20}
                         className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
                         placeholder="Enter your college ID"
                       />
+                      {formData.collageId && formData.collageId.length < 4 && (
+                        <p className="text-xs text-amber-400 mt-1">College ID must be at least 4 characters</p>
+                      )}
                     </div>
                   </div>
                   )}
