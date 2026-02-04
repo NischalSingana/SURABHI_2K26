@@ -21,6 +21,8 @@ const nextConfig: NextConfig = {
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     unoptimized: false,
+    loader: 'custom',
+    loaderFile: './lib/cloudflare-image-loader.ts', // Cloudflare R2 + Image Transforms
     remotePatterns: [
       {
         protocol: "https",
@@ -45,6 +47,11 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "**.r2.dev",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.klusurabhi.in", // Custom R2 domain with CDN
         pathname: "/**",
       },
       {
