@@ -87,7 +87,6 @@ const HomePage = () => {
     }, [isMuted]);
     */
 
-
     useEffect(() => {
         // Fetch poster gallery items from API
         const fetchPosters = async () => {
