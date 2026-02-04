@@ -22,18 +22,19 @@ export default function cloudflareImageLoader({
   width: number;
   quality?: number;
 }) {
-  // For local/relative images (starting with /), use Next.js default loader
-  if (src.startsWith('/')) {
-    // Next.js default loader format
-    return `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality || 75}`;
+  // For local/static images (starting with / or _next), serve directly
+  // Custom loaders cannot optimize static assets - they must be served as-is
+  if (src.startsWith('/') || src.startsWith('_next')) {
+    // Return the original path - no optimization for local files with custom loader
+    return src;
   }
 
   // Check if image is from Cloudflare R2
   const isR2Image = src.includes('.r2.dev') || src.includes('cdn.klusurabhi.in');
   
   if (!isR2Image) {
-    // For external non-R2 images, return with basic optimization params
-    return `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality || 75}`;
+    // For external non-R2 images, return as-is (custom loaders can't optimize arbitrary URLs)
+    return src;
   }
 
   // Parse the URL
@@ -59,6 +60,7 @@ export default function cloudflareImageLoader({
     return `https://${url.hostname}/cdn-cgi/image/${params.toString()}${url.pathname}`;
   }
   
-  // For r2.dev domains without custom CDN, use Next.js default optimization
-  return `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality || 75}`;
+  // For r2.dev domains without custom CDN, return original
+  // Next.js will handle these through its default optimization
+  return src;
 }
