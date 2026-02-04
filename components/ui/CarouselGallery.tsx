@@ -357,7 +357,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                   }}
                 >
                   {/* Clean Image Tag for better Border Clip */}
-                  <div className="absolute inset-0 w-full h-full bg-neutral-900">
+                  <div className="absolute inset-0 w-full h-full bg-zinc-900">
                     <Image
                       src={item.image}
                       alt={item.name || "Gallery Image"}
@@ -369,7 +369,7 @@ const CarouselGallery = ({ items, defaultYear }: CarouselGalleryProps) => {
                       loading={index < 3 ? "eager" : "lazy"}
                       onLoad={index < 3 ? handleImageLoad : undefined}
                       placeholder="blur"
-                      blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+                      blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzI3MjcyNyIvPjwvc3ZnPg=="
                     />
                   </div>
 
