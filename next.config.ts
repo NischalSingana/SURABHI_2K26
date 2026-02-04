@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   compress: true, // Enable gzip compression
   poweredByHeader: false, // Remove X-Powered-By header for security
   productionBrowserSourceMaps: false, // Disable source maps in production for smaller bundle
-  swcMinify: true, // Use SWC for faster minification
+  // Note: SWC minification is now default in Next.js 16+ (no config needed)
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb', // Increased from default 1MB to support image uploads
