@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
+// Enable caching: 1 hour for CDN, 24 hours stale-while-revalidate
+export const revalidate = 3600; // 1 hour
+
 export async function GET() {
     try {
         const galleryDir = path.join(process.cwd(), 'public', 'poster-gallery');
@@ -56,7 +59,7 @@ export async function GET() {
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Methods': 'GET',
                     'Content-Type': 'application/json',
-                    'Cache-Control': 'no-store, max-age=0',
+                    'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
                 },
             }
         );

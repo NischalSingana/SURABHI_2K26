@@ -162,6 +162,12 @@ model Event {
   groupRegistrations        GroupRegistration[]
   individualRegistrations   IndividualRegistration[]
   judges                    User[]                   @relation("EventJudges")
+
+  @@index([categoryId])
+  @@index([date])
+  @@index([isResultPublished])
+  @@index([allowSubmissions])
+  @@index([virtualEnabled])
 }
 
 model GroupRegistration {

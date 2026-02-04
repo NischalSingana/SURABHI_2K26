@@ -6,10 +6,15 @@ const nextConfig: NextConfig = {
   // cacheComponents disabled due to incompatibility with API routes using headers()
   // Re-enable when Next.js provides a way to exclude API routes from prerendering
   cacheComponents: false,
+  compress: true, // Enable gzip compression
+  poweredByHeader: false, // Remove X-Powered-By header for security
+  productionBrowserSourceMaps: false, // Disable source maps in production for smaller bundle
+  swcMinify: true, // Use SWC for faster minification
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb', // Increased from default 1MB to support image uploads
     },
+    optimizePackageImports: ['framer-motion', 'react-icons'], // Tree-shake large packages
   },
   images: {
     formats: ["image/avif", "image/webp"],
