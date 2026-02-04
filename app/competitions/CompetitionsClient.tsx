@@ -71,8 +71,8 @@ export default function CompetitionsClient({
     category.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Tiny transparent placeholder for blur effect
-  const blurDataURL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+  // Pure black placeholder for blur effect
+  const blurDataURL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzAwMDAwMCIvPjwvc3ZnPg==";
 
   return (
     <>
@@ -231,8 +231,8 @@ export default function CompetitionsClient({
                 className="cursor-pointer perspective-1000"
                 style={{ transformStyle: "preserve-3d" }}
               >
-                <div className="relative h-60 md:h-80 rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 hover:border-red-600/50 transition-all duration-300 shadow-2xl hover:shadow-red-600/20">
-                  <div className="absolute inset-0 bg-zinc-900">
+                <div className="relative h-60 md:h-80 rounded-2xl overflow-hidden bg-black border border-zinc-800 hover:border-red-600/50 transition-all duration-300 shadow-2xl hover:shadow-red-600/20">
+                  <div className="absolute inset-0 bg-black">
                     <Image
                       src={category.image}
                       alt={category.name}
