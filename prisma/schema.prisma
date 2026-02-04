@@ -8,42 +8,42 @@ datasource db {
 }
 
 model User {
-  id               String        @id
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @default(now()) @updatedAt
-  email            String        @unique
-  emailVerified    Boolean       @default(false)
-  name             String?
-  image            String?
-  collage          String?
-  collageId        String?
-  branch           String?
-  year             Int?
-  isApproved       Boolean       @default(false)
-  paymentStatus    PaymentStatus @default(PENDING)
-  ticketScanned    Boolean       @default(false)
-  ticketScannedAt  DateTime?
-  phone            String?
-  gender           String?
-  password         String?
-  judgePassword    String?
-  state            String?
-  city             String?
-  isInternational  Boolean       @default(false)
-  country          String?
-  role             Role          @default(USER)
-  accounts              Account[]
-  sessions              Session[]
-  assignedEventId    String?
-  assignedEvent      Event?        @relation("EventJudges", fields: [assignedEventId], references: [id])
-  passes                Pass[]
-  accommodationBookings AccommodationBooking[]
-  eventSubmissions      EventSubmission[]
-  individualRegistrations IndividualRegistration[]
-  groupRegistrations    GroupRegistration[]
+  id                       String                    @id
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @default(now()) @updatedAt
+  email                    String                    @unique
+  emailVerified            Boolean                   @default(false)
+  name                     String?
+  image                    String?
+  collage                  String?
+  collageId                String?
+  branch                   String?
+  year                     Int?
+  isApproved               Boolean                   @default(false)
+  paymentStatus            PaymentStatus             @default(PENDING)
+  phone                    String?
+  password                 String?
+  role                     Role                      @default(USER)
+  ticketScanned            Boolean                   @default(false)
+  ticketScannedAt          DateTime?
+  gender                   String?
+  city                     String?
+  state                    String?
+  judgePassword            String?
+  assignedEventId          String?
+  country                  String?
+  isInternational          Boolean                   @default(false)
+  accommodationBookings    AccommodationBooking?
+  accounts                 Account[]
+  evaluationsGiven         Evaluation[]              @relation("JudgeEvaluations")
+  evaluationsReceived      Evaluation[]              @relation("ParticipantEvaluations")
+  eventSubmissions         EventSubmission[]
+  groupRegistrations       GroupRegistration[]
+  individualRegistrations  IndividualRegistration[]
+  passes                   Pass[]
+  sessions                 Session[]
+  assignedEvent            Event?                    @relation("EventJudges", fields: [assignedEventId], references: [id])
   visitorPassRegistrations VisitorPassRegistration[]
-  evaluationsGiven      Evaluation[]             @relation("JudgeEvaluations")
-  evaluationsReceived   Evaluation[]             @relation("ParticipantEvaluations")
 
   @@index([paymentStatus])
   @@index([role])
@@ -53,29 +53,24 @@ model User {
 }
 
 model Pass {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  passToken   String?   @unique
-  eventId     String?
-  passType    String   @default("GENERAL")
-  
-  // Payment fields for visitor pass
-  paymentScreenshot String?
-  utrId             String?
+  id                String        @id @default(cuid())
+  userId            String
+  passToken         String?       @unique
+  eventId           String?
+  passType          String        @default("GENERAL")
+  isActive          Boolean       @default(true)
+  isUsed            Boolean       @default(false)
+  usedAt            DateTime?
+  usedBy            String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  expiresAt         DateTime?
   payeeName         String?
+  paymentScreenshot String?
   paymentStatus     PaymentStatus @default(PENDING)
-  
-  isActive    Boolean  @default(true)
-  isUsed      Boolean  @default(false)
-  usedAt      DateTime?
-  usedBy      String?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  expiresAt   DateTime?
-  
+  utrId             String?
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([passToken])
   @@index([userId])
   @@map("passes")
@@ -137,66 +132,58 @@ model Category {
 }
 
 model Event {
-  id                 String   @id
-  categoryId         String
-  name               String
-  description        String
-  date               DateTime
-  image              String
-  slug               String   @unique @default(cuid())
-
-  venue              String
-  startTime          String
-  endTime            String
-  participantLimit   Int
-  isGroupEvent       Boolean  @default(false)
-  isResultPublished  Boolean  @default(false)
-  allowSubmissions   Boolean  @default(false)
-  virtualEnabled     Boolean  @default(false)
-  minTeamSize        Int      @default(1)
-  maxTeamSize        Int      @default(1)
-  termsandconditions String
+  id                        String                   @id
+  categoryId                String
+  name                      String
+  description               String
+  date                      DateTime
+  image                     String
+  venue                     String
+  startTime                 String
+  endTime                   String
+  participantLimit          Int
+  termsandconditions        String
+  registrationLink          String
+  createdAt                 DateTime                 @default(now())
+  updatedAt                 DateTime
+  isGroupEvent              Boolean                  @default(false)
+  maxTeamSize               Int                      @default(1)
+  minTeamSize               Int                      @default(1)
+  slug                      String                   @unique @default(cuid())
+  whatsappLink              String?
+  brochureLink              String?
+  isResultPublished         Boolean                  @default(false)
+  allowSubmissions          Boolean                  @default(false)
+  virtualEnabled            Boolean                  @default(false)
   virtualTermsAndConditions String?
-  registrationLink   String
-  whatsappLink       String?
-  brochureLink       String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime
-  Category           Category @relation(fields: [categoryId], references: [id])
-  submissions        EventSubmission[]
-  individualRegistrations IndividualRegistration[]
-  groupRegistrations GroupRegistration[]
-  evaluations        Evaluation[]
-  judges             User[]   @relation("EventJudges")
+  Category                  Category                 @relation(fields: [categoryId], references: [id])
+  evaluations               Evaluation[]
+  submissions               EventSubmission[]
+  groupRegistrations        GroupRegistration[]
+  individualRegistrations   IndividualRegistration[]
+  judges                    User[]                   @relation("EventJudges")
 }
 
 model GroupRegistration {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  eventId   String
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  groupName String?
-  mentorName String?
-  mentorPhone String?
-  members   Json
-  isVirtual Boolean  @default(false)
+  id                  String        @id @default(cuid())
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  eventId             String
+  userId              String
+  groupName           String?
+  members             Json
+  mentorName          String?
+  mentorPhone         String?
   registrationDetails Json?
-
-  // Payment Verification
-  paymentScreenshot String?
-  utrId            String?
-  payeeName        String?
-  paymentStatus    PaymentStatus @default(PENDING)
-
-  // Approval tracking
-  approvedBy       String?  // User ID of who approved/rejected
-  approvedAt       DateTime?
+  payeeName           String?
+  paymentScreenshot   String?
+  paymentStatus       PaymentStatus @default(PENDING)
+  utrId               String?
+  approvedAt          DateTime?
+  approvedBy          String?
+  isVirtual           Boolean       @default(false)
+  event               Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, eventId])
   @@index([eventId])
@@ -207,118 +194,61 @@ model GroupRegistration {
   @@map("group_registrations")
 }
 
-enum PaymentStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-enum Role {
-  USER
-  ADMIN
-  JUDGE
-  MANAGER
-  MASTER
-}
-
-enum Gender {
-  MALE
-  FEMALE
-}
-
-enum BookingType {
-  INDIVIDUAL
-  GROUP
-}
-
-enum BookingStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
-  REJECTED
-}
-
 model AccommodationBooking {
-  id           String        @id @default(cuid())
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-
-  // User reference
-  userId       String
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Booking details
-  gender       Gender
-  bookingType  BookingType
-
-  // Primary contact (stored for record keeping)
-  primaryName  String
-  primaryEmail String
-  primaryPhone String
-
-  // Group members (stored as JSON array)
-  groupMembers Json?
-
-  // Total members count
-  totalMembers Int
-
-  // Payment
+  id            String        @id @default(cuid())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  userId        String        @unique
+  gender        Gender
+  bookingType   BookingType
+  primaryName   String
+  primaryEmail  String
+  primaryPhone  String
+  groupMembers  Json?
+  totalMembers  Int
   paymentStatus PaymentStatus @default(PENDING)
   paymentId     String?
   amount        Decimal?      @db.Decimal(10, 2)
+  status        BookingStatus @default(PENDING)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Booking status
-  status       BookingStatus @default(PENDING)
-
-  // Ensure one booking per user
-  @@unique([userId])
   @@index([paymentStatus])
   @@index([status])
   @@map("accommodation_bookings")
 }
 
 model EventSubmission {
-  id             String   @id @default(cuid())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  userId         String
-  eventId        String
-
-  submissionLink String
-  notes          String?
+  id                  String   @id @default(cuid())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  userId              String
+  eventId             String
+  submissionLink      String
+  notes               String?
   registrationDetails Json?
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event               Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, eventId])
   @@map("event_submissions")
 }
 
 model IndividualRegistration {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  eventId   String
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  isVirtual Boolean  @default(false)
-  registrationDetails Json? // For any future extra fields
-
-  // Payment Verification
-  paymentScreenshot String?
-  utrId            String?
-  payeeName        String?
-  paymentStatus    PaymentStatus @default(PENDING)
-
-  // Approval tracking
-  approvedBy       String?  // User ID of who approved/rejected
-  approvedAt       DateTime?
+  id                  String        @id @default(cuid())
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  eventId             String
+  userId              String
+  registrationDetails Json?
+  payeeName           String?
+  paymentScreenshot   String?
+  paymentStatus       PaymentStatus @default(PENDING)
+  utrId               String?
+  approvedAt          DateTime?
+  approvedBy          String?
+  isVirtual           Boolean       @default(false)
+  event               Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, eventId])
   @@index([eventId])
@@ -330,26 +260,21 @@ model IndividualRegistration {
 }
 
 model VisitorPassRegistration {
-  id                 String   @id @default(cuid())
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  userId             String
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  passToken          String?  @unique
-  paymentScreenshot  String?
-  utrId              String?
-  payeeName          String?
-  paymentStatus      PaymentStatus @default(PENDING)
-
-  // Approval tracking
-  approvedBy         String?  // User ID of who approved/rejected
-  approvedAt         DateTime?
-
-  isUsed             Boolean  @default(false)
-  usedAt             DateTime?
-  usedBy             String?
+  id                String        @id @default(cuid())
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  userId            String
+  passToken         String?       @unique
+  paymentScreenshot String?
+  utrId             String?
+  payeeName         String?
+  paymentStatus     PaymentStatus @default(PENDING)
+  isUsed            Boolean       @default(false)
+  usedAt            DateTime?
+  usedBy            String?
+  approvedAt        DateTime?
+  approvedBy        String?
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([paymentStatus])
@@ -358,16 +283,14 @@ model VisitorPassRegistration {
   @@map("visitor_pass_registrations")
 }
 
-
-
 model ChatbotCategory {
   id        String   @id @default(cuid())
   name      String   @unique
-  image     String?
   order     Int      @default(0)
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  image     String?
 
   @@map("chatbot_categories")
 }
@@ -375,7 +298,7 @@ model ChatbotCategory {
 model ChatbotFAQ {
   id        String   @id @default(cuid())
   question  String
-  answer    String   @db.Text
+  answer    String
   category  String?
   order     Int      @default(0)
   active    Boolean  @default(true)
@@ -389,18 +312,14 @@ model Evaluation {
   id            String   @id @default(cuid())
   score         Float
   remarks       String?
-  
   judgeId       String
-  judge         User     @relation("JudgeEvaluations", fields: [judgeId], references: [id], onDelete: Cascade)
-  
   eventId       String
-  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  
   participantId String
-  participant   User     @relation("ParticipantEvaluations", fields: [participantId], references: [id], onDelete: Cascade)
-
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  judge         User     @relation("JudgeEvaluations", fields: [judgeId], references: [id], onDelete: Cascade)
+  participant   User     @relation("ParticipantEvaluations", fields: [participantId], references: [id], onDelete: Cascade)
 
   @@unique([judgeId, eventId, participantId])
   @@index([eventId])
@@ -410,17 +329,17 @@ model Evaluation {
 }
 
 model Sponsor {
-  id          String   @id @default(cuid())
-  name        String   // Company/Sponsor name
-  description String   // Short description
-  sponsoredFor String  @default("") // What the sponsor is sponsoring for
-  image       String?  // Image URL (Cloudflare R2)
-  website     String?  // Optional website URL
-  borderColor String   @default("#dc2626") // Card border color
-  gradient    String   @default("linear-gradient(145deg,#dc2626,#000)") // Card gradient
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  name         String
+  description  String
+  image        String?
+  website      String?
+  borderColor  String   @default("#dc2626")
+  gradient     String   @default("linear-gradient(145deg,#dc2626,#000)")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  sponsoredFor String   @default("")
 
   @@map("sponsors")
 }
@@ -453,20 +372,20 @@ model ContactCoordinator {
   image      String?
   order      Int             @default(0)
   categoryId String
-  category   ContactCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
+  category   ContactCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@map("contact_coordinators")
 }
 
 model GalleryImage {
   id        String   @id @default(cuid())
-  url       String   // R2 Public URL
-  year      String   // e.g. "2025"
-  title     String?  // Optional title
-  width     Int?     // For Masonry layout optimization
-  height    Int?     // For Masonry layout optimization
+  url       String
+  year      String
+  title     String?
+  width     Int?
+  height    Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -479,8 +398,8 @@ model AdminActivityLog {
   userEmail  String
   userName   String?
   userRole   String
-  action     String   // ADD_EVENT, EDIT_EVENT, UPLOAD_CATEGORY_IMAGE, etc.
-  entityType String   // CATEGORY, EVENT, etc.
+  action     String
+  entityType String
   entityId   String?
   entityName String?
   details    Json?
@@ -493,21 +412,52 @@ model AdminActivityLog {
 }
 
 model DeleteRequest {
-  id              String   @id @default(cuid())
-  requestedById   String
+  id               String    @id @default(cuid())
+  requestedById    String
   requestedByEmail String
-  requestedByName String?
-  requestedByRole String
-  entityType      String   // CATEGORY | EVENT
-  entityId        String
-  entityName      String?
-  categoryId      String?  // For EVENT, parent category
-  status          String   @default("PENDING") // PENDING | APPROVED | REJECTED
-  decidedById     String?
-  decidedAt       DateTime?
-  createdAt       DateTime @default(now())
+  requestedByName  String?
+  requestedByRole  String
+  entityType       String
+  entityId         String
+  entityName       String?
+  categoryId       String?
+  status           String    @default("PENDING")
+  decidedById      String?
+  decidedAt        DateTime?
+  createdAt        DateTime  @default(now())
 
   @@index([status])
   @@index([requestedById])
   @@map("delete_requests")
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Role {
+  USER
+  ADMIN
+  JUDGE
+  MANAGER
+  MASTER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum BookingType {
+  INDIVIDUAL
+  GROUP
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  REJECTED
 }
