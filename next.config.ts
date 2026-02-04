@@ -21,8 +21,8 @@ const nextConfig: NextConfig = {
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     unoptimized: false,
-    loader: 'custom',
-    loaderFile: './lib/cloudflare-image-loader.ts', // Cloudflare R2 + Image Transforms
+    // Custom loader disabled - causes issues with local images
+    // R2 images will still be optimized through Next.js default loader
     remotePatterns: [
       {
         protocol: "https",
