@@ -116,7 +116,7 @@ export async function createAccommodationBooking(
       };
     }
 
-    const existingBooking = userData.accommodationBookings?.[0];
+    const existingBooking = userData.accommodationBookings;
 
     if (existingBooking) {
       if (existingBooking.status === "REJECTED" || existingBooking.status === "CANCELLED") {
