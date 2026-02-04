@@ -22,12 +22,18 @@ export default function cloudflareImageLoader({
   width: number;
   quality?: number;
 }) {
+  // For local/relative images (starting with /), use Next.js default loader
+  if (src.startsWith('/')) {
+    // Next.js default loader format
+    return `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality || 75}`;
+  }
+
   // Check if image is from Cloudflare R2
   const isR2Image = src.includes('.r2.dev') || src.includes('cdn.klusurabhi.in');
   
   if (!isR2Image) {
-    // For non-R2 images, return original src
-    return src;
+    // For external non-R2 images, return with basic optimization params
+    return `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality || 75}`;
   }
 
   // Parse the URL
@@ -53,7 +59,6 @@ export default function cloudflareImageLoader({
     return `https://${url.hostname}/cdn-cgi/image/${params.toString()}${url.pathname}`;
   }
   
-  // For r2.dev domains without custom CDN, return original
-  // (Consider migrating to custom domain for better performance)
-  return src;
+  // For r2.dev domains without custom CDN, use Next.js default optimization
+  return `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality || 75}`;
 }
