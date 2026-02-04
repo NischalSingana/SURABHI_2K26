@@ -658,7 +658,18 @@ function EventDetailPageContent() {
                   className="w-full px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-red-600/30 flex items-center justify-center gap-2 mt-6 group"
                 >
                   <FiLink size={20} className="group-hover:rotate-45 transition-transform duration-300" />
-                  <span>Fill the form</span>
+                  <div className="flex flex-col items-center">
+                    <span>
+                      {slug?.toLowerCase().includes('vastranaut') 
+                        ? 'Register via Unstop' 
+                        : 'Fill the form'}
+                    </span>
+                    {slug?.toLowerCase().includes('vastranaut') && (
+                      <span className="text-xs text-red-200/80 font-normal mt-0.5">
+                        (ONLINE MOOD BOARD ROUND)
+                      </span>
+                    )}
+                  </div>
                 </a>
               )}
 
