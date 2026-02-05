@@ -16,6 +16,7 @@ interface Sponsor {
     borderColor: string;
     gradient: string;
     isActive: boolean;
+    order: number;
 }
 
 export default function AdminSponsorsPage() {
@@ -33,6 +34,7 @@ export default function AdminSponsorsPage() {
         website: "",
         borderColor: "#dc2626",
         gradient: "linear-gradient(145deg,#dc2626,#000)",
+        order: 0,
     });
 
     useEffect(() => {
@@ -115,6 +117,7 @@ export default function AdminSponsorsPage() {
                 website: sponsor.website || "",
                 borderColor: sponsor.borderColor,
                 gradient: sponsor.gradient,
+                order: sponsor.order,
             });
         } else {
             setEditingSponsor(null);
@@ -126,6 +129,7 @@ export default function AdminSponsorsPage() {
                 website: "",
                 borderColor: "#dc2626",
                 gradient: "linear-gradient(145deg,#dc2626,#000)",
+                order: 0,
             });
         }
         setShowModal(true);
@@ -161,6 +165,7 @@ export default function AdminSponsorsPage() {
                         <table className="w-full">
                             <thead className="bg-gray-900">
                                 <tr>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Order</th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Image</th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Name</th>
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">Description</th>
@@ -172,6 +177,11 @@ export default function AdminSponsorsPage() {
                                 {sponsors.map((sponsor) => (
                                     <tr key={sponsor.id} className="hover:bg-gray-700/50">
                                         <td className="px-4 py-4">
+                                            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-600/20 text-red-400 font-bold text-sm">
+                                                {sponsor.order}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-4">
                                             {sponsor.image ? (
                                                 <img src={sponsor.image} alt={sponsor.name} className="w-16 h-16 object-cover rounded" />
                                             ) : (
@@ -182,7 +192,7 @@ export default function AdminSponsorsPage() {
                                         </td>
                                         <td className="px-4 py-4 text-white font-semibold">{sponsor.name}</td>
                                         <td className="px-4 py-4 text-gray-300 max-w-xs truncate">{sponsor.description}</td>
-                                        <td className="px-4 py-4 text-blue-400 font-semibold">
+                                        <td className="px-4 py-4 font-semibold" style={{ color: sponsor.borderColor }}>
                                             {sponsor.sponsoredFor}
                                         </td>
                                         <td className="px-4 py-4">
@@ -298,12 +308,30 @@ export default function AdminSponsorsPage() {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">Border Color</label>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Border Color
+                                            <span className="text-xs text-gray-400 ml-2">(Hover/accent color)</span>
+                                        </label>
                                         <input
                                             type="color"
                                             value={formData.borderColor}
                                             onChange={(e) => setFormData({ ...formData, borderColor: e.target.value })}
-                                            className="w-full h-10 bg-gray-700 rounded-md border border-gray-600"
+                                            className="w-full h-10 bg-gray-700 rounded-md border border-gray-600 cursor-pointer"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Display Order
+                                            <span className="text-xs text-gray-400 ml-2">(Lower numbers appear first)</span>
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={formData.order}
+                                            onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
+                                            className="w-full bg-gray-700 text-white rounded-md px-3 py-2 border border-gray-600"
+                                            placeholder="0"
+                                            min="0"
                                         />
                                     </div>
 
