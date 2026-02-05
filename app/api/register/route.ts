@@ -75,9 +75,9 @@ export async function POST(request: NextRequest) {
         );
       }
     } else {
-      if (!collegeName || !phone || !collageId || !branch || !year || !gender) {
+      if (!collegeName || !phone || !collageId || !branch || !year || !gender || !state?.trim() || !city?.trim()) {
         return NextResponse.json(
-          { error: "All required fields must be filled" },
+          { error: "All required fields must be filled (including state and city)" },
           { status: 400 }
         );
       }
@@ -106,6 +106,9 @@ export async function POST(request: NextRequest) {
               year,
               phone,
               gender,
+              state: state || undefined,
+              city: city || undefined,
+              country: "India", // Default to India for non-international students
             }),
         isApproved: true,
         paymentStatus: "APPROVED",
