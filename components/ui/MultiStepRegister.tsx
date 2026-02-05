@@ -81,6 +81,37 @@ const MultiStepRegister = ({ existingUserData }: MultiStepRegisterProps = {}) =>
   const [hasAutoAdvanced, setHasAutoAdvanced] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
 
+  // If user has existing data and is authenticated, start on step 3 so they can complete missing fields
+  useEffect(() => {
+    if (session?.user && existingUserData && existingUserData.collage && currentStep === 1 && !hasAutoAdvanced) {
+      // Ensure college field is set based on existingUserData
+      let detectedCollege: College = "";
+      let detectedCollegeName = "";
+      if (existingUserData.isInternational) {
+        detectedCollege = "INTERNATIONAL";
+        detectedCollegeName = "International Student";
+      } else if (existingUserData.collage === "KL University") {
+        detectedCollege = "KL_UNIVERSITY";
+        detectedCollegeName = "KL University";
+      } else if (existingUserData.collage) {
+        detectedCollege = "OTHER";
+        detectedCollegeName = existingUserData.collage;
+      }
+
+      if (detectedCollege && formData.college !== detectedCollege) {
+        setFormData(prev => ({
+          ...prev,
+          college: detectedCollege,
+          collegeName: detectedCollegeName,
+          isInternational: existingUserData.isInternational || false,
+        }));
+      }
+
+      setCurrentStep(3);
+      setHasAutoAdvanced(true);
+    }
+  }, [session?.user, existingUserData, currentStep, hasAutoAdvanced, formData.college]);
+
   // Initialize form data with existing user data if available
   const getInitialFormData = (): RegistrationData => {
     const defaultData: RegistrationData = {
@@ -239,7 +270,7 @@ const MultiStepRegister = ({ existingUserData }: MultiStepRegisterProps = {}) =>
     return { valid: true };
   };
 
-  // Auto-detect college from localStorage and skip to registration
+  // Auto-detect college from localStorage or existingUserData and skip to registration
   useEffect(() => {
     if (session?.user && currentStep === 1 && !hasAutoAdvanced) {
       // Check if we have saved college selection from OAuth flow
@@ -264,9 +295,43 @@ const MultiStepRegister = ({ existingUserData }: MultiStepRegisterProps = {}) =>
         // setTimeout(() => {
         //   setCurrentStep(3);
         // }, 100);
+      } else if (existingUserData && existingUserData.collage) {
+        // If user has existing data but no saved college selection, auto-detect from existingUserData
+        // This handles the case when KLU students are redirected to complete their profile
+        setHasAutoAdvanced(true);
+        
+        let detectedCollege: College = "";
+        let detectedCollegeName = "";
+        if (existingUserData.isInternational) {
+          detectedCollege = "INTERNATIONAL";
+          detectedCollegeName = "International Student";
+        } else if (existingUserData.collage === "KL University") {
+          detectedCollege = "KL_UNIVERSITY";
+          detectedCollegeName = "KL University";
+        } else if (existingUserData.collage) {
+          detectedCollege = "OTHER";
+          detectedCollegeName = existingUserData.collage;
+        }
+
+        if (detectedCollege) {
+          setFormData(prev => ({
+            ...prev,
+            college: detectedCollege,
+            collegeName: detectedCollegeName,
+            name: session.user.name || "",
+            email: session.user.email || "",
+            isInternational: existingUserData.isInternational || false,
+          }));
+
+          // Auto-advance to step 3 if user is authenticated and has incomplete data
+          // This ensures KLU students can see and fill in state/city fields
+          setTimeout(() => {
+            setCurrentStep(3);
+          }, 100);
+        }
       }
     }
-  }, [session?.user?.id, currentStep, hasAutoAdvanced]);
+  }, [session?.user?.id, currentStep, hasAutoAdvanced, existingUserData]);
 
   // Prevent navigation away from registration page until complete
   useEffect(() => {
