@@ -343,6 +343,7 @@ model Sponsor {
   borderColor  String   @default("#dc2626")
   gradient     String   @default("linear-gradient(145deg,#dc2626,#000)")
   isActive     Boolean  @default(true)
+  order        Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   sponsoredFor String   @default("")
