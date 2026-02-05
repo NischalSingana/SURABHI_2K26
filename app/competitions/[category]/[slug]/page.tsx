@@ -660,16 +660,10 @@ function EventDetailPageContent() {
                 >
                   <FiLink size={20} className="group-hover:rotate-45 transition-transform duration-300" />
                   <div className="flex flex-col items-center">
-                    <span>
-                      {slug?.toLowerCase().includes('vastranaut') 
-                        ? 'Register via Unstop' 
-                        : 'Fill the form'}
+                    <span>Register via Unstop</span>
+                    <span className="text-xs text-red-200/80 font-normal mt-0.5">
+                      (Round 1: Elimination - ONLINE)
                     </span>
-                    {slug?.toLowerCase().includes('vastranaut') && (
-                      <span className="text-xs text-red-200/80 font-normal mt-0.5">
-                        (ONLINE MOOD BOARD ROUND)
-                      </span>
-                    )}
                   </div>
                 </a>
               )}
@@ -736,8 +730,8 @@ function EventDetailPageContent() {
                     </motion.button>
                   )}
                 </div>
-              ) : slug?.toLowerCase().includes('vastranaut') ? (
-                // Blocked button for Vastranaut with tooltip
+              ) : event.registrationLink ? (
+                // Blocked button for events with external registration (Unstop Round 1)
                 <div className="relative group mt-6">
                   <motion.button
                     whileTap={{ scale: 0.98 }}
@@ -754,10 +748,10 @@ function EventDetailPageContent() {
                     Register Now
                   </motion.button>
                   {/* Tooltip */}
-                  <div className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-zinc-800 text-white text-sm rounded-lg shadow-xl border border-zinc-700 transition-opacity duration-200 w-64 text-center z-10 ${showVastranautTooltip ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                    <div className="font-semibold mb-1">Registration Closed</div>
+                  <div className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-zinc-800 text-white text-sm rounded-lg shadow-xl border border-zinc-700 transition-opacity duration-200 w-72 text-center z-10 ${showVastranautTooltip ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    <div className="font-semibold mb-1 text-amber-400">Registration Not Opened Yet!</div>
                     <div className="text-zinc-300 text-xs leading-relaxed">
-                      Finale registration opens for shortlisted teams after mood board round completion
+                      Finals registration opens for shortlisted teams/members after round-1 completion
                     </div>
                     {/* Arrow */}
                     <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
