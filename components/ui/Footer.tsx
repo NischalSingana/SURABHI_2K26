@@ -165,7 +165,7 @@ const Footer = () => {
                         >
                             Nischal Singana
                         </a>
-                        <span>/</span>
+                        <span>| </span>
                         <a
                             href="https://instagram.com/zeroonedevs"
                             target="_blank"

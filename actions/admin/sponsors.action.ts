@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { Role } from "@prisma/client";
 import { uploadToR2, generateUniqueFilename } from "@/lib/r2";
+import { revalidatePath } from "next/cache";
 
 // Get all sponsors (public)
 export async function getAllSponsors() {
@@ -69,6 +70,10 @@ export async function createSponsor(data: {
             },
         });
 
+        // Clear cache so sponsors page shows new sponsor immediately
+        revalidatePath("/sponsors");
+        revalidatePath("/api/sponsors");
+
         return { success: true, sponsor, message: "Sponsor created successfully" };
     } catch (error: any) {
         console.error("Error creating sponsor:", error);
@@ -103,6 +108,10 @@ export async function updateSponsor(
             data,
         });
 
+        // Clear cache so sponsors page shows updated sponsor immediately
+        revalidatePath("/sponsors");
+        revalidatePath("/api/sponsors");
+
         return { success: true, sponsor, message: "Sponsor updated successfully" };
     } catch (error: any) {
         console.error("Error updating sponsor:", error);
@@ -123,6 +132,10 @@ export async function deleteSponsor(id: string) {
         await prisma.sponsor.delete({
             where: { id },
         });
+
+        // Clear cache so sponsors page reflects deletion immediately
+        revalidatePath("/sponsors");
+        revalidatePath("/api/sponsors");
 
         return { success: true, message: "Sponsor deleted successfully" };
     } catch (error: any) {
