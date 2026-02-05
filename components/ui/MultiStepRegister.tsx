@@ -56,7 +56,24 @@ const GENDERS = [
 
 
 
-const MultiStepRegister = () => {
+interface MultiStepRegisterProps {
+  existingUserData?: {
+    name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    collage?: string | null;
+    collageId?: string | null;
+    branch?: string | null;
+    year?: number | null;
+    gender?: string | null;
+    country?: string | null;
+    state?: string | null;
+    city?: string | null;
+    isInternational?: boolean;
+  } | null;
+}
+
+const MultiStepRegister = ({ existingUserData }: MultiStepRegisterProps = {}) => {
   const router = useRouter();
   const { data: session } = useSession();
   const [currentStep, setCurrentStep] = useState(1);
@@ -64,22 +81,81 @@ const MultiStepRegister = () => {
   const [hasAutoAdvanced, setHasAutoAdvanced] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
 
-  const [formData, setFormData] = useState<RegistrationData>({
-    college: "",
-    collegeName: "",
-    name: "",
-    email: "",
-    phone: "",
-    collageId: "",
-    branch: "",
-    year: 1,
-    gender: "",
-    country: "",
-    state: "",
-    city: "",
-    phoneCountryCode: "+1",
-    phoneNumber: "",
-  });
+  // Initialize form data with existing user data if available
+  const getInitialFormData = (): RegistrationData => {
+    const defaultData: RegistrationData = {
+      college: "",
+      collegeName: "",
+      name: "",
+      email: "",
+      phone: "",
+      collageId: "",
+      branch: "",
+      year: 1,
+      gender: "",
+      country: "",
+      state: "",
+      city: "",
+      phoneCountryCode: "+1",
+      phoneNumber: "",
+    };
+
+    if (!existingUserData) return defaultData;
+
+    // Parse international phone number if exists
+    let phoneCountryCode = "+1";
+    let phoneNumber = "";
+    const phone = existingUserData.phone || "";
+    
+    if (existingUserData.isInternational && phone && phone.startsWith("+")) {
+      const match = COUNTRIES_WITH_DIAL.slice()
+        .sort((a, b) => b.dialCode.length - a.dialCode.length)
+        .find((c) => phone.startsWith(c.dialCode));
+      if (match) {
+        phoneCountryCode = match.dialCode;
+        phoneNumber = phone.replace(match.dialCode, "").trim();
+      } else {
+        phoneNumber = phone;
+      }
+    } else if (phone) {
+      phoneNumber = phone;
+    }
+
+    // Determine college type
+    let college: College = "";
+    let collegeName = "";
+    if (existingUserData.isInternational) {
+      college = "INTERNATIONAL";
+      collegeName = "International Student";
+    } else if (existingUserData.collage === "KL University") {
+      college = "KL_UNIVERSITY";
+      collegeName = "KL University";
+    } else if (existingUserData.collage) {
+      college = "OTHER";
+      collegeName = existingUserData.collage;
+    }
+
+    return {
+      ...defaultData,
+      college,
+      collegeName,
+      name: existingUserData.name || "",
+      email: existingUserData.email || "",
+      phone: phone || "",
+      phoneCountryCode,
+      phoneNumber,
+      collageId: existingUserData.collageId || "",
+      branch: existingUserData.branch || "",
+      year: existingUserData.year || 1,
+      gender: existingUserData.gender || "",
+      country: existingUserData.country || "",
+      state: existingUserData.state || "",
+      city: existingUserData.city || "",
+      isInternational: existingUserData.isInternational || false,
+    };
+  };
+
+  const [formData, setFormData] = useState<RegistrationData>(getInitialFormData());
 
   // Validation Functions
   const validatePhone = (phone: string): { valid: boolean; error?: string } => {
