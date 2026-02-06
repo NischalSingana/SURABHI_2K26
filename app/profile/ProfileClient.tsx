@@ -20,6 +20,7 @@ import {
   FiLogOut,
   FiZap,
   FiAward,
+  FiVideo,
 } from "react-icons/fi";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -59,6 +60,11 @@ interface Event {
   venue: string;
   startTime: string;
   endTime: string;
+  meetingLink?: string | null;
+  meetingTime?: string | null;
+  meetingTimezone?: string | null;
+  meetingDate?: string | Date | null;
+  isVirtual?: boolean;
   Category: {
     id: string;
     name: string;
@@ -1100,6 +1106,27 @@ export default function ProfileClient({
                       </div>
 
                       <div className="flex flex-col sm:flex-row gap-2 mb-2 mt-auto">
+                        {/* Join Meeting Button - Show for virtual participants */}
+                        {event.isVirtual && event.meetingLink && (event.registrationStatus === 'APPROVED' || !event.registrationStatus) && (
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => {
+                              if (event.meetingLink) {
+                                window.open(event.meetingLink, '_blank', 'noopener,noreferrer');
+                              }
+                            }}
+                            className="sm:col-span-2 w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                          >
+                            <FiVideo size={16} />
+                            Join Meeting
+                            {event.meetingDate && event.meetingTime && event.meetingTimezone && (
+                              <span className="text-xs opacity-90 ml-1">
+                                ({new Date(event.meetingDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })} at {event.meetingTime} {event.meetingTimezone})
+                              </span>
+                            )}
+                          </motion.button>
+                        )}
                         {user.isApproved && event.registrationStatus === 'APPROVED' && (
                           <motion.button
                             whileHover={{ scale: 1.02 }}

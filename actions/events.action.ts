@@ -383,6 +383,10 @@ interface EventData {
   registrationLink: string;
   whatsappLink?: string;
   brochureLink?: string;
+  meetingLink?: string;
+  meetingTime?: string;
+  meetingTimezone?: string;
+  meetingDate?: string;
 }
 
 export async function createEvent(eventData: EventData) {
@@ -421,6 +425,10 @@ export async function createEvent(eventData: EventData) {
         registrationLink: eventData.registrationLink,
         whatsappLink: eventData.whatsappLink || null,
         brochureLink: eventData.brochureLink || null,
+        meetingLink: eventData.meetingLink || null,
+        meetingTime: eventData.meetingTime || null,
+        meetingTimezone: eventData.meetingTimezone || null,
+        meetingDate: eventData.meetingDate ? new Date(eventData.meetingDate) : null,
         updatedAt: new Date(),
       },
     });
@@ -468,6 +476,10 @@ interface EventUpdateData {
     registrationLink: string;
     whatsappLink?: string;
     brochureLink?: string;
+    meetingLink?: string;
+    meetingTime?: string;
+    meetingTimezone?: string;
+    meetingDate?: string;
   }
 
 }
@@ -510,6 +522,10 @@ export async function updateEvent({ id, eventData }: EventUpdateData) {
         registrationLink: eventData.registrationLink,
         whatsappLink: eventData.whatsappLink || null,
         brochureLink: eventData.brochureLink || null,
+        meetingLink: eventData.meetingLink || null,
+        meetingTime: eventData.meetingTime || null,
+        meetingTimezone: eventData.meetingTimezone || null,
+        meetingDate: eventData.meetingDate ? new Date(eventData.meetingDate) : null,
         updatedAt: new Date(),
       },
     });

@@ -8,19 +8,18 @@ export interface VirtualEligibility {
 /**
  * Check if a user is eligible for virtual participation
  * Requirements:
- * 1. Must be Google OAuth user (other college)
- * 2. Must NOT be from Andhra Pradesh or Telangana
+ * 1. Must be Google OAuth user (other college) OR international student
+ * 2. If Indian student, must NOT be from Andhra Pradesh or Telangana
  */
 export function checkVirtualEligibility(user: {
   email?: string;
   state?: string | null;
   isInternational?: boolean;
 }): VirtualEligibility {
-  // International users are not eligible for virtual (they already have special pricing)
+  // International students are eligible for virtual participation
   if (user.isInternational) {
     return {
-      isEligible: false,
-      reason: "International students have separate registration",
+      isEligible: true,
     };
   }
 
@@ -33,7 +32,7 @@ export function checkVirtualEligibility(user: {
     };
   }
 
-  // State is required for virtual participation eligibility check
+  // State is required for virtual participation eligibility check (for Indian students)
   if (!user.state || user.state.trim() === "") {
     return {
       isEligible: false,

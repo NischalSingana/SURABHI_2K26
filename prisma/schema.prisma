@@ -156,6 +156,10 @@ model Event {
   allowSubmissions          Boolean                  @default(false)
   virtualEnabled            Boolean                  @default(false)
   virtualTermsAndConditions String?
+  meetingLink               String?
+  meetingTime               String?
+  meetingTimezone           String?
+  meetingDate               DateTime?
   Category                  Category                 @relation(fields: [categoryId], references: [id])
   evaluations               Evaluation[]
   submissions               EventSubmission[]
