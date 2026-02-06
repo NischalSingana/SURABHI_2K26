@@ -6,7 +6,7 @@ import Image from "next/image";
 import { getUserRegisteredEvents } from "@/actions/submissions.action";
 import { unregisterFromEvent } from "@/actions/events.action";
 import SubmissionModal from "@/components/ui/SubmissionModal";
-import { FiCalendar, FiMapPin, FiClock, FiUsers, FiUpload, FiCheckCircle, FiX, FiCreditCard, FiAward, FiTrash2 } from "react-icons/fi";
+import { FiCalendar, FiMapPin, FiClock, FiUsers, FiUpload, FiCheckCircle, FiX, FiCreditCard, FiAward, FiTrash2, FiVideo } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
@@ -25,6 +25,11 @@ interface Event {
     participantLimit: number;
     isResultPublished: boolean;
     allowSubmissions?: boolean;
+    meetingLink?: string | null;
+    meetingTime?: string | null;
+    meetingTimezone?: string | null;
+    meetingDate?: string | Date | null;
+    isVirtual?: boolean;
     Category: {
         id: string;
         name: string;
@@ -299,6 +304,25 @@ export default function MyEventsPage() {
 
                                             {(event.registrationStatus === 'APPROVED' || !event.registrationStatus) && (
                                                 <>
+                                                    {/* Join Meeting Button - Show for virtual participants */}
+                                                    {event.isVirtual && event.meetingLink && (
+                                                        <button
+                                                            onClick={() => {
+                                                                if (event.meetingLink) {
+                                                                    window.open(event.meetingLink, '_blank', 'noopener,noreferrer');
+                                                                }
+                                                            }}
+                                                            className="sm:col-span-2 w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white hover:shadow-lg hover:shadow-emerald-600/40"
+                                                        >
+                                                            <FiVideo size={16} />
+                                                            Join Meeting
+                                                            {event.meetingDate && event.meetingTime && event.meetingTimezone && (
+                                                                <span className="text-xs opacity-90 ml-1">
+                                                                    ({new Date(event.meetingDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })} at {event.meetingTime} {event.meetingTimezone})
+                                                                </span>
+                                                            )}
+                                                        </button>
+                                                    )}
                                                     <button
                                                         onClick={async () => {
                                                             try {

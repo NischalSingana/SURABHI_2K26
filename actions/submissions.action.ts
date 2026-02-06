@@ -264,17 +264,20 @@ export async function getUserRegisteredEvents() {
         // Combine events - REJECTED registrations already filtered at database level
         const individualEvents = user.individualRegistrations.map(reg => ({
             ...reg.event,
-            registrationStatus: reg.paymentStatus as any
+            registrationStatus: reg.paymentStatus as any,
+            isVirtual: reg.isVirtual || false
         }));
 
         const groupEvents = user.groupRegistrations.map(reg => ({
             ...reg.event,
-            registrationStatus: reg.paymentStatus as any
+            registrationStatus: reg.paymentStatus as any,
+            isVirtual: false // Group registrations don't have isVirtual field yet
         }));
 
         const memberEvents = memberInGroups.map(reg => ({
             ...reg.event,
-            registrationStatus: reg.paymentStatus as any
+            registrationStatus: reg.paymentStatus as any,
+            isVirtual: false // Group registrations don't have isVirtual field yet
         }));
 
         const allEvents = [...individualEvents, ...groupEvents, ...memberEvents];
