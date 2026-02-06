@@ -103,12 +103,14 @@ export async function getMyRegisteredEvents() {
     // Combine and format events
     const individualEvents = user.individualRegistrations.map(reg => ({
       ...reg.event,
-      registrationStatus: reg.paymentStatus as any
+      registrationStatus: reg.paymentStatus as any,
+      isVirtual: reg.isVirtual || false
     }));
 
     const groupEvents = user.groupRegistrations.map(reg => ({
       ...reg.event,
-      registrationStatus: reg.paymentStatus as any
+      registrationStatus: reg.paymentStatus as any,
+      isVirtual: false // Group registrations don't have isVirtual field yet
     }));
 
     // Find groups where user is a member but not the leader
@@ -136,7 +138,8 @@ export async function getMyRegisteredEvents() {
 
     const memberEvents = memberInGroups.map((reg: any) => ({
       ...reg.event,
-      registrationStatus: reg.paymentStatus as any
+      registrationStatus: reg.paymentStatus as any,
+      isVirtual: false // Group registrations don't have isVirtual field yet
     }));
 
     // deduplicate events

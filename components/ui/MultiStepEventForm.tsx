@@ -42,6 +42,10 @@ interface Event {
   registrationLink: string;
   whatsappLink?: string | null;
   brochureLink?: string | null;
+  meetingLink?: string | null;
+  meetingTime?: string | null;
+  meetingTimezone?: string | null;
+  meetingDate?: string | Date | null;
 }
 
 interface MultiStepEventFormProps {
@@ -83,6 +87,12 @@ export default function MultiStepEventForm({
     registrationLink: editingEvent?.registrationLink || "",
     whatsappLink: editingEvent?.whatsappLink || "",
     brochureLink: editingEvent?.brochureLink || "",
+    meetingLink: editingEvent?.meetingLink || "",
+    meetingTime: editingEvent?.meetingTime || "",
+    meetingTimezone: editingEvent?.meetingTimezone || "",
+    meetingDate: editingEvent?.meetingDate
+      ? new Date(editingEvent.meetingDate).toISOString().split("T")[0]
+      : "",
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -143,6 +153,12 @@ export default function MultiStepEventForm({
         registrationLink: editingEvent.registrationLink || "",
         whatsappLink: editingEvent.whatsappLink || "",
         brochureLink: editingEvent.brochureLink || "",
+        meetingLink: editingEvent.meetingLink || "",
+        meetingTime: editingEvent.meetingTime || "",
+        meetingTimezone: editingEvent.meetingTimezone || "",
+        meetingDate: editingEvent.meetingDate
+          ? new Date(editingEvent.meetingDate).toISOString().split("T")[0]
+          : "",
       });
       setImagePreview(editingEvent.image || "");
       setTermsList(
@@ -824,7 +840,7 @@ export default function MultiStepEventForm({
                     </label>
                   </div>
                   <p className="text-zinc-500 text-sm mt-2">
-                    Allows eligible students (Google OAuth, outside AP/Telangana) to register virtually at ₹150 instead of ₹350.
+                    Allows eligible students (Google OAuth from other states, International students) to register virtually at ₹150 instead of ₹350.
                   </p>
                 </div>
 
@@ -921,6 +937,91 @@ export default function MultiStepEventForm({
                       >
                         <FiPlus /> Add Virtual Point
                       </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Virtual Meeting Details - Only show when virtual enabled */}
+                {formData.virtualEnabled && (
+                  <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4 space-y-4">
+                    <label className="block text-sm font-medium text-zinc-300 mb-2">
+                      Virtual Meeting Details <span className="text-zinc-500 text-xs">(Optional)</span>
+                    </label>
+                    <p className="text-zinc-500 text-xs mb-3">
+                      Add meeting link, date, time, and timezone for virtual participants to join the competition.
+                    </p>
+                    
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-400 mb-1">
+                        Meeting Link (Zoom/Google Meet/etc.)
+                      </label>
+                      <div className="relative">
+                        <FiLink className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500" />
+                        <input
+                          type="url"
+                          name="meetingLink"
+                          value={formData.meetingLink}
+                          onChange={handleInputChange}
+                          className="w-full pl-10 pr-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
+                          placeholder="https://zoom.us/j/..."
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-400 mb-1">
+                          Meeting Date
+                        </label>
+                        <div className="relative">
+                          <FiCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500" />
+                          <input
+                            type="date"
+                            name="meetingDate"
+                            value={formData.meetingDate}
+                            onChange={handleInputChange}
+                            className="w-full pl-10 pr-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-400 mb-1">
+                          Meeting Time
+                        </label>
+                        <div className="relative">
+                          <FiClock className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500" />
+                          <input
+                            type="time"
+                            name="meetingTime"
+                            value={formData.meetingTime}
+                            onChange={handleInputChange}
+                            className="w-full pl-10 pr-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-400 mb-1">
+                        Timezone
+                      </label>
+                      <select
+                        name="meetingTimezone"
+                        value={formData.meetingTimezone}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
+                      >
+                        <option value="">Select timezone</option>
+                        <option value="IST">IST (Indian Standard Time)</option>
+                        <option value="UTC">UTC (Coordinated Universal Time)</option>
+                        <option value="EST">EST (Eastern Standard Time)</option>
+                        <option value="PST">PST (Pacific Standard Time)</option>
+                        <option value="GMT">GMT (Greenwich Mean Time)</option>
+                        <option value="CET">CET (Central European Time)</option>
+                        <option value="JST">JST (Japan Standard Time)</option>
+                        <option value="AEST">AEST (Australian Eastern Standard Time)</option>
+                      </select>
                     </div>
                   </div>
                 )}
