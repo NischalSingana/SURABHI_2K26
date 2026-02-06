@@ -98,7 +98,7 @@ const MultiStepRegister = ({ existingUserData }: MultiStepRegisterProps = {}) =>
         detectedCollegeName = existingUserData.collage;
       }
 
-      if (detectedCollege && formData.college !== detectedCollege) {
+      if (detectedCollege) {
         setFormData(prev => ({
           ...prev,
           college: detectedCollege,
@@ -110,7 +110,7 @@ const MultiStepRegister = ({ existingUserData }: MultiStepRegisterProps = {}) =>
       setCurrentStep(3);
       setHasAutoAdvanced(true);
     }
-  }, [session?.user, existingUserData, currentStep, hasAutoAdvanced, formData.college]);
+  }, [session?.user, existingUserData, currentStep, hasAutoAdvanced]);
 
   // Initialize form data with existing user data if available
   const getInitialFormData = (): RegistrationData => {
