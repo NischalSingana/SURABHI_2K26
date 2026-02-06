@@ -42,7 +42,7 @@ const ChromaGrid: React.FC<ChromaGridProps> = ({
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: i * 0.1 }}
                     onClick={() => handleCardClick(sponsor.website)}
-                    className="group relative flex flex-col w-full h-full rounded-2xl overflow-hidden cursor-pointer bg-neutral-900/40 backdrop-blur-md border border-white/5 shadow-lg transition-all duration-500 ease-out"
+                    className="group relative flex flex-col w-full rounded-2xl overflow-hidden cursor-pointer bg-neutral-900/40 backdrop-blur-md border border-white/5 shadow-lg transition-all duration-500 ease-out"
                     whileHover={{
                         y: -8,
                         boxShadow: `0 25px 50px -12px ${sponsor.borderColor || '#ef4444'}30`,
@@ -77,7 +77,7 @@ const ChromaGrid: React.FC<ChromaGridProps> = ({
                         >
                             {sponsor.name}
                         </h3>
-                        <p className="text-gray-300 text-sm mb-4 line-clamp-3 flex-1 font-medium"
+                        <p className="text-gray-300 text-sm mb-4 flex-1 font-medium leading-relaxed"
                             style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
                         >
                             {sponsor.description}
