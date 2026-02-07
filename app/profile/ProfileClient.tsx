@@ -383,7 +383,8 @@ export default function ProfileClient({
         >
           My Events ({registeredEvents.length})
         </button>
-        {hasGoogleAccount && !user.isInternational && (
+        {/* HIDDEN: Visitor pass – only show tab for existing pass holders. To show for new users, change to: hasGoogleAccount && !user.isInternational */}
+        {hasGoogleAccount && !user.isInternational && hasPass && (
           <button
             onClick={() => setActiveTab("pass")}
             className={`px-3 sm:px-6 py-2.5 sm:py-3 font-medium text-base transition-all whitespace-nowrap shrink-0 ${activeTab === "pass"
@@ -802,8 +803,8 @@ export default function ProfileClient({
       }
 
 
-      {/* Visitor Pass Tab – hidden for international students */}
-      {activeTab === "pass" && hasGoogleAccount && !user.isInternational && (
+      {/* Visitor Pass Tab – HIDDEN for new users. Only existing pass holders see this. To show for new users, remove "&& hasPass" from condition */}
+      {activeTab === "pass" && hasGoogleAccount && !user.isInternational && hasPass && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
