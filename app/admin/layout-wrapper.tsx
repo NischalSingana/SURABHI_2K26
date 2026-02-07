@@ -52,7 +52,11 @@ export default function AdminLayoutWrapper({
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center flex-1 min-w-0">
               <Link href="/admin/dashboard" className="text-white font-bold text-xl shrink-0">
-                Admin Panel
+                {session?.user?.role === "MASTER"
+                    ? "Master Panel"
+                    : session?.user?.role === "MANAGER"
+                        ? "Manager Panel"
+                        : "Admin Panel"}
               </Link>
 
               {/* Desktop Menu */}
@@ -155,8 +159,11 @@ export default function AdminLayoutWrapper({
           )}
         </AnimatePresence>
       </nav>
-      {/* Add padding-top to account for fixed navbar */}
-      <main className="max-w-full mx-auto py-6 sm:px-6 lg:px-8 pt-20">
+      {/* Scroll container: data-lenis-prevent enables native trackpad scroll (Lenis opts out) */}
+      <main
+        className="max-w-full mx-auto sm:px-6 lg:px-8 pt-20 pb-0 h-[calc(100vh-7rem)] overflow-y-auto overflow-x-hidden"
+        data-lenis-prevent
+      >
         {children}
       </main>
     </div>

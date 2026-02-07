@@ -71,8 +71,8 @@ export async function getRegistrationHistory() {
             headers: headersList,
         });
 
-        if (!session || session.user.role !== Role.MASTER) {
-            return { success: false, error: "Unauthorized. Master only." };
+        if (!session || (session.user.role !== Role.MASTER && session.user.role !== Role.ADMIN)) {
+            return { success: false, error: "Unauthorized. Admin or Master only." };
         }
 
         const individualRegistrationsRaw = await prisma.individualRegistration.findMany({

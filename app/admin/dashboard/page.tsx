@@ -12,11 +12,20 @@ const page = async () => {
     const isManager = session?.user?.role === "MANAGER";
     const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "MASTER";
 
-    return (
-        <div className="px-4 sm:px-6 py-6">
-            <h1 className="text-3xl font-bold text-white mb-8">Admin Dashboard</h1>
+    const roleLabel =
+        session?.user?.role === "MASTER"
+            ? "Master"
+            : session?.user?.role === "ADMIN"
+                ? "Admin"
+                : session?.user?.role === "MANAGER"
+                    ? "Manager"
+                    : "Admin";
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+    return (
+        <div className="px-4 sm:px-6 pt-6 pb-4">
+            <h1 className="text-3xl font-bold text-white mb-6">{roleLabel} Dashboard</h1>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                 {(isAdmin || isManager) && (
                     <Link
                         href="/admin/competitions"

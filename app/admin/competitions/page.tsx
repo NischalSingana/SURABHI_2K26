@@ -978,8 +978,8 @@ export default function EventsManagement() {
               </button>
             </div>
 
-            {/* Content - Scrollable */}
-            <div className="px-8 py-6 overflow-y-auto flex-1">
+            {/* Content - Scrollable (data-lenis-prevent enables native trackpad scroll) */}
+            <div className="px-8 py-6 overflow-y-auto flex-1 min-h-0" data-lenis-prevent>
               {(() => {
                 const groupRegistrations = selectedEventForRegistrations.groupRegistrations || [];
                 const individualRegistrations = selectedEventForRegistrations.individualRegistrations || [];
@@ -1227,7 +1227,7 @@ export default function EventsManagement() {
                 </button>
               </div>
 
-              <div className="px-8 py-6 overflow-y-auto flex-1">
+              <div className="px-8 py-6 overflow-y-auto flex-1 min-h-0" data-lenis-prevent>
                 {/* Upload Form */}
                 <div className="mb-8 bg-zinc-800/50 p-6 rounded-xl border border-zinc-700">
                   <h3 className="text-lg font-semibold text-white mb-4">Add New Schedule Image</h3>
@@ -1339,7 +1339,7 @@ export default function EventsManagement() {
                 </button>
               </div>
 
-              <div className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0 overscroll-contain">
+              <div className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0 overscroll-contain" data-lenis-prevent>
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-16 h-16 rounded-full bg-red-600/20 flex items-center justify-center text-red-500 text-2xl font-bold border border-red-500/30">
                     {selectedStudent.name ? selectedStudent.name.charAt(0).toUpperCase() : '?'}
@@ -1448,7 +1448,7 @@ export default function EventsManagement() {
                 </button>
               </div>
 
-              <div className="p-6 overflow-y-auto flex-1 min-h-0 overscroll-contain">
+              <div className="p-6 overflow-y-auto flex-1 min-h-0 overscroll-contain" data-lenis-prevent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700">
                     <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">Team Lead</h3>
