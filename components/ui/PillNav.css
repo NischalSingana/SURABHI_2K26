@@ -40,7 +40,7 @@
   margin: clamp(-30px, -2.5vw, -20px) 0;
   width: auto !important;
   height: auto !important;
-  max-height: clamp(80px, 10vw, 115px);
+  max-height: clamp(90px, 11vw, 130px);
   object-fit: contain;
   position: relative;
   z-index: 20;
@@ -294,7 +294,7 @@
 
   .pill-logo img,
   .pill-logo-image {
-    max-height: 70px !important;
+    max-height: 82px !important;
     margin: -16px 0;
   }
 
@@ -363,7 +363,7 @@
 
   .pill-logo img,
   .pill-logo-image {
-    max-height: 85px !important;
+    max-height: 98px !important;
   }
 
   .pill-list {
@@ -417,7 +417,7 @@
   }
 
   .pill-logo img {
-    height: 64px;
+    height: 78px;
     margin: -8px 0;
     visibility: visible !important;
   }
@@ -504,8 +504,7 @@
   }
 
   .pill-logo img {
-    height: 110px;
-    /* Increased size */
+    height: 125px;
     margin: -30px -8px;
   }
 

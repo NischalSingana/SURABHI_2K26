@@ -38,7 +38,7 @@ export default function AdminLayoutWrapper({
     { href: "/admin/analytics", label: "Analytics", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/judges", label: "Judges", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/evaluations", label: "Evaluations", roles: ["ADMIN", "MANAGER", "MASTER"] },
-    { href: "/admin/registrations/approvals", label: "Registrations", roles: ["ADMIN", "MASTER"] },
+    { href: "/admin/registrations/approvals", label: "Registrations", roles: ["ADMIN", "MANAGER", "MASTER"] },
     { href: "/admin/logs", label: "Logs", roles: ["MASTER"] },
     { href: "/admin/approval", label: "Approval", roles: ["MASTER"] },
   ];
@@ -49,7 +49,7 @@ export default function AdminLayoutWrapper({
     <div className="min-h-screen bg-black">
       <nav className="bg-gray-800 border-b border-gray-700 fixed top-0 left-0 right-0 z-50">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-12 sm:h-14">
             <div className="flex items-center flex-1 min-w-0">
               <Link href="/admin/dashboard" className="text-white font-bold text-xl shrink-0">
                 {session?.user?.role === "MASTER"
@@ -159,9 +159,10 @@ export default function AdminLayoutWrapper({
           )}
         </AnimatePresence>
       </nav>
-      {/* Scroll container: data-lenis-prevent enables native trackpad scroll (Lenis opts out) */}
+      {/* Scroll container: minimal chrome to maximize content visibility */}
       <main
-        className="max-w-full mx-auto sm:px-6 lg:px-8 pt-20 pb-0 h-[calc(100vh-7rem)] overflow-y-auto overflow-x-hidden"
+        className="max-w-full mx-auto sm:px-6 lg:px-8 pt-12 sm:pt-14 pb-2 overflow-y-auto overflow-x-hidden"
+        style={{ maxHeight: "calc(100svh - 3.5rem)" }}
         data-lenis-prevent
       >
         {children}

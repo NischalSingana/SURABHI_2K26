@@ -9,7 +9,7 @@ export default async function RegistrationApprovals() {
         headers: await headers(),
     });
 
-    if (!session || (session.user.role !== Role.MASTER && session.user.role !== Role.ADMIN)) {
+    if (!session || (session.user.role !== Role.MASTER && session.user.role !== Role.ADMIN && session.user.role !== Role.MANAGER)) {
         return redirect("/admin/dashboard");
     }
 
