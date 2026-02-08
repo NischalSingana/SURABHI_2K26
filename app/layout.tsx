@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     "A website for Surabhi International Cultural Fest by kl university  ",
   creator: "Nischal Singana",
   icons: {
-    icon: "/faviconn.svg",
+    icon: "/favicon.svg",
   },
 };
 
