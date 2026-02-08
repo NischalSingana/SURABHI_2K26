@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Schibsted_Grotesk, Martian_Mono, Lexend } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
@@ -40,10 +41,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="bg-[#030303]" suppressHydrationWarning>
       <body
-        className={`${schibstedGrotesk.variable} ${martianMono.variable} ${lexend.variable} bg-[#0a0e1a] min-h-screen`}
+        className={`${schibstedGrotesk.variable} ${martianMono.variable} ${lexend.variable} bg-[#030303] min-h-screen text-zinc-100`}
+        style={{ backgroundColor: "#030303" }}
+        suppressHydrationWarning
       >
+        {/* Critical: prevent dark→light flash - run before React hydrates */}
+        <Script
+          id="dark-theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: "document.documentElement.style.backgroundColor='#030303';document.body.style.backgroundColor='#030303';",
+          }}
+        />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: "html,body,main{background-color:#030303!important}html{color-scheme:dark}",
+          }}
+        />
         <Toaster
           position="top-right"
           richColors
