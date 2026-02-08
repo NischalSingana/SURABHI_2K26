@@ -22,10 +22,10 @@ const page = async () => {
                     : "Admin";
 
     return (
-        <div className="px-4 sm:px-6 pt-6 pb-4">
-            <h1 className="text-3xl font-bold text-white mb-6">{roleLabel} Dashboard</h1>
+        <div className="px-4 sm:px-6 pt-4 pb-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4">{roleLabel} Dashboard</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {(isAdmin || isManager) && (
                     <Link
                         href="/admin/competitions"
@@ -84,7 +84,7 @@ const page = async () => {
                     </Link>
                 )}
 
-                {isAdmin && (
+                {(isAdmin || isManager) && (
                     <Link
                         href="/admin/registrations/approvals"
                         className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"

@@ -383,22 +383,17 @@ class Media {
     const isMobile = this.screen.width < 768;
 
     if (isMobile) {
-      // Mobile adjustments: wider plane relative to height to prevent cropping
-      // Standard poster ratio is roughly 2:3 (0.66). 
-      // We want to make sure the plane fits this better.
       this.scale = this.screen.height / 1500;
-      // Adjust these multipliers to tune the mobile look
-      this.plane.scale.y = (this.viewport.height * (1250 * this.scale)) / this.screen.height;
-      this.plane.scale.x = (this.viewport.width * (850 * this.scale)) / this.screen.width;
+      this.plane.scale.y = (this.viewport.height * (1300 * this.scale)) / this.screen.height;
+      this.plane.scale.x = (this.viewport.width * (1000 * this.scale)) / this.screen.width;
     } else {
-      // Desktop default
       this.scale = this.screen.height / 1500;
-      this.plane.scale.y = (this.viewport.height * (1400 * this.scale)) / this.screen.height;
-      this.plane.scale.x = (this.viewport.width * (900 * this.scale)) / this.screen.width;
+      this.plane.scale.y = (this.viewport.height * (1450 * this.scale)) / this.screen.height;
+      this.plane.scale.x = (this.viewport.width * (1020 * this.scale)) / this.screen.width;
     }
 
     this.plane.program.uniforms.uPlaneSizes.value = [this.plane.scale.x, this.plane.scale.y];
-    this.padding = 2;
+    this.padding = 0.3;
     this.width = this.plane.scale.x + this.padding;
     this.widthTotal = this.width * this.length;
     this.x = this.width * this.index;
@@ -574,7 +569,7 @@ class App {
       }
     ];
     const galleryItems = items && items.length ? items : defaultItems;
-    this.mediasImages = galleryItems.concat(galleryItems);
+    this.mediasImages = galleryItems.concat(galleryItems).concat(galleryItems);
     this.medias = this.mediasImages.map((data, index) => {
       return new Media({
         geometry: this.planeGeometry,
@@ -665,16 +660,17 @@ class App {
   }
 
   scrollTo(progress: number) {
-    // progress is 0 to 1
+    // progress 0-1 maps to one full set; loop recycles items
     if (!this.medias || !this.medias[0]) return;
-    const totalWidth = this.medias[0].width * this.mediasImages.length; // Approximate total width
-
-    // We want to scroll through the entire gallery.
-    // The gallery logic seems to be infinite, but for "scroll through all posters",
-    // we can map 0-1 to 0 -> totalWidth/2 (since items are duplicated)
-
-    // Actually, let's just map it to half the full length so we see one full cycle
-    this.scroll.target = progress * (this.medias[0].width * (this.mediasImages.length / 2));
+    const oneSet = Math.floor(this.mediasImages.length / 3);
+    const totalWidth = this.medias[0].width * oneSet;
+    const value = Math.max(0, Math.min(1, progress)) * totalWidth;
+    this.scroll.target = value;
+    if (this.manualMode) {
+      this.scroll.current = value;
+      // Do not set scroll.last here: direction = (current > last) must be 'right'
+      // when scrolling down so planes that go off the left get recycled to the right.
+    }
   }
 
   onResize() {

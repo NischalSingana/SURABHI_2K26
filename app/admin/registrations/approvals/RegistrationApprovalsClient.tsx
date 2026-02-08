@@ -149,37 +149,39 @@ export default function RegistrationApprovalsClient() {
                 </div>
             </div>
 
-            {/* Tabs */}
-            <div className="flex flex-wrap gap-2 sm:gap-4 mb-6 border-b border-zinc-800 pb-2">
-                <button
-                    onClick={() => setActiveTab("INTERNATIONAL")}
-                    className={`px-4 py-2 font-medium transition-colors flex items-center gap-1.5 ${activeTab === "INTERNATIONAL" ? "text-amber-400 border-b-2 border-amber-500" : "text-zinc-400 hover:text-white"
-                        }`}
-                >
-                    <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />
-                    International ({internationalCount})
-                </button>
-                <button
-                    onClick={() => setActiveTab("INDIVIDUAL")}
-                    className={`px-4 py-2 font-medium transition-colors ${activeTab === "INDIVIDUAL" ? "text-red-500 border-b-2 border-red-500" : "text-zinc-400 hover:text-white"
-                        }`}
-                >
-                    Individual ({individualCount})
-                </button>
-                <button
-                    onClick={() => setActiveTab("GROUP")}
-                    className={`px-4 py-2 font-medium transition-colors ${activeTab === "GROUP" ? "text-red-500 border-b-2 border-red-500" : "text-zinc-400 hover:text-white"
-                        }`}
-                >
-                    Group ({groupCount})
-                </button>
-                <button
-                    onClick={() => setActiveTab("VISITOR")}
-                    className={`px-4 py-2 font-medium transition-colors ${activeTab === "VISITOR" ? "text-red-500 border-b-2 border-red-500" : "text-zinc-400 hover:text-white"
-                        }`}
-                >
-                    Visitor Passes ({visitorCount})
-                </button>
+            {/* Tabs: horizontal scroll on mobile so International + Visitor Passes always visible */}
+            <div className="mb-6 border-b border-zinc-800 pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+                <div className="flex gap-2 sm:gap-4 overflow-x-auto overflow-y-hidden pb-px min-w-0">
+                    <button
+                        onClick={() => setActiveTab("INTERNATIONAL")}
+                        className={`shrink-0 px-3 sm:px-4 py-2 font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap ${activeTab === "INTERNATIONAL" ? "text-amber-400 border-b-2 border-amber-500" : "text-zinc-400 hover:text-white"
+                            }`}
+                    >
+                        <span className="inline-block w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                        International ({internationalCount})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab("INDIVIDUAL")}
+                        className={`shrink-0 px-3 sm:px-4 py-2 font-medium transition-colors whitespace-nowrap ${activeTab === "INDIVIDUAL" ? "text-red-500 border-b-2 border-red-500" : "text-zinc-400 hover:text-white"
+                            }`}
+                    >
+                        Individual ({individualCount})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab("GROUP")}
+                        className={`shrink-0 px-3 sm:px-4 py-2 font-medium transition-colors whitespace-nowrap ${activeTab === "GROUP" ? "text-red-500 border-b-2 border-red-500" : "text-zinc-400 hover:text-white"
+                            }`}
+                    >
+                        Group ({groupCount})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab("VISITOR")}
+                        className={`shrink-0 px-3 sm:px-4 py-2 font-medium transition-colors whitespace-nowrap ${activeTab === "VISITOR" ? "text-red-500 border-b-2 border-red-500" : "text-zinc-400 hover:text-white"
+                            }`}
+                    >
+                        Visitor Passes ({visitorCount})
+                    </button>
+                </div>
             </div>
 
             <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">

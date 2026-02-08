@@ -1,108 +1,137 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
-const RIVER_PATH = "M 50 0 C 20 40, 80 70, 50 100 C 20 130, 80 160, 50 200";
+// Desktop path
+const RIVER_PATH =
+  "M 50 0 C 12 35, 88 55, 50 90 C 12 125, 88 145, 50 180 C 12 215, 88 235, 50 270";
+
+// Mobile: more pronounced S-curve (left-right-left sweep)
+const MOBILE_RIVER_PATH =
+  "M 50 0 C 8 40, 92 70, 50 110 C 8 150, 92 180, 50 220 C 8 260, 92 290, 50 330";
 
 interface ScheduleFlowLineProps {
   containerRef: React.RefObject<HTMLElement | null>;
 }
 
 function ScheduleFlowLine({ containerRef }: ScheduleFlowLineProps) {
+  const [isReducedMotion, setIsReducedMotion] = useState(false);
+  const [isMobile, setIsMobile] = useState(true);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const mobileMq = window.matchMedia("(min-width: 768px)");
+    setIsReducedMotion(mq.matches);
+    setIsMobile(!mobileMq.matches);
+    const onReduce = (e: MediaQueryListEvent) => setIsReducedMotion(e.matches);
+    const onMobile = (e: MediaQueryListEvent) => setIsMobile(!e.matches);
+    mq.addEventListener("change", onReduce);
+    mobileMq.addEventListener("change", onMobile);
+    return () => {
+      mq.removeEventListener("change", onReduce);
+      mobileMq.removeEventListener("change", onMobile);
+    };
+  }, []);
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start start", "end end"],
+    // Animate as section passes through viewport: 0 when entering, 1 when fully passed
+    offset: ["start end", "end start"],
   });
 
-  // Flow line draws along with scroll - 0 at top, 1 at bottom
-  const lineProgress = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 0.2, 1, 1]);
-  const glowIntensity = useTransform(scrollYProgress, [0, 0.2, 0.5, 0.8, 1], [0.2, 0.5, 0.8, 0.6, 0.3]);
+  // Line draws from top (0) to bottom (1) as section scrolls through viewport
+  const lineProgress = useTransform(scrollYProgress, [0, 0.02, 0.98, 1], [0, 0, 1, 1]);
 
+  // Mobile: scroll-driven line (like PC) + curvy path. Reduced-motion: static path only.
+  if (isMobile || isReducedMotion) {
+    return (
+      <div
+        className="absolute inset-0 pointer-events-none overflow-visible"
+        style={!isReducedMotion ? { willChange: "auto", transform: "translateZ(0)" } : undefined}
+        aria-hidden
+      >
+        <svg
+          className="absolute left-1/2 top-0 -translate-x-1/2 w-[60%] min-w-[120px] sm:w-[50%] md:w-full h-full"
+          preserveAspectRatio="none"
+          viewBox="0 0 100 330"
+        >
+          <defs>
+            <linearGradient id="riverGradientMobile" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#5c1010" stopOpacity="0.9" />
+              <stop offset="50%" stopColor="#991b1b" stopOpacity="1" />
+              <stop offset="100%" stopColor="#5c1010" stopOpacity="0.9" />
+            </linearGradient>
+          </defs>
+          {isReducedMotion ? (
+            <path
+              d={MOBILE_RIVER_PATH}
+              fill="none"
+              stroke="url(#riverGradientMobile)"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          ) : (
+            <>
+              <path
+                d={MOBILE_RIVER_PATH}
+                fill="none"
+                stroke="rgba(91,27,27,0.6)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeDasharray="4 6"
+              />
+              <motion.path
+                d={MOBILE_RIVER_PATH}
+                fill="none"
+                stroke="url(#riverGradientMobile)"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ pathLength: lineProgress, opacity: 1 }}
+              />
+            </>
+          )}
+        </svg>
+      </div>
+    );
+  }
+
+  // Desktop only: light scroll-driven animation, no blur filters
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
-      <svg
-        className="absolute left-1/2 top-0 -translate-x-1/2 w-full h-full min-h-[120%] opacity-100"
+    <div
+      className="absolute inset-0 pointer-events-none overflow-visible"
+      style={{ willChange: "auto", transform: "translateZ(0)" }}
+      aria-hidden
+    >
+        <svg
+        className="absolute left-1/2 top-0 -translate-x-1/2 w-full h-full"
         preserveAspectRatio="none"
-        viewBox="0 0 100 200"
+        viewBox="0 0 100 270"
       >
         <defs>
-          {/* Reddish gradient - matches website theme */}
           <linearGradient id="riverGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#7f1d1d" stopOpacity="0.5" />
-            <stop offset="30%" stopColor="#b91c1c" stopOpacity="0.7" />
-            <stop offset="50%" stopColor="#dc2626" stopOpacity="0.8" />
-            <stop offset="70%" stopColor="#b91c1c" stopOpacity="0.7" />
-            <stop offset="100%" stopColor="#7f1d1d" stopOpacity="0.5" />
+            <stop offset="0%" stopColor="#5c1010" stopOpacity="0.7" />
+            <stop offset="50%" stopColor="#991b1b" stopOpacity="0.95" />
+            <stop offset="100%" stopColor="#5c1010" stopOpacity="0.7" />
           </linearGradient>
-          <linearGradient id="riverShimmer" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#fca5a5" stopOpacity="0" />
-            <stop offset="45%" stopColor="#fca5a5" stopOpacity="0.5" />
-            <stop offset="55%" stopColor="#fef2f2" stopOpacity="0.8" />
-            <stop offset="65%" stopColor="#fca5a5" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#fca5a5" stopOpacity="0" />
-          </linearGradient>
-          <filter id="riverGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="1.5" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <filter id="riverGlowStrong" x="-100%" y="-100%" width="300%" height="300%">
-            <feGaussianBlur stdDeviation="2.5" result="blur" />
-            <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0.6 0 0.2 0 0 0 0 0 0.2 0 0 0 0 0 0.5 0" result="glow" />
-            <feMerge>
-              <feMergeNode in="glow" />
-            </feMerge>
-          </filter>
         </defs>
-
-        {/* Track - faint path always visible */}
         <path
           d={RIVER_PATH}
           fill="none"
-          stroke="rgba(127,29,29,0.3)"
+          stroke="rgba(91,27,27,0.4)"
           strokeWidth="2"
           strokeLinecap="round"
           strokeDasharray="4 6"
         />
-
-        {/* Outer glow - scroll-reactive */}
-        <motion.path
-          d={RIVER_PATH}
-          fill="none"
-          stroke="url(#riverGradient)"
-          strokeWidth="10"
-          strokeLinecap="round"
-          filter="url(#riverGlowStrong)"
-          style={{ opacity: glowIntensity, pathLength: lineProgress }}
-        />
-
-        {/* Main flow path - draws along scroll */}
         <motion.path
           d={RIVER_PATH}
           fill="none"
           stroke="url(#riverGradient)"
           strokeWidth="2.5"
           strokeLinecap="round"
-          filter="url(#riverGlow)"
-          style={{
-            pathLength: lineProgress,
-            opacity: 0.95,
-          }}
-        />
-
-        {/* Shimmer overlay - follows scroll */}
-        <motion.path
-          d={RIVER_PATH}
-          fill="none"
-          stroke="url(#riverShimmer)"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          style={{
-            pathLength: lineProgress,
-            opacity: 0.6,
-          }}
+          style={{ pathLength: lineProgress, opacity: 0.95 }}
         />
       </svg>
     </div>

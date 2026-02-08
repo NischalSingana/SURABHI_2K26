@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
 import Image from "next/image";
 import MainPoster from "./MainPoster.png";
 import dynamic from 'next/dynamic';
@@ -11,9 +11,6 @@ const CircularGallery = dynamic(() => import("@/components/ui/CircularGallery"),
 });
 import { CircularGalleryHandle } from "@/components/ui/CircularGallery";
 import { useEffect, useState, useRef } from "react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import gsap from 'gsap';
-
 import Footer from '@/components/ui/Footer';
 
 const ScheduleTimeline = dynamic(() => import('@/components/ui/ScheduleTimeline'), {
@@ -22,8 +19,6 @@ const ScheduleTimeline = dynamic(() => import('@/components/ui/ScheduleTimeline'
 });
 import CountUp from '@/components/ui/CountUp';
 import { FiGlobe, FiAward, FiUsers, FiFeather, FiHeart, FiTrendingUp, FiVolume2, FiVolumeX } from "react-icons/fi";
-
-gsap.registerPlugin(ScrollTrigger);
 
 // Hero video: CDN first; Chrome often needs direct Spaces URL (Range/206), Safari works with CDN
 const HERO_VIDEO_CDN = "https://surabhi-images.sgp1.cdn.digitaloceanspaces.com/SurabhiPromo.mp4";
@@ -39,8 +34,8 @@ const PARTICLES = Array.from({ length: 24 }, (_, i) => ({
 const HomePage = () => {
     const [posterItems, setPosterItems] = useState<{ image: string; text: string }[]>([]);
     const [loadingPosters, setLoadingPosters] = useState(true);
+    const posterSectionRef = useRef<HTMLElement>(null);
     const galleryRef = useRef<CircularGalleryHandle>(null);
-    const competitionSectionRef = useRef<HTMLElement>(null);
 
     /* 
     Video related logic preserved for later use
@@ -119,28 +114,39 @@ const HomePage = () => {
         fetchPosters();
     }, []);
 
+    const { scrollYProgress } = useScroll({
+        target: posterSectionRef,
+        offset: ["start end", "end start"],
+    });
+    // Slower poster scroll: map full section scroll to ~55% of carousel so movement feels gentler
+    const posterProgress = useTransform(scrollYProgress, [0, 0.05, 0.95, 1], [0, 0, 0.55, 0.55]);
+    const rafRef = useRef<number | null>(null);
+    const pendingRef = useRef<number | null>(null);
+    // Only drive poster from scroll when the poster section is in view; stops poster moving when touching/scrolling elsewhere (e.g. footer)
+    useMotionValueEvent(scrollYProgress, "change", (v) => {
+        if (v > 0.95) return; // below section: don't update so touching footer etc. doesn't move poster
+        const progress = v < 0.05 ? 0 : (v - 0.05) / 0.9 * 0.55;
+        pendingRef.current = progress;
+        if (rafRef.current !== null) return;
+        rafRef.current = requestAnimationFrame(() => {
+            rafRef.current = null;
+            const val = pendingRef.current;
+            if (val !== null) {
+                pendingRef.current = null;
+                galleryRef.current?.setProgress(val);
+            }
+        });
+    });
     useEffect(() => {
-        if (!loadingPosters && posterItems.length > 0 && competitionSectionRef.current) {
-            const mm = gsap.matchMedia();
-
-            mm.add("(min-width: 768px)", () => {
-                ScrollTrigger.create({
-                    trigger: competitionSectionRef.current,
-                    start: "top top",
-                    end: "+=3000",
-                    pin: true,
-                    scrub: 1,
-                    onUpdate: (self) => {
-                        if (galleryRef.current) {
-                            galleryRef.current.setProgress(self.progress);
-                        }
-                    },
+        if (!loadingPosters && posterItems.length > 0) {
+            const raf = requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    galleryRef.current?.setProgress(posterProgress.get());
                 });
             });
-
-            return () => mm.revert();
+            return () => cancelAnimationFrame(raf);
         }
-    }, [loadingPosters, posterItems]);
+    }, [loadingPosters, posterItems.length, posterProgress]);
 
     return (
         <main className="relative w-full bg-[#030303]">
@@ -387,8 +393,8 @@ const HomePage = () => {
               <ScheduleTimeline />
             </div>
 
-            {/* Poster Gallery Section */}
-            <section ref={competitionSectionRef} className="relative z-30 w-full h-auto min-h-[70vh] md:h-screen bg-gradient-to-b from-[#0a0000] to-black overflow-hidden pt-0 pb-4 md:py-20 flex flex-col items-center justify-center">
+            {/* Poster Gallery Section - position relative for useScroll offset calc */}
+            <section ref={posterSectionRef} className="relative z-30 w-full h-auto min-h-[70vh] md:min-h-[85vh] bg-gradient-to-b from-[#0a0000] to-black overflow-hidden pt-0 pb-4 md:py-20 flex flex-col items-center justify-center" style={{ position: 'relative' }}>
                 <div className="w-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
@@ -409,7 +415,7 @@ const HomePage = () => {
                         </div>
                     ) : posterItems.length > 0 ? (
                         <>
-                            <div className="w-full h-[65dvh] md:h-[70vh] mt-12 md:mt-4">
+                            <div className="relative w-full h-[55dvh] min-h-[280px] sm:h-[60dvh] md:h-[70vh] mt-8 md:mt-4" style={{ position: 'relative' }}>
                                 <CircularGallery
                                     ref={galleryRef}
                                     items={posterItems}
@@ -418,7 +424,7 @@ const HomePage = () => {
                                     borderRadius={0.05}
                                     font="bold 28px sans-serif"
                                     scrollSpeed={2}
-                                    scrollEase={0.05}
+                                    scrollEase={0.08}
                                     manualMode={true}
                                 />
                             </div>
