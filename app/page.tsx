@@ -15,6 +15,11 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import gsap from 'gsap';
 
 import Footer from '@/components/ui/Footer';
+
+const ScheduleTimeline = dynamic(() => import('@/components/ui/ScheduleTimeline'), {
+    ssr: false,
+    loading: () => <div className="min-h-screen flex items-center justify-center text-zinc-500 bg-[#030303]">Loading schedule...</div>,
+});
 import CountUp from '@/components/ui/CountUp';
 import { FiGlobe, FiAward, FiUsers, FiFeather, FiHeart, FiTrendingUp, FiVolume2, FiVolumeX } from "react-icons/fi";
 
@@ -138,10 +143,10 @@ const HomePage = () => {
     }, [loadingPosters, posterItems]);
 
     return (
-        <main className="relative w-full">
+        <main className="relative w-full bg-[#030303]">
             <h1 className="sr-only">Surabhi International Cultural Fest 2026 - KL University</h1>
-            {/* Fiery Red Background - Edge to Edge */}
-            <div className="fixed inset-0 z-0 bg-gradient-to-br from-[#1a0000] via-[#4a0000] to-[#2a0000]">
+            {/* Fiery Red Background - Edge to Edge, no white bleed */}
+            <div className="fixed inset-0 z-0 bg-gradient-to-br from-[#0a0303] via-[#1a0505] to-[#0a0303]">
                 {/* CSS animated gradient overlay - Optimized for performance */}
                 <div
                     className="absolute inset-0 animate-gradient-slow opacity-30"
@@ -376,6 +381,11 @@ const HomePage = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Day-wise Schedule Timeline */}
+            <div className="relative z-10 bg-[#030303]">
+              <ScheduleTimeline />
+            </div>
 
             {/* Poster Gallery Section */}
             <section ref={competitionSectionRef} className="relative z-30 w-full h-auto min-h-[70vh] md:h-screen bg-gradient-to-b from-[#0a0000] to-black overflow-hidden pt-0 pb-4 md:py-20 flex flex-col items-center justify-center">

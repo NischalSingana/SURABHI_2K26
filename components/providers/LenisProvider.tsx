@@ -8,7 +8,15 @@ interface LenisProviderProps {
 }
 
 export default function LenisProvider({ children }: LenisProviderProps) {
+  const [mounted, setMounted] = useState(false);
   const [isTrackpad, setIsTrackpad] = useState(false);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setMounted(true));
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   useEffect(() => {
     // Detect trackpad vs mouse wheel
@@ -46,6 +54,10 @@ export default function LenisProvider({ children }: LenisProviderProps) {
     window.addEventListener('wheel', detectTrackpad, { passive: true });
     return () => window.removeEventListener('wheel', detectTrackpad);
   }, []);
+
+  if (!mounted) {
+    return <>{children}</>;
+  }
 
   return (
     <ReactLenis

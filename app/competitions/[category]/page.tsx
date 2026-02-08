@@ -38,6 +38,27 @@ interface Event {
   isGroupEvent: boolean;
 }
 
+// Fallback poster paths when event has no image
+const CATEGORY_POSTER_FALLBACK: Record<string, string> = {
+  "chitrakala": "/poster-gallery/CHITRAKALA.png",
+  "sahitya": "/poster-gallery/SAHITYA.jpg",
+  "cine carnival": "/poster-gallery/CINE CARNIVAL.png",
+  "national parliamentary simulation": "/poster-gallery/MOCK PARLIAMENT.jpg",
+  "natyaka": "/poster-gallery/NATYAKA.png",
+  "raaga": "/poster-gallery/RAAGA.png",
+  "nrithya": "/poster-gallery/NRITHYA.png",
+  "vastranaut": "/poster-gallery/VASTRANAUT.png",
+  "kurukshetra": "/poster-gallery/KURUKSHETRA.png",
+};
+
+function getEventPosterSrc(event: Event, categoryImage: string | null): string {
+  if (event.image) return event.image;
+  if (categoryImage) return categoryImage;
+  const catName = (event.Category?.name || "").toLowerCase();
+  const fallback = Object.entries(CATEGORY_POSTER_FALLBACK).find(([k]) => catName.includes(k));
+  return fallback?.[1] || "https://via.placeholder.com/350x500/27272a/71717a?text=Poster+coming+soon";
+}
+
 function CategoryPageContent() {
   const params = useParams();
   const router = useRouter();
@@ -461,17 +482,29 @@ function CategoryPageContent() {
                           className="overflow-hidden"
                         >
                           <div className="flex flex-col md:flex-row gap-8 mt-6">
-                            {/* Event Image - Vertical Portrait Sizing */}
-                            <div className="w-full md:w-[350px] relative h-[300px] md:h-[500px] shrink-0">
+                            {/* Event Image - Vertical Portrait Sizing (fallback to category poster if event has none) */}
+                            <div className="w-full md:w-[350px] relative h-[300px] md:h-[500px] shrink-0 bg-zinc-800/50 rounded-xl overflow-hidden">
                               <Image
-                                src={event.image}
+                                src={getEventPosterSrc(event, categoryImage)}
                                 alt={event.name}
                                 fill
                                 sizes="(max-width: 768px) 100vw, 350px"
                                 className="object-cover rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300"
                                 quality={75}
-                                priority
+                                unoptimized={!!getEventPosterSrc(event, categoryImage).match(/(r2\.dev|digitaloceanspaces|r2\.cloudflarestorage)/i)}
+                                onError={(e) => {
+                                  const target = e.currentTarget;
+                                  target.style.display = "none";
+                                  const sibling = target.nextElementSibling as HTMLElement | null;
+                                  if (sibling) sibling.style.display = "flex";
+                                }}
                               />
+                              <div
+                                className="absolute inset-0 hidden items-center justify-center bg-zinc-800/80 text-zinc-500 text-sm"
+                                style={{ display: "none" }}
+                              >
+                                Poster coming soon
+                              </div>
                             </div>
 
                             {/* Event Details - Stacked Layout */}
