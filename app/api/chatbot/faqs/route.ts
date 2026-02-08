@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
+// FAQ API: code kept for admin management. Public chat uses ONLY the AI model (see /api/chatbot/chat).
 // GET - Fetch FAQs (Admin gets all, Public gets active only)
 export async function GET(req: NextRequest) {
     try {
