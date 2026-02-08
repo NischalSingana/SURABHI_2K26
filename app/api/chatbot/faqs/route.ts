@@ -28,6 +28,10 @@ export async function GET(req: NextRequest) {
         return NextResponse.json(faqs);
     } catch (error: any) {
         console.error("Error fetching FAQs:", error);
+        // Return empty array when DB is unreachable or connection closed so chatbot UI doesn't break
+        if (error?.code === "P1001" || error?.code === "P1017") {
+            return NextResponse.json([]);
+        }
         return NextResponse.json({ error: "Failed to fetch FAQs" }, { status: 500 });
     }
 }
