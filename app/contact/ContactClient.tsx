@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { FiPhone, FiMail, FiUser, FiSend, FiMapPin } from "react-icons/fi";
+import { FiMail, FiUser, FiSend, FiMapPin } from "react-icons/fi";
 
 interface Coordinator {
     id: string;
@@ -104,18 +104,6 @@ export default function ContactClient({ categories }: ContactClientProps) {
                                             </h3>
 
                                             <div className="space-y-3">
-                                                <a
-                                                    href={`tel:${coordinator.phone}`}
-                                                    className="flex items-center gap-3 text-zinc-400 hover:text-white transition-colors group/link p-2 bg-black/20 rounded-lg hover:bg-black/40"
-                                                >
-                                                    <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center shrink-0 group-hover/link:bg-red-900/20 group-hover/link:text-red-400 transition-colors">
-                                                        <FiPhone size={14} />
-                                                    </div>
-                                                    <span className="text-sm font-medium">
-                                                        {coordinator.phone}
-                                                    </span>
-                                                </a>
-
                                                 <a
                                                     href={`mailto:${coordinator.email}`}
                                                     className="flex items-center gap-3 text-zinc-400 hover:text-white transition-colors group/link p-2 bg-black/20 rounded-lg hover:bg-black/40"

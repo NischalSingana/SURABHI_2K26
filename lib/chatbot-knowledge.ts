@@ -310,7 +310,7 @@ export function buildFullKnowledgeForAI(payload: TrainingPayload): string {
         payload.contact.categories
           .map(
             (cat) =>
-              `${cat.name}: ${cat.coordinators.map((c) => `${c.name} (${c.email}, ${c.phone})`).join("; ")}`
+              `${cat.name}: ${cat.coordinators.map((c) => `${c.name} (${c.email})`).join("; ")}`
           )
           .join("\n")
     );

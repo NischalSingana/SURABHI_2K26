@@ -21,7 +21,6 @@ import {
     FiChevronDown,
     FiChevronUp,
     FiUser,
-    FiPhone,
     FiMail,
 } from "react-icons/fi";
 
@@ -69,7 +68,6 @@ export default function ContactManagementClient({
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
     const [coordinatorFormData, setCoordinatorFormData] = useState({
         name: "",
-        phone: "",
         email: "",
         order: 0,
     });
@@ -157,7 +155,6 @@ export default function ContactManagementClient({
             setEditingCoordinator(coordinator);
             setCoordinatorFormData({
                 name: coordinator.name,
-                phone: coordinator.phone,
                 email: coordinator.email,
                 order: coordinator.order,
             });
@@ -165,7 +162,6 @@ export default function ContactManagementClient({
             setEditingCoordinator(null);
             setCoordinatorFormData({
                 name: "",
-                phone: "",
                 email: "",
                 order: 0,
             });
@@ -181,6 +177,7 @@ export default function ContactManagementClient({
             if (editingCoordinator) {
                 const result = await updateCoordinator(editingCoordinator.id, {
                     ...coordinatorFormData,
+                    phone: editingCoordinator.phone,
                     order: isNaN(coordinatorFormData.order) ? 0 : coordinatorFormData.order,
                 });
                 if (result.success) {
@@ -192,6 +189,7 @@ export default function ContactManagementClient({
             } else {
                 const result = await createCoordinator(selectedCategoryId!, {
                     ...coordinatorFormData,
+                    phone: "",
                     order: isNaN(coordinatorFormData.order) ? 0 : coordinatorFormData.order,
                 });
                 if (result.success) {
@@ -331,13 +329,7 @@ export default function ContactManagementClient({
                                                         </div>
                                                         <div>
                                                             <p className="font-bold text-white">{coordinator.name}</p>
-                                                            <div className="mt-2 space-y-1">
-                                                                <a
-                                                                    href={`tel:${coordinator.phone}`}
-                                                                    className="flex items-center gap-2 text-xs text-zinc-400 hover:text-red-400 transition-colors"
-                                                                >
-                                                                    <FiPhone size={12} /> {coordinator.phone}
-                                                                </a>
+                                                            <div className="mt-2">
                                                                 <a
                                                                     href={`mailto:${coordinator.email}`}
                                                                     className="flex items-center gap-2 text-xs text-zinc-400 hover:text-red-400 transition-colors"
@@ -453,21 +445,6 @@ export default function ContactManagementClient({
                                             setCoordinatorFormData({
                                                 ...coordinatorFormData,
                                                 name: e.target.value,
-                                            })
-                                        }
-                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm text-zinc-400 mb-1">Phone</label>
-                                    <input
-                                        type="tel"
-                                        required
-                                        value={coordinatorFormData.phone}
-                                        onChange={(e) =>
-                                            setCoordinatorFormData({
-                                                ...coordinatorFormData,
-                                                phone: e.target.value,
                                             })
                                         }
                                         className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white"
