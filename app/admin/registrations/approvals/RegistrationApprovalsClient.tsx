@@ -6,6 +6,15 @@ import { toast } from "sonner";
 import Image from "next/image";
 import { format } from "date-fns";
 import Loader from "@/components/ui/Loader";
+import * as XLSX from "xlsx";
+
+function isKLUniversity(reg: { user?: { email?: string | null; collage?: string | null } | null }): boolean {
+    const u = reg.user;
+    if (!u) return false;
+    if (u.email?.toLowerCase().endsWith("@kluniversity.in")) return true;
+    const c = (u.collage || "").toLowerCase();
+    return c.includes("kl university") || c.includes("kl") || c.includes("koneru") || c.includes("klef");
+}
 
 type Registration = {
     id: string;
@@ -39,16 +48,31 @@ type Registration = {
     } | null;
 };
 
+type CollegeFilter = "ALL" | "KL_UNIVERSITY" | "OTHER";
+
 export default function RegistrationApprovalsClient() {
     const [registrations, setRegistrations] = useState<Registration[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
     const [activeTab, setActiveTab] = useState<"INDIVIDUAL" | "GROUP" | "VISITOR" | "INTERNATIONAL">("INDIVIDUAL");
     const [viewMode, setViewMode] = useState<"PENDING" | "HISTORY">("PENDING");
+    const [collegeFilter, setCollegeFilter] = useState<CollegeFilter>("ALL");
+    const [filters, setFilters] = useState({
+        user: "",
+        event: "",
+        payment: "",
+        status: "",
+        approvedBy: "",
+        actions: "",
+    });
 
     useEffect(() => {
         fetchRegistrations();
     }, [viewMode]);
+
+    useEffect(() => {
+        setCollegeFilter("ALL");
+    }, [activeTab, viewMode]);
 
     const fetchRegistrations = async () => {
         setLoading(true);
@@ -110,10 +134,43 @@ export default function RegistrationApprovalsClient() {
     };
 
     const filteredRegistrations = registrations.filter((reg) => {
-        if (activeTab === "INTERNATIONAL") return !!reg.user?.isInternational;
-        if (activeTab === "INDIVIDUAL" && reg.type !== "INDIVIDUAL") return false;
-        if (activeTab === "GROUP" && reg.type !== "GROUP") return false;
-        if (activeTab === "VISITOR" && reg.type !== "VISITOR") return false;
+        if (activeTab === "INTERNATIONAL") {
+            if (!reg.user?.isInternational) return false;
+        } else if (activeTab === "INDIVIDUAL" && reg.type !== "INDIVIDUAL") return false;
+        else if (activeTab === "GROUP" && reg.type !== "GROUP") return false;
+        else if (activeTab === "VISITOR" && reg.type !== "VISITOR") return false;
+
+        if ((activeTab === "INDIVIDUAL" || activeTab === "GROUP")) {
+            if (collegeFilter === "KL_UNIVERSITY" && !isKLUniversity(reg)) return false;
+            if (collegeFilter === "OTHER" && isKLUniversity(reg)) return false;
+        }
+
+        const userStr = [
+            reg.user?.name || "",
+            reg.user?.email || "",
+            reg.user?.phone || "",
+            reg.user?.collage || "",
+            reg.user?.collageId || "",
+        ].join(" ").toLowerCase();
+        const eventStr = reg.type === "VISITOR" ? "visitor pass" : (reg.event?.name || "").toLowerCase();
+        const paymentStr = [
+            reg.utrId || "",
+            reg.payeeName || "",
+            reg.paymentStatus || "",
+        ].join(" ").toLowerCase();
+        const statusStr = (reg.paymentStatus || "").toLowerCase();
+        const approvedByStr = (reg.approver?.name || reg.approver?.email || "not tracked").toLowerCase();
+        const actionsStr = reg.approvedAt
+            ? format(new Date(reg.approvedAt), "dd MMM yyyy").toLowerCase()
+            : format(new Date(reg.createdAt), "dd MMM yyyy").toLowerCase();
+
+        if (filters.user && !userStr.includes(filters.user.toLowerCase())) return false;
+        if (filters.event && !eventStr.includes(filters.event.toLowerCase())) return false;
+        if (filters.payment && !paymentStr.includes(filters.payment.toLowerCase())) return false;
+        if (filters.status && !statusStr.includes(filters.status.toLowerCase())) return false;
+        if (filters.approvedBy && !approvedByStr.includes(filters.approvedBy.toLowerCase())) return false;
+        if (filters.actions && !actionsStr.includes(filters.actions.toLowerCase())) return false;
+
         return true;
     });
 
@@ -123,10 +180,57 @@ export default function RegistrationApprovalsClient() {
     const visitorCount = registrations.filter((reg) => reg.type === "VISITOR").length;
     const internationalCount = registrations.filter((reg) => !!reg.user?.isInternational).length;
 
+    const individualKLCount = registrations.filter((r) => r.type === "INDIVIDUAL" && isKLUniversity(r)).length;
+    const individualOtherCount = registrations.filter((r) => r.type === "INDIVIDUAL" && !isKLUniversity(r)).length;
+    const groupKLCount = registrations.filter((r) => r.type === "GROUP" && isKLUniversity(r)).length;
+    const groupOtherCount = registrations.filter((r) => r.type === "GROUP" && !isKLUniversity(r)).length;
+
+    const showCollegeSubTabs = (activeTab === "INDIVIDUAL" || activeTab === "GROUP");
+
+    const rowToExport = (reg: Registration) => ({
+        "Username": reg.user?.name || "—",
+        "Email": reg.user?.email || "—",
+        "Phone Number": reg.user?.phone || "—",
+        "College": reg.user?.isInternational ? (reg.user?.country || "—") : `${reg.user?.collage || "—"} ${reg.user?.collageId ? `(${reg.user.collageId})` : ""}`.trim(),
+        "Event": reg.type === "VISITOR" ? "Visitor Pass" : reg.event ? `${reg.event.name} (${format(new Date(reg.event.date), "PPP")})` : "—",
+        "Payment Details": [reg.utrId ? `UTR: ${reg.utrId}` : "", reg.payeeName ? `Payee: ${reg.payeeName}` : "", reg.paymentScreenshot ? "Screenshot attached" : ""].filter(Boolean).join("; ") || "No payment details",
+        "Status": reg.paymentStatus || "—",
+        "Approved By": reg.approver ? `${reg.approver.name || ""} (${reg.approver.email})` : "Not tracked",
+        "Actions": reg.approvedAt ? format(new Date(reg.approvedAt), "dd MMM yyyy") : format(new Date(reg.createdAt), "dd MMM yyyy"),
+    });
+
+    const exportToXlsx = () => {
+        const toExport = filteredRegistrations.map(rowToExport);
+
+        if (toExport.length === 0) {
+            toast.error("No registrations to export");
+            return;
+        }
+        try {
+            const ws = XLSX.utils.json_to_sheet(toExport);
+            const ref = XLSX.utils.decode_range(ws["!ref"] || "A1");
+            ws["!autofilter"] = { ref: XLSX.utils.encode_range(ref) };
+            const wb = XLSX.utils.book_new();
+            const sheetName = `${activeTab}_${viewMode}${collegeFilter !== "ALL" ? `_${collegeFilter === "KL_UNIVERSITY" ? "KL" : "Other"}` : ""}`.slice(0, 31);
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            XLSX.writeFile(wb, `registrations_${viewMode}_${activeTab}_${new Date().toISOString().split("T")[0]}.xlsx`);
+            toast.success("Exported successfully");
+        } catch (e) {
+            console.error(e);
+            toast.error("Failed to export");
+        }
+    };
+
     return (
         <div className="px-4 py-6">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
                 <h1 className="text-3xl font-bold text-white">Registration Approvals</h1>
+                <button
+                    onClick={exportToXlsx}
+                    className="px-4 py-2 bg-green-600/20 text-green-500 hover:bg-green-600/30 rounded-lg text-sm font-medium transition-colors border border-green-500/30"
+                >
+                    Export XLSX
+                </button>
             </div>
 
             {/* View Mode Toggle */}
@@ -184,6 +288,29 @@ export default function RegistrationApprovalsClient() {
                 </div>
             </div>
 
+            {showCollegeSubTabs && (
+                <div className="mb-4 flex gap-2">
+                    <button
+                        onClick={() => setCollegeFilter("ALL")}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${collegeFilter === "ALL" ? "bg-zinc-700 text-white" : "bg-zinc-800/50 text-zinc-400 hover:text-white"}`}
+                    >
+                        All
+                    </button>
+                    <button
+                        onClick={() => setCollegeFilter("KL_UNIVERSITY")}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${collegeFilter === "KL_UNIVERSITY" ? "bg-zinc-700 text-white" : "bg-zinc-800/50 text-zinc-400 hover:text-white"}`}
+                    >
+                        KL University ({activeTab === "INDIVIDUAL" ? individualKLCount : groupKLCount})
+                    </button>
+                    <button
+                        onClick={() => setCollegeFilter("OTHER")}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${collegeFilter === "OTHER" ? "bg-zinc-700 text-white" : "bg-zinc-800/50 text-zinc-400 hover:text-white"}`}
+                    >
+                        Other College ({activeTab === "INDIVIDUAL" ? individualOtherCount : groupOtherCount})
+                    </button>
+                </div>
+            )}
+
             <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-zinc-400">
@@ -196,6 +323,64 @@ export default function RegistrationApprovalsClient() {
                                 {viewMode === "HISTORY" && <th className="px-6 py-4">Approved By</th>}
                                 <th className="px-6 py-4">Actions</th>
                             </tr>
+                            <tr className="bg-zinc-900/50">
+                                <th className="px-6 py-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Filter..."
+                                        value={filters.user}
+                                        onChange={(e) => setFilters((f) => ({ ...f, user: e.target.value }))}
+                                        className="w-full max-w-[180px] px-2 py-1 text-xs bg-zinc-800 border border-zinc-700 rounded text-zinc-300 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600"
+                                    />
+                                </th>
+                                <th className="px-6 py-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Filter..."
+                                        value={filters.event}
+                                        onChange={(e) => setFilters((f) => ({ ...f, event: e.target.value }))}
+                                        className="w-full max-w-[180px] px-2 py-1 text-xs bg-zinc-800 border border-zinc-700 rounded text-zinc-300 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600"
+                                    />
+                                </th>
+                                <th className="px-6 py-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Filter..."
+                                        value={filters.payment}
+                                        onChange={(e) => setFilters((f) => ({ ...f, payment: e.target.value }))}
+                                        className="w-full max-w-[180px] px-2 py-1 text-xs bg-zinc-800 border border-zinc-700 rounded text-zinc-300 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600"
+                                    />
+                                </th>
+                                <th className="px-6 py-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Filter..."
+                                        value={filters.status}
+                                        onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
+                                        className="w-full max-w-[120px] px-2 py-1 text-xs bg-zinc-800 border border-zinc-700 rounded text-zinc-300 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600"
+                                    />
+                                </th>
+                                {viewMode === "HISTORY" && (
+                                    <th className="px-6 py-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Filter..."
+                                            value={filters.approvedBy}
+                                            onChange={(e) => setFilters((f) => ({ ...f, approvedBy: e.target.value }))}
+                                            className="w-full max-w-[140px] px-2 py-1 text-xs bg-zinc-800 border border-zinc-700 rounded text-zinc-300 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600"
+                                        />
+                                    </th>
+                                )}
+                                <th className="px-6 py-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Filter..."
+                                        value={filters.actions}
+                                        onChange={(e) => setFilters((f) => ({ ...f, actions: e.target.value }))}
+                                        className="w-full max-w-[120px] px-2 py-1 text-xs bg-zinc-800 border border-zinc-700 rounded text-zinc-300 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-600"
+                                    />
+                                </th>
+                            </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-800">
                             {filteredRegistrations.length === 0 ? (
@@ -203,6 +388,8 @@ export default function RegistrationApprovalsClient() {
                                     <td colSpan={viewMode === "HISTORY" ? 6 : 5} className="px-6 py-12 text-center text-zinc-500">
                                         {activeTab === "INTERNATIONAL"
                                             ? "No international registrations found."
+                                            : showCollegeSubTabs && collegeFilter !== "ALL"
+                                            ? `No ${collegeFilter === "KL_UNIVERSITY" ? "KL University" : "other college"} ${viewMode === "PENDING" ? "pending " : ""}${activeTab.toLowerCase()} registrations found.`
                                             : `No ${viewMode === "PENDING" ? "pending " : ""}${activeTab.toLowerCase().replace("_", " ")} registrations found.`}
                                     </td>
                                 </tr>
