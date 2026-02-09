@@ -10,6 +10,15 @@ type Message = { role: "user" | "assistant"; content: string };
 
 const PLACEHOLDER = "Ask about events, registration, accommodation...";
 const SEND_COOLDOWN_MS = 2000;
+
+/** Strip markdown asterisks so * and ** don't show in plain text display */
+function formatMessageContent(content: string): string {
+  return content
+    .replace(/\*\*(.+?)\*\*/g, "$1") // **bold** → bold
+    .replace(/\*(.+?)\*/g, "$1")     // *italic* → italic
+    .replace(/^\s*\*\s+/gm, "• ")    // * list item → • item
+    .trim();
+}
 const SPAM_WINDOW_MS = 8000;
 const SPAM_THRESHOLD = 4;
 
@@ -76,13 +85,14 @@ export default function ChatWidget() {
         }
         throw new Error(data.error || "Request failed");
       }
-      const content = data.content?.trim() || "No response.";
+      const raw = data.content?.trim() || "No response.";
+      const content = formatMessageContent(raw);
       setMessages((m) => [...m, { role: "assistant", content }]);
       setCooldownUntil(Date.now() + SEND_COOLDOWN_MS);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong.";
       setError(msg);
-      setMessages((m) => [...m, { role: "assistant", content: msg }]);
+      setMessages((m) => [...m, { role: "assistant", content: formatMessageContent(msg) }]);
     } finally {
       setLoading(false);
     }
