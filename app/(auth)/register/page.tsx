@@ -68,7 +68,7 @@ const Register = async () => {
           </div>
         </div>
       )}
-      <MultiStepRegister existingUserData={existingUserData} />
+      <MultiStepRegister existingUserData={existingUserData} missingFields={missingFields} />
     </>
   )
 }
