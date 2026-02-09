@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { isRegistrationComplete } from "@/lib/registration-check";
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
     const college = formData.get("college") as string;
     const isInternational = formData.get("isInternational") === "true";
 
-    // Check if user has already registered
+    // Only block if registration is fully complete (all required fields filled)
     const existingUser = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
@@ -32,24 +33,13 @@ export async function POST(request: NextRequest) {
         year: true,
         phone: true,
         country: true,
+        state: true,
+        city: true,
         isInternational: true,
       },
     });
 
-    if (isInternational) {
-      if (existingUser?.phone && existingUser?.country && existingUser?.isInternational) {
-        return NextResponse.json(
-          { error: "Account already registered. You cannot register again." },
-          { status: 409 }
-        );
-      }
-    } else if (
-      existingUser?.collage &&
-      existingUser?.collageId &&
-      existingUser?.branch &&
-      existingUser?.year &&
-      existingUser?.phone
-    ) {
+    if (existingUser && isRegistrationComplete(existingUser)) {
       return NextResponse.json(
         { error: "Account already registered. You cannot register again." },
         { status: 409 }
