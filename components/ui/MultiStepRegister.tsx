@@ -71,15 +71,18 @@ interface MultiStepRegisterProps {
     city?: string | null;
     isInternational?: boolean;
   } | null;
+  /** Server-computed missing fields (e.g. State, City/Town) so we can scroll to them for KL users */
+  missingFields?: string[];
 }
 
-const MultiStepRegister = ({ existingUserData }: MultiStepRegisterProps = {}) => {
+const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRegisterProps = {}) => {
   const router = useRouter();
   const { data: session } = useSession();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasAutoAdvanced, setHasAutoAdvanced] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
+  const stateCitySectionRef = useRef<HTMLDivElement>(null);
 
   // If user has existing data and is authenticated, start on step 3 so they can complete missing fields
   useEffect(() => {
@@ -104,6 +107,15 @@ const MultiStepRegister = ({ existingUserData }: MultiStepRegisterProps = {}) =>
           college: detectedCollege,
           collegeName: detectedCollegeName,
           isInternational: existingUserData.isInternational || false,
+          state: existingUserData.state ?? prev.state,
+          city: existingUserData.city ?? prev.city,
+          name: existingUserData.name ?? prev.name,
+          email: existingUserData.email ?? prev.email,
+          phone: existingUserData.phone ?? prev.phone,
+          collageId: existingUserData.collageId ?? prev.collageId,
+          branch: existingUserData.branch ?? prev.branch,
+          year: existingUserData.year ?? prev.year,
+          gender: existingUserData.gender ?? prev.gender,
         }));
       }
 
@@ -318,9 +330,16 @@ const MultiStepRegister = ({ existingUserData }: MultiStepRegisterProps = {}) =>
             ...prev,
             college: detectedCollege,
             collegeName: detectedCollegeName,
-            name: session.user.name || "",
-            email: session.user.email || "",
-            isInternational: existingUserData.isInternational || false,
+            name: session.user.name || prev.name || "",
+            email: session.user.email || prev.email || "",
+            isInternational: existingUserData.isInternational ?? false,
+            state: existingUserData.state ?? prev.state ?? "",
+            city: existingUserData.city ?? prev.city ?? "",
+            phone: existingUserData.phone ?? prev.phone,
+            collageId: existingUserData.collageId ?? prev.collageId,
+            branch: existingUserData.branch ?? prev.branch,
+            year: existingUserData.year ?? prev.year,
+            gender: existingUserData.gender ?? prev.gender,
           }));
 
           // Auto-advance to step 3 if user is authenticated and has incomplete data
@@ -332,6 +351,17 @@ const MultiStepRegister = ({ existingUserData }: MultiStepRegisterProps = {}) =>
       }
     }
   }, [session?.user?.id, currentStep, hasAutoAdvanced, existingUserData]);
+
+  // Scroll to State/City when they are missing so KL users can fill them (e.g. redirect with prefilled data)
+  const needsStateOrCity = missingFields.some((f) => f === "State" || f === "City/Town");
+  useEffect(() => {
+    if (currentStep === 3 && needsStateOrCity && stateCitySectionRef.current) {
+      const t = setTimeout(() => {
+        stateCitySectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 300);
+      return () => clearTimeout(t);
+    }
+  }, [currentStep, needsStateOrCity]);
 
   // Prevent navigation away from registration page until complete
   useEffect(() => {
@@ -1112,7 +1142,15 @@ const MultiStepRegister = ({ existingUserData }: MultiStepRegisterProps = {}) =>
 
                   {/* State - For KL and Other College (mandatory) */}
                   {formData.college !== "INTERNATIONAL" && (
-                    <div>
+                    <div ref={stateCitySectionRef} className="space-y-6">
+                      {needsStateOrCity && (
+                        <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                          <p className="text-amber-300 text-sm font-medium">
+                            Please fill in State and City / Town below to complete your profile.
+                          </p>
+                        </div>
+                      )}
+                      <div>
                       <label className="block text-sm font-medium text-zinc-300 mb-2">
                         State *
                       </label>
@@ -1137,35 +1175,33 @@ const MultiStepRegister = ({ existingUserData }: MultiStepRegisterProps = {}) =>
                           <p className="text-xs text-amber-400 mt-1">State must be at least 2 characters</p>
                         )}
                       </div>
-                    </div>
-                  )}
-
-                  {/* City/Town - For KL and Other College (mandatory) */}
-                  {formData.college !== "INTERNATIONAL" && (
-                    <div>
-                      <label className="block text-sm font-medium text-zinc-300 mb-2">
-                        City / Town *
-                      </label>
-                      <div className="relative">
-                        <FiBook className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
-                        <input
-                          type="text"
-                          name="city"
-                          value={formData.city || ""}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            if (value.length <= 50) {
-                              setFormData({ ...formData, city: value });
-                            }
-                          }}
-                          required
-                          maxLength={50}
-                          className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
-                          placeholder="Enter your city or town"
-                        />
-                        {formData.city && formData.city.length < 2 && (
-                          <p className="text-xs text-amber-400 mt-1">City/Town must be at least 2 characters</p>
-                        )}
+                      </div>
+                      {/* City/Town - For KL and Other College (mandatory) */}
+                      <div>
+                        <label className="block text-sm font-medium text-zinc-300 mb-2">
+                          City / Town *
+                        </label>
+                        <div className="relative">
+                          <FiBook className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
+                          <input
+                            type="text"
+                            name="city"
+                            value={formData.city || ""}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value.length <= 50) {
+                                setFormData({ ...formData, city: value });
+                              }
+                            }}
+                            required
+                            maxLength={50}
+                            className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
+                            placeholder="Enter your city or town"
+                          />
+                          {formData.city && formData.city.length < 2 && (
+                            <p className="text-xs text-amber-400 mt-1">City/Town must be at least 2 characters</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
