@@ -1,5 +1,4 @@
 import MultiStepRegister from "@/components/ui/MultiStepRegister"
-import ProfileCompleteBanner from "@/components/ui/ProfileCompleteBanner"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { prisma } from "@/lib/prisma"
@@ -41,17 +40,8 @@ const Register = async () => {
     }
   }
 
-  const bannerMessage = existingUserData && (existingUserData.collage || existingUserData.phone || existingUserData.state || existingUserData.city || existingUserData.country)
-    ? "Your existing information has been auto-filled. Please provide the following missing fields:"
-    : "Please provide the following required fields to complete your profile:";
-
   return (
-    <>
-      {missingFields.length > 0 && (
-        <ProfileCompleteBanner missingFields={missingFields} message={bannerMessage} />
-      )}
-      <MultiStepRegister existingUserData={existingUserData} missingFields={missingFields} />
-    </>
+    <MultiStepRegister existingUserData={existingUserData} missingFields={missingFields} />
   )
 }
 
