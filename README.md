@@ -13,6 +13,7 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
 ### 🎭 Event Management
 - **Dynamic Event Catalog**: Browse competitions across multiple categories (Dance, Music, Theatre, Fine Arts, etc.)
 - **Individual & Group Registration**: Support for both solo and team-based events
+- **College Types**: KL University (free), Other College (India), International Student flows
 - **Real-time Availability**: Track participant limits and registration status
 - **Event Submissions**: Participants can submit their work/links for events
 - **Terms & Conditions**: Mandatory scroll-through acceptance for registrations
@@ -51,21 +52,28 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
 - **Event CRUD**: Create, update, and delete events and categories
 - **Sponsor Management**: Manage festival sponsors with custom branding
 - **Gallery Management**: Upload and organize gallery images by year
-- **Contact Coordinators**: Manage contact categories and coordinator information
+- **Contact Coordinators**: Manage contact categories and coordinator information (email only)
 - **Schedule Management**: Upload and manage event schedules
-- **Chatbot FAQ**: Manage chatbot categories and frequently asked questions
+- **Registration Approvals**: KL University / Other College sub-pages for Individual & Group (Pending + History)
+- **XLSX Export**: Export registrations (International, Individual, Group, Visitor Pass) with filters and auto-filter in Excel
+- **Column Filters**: Filter by User, Event, Payment Details, Status, Approved By, Actions
 
-### 🤖 Chatbot
-- **Category-Based Navigation**: Organized FAQ system
-- **Admin Configurable**: Manage questions and categories from admin panel
+### 🤖 AI Chatbot
+- **AI-Powered Assistant**: Natural language responses based on trained fest knowledge (Groq/OpenRouter/Bytez)
+- **Trained on Full Website Data**: Events, competitions, registration, accommodation, contact coordinators, sponsors
+- **Plain Text Responses**: No markdown clutter; conversational, synthesized answers
+- **Context-Aware**: Answers only about Surabhi 2026; redirects off-topic questions
+- **Rate Limited**: Spam protection and cooldown for fair usage
 
 ### 📱 Additional Features
 - **Poster Gallery**: Automated poster gallery from R2 storage
 - **Results Page**: Display competition results and winners
 - **Sponsors Showcase**: Dynamic sponsor cards with custom gradients
-- **Contact Page**: Categorized coordinator contacts
+- **Contact Page**: Categorized coordinator contacts (email only)
 - **Profile Management**: User profile with registration history
 - **Payment Verification**: Admin approval workflow for payments
+- **Registration Completion**: Users with missing profile data can complete registration without "already registered" block
+- **Virtual & International Support**: Virtual participation for eligible states; international student registration
 
 ## 🛠️ Tech Stack
 
@@ -147,6 +155,11 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
    
    # App Configuration
    NEXT_PUBLIC_APP_URL="http://localhost:3000"
+   
+   # AI Chatbot (at least one required: Groq, OpenRouter, or Bytez)
+   GROQ_API_KEY="optional-groq-api-key"
+   OPENROUTER_API_KEY="optional-openrouter-api-key"
+   BYTEZ_API_KEY="optional-bytez-api-key"
    ```
 
 4. **Set up the database**
@@ -181,7 +194,7 @@ The application uses Prisma ORM with PostgreSQL. Key models include:
 - **Evaluation** - Judge scores and feedback
 - **Sponsor** - Festival sponsors
 - **GalleryImage** - Photo gallery images
-- **ChatbotFAQ** - Chatbot questions and answers
+- **ChatbotFAQ** - Admin-managed FAQs (legacy; public chat uses AI model)
 - **ContactCoordinator** - Contact information
 
 See [`prisma/schema.prisma`](./prisma/schema.prisma) for the complete schema.
