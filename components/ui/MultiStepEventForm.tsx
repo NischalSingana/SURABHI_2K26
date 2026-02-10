@@ -20,6 +20,7 @@ import {
 } from "react-icons/fi";
 import { createEvent, updateEvent } from "@/actions/events.action";
 import { uploadEventImage } from "@/actions/upload.action";
+import { PRIZE_ELIGIBILITY_TERMS, COMMON_VIRTUAL_TERMS } from "@/lib/constants";
 
 interface Event {
   id: string;
@@ -82,8 +83,8 @@ export default function MultiStepEventForm({
     startTime: editingEvent?.startTime || "",
     endTime: editingEvent?.endTime || "",
     participantLimit: editingEvent?.participantLimit.toString() || "",
-    termsandconditions: editingEvent?.termsandconditions || "",
-    virtualTermsAndConditions: editingEvent?.virtualTermsAndConditions || "",
+    termsandconditions: editingEvent?.termsandconditions || PRIZE_ELIGIBILITY_TERMS,
+    virtualTermsAndConditions: editingEvent?.virtualTermsAndConditions || COMMON_VIRTUAL_TERMS.join("\n"),
     registrationLink: editingEvent?.registrationLink || "",
     whatsappLink: editingEvent?.whatsappLink || "",
     brochureLink: editingEvent?.brochureLink || "",
@@ -100,18 +101,18 @@ export default function MultiStepEventForm({
     editingEvent?.image || ""
   );
 
-  // Terms list state management
+  // Terms list state management (new events get prize eligibility terms by default)
   const [termsList, setTermsList] = useState<string[]>(
     formData.termsandconditions
       ? formData.termsandconditions.split(/\r?\n/).filter(t => t.trim())
-      : [""]
+      : PRIZE_ELIGIBILITY_TERMS.split(/\r?\n/).filter(t => t.trim())
   );
 
   // Virtual terms list state management
   const [virtualTermsList, setVirtualTermsList] = useState<string[]>(
     formData.virtualTermsAndConditions
       ? formData.virtualTermsAndConditions.split(/\r?\n/).filter(t => t.trim())
-      : [""]
+      : COMMON_VIRTUAL_TERMS
   );
 
   // Sync termsList to formData
@@ -164,12 +165,12 @@ export default function MultiStepEventForm({
       setTermsList(
         editingEvent.termsandconditions
           ? editingEvent.termsandconditions.split(/\r?\n/).filter((t) => t.trim())
-          : [""]
+          : PRIZE_ELIGIBILITY_TERMS.split(/\r?\n/).filter((t) => t.trim())
       );
       setVirtualTermsList(
         editingEvent.virtualTermsAndConditions
           ? editingEvent.virtualTermsAndConditions.split(/\r?\n/).filter((t) => t.trim())
-          : [""]
+          : COMMON_VIRTUAL_TERMS
       );
     }
   }, [editingEvent?.id]);
@@ -894,10 +895,10 @@ export default function MultiStepEventForm({
                 {formData.virtualEnabled && (
                   <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
                     <label className="block text-sm font-medium text-zinc-300 mb-2">
-                      Virtual Participation Terms <span className="text-zinc-500 text-xs">(Optional - if different from physical)</span>
+                      Virtual Participation Terms <span className="text-emerald-400 text-xs">(Point-wise - editable)</span>
                     </label>
                     <p className="text-zinc-500 text-xs mb-3">
-                      Specific terms and conditions for virtual participants. Leave empty to use same terms as physical participation.
+                      Terms and conditions for virtual participants. Add or edit points as needed for this event.
                     </p>
                     <div className="space-y-3">
                       {virtualTermsList.map((term, index) => (

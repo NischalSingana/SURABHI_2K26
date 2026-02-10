@@ -57,6 +57,7 @@ interface Event {
     id: string;
     userId: string;
     submissionLink: string;
+    youtubeChannelName: string | null;
     notes: string | null;
   }>;
   groupRegistrations?: Array<{
@@ -1381,7 +1382,7 @@ export default function EventsManagement() {
                       <h4 className="text-white font-semibold mb-3">Submission</h4>
                       <div className="space-y-3">
                         <div className="grid grid-cols-3 gap-2 text-sm">
-                          <span className="text-zinc-500">Link:</span>
+                          <span className="text-zinc-500">YouTube Link:</span>
                           <a
                             href={getSubmissionForStudent(selectedStudent.id)?.submissionLink}
                             target="_blank"
@@ -1391,6 +1392,12 @@ export default function EventsManagement() {
                             {getSubmissionForStudent(selectedStudent.id)?.submissionLink}
                           </a>
                         </div>
+                        {getSubmissionForStudent(selectedStudent.id)?.youtubeChannelName && (
+                          <div className="grid grid-cols-3 gap-2 text-sm">
+                            <span className="text-zinc-500">Channel:</span>
+                            <p className="text-zinc-300 col-span-2">{getSubmissionForStudent(selectedStudent.id)?.youtubeChannelName}</p>
+                          </div>
+                        )}
                         {getSubmissionForStudent(selectedStudent.id)?.notes && (
                           <div className="grid grid-cols-3 gap-2 text-sm">
                             <span className="text-zinc-500">Notes:</span>

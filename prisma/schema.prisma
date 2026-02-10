@@ -234,6 +234,7 @@ model EventSubmission {
   userId              String
   eventId             String
   submissionLink      String
+  youtubeChannelName  String?
   notes               String?
   registrationDetails Json?
   event               Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)

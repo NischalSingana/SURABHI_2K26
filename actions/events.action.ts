@@ -101,6 +101,7 @@ export async function getCategories(includeFullData: boolean = true): Promise<{ 
                   id: true,
                   userId: true,
                   submissionLink: true,
+                  youtubeChannelName: true,
                   notes: true,
                 },
               },

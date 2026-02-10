@@ -241,6 +241,8 @@ interface Event {
   endTime: string;
   participantLimit: number;
   termsandconditions: string;
+  virtualEnabled?: boolean;
+  virtualTermsAndConditions?: string | null;
   registrationLink: string;
   Category: {
     id: string;
@@ -275,6 +277,7 @@ function EventDetailPageContent() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showVastranautTooltip, setShowVastranautTooltip] = useState(false);
   const [hasGoogleAccount, setHasGoogleAccount] = useState(false);
+  const [termsTab, setTermsTab] = useState<"physical" | "virtual">("physical");
   const { data: session } = useSession();
   const isOutsider = session?.user?.email && !session.user.email.endsWith("@kluniversity.in");
   const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
@@ -285,6 +288,10 @@ function EventDetailPageContent() {
     if (slug) {
       fetchEvent();
     }
+  }, [slug]);
+
+  useEffect(() => {
+    setTermsTab("physical");
   }, [slug]);
 
   // Check if user has Google account
@@ -572,17 +579,44 @@ function EventDetailPageContent() {
               <h2 className="text-2xl font-bold text-white mb-4">
                 Terms & Conditions
               </h2>
+
+              {event.virtualEnabled && event.virtualTermsAndConditions ? (
+                <>
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setTermsTab("physical")}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        termsTab === "physical"
+                          ? "bg-red-600 text-white"
+                          : "bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700"
+                      }`}
+                    >
+                      Physical Participation
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTermsTab("virtual")}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        termsTab === "virtual"
+                          ? "bg-emerald-600 text-white"
+                          : "bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700"
+                      }`}
+                    >
+                      Virtual Participation
+                    </button>
+                  </div>
+                </>
+              ) : null}
+
               <div className="text-zinc-300 space-y-2">
                 {(() => {
-                  // First try splitting by newline
-                  let points = event.termsandconditions.split(/\r?\n/).filter(line => line.trim());
+                  const termsText = termsTab === "virtual" && event.virtualEnabled && event.virtualTermsAndConditions
+                    ? event.virtualTermsAndConditions
+                    : event.termsandconditions;
+                  let points = termsText.split(/\r?\n/).filter(line => line.trim());
 
-                  // If only one point found (likely a paragraph), try splitting by sentences
                   if (points.length === 1 && points[0].length > 50) {
-                    // Split by period followed by space, or period at end of string
-                    // This regex looks for a period followed by a space or end of string, 
-                    // but ignores periods in common abbreviations like "Mr.", "e.g.", etc if strictness needed,
-                    // but for T&C simple split is usually sufficient.
                     const sentences = points[0].split(/\.\s+/).filter(s => s.trim());
                     if (sentences.length > 1) {
                       points = sentences.map(s => s.trim().endsWith('.') ? s : s + '.');
@@ -591,7 +625,9 @@ function EventDetailPageContent() {
 
                   return points.map((line, index) => (
                     <div key={index} className="flex gap-3">
-                      <span className="text-red-500 mt-1.5 min-w-[6px] h-1.5 rounded-full bg-red-500 block" />
+                      <span className={`mt-1.5 min-w-[6px] h-1.5 rounded-full block ${
+                        termsTab === "virtual" ? "bg-emerald-500" : "bg-red-500"
+                      }`} />
                       <span>{line.replace(/^[•\-\*]\s*/, '').trim()}</span>
                     </div>
                   ));
