@@ -88,14 +88,14 @@ export default function SubmissionModal({
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.9, opacity: 0 }}
                         transition={{ type: "spring", duration: 0.5 }}
-                        className="bg-zinc-900 rounded-xl max-w-2xl w-full border border-zinc-800 overflow-hidden"
+                        className="bg-zinc-900 rounded-xl max-w-2xl w-full max-h-[calc(100vh-6rem)] my-8 border border-zinc-800 overflow-hidden flex flex-col"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="bg-gradient-to-r from-orange-500/20 to-orange-600/20 border-b border-orange-500/30 p-6">
+                        <div className="bg-gradient-to-r from-red-500/20 to-red-600/20 border-b border-red-500/30 p-6 shrink-0">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <h3 className="text-2xl font-bold text-orange-500 mb-2">
+                                    <h3 className="text-2xl font-bold text-red-500 mb-2">
                                         Submit Your Work
                                     </h3>
                                     <p className="text-zinc-300 text-sm">{event.name}</p>
@@ -110,8 +110,8 @@ export default function SubmissionModal({
                             </div>
                         </div>
 
-                        {/* Content */}
-                        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                        {/* Content - scrollable for trackpad */}
+                        <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto flex-1 min-h-0" data-lenis-prevent>
                             {/* Authenticity Notice */}
                             <div className="bg-amber-500/10 rounded-lg p-4 border border-amber-500/30">
                                 <p className="text-sm text-amber-200/90">
@@ -121,7 +121,7 @@ export default function SubmissionModal({
 
                             {/* Event Details */}
                             <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
-                                <h4 className="text-sm font-semibold text-orange-400 mb-3 flex items-center gap-2">
+                                <h4 className="text-sm font-semibold text-red-400 mb-3 flex items-center gap-2">
                                     <FiUpload size={16} />
                                     Submission Guidelines
                                 </h4>
@@ -136,7 +136,7 @@ export default function SubmissionModal({
                             {/* YouTube Video Link Input */}
                             <div>
                                 <label className="block text-sm font-semibold text-white mb-2">
-                                    YouTube Video Link <span className="text-orange-500">*</span>
+                                    YouTube Video Link <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
                                     <FiLink className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
@@ -147,7 +147,7 @@ export default function SubmissionModal({
                                         placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
                                         required
                                         disabled={loading}
-                                        className="w-full pl-12 pr-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all placeholder-zinc-500 disabled:opacity-50"
+                                        className="w-full pl-12 pr-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all placeholder-zinc-500 disabled:opacity-50"
                                     />
                                 </div>
                             </div>
@@ -155,7 +155,7 @@ export default function SubmissionModal({
                             {/* YouTube Channel Name Input */}
                             <div>
                                 <label className="block text-sm font-semibold text-white mb-2">
-                                    YouTube Channel Name <span className="text-orange-500">*</span>
+                                    YouTube Channel Name <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
@@ -164,7 +164,7 @@ export default function SubmissionModal({
                                     placeholder="Your YouTube channel name"
                                     required
                                     disabled={loading}
-                                    className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all placeholder-zinc-500 disabled:opacity-50"
+                                    className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all placeholder-zinc-500 disabled:opacity-50"
                                 />
                             </div>
 
@@ -179,7 +179,7 @@ export default function SubmissionModal({
                                     placeholder="Add any additional information about your submission..."
                                     rows={3}
                                     disabled={loading}
-                                    className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all placeholder-zinc-500 disabled:opacity-50 resize-none"
+                                    className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all placeholder-zinc-500 disabled:opacity-50 resize-none"
                                 />
                             </div>
 
@@ -213,9 +213,9 @@ export default function SubmissionModal({
                                 <button
                                     type="submit"
                                     disabled={loading || !submissionLink.trim() || !youtubeChannelName.trim()}
-                                    className={`flex-1 bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${loading || !submissionLink.trim() || !youtubeChannelName.trim()
+                                    className={`flex-1 bg-red-500 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${loading || !submissionLink.trim() || !youtubeChannelName.trim()
                                         ? "opacity-50 cursor-not-allowed"
-                                        : "hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/50"
+                                        : "hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/50"
                                         }`}
                                 >
                                     {loading ? (
