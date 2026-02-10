@@ -21,6 +21,7 @@ interface SubmissionModalProps {
     onClose: () => void;
     existingSubmission?: {
         submissionLink: string;
+        youtubeChannelName?: string | null;
         notes?: string | null;
     } | null;
     onSuccess?: () => void;
@@ -34,6 +35,7 @@ export default function SubmissionModal({
     onSuccess,
 }: SubmissionModalProps) {
     const [submissionLink, setSubmissionLink] = useState(existingSubmission?.submissionLink || "");
+    const [youtubeChannelName, setYoutubeChannelName] = useState(existingSubmission?.youtubeChannelName || "");
     const [notes, setNotes] = useState(existingSubmission?.notes || "");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -44,7 +46,7 @@ export default function SubmissionModal({
         setError(null);
         setLoading(true);
 
-        const result = await submitEventWork(event.id, submissionLink, notes);
+        const result = await submitEventWork(event.id, submissionLink, youtubeChannelName, notes);
 
         if (result.success) {
             setSuccess(true);
@@ -63,6 +65,7 @@ export default function SubmissionModal({
     const handleClose = () => {
         if (!loading) {
             setSubmissionLink(existingSubmission?.submissionLink || "");
+            setYoutubeChannelName(existingSubmission?.youtubeChannelName || "");
             setNotes(existingSubmission?.notes || "");
             setError(null);
             setSuccess(false);
@@ -109,6 +112,13 @@ export default function SubmissionModal({
 
                         {/* Content */}
                         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                            {/* Authenticity Notice */}
+                            <div className="bg-amber-500/10 rounded-lg p-4 border border-amber-500/30">
+                                <p className="text-sm text-amber-200/90">
+                                    ⚠️ <strong>Authenticity</strong>: The work you submit must be genuinely yours. The Organizing Committee reserves the right to dismiss your submission if it is found to be not genuine or in violation of the event rules.
+                                </p>
+                            </div>
+
                             {/* Event Details */}
                             <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
                                 <h4 className="text-sm font-semibold text-orange-400 mb-3 flex items-center gap-2">
@@ -116,18 +126,17 @@ export default function SubmissionModal({
                                     Submission Guidelines
                                 </h4>
                                 <div className="space-y-2 text-sm text-zinc-300">
-                                    <p>📌 Upload your work/files to Google Drive</p>
-                                    <p>📌 Set sharing permissions to "Anyone with the link can view"</p>
-                                    <p>📌 Copy and paste the shareable link below</p>
-                                    <p>📌 Accepted formats: JPG, PNG, PDF, MP4, ZIP (Max 100MB)</p>
-                                    <p>📌 Ensure your submission meets the event requirements</p>
+                                    <p>📌 Upload your video to YouTube</p>
+                                    <p>📌 Ensure the video is public or unlisted</p>
+                                    <p>📌 Paste the YouTube video link and your channel name below</p>
+                                    <p>📌 The work must be genuinely yours</p>
                                 </div>
                             </div>
 
-                            {/* Drive Link Input */}
+                            {/* YouTube Video Link Input */}
                             <div>
                                 <label className="block text-sm font-semibold text-white mb-2">
-                                    Google Drive Link <span className="text-orange-500">*</span>
+                                    YouTube Video Link <span className="text-orange-500">*</span>
                                 </label>
                                 <div className="relative">
                                     <FiLink className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
@@ -135,15 +144,28 @@ export default function SubmissionModal({
                                         type="url"
                                         value={submissionLink}
                                         onChange={(e) => setSubmissionLink(e.target.value)}
-                                        placeholder="https://drive.google.com/file/d/..."
+                                        placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
                                         required
                                         disabled={loading}
                                         className="w-full pl-12 pr-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all placeholder-zinc-500 disabled:opacity-50"
                                     />
                                 </div>
-                                <p className="text-xs text-zinc-400 mt-2">
-                                    Make sure the link is accessible to anyone with the link
-                                </p>
+                            </div>
+
+                            {/* YouTube Channel Name Input */}
+                            <div>
+                                <label className="block text-sm font-semibold text-white mb-2">
+                                    YouTube Channel Name <span className="text-orange-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={youtubeChannelName}
+                                    onChange={(e) => setYoutubeChannelName(e.target.value)}
+                                    placeholder="Your YouTube channel name"
+                                    required
+                                    disabled={loading}
+                                    className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all placeholder-zinc-500 disabled:opacity-50"
+                                />
                             </div>
 
                             {/* Notes (Optional) */}
@@ -190,8 +212,8 @@ export default function SubmissionModal({
                             <div className="flex gap-4 pt-2">
                                 <button
                                     type="submit"
-                                    disabled={loading || !submissionLink.trim()}
-                                    className={`flex-1 bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${loading || !submissionLink.trim()
+                                    disabled={loading || !submissionLink.trim() || !youtubeChannelName.trim()}
+                                    className={`flex-1 bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${loading || !submissionLink.trim() || !youtubeChannelName.trim()
                                         ? "opacity-50 cursor-not-allowed"
                                         : "hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/50"
                                         }`}

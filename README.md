@@ -180,6 +180,8 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
 - `npm start` - Start production server
 - `npm run lint` - Run ESLint
 - `npm run knip` - Analyze unused code
+- `node scripts/add-prize-eligibility-terms.js` - Add standard prize eligibility terms to all events (one-time)
+- `node scripts/enable-virtual-and-add-terms.js` - Enable virtual participation and add virtual terms to all events (one-time)
 
 ## 🗄️ Database Schema
 

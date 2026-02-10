@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
-export async function submitEventWork(eventId: string, submissionLink: string, notes?: string) {
+export async function submitEventWork(eventId: string, submissionLink: string, youtubeChannelName?: string, notes?: string) {
     try {
         const headersList = await headers();
         const session = await auth.api.getSession({
@@ -27,16 +27,21 @@ export async function submitEventWork(eventId: string, submissionLink: string, n
             return { success: false, error: "Submissions are disabled for this event" };
         }
 
-        // Validate URL format
         if (!submissionLink || !submissionLink.trim()) {
-            return { success: false, error: "Submission link is required" };
+            return { success: false, error: "YouTube video link is required" };
+        }
+        if (!youtubeChannelName || !youtubeChannelName.trim()) {
+            return { success: false, error: "YouTube channel name is required" };
         }
 
-        // Basic URL validation
+        const trimmedLink = submissionLink.trim();
         try {
-            new URL(submissionLink);
+            new URL(trimmedLink);
         } catch {
             return { success: false, error: "Please enter a valid URL" };
+        }
+        if (!(trimmedLink.includes("youtube.com") || trimmedLink.includes("youtu.be"))) {
+            return { success: false, error: "Please enter a valid YouTube video link" };
         }
 
         // Check if user is registered for the event
@@ -91,7 +96,8 @@ export async function submitEventWork(eventId: string, submissionLink: string, n
                     },
                 },
                 data: {
-                    submissionLink: submissionLink.trim(),
+                    submissionLink: trimmedLink,
+                    youtubeChannelName: youtubeChannelName.trim(),
                     notes: notes?.trim() || null,
                     updatedAt: new Date(),
                 },
@@ -102,7 +108,8 @@ export async function submitEventWork(eventId: string, submissionLink: string, n
                 data: {
                     userId: session.user.id,
                     eventId: eventId,
-                    submissionLink: submissionLink.trim(),
+                    submissionLink: trimmedLink,
+                    youtubeChannelName: youtubeChannelName.trim(),
                     notes: notes?.trim() || null,
                 },
             });
