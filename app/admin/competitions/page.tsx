@@ -511,13 +511,11 @@ export default function EventsManagement() {
           >
             {/* Category Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-zinc-800/50 gap-4">
-              <div className="flex items-center gap-3 flex-1">
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => toggleCategory(category.id)}
-                  className="text-zinc-400 hover:text-red-500 transition-colors p-1"
-                >
+              <div 
+                className="flex items-center gap-3 flex-1 cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => toggleCategory(category.id)}
+              >
+                <div className="text-zinc-400 hover:text-red-500 transition-colors p-1">
                   <svg
                     className={`w-5 h-5 transition-transform ${expandedCategories.has(category.id) ? "rotate-90" : ""
                       }`}
@@ -532,7 +530,7 @@ export default function EventsManagement() {
                       d="M9 5l7 7-7 7"
                     />
                   </svg>
-                </motion.button>
+                </div>
                 {(category.image || category.Event[0]?.image) && (
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-zinc-900 border border-zinc-700 shrink-0 relative">
                     <Image
@@ -553,7 +551,10 @@ export default function EventsManagement() {
                   </p>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2 pl-9 sm:pl-0">
+              <div 
+                className="flex flex-wrap gap-2 pl-9 sm:pl-0"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
