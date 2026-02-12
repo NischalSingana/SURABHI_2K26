@@ -84,7 +84,7 @@ export const auth = betterAuth({
     user: {
         additionalFields: {
             role: {
-                type: ["USER", "ADMIN", "JUDGE", "MANAGER", "MASTER"] as Array<Role>,
+                type: ["USER", "ADMIN", "JUDGE", "MANAGER", "MASTER", "GOD"] as Array<Role>,
                 input: false
             },
             assignedEventId: {
