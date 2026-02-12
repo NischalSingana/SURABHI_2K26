@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -7,6 +8,11 @@ const page = async () => {
     const session = await auth.api.getSession({
         headers: headersList,
     });
+
+    // Redirect GOD role users directly to registration analytics
+    if (session?.user?.role === "GOD") {
+        redirect("/admin/registration-analytics");
+    }
 
     // Admin has full access, Manager has limited access
     const isManager = session?.user?.role === "MANAGER";

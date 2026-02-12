@@ -406,7 +406,7 @@ export default function RegistrationAnalyticsClient() {
                                         <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-transparent to-purple-500/10 rounded-xl" />
                                         <div className="relative flex items-center gap-3">
                                             <div className="w-3 h-3 rounded-full bg-purple-400 shadow-lg shadow-purple-400/50 animate-pulse" />
-                                            <span className="text-white font-bold text-base">Other Teams</span>
+                                            <span className="text-white font-bold text-base">Other College Teams</span>
                                         </div>
                                         <span className="relative text-purple-200 font-extrabold text-xl">
                                             {collegeStats.team.other.teams.toLocaleString()}
@@ -682,7 +682,7 @@ export default function RegistrationAnalyticsClient() {
                                                                     <div className="relative flex items-center justify-between mb-2">
                                                                         <div className="flex items-center gap-2">
                                                                             <div className="w-3 h-3 rounded-full bg-purple-400 shadow-lg shadow-purple-400/50 animate-pulse" />
-                                                                            <span className="text-white font-bold text-sm">Other Teams</span>
+                                                                            <span className="text-white font-bold text-sm">Other College Teams</span>
                                                                         </div>
                                                                         <span className="text-purple-200 font-extrabold text-2xl">
                                                                             {category.team.other.teams.toLocaleString()}
@@ -927,113 +927,209 @@ export default function RegistrationAnalyticsClient() {
                                                 {expandedCompetition.categoryId === category.id && expandedCompetition.competitionId === competition.id && (
                                                     <div className="p-5 sm:p-6 border-t-2 border-zinc-800/70 bg-gradient-to-br from-zinc-950/50 via-zinc-900/30 to-zinc-950/50 backdrop-blur-sm">
                                                         <div className="space-y-6">
-                                                            {/* Competition Statistics - Enhanced */}
+                                                            {/* Competition Statistics - Enhanced with better visual hierarchy */}
                                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                                <div className="relative group bg-gradient-to-br from-zinc-800/40 to-zinc-900/30 border border-zinc-700/50 rounded-xl p-4 hover:border-green-500/30 transition-all duration-300 overflow-hidden">
-                                                                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                                                    <div className="relative z-10">
-                                                                        <div className="flex items-center justify-between mb-2">
-                                                                            <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
-                                                                                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                                                                                Individual
-                                                                            </div>
-                                                                            <svg className="w-4 h-4 text-green-400/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                                            </svg>
-                                                                        </div>
-                                                                        <div className="text-2xl font-extrabold text-white mb-1">
-                                                                            {competition.individual.total.toLocaleString()}
-                                                                        </div>
-                                                                        <div className="text-xs text-zinc-400 mt-2 flex items-center gap-2">
-                                                                            <span className="px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded text-red-300 font-semibold">
-                                                                                KL: {competition.individual.kl.toLocaleString()}
-                                                                            </span>
-                                                                            <span className="px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded text-blue-300 font-semibold">
-                                                                                Other: {competition.individual.other.toLocaleString()}
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                {competition.team.total.teams > 0 && (
-                                                                    <div className="relative group bg-gradient-to-br from-zinc-800/40 to-zinc-900/30 border border-zinc-700/50 rounded-xl p-4 hover:border-purple-500/30 transition-all duration-300 overflow-hidden">
-                                                                        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                                                {/* Individual Card */}
+                                                                {competition.individual.total > 0 ? (
+                                                                    <div className="relative group bg-gradient-to-br from-zinc-800/50 to-zinc-900/40 border-2 border-zinc-700/60 rounded-xl p-5 hover:border-green-500/40 transition-all duration-300 overflow-hidden shadow-lg">
+                                                                        <div className="absolute inset-0 bg-gradient-to-br from-green-500/8 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                                                         <div className="relative z-10">
-                                                                            <div className="flex items-center justify-between mb-2">
-                                                                                <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
-                                                                                    <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                                                                                    Teams
+                                                                            <div className="flex items-center justify-between mb-3">
+                                                                                <div className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2">
+                                                                                    <div className="w-2 h-2 rounded-full bg-green-500 shadow-md shadow-green-500/50" />
+                                                                                    Individual
                                                                                 </div>
-                                                                                <svg className="w-4 h-4 text-purple-400/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                                                <svg className="w-5 h-5 text-green-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                                                 </svg>
                                                                             </div>
-                                                                            <div className="text-2xl font-extrabold text-white mb-1">
-                                                                                {competition.team.total.teams.toLocaleString()}
+                                                                            <div className="text-3xl font-extrabold text-white mb-3">
+                                                                                {competition.individual.total.toLocaleString()}
                                                                             </div>
-                                                                            <div className="text-xs text-zinc-400 mt-2">
-                                                                                <span className="px-2 py-0.5 bg-purple-500/10 border border-purple-500/20 rounded text-purple-300 font-semibold">
-                                                                                    {competition.team.total.members.toLocaleString()} total members
+                                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                                                                                    competition.individual.other > 0 
+                                                                                        ? "bg-blue-500/20 border border-blue-500/30 text-blue-300" 
+                                                                                        : "bg-zinc-800/50 border border-zinc-700/50 text-zinc-500"
+                                                                                }`}>
+                                                                                    Other: {competition.individual.other.toLocaleString()}
+                                                                                </span>
+                                                                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                                                                                    competition.individual.kl > 0 
+                                                                                        ? "bg-red-500/20 border border-red-500/30 text-red-300" 
+                                                                                        : "bg-zinc-800/50 border border-zinc-700/50 text-zinc-500"
+                                                                                }`}>
+                                                                                    KL: {competition.individual.kl.toLocaleString()}
                                                                                 </span>
                                                                             </div>
                                                                         </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="relative bg-gradient-to-br from-zinc-800/30 to-zinc-900/20 border border-zinc-800/40 rounded-xl p-5 opacity-60">
+                                                                        <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider flex items-center gap-2 mb-2">
+                                                                            <div className="w-2 h-2 rounded-full bg-zinc-600" />
+                                                                            Individual
+                                                                        </div>
+                                                                        <div className="text-xl font-bold text-zinc-600">0</div>
+                                                                        <div className="text-xs text-zinc-600 mt-2">No individual registrations</div>
+                                                                    </div>
+                                                                )}
+                                                                
+                                                                {/* Teams Card */}
+                                                                {competition.team.total.teams > 0 ? (
+                                                                    <div className="relative group bg-gradient-to-br from-zinc-800/50 to-zinc-900/40 border-2 border-zinc-700/60 rounded-xl p-5 hover:border-purple-500/40 transition-all duration-300 overflow-hidden shadow-lg">
+                                                                        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/8 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                                                        <div className="relative z-10">
+                                                                            <div className="flex items-center justify-between mb-3">
+                                                                                <div className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2">
+                                                                                    <div className="w-2 h-2 rounded-full bg-purple-500 shadow-md shadow-purple-500/50" />
+                                                                                    Teams
+                                                                                </div>
+                                                                                <svg className="w-5 h-5 text-purple-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                                                </svg>
+                                                                            </div>
+                                                                            <div className="text-3xl font-extrabold text-white mb-3">
+                                                                                {competition.team.total.teams.toLocaleString()}
+                                                                            </div>
+                                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                                                                                    competition.team.other.teams > 0 
+                                                                                        ? "bg-purple-500/20 border border-purple-500/30 text-purple-300" 
+                                                                                        : "bg-zinc-800/50 border border-zinc-700/50 text-zinc-500"
+                                                                                }`}>
+                                                                                    Other: {competition.team.other.teams.toLocaleString()}
+                                                                                </span>
+                                                                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                                                                                    competition.team.kl.teams > 0 
+                                                                                        ? "bg-red-500/20 border border-red-500/30 text-red-300" 
+                                                                                        : "bg-zinc-800/50 border border-zinc-700/50 text-zinc-500"
+                                                                                }`}>
+                                                                                    KL: {competition.team.kl.teams.toLocaleString()}
+                                                                                </span>
+                                                                                <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-500/10 border border-purple-500/20 text-purple-300">
+                                                                                    {competition.team.total.members.toLocaleString()} members
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="relative bg-gradient-to-br from-zinc-800/30 to-zinc-900/20 border border-zinc-800/40 rounded-xl p-5 opacity-60">
+                                                                        <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider flex items-center gap-2 mb-2">
+                                                                            <div className="w-2 h-2 rounded-full bg-zinc-600" />
+                                                                            Teams
+                                                                        </div>
+                                                                        <div className="text-xl font-bold text-zinc-600">0</div>
+                                                                        <div className="text-xs text-zinc-600 mt-2">No team registrations</div>
                                                                     </div>
                                                                 )}
                                                             </div>
 
                                                                             {/* Individual Registration Details */}
                                                                             {competition.individual.registrations && competition.individual.registrations.length > 0 && (
-                                                                                <div className="mt-4 pt-4 border-t border-zinc-800/50">
-                                                                                    <h5 className="text-xs font-semibold text-zinc-300 mb-3 flex items-center gap-2">
-                                                                                        <div className="w-1 h-3 bg-green-500 rounded-full"></div>
-                                                                                        Individual Registration Details
-                                                                                    </h5>
+                                                                                <div className="mt-8 pt-8 border-t-2 border-zinc-800/80">
+                                                                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                                                                                        <div>
+                                                                                            <h5 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-3 mb-1">
+                                                                                                <div className="w-2.5 h-6 bg-gradient-to-b from-green-500 to-emerald-400 rounded-full shadow-lg shadow-green-500/40"></div>
+                                                                                                Individual Registration Details
+                                                                                            </h5>
+                                                                                            <p className="text-xs text-zinc-400 ml-5">View detailed information for each registered participant</p>
+                                                                                        </div>
+                                                                                        <div className="text-xs text-zinc-300 px-4 py-2 bg-gradient-to-r from-green-500/20 to-green-600/10 border border-green-500/30 rounded-lg backdrop-blur-sm font-semibold">
+                                                                                            Total: <span className="text-green-300 font-bold">{competition.individual.registrations.length.toLocaleString()}</span> participants
+                                                                                        </div>
+                                                                                    </div>
                                                                                     <div className="flex flex-wrap gap-3 mb-4">
-                                                                                        {/* Other Colleges Button - HIGHLIGHTED FIRST */}
-                                                                                        <button
-                                                                                            onClick={() =>
-                                                                                                setExpandedCollege(
-                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
-                                                                                                        ? { categoryId: "", competitionId: "", college: null }
-                                                                                                        : { categoryId: category.id, competitionId: competition.id, college: "other" }
-                                                                                                )
-                                                                                            }
-                                                                                            className={`px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-200 ${
-                                                                                                expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
-                                                                                                    ? "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-xl shadow-green-500/30 border-2 border-green-400/50 scale-105 animate-pulse"
-                                                                                                    : "bg-gradient-to-r from-green-600/30 to-green-700/20 text-white border-2 border-green-500/50 hover:border-green-400/70 hover:bg-green-600/40 shadow-lg shadow-green-500/20"
-                                                                                            }`}
-                                                                                        >
-                                                                                            <div className="flex items-center gap-2">
-                                                                                                <div className="w-2.5 h-2.5 rounded-full bg-green-300 shadow-lg shadow-green-300/50" />
-                                                                                                <span>Other Colleges</span>
-                                                                                                <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-white/10 text-green-100">
-                                                                                                    {competition.individual.other.toLocaleString()}
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        </button>
-                                                                                        {/* KL University Button - Secondary */}
-                                                                                        <button
-                                                                                            onClick={() =>
-                                                                                                setExpandedCollege(
-                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
-                                                                                                        ? { categoryId: "", competitionId: "", college: null }
-                                                                                                        : { categoryId: category.id, competitionId: competition.id, college: "kl" }
-                                                                                                )
-                                                                                            }
-                                                                                            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                                                                                                expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
-                                                                                                    ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-500/20 border border-red-500/30"
-                                                                                                    : "bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700/50 border border-zinc-700/50"
-                                                                                            }`}
-                                                                                        >
-                                                                                            <div className="flex items-center gap-2">
-                                                                                                <div className="w-2 h-2 rounded-full bg-red-500" />
-                                                                                                <span>KL University</span>
-                                                                                                <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-zinc-900/50 text-zinc-500">
-                                                                                                    {competition.individual.kl.toLocaleString()}
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        </button>
+                                                                                        {(() => {
+                                                                                            const otherCount = competition.individual.other;
+                                                                                            const klCount = competition.individual.kl;
+                                                                                            const hasOtherData = otherCount > 0;
+                                                                                            const hasKLData = klCount > 0;
+                                                                                            const otherIsSelected = expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other";
+                                                                                            const klIsSelected = expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl";
+                                                                                            
+                                                                                            // Prioritize Other Colleges if it has data, otherwise prioritize KL if it has data
+                                                                                            const otherIsPrimary = hasOtherData && (otherCount >= klCount || !hasKLData);
+                                                                                            const klIsPrimary = hasKLData && !otherIsPrimary;
+                                                                                            
+                                                                                            return (
+                                                                                                <>
+                                                                                                    {/* Other Colleges Button - Highlighted only if it has data */}
+                                                                                                    <button
+                                                                                                        onClick={() =>
+                                                                                                            setExpandedCollege(
+                                                                                                                otherIsSelected
+                                                                                                                    ? { categoryId: "", competitionId: "", college: null }
+                                                                                                                    : { categoryId: category.id, competitionId: competition.id, college: "other" }
+                                                                                                            )
+                                                                                                        }
+                                                                                                        disabled={!hasOtherData}
+                                                                                                        className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                                                                                                            !hasOtherData
+                                                                                                                ? "opacity-50 cursor-not-allowed bg-zinc-800/30 border-2 border-zinc-700/30 text-zinc-500"
+                                                                                                                : otherIsSelected
+                                                                                                                ? "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-xl shadow-green-500/30 border-2 border-green-400/50 scale-105"
+                                                                                                                : otherIsPrimary
+                                                                                                                ? "bg-gradient-to-r from-green-600/40 to-green-700/30 text-white border-2 border-green-500/60 hover:border-green-400/80 hover:bg-green-600/50 shadow-lg shadow-green-500/30"
+                                                                                                                : "bg-gradient-to-r from-green-600/20 to-green-700/10 text-green-200 border-2 border-green-500/40 hover:border-green-400/60 hover:bg-green-600/30 shadow-md shadow-green-500/10"
+                                                                                                        }`}
+                                                                                                    >
+                                                                                                        <div className="flex items-center gap-2">
+                                                                                                            <div className={`w-2.5 h-2.5 rounded-full ${
+                                                                                                                otherIsSelected ? "bg-white shadow-lg shadow-white/50" : hasOtherData ? "bg-green-300 shadow-md shadow-green-300/50" : "bg-zinc-500"
+                                                                                                            }`} />
+                                                                                                            <span>Other Colleges</span>
+                                                                                                            <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${
+                                                                                                                otherIsSelected
+                                                                                                                    ? "bg-white/20 text-white"
+                                                                                                                    : hasOtherData
+                                                                                                                    ? "bg-white/15 text-green-100"
+                                                                                                                    : "bg-zinc-900/50 text-zinc-500"
+                                                                                                            }`}>
+                                                                                                                {otherCount.toLocaleString()}
+                                                                                                            </span>
+                                                                                                        </div>
+                                                                                                    </button>
+                                                                                                    {/* KL University Button */}
+                                                                                                    <button
+                                                                                                        onClick={() =>
+                                                                                                            setExpandedCollege(
+                                                                                                                klIsSelected
+                                                                                                                    ? { categoryId: "", competitionId: "", college: null }
+                                                                                                                    : { categoryId: category.id, competitionId: competition.id, college: "kl" }
+                                                                                                            )
+                                                                                                        }
+                                                                                                        disabled={!hasKLData}
+                                                                                                        className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                                                                                                            !hasKLData
+                                                                                                                ? "opacity-50 cursor-not-allowed bg-zinc-800/30 border-2 border-zinc-700/30 text-zinc-500"
+                                                                                                                : klIsSelected
+                                                                                                                ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-xl shadow-red-500/30 border-2 border-red-400/50 scale-105"
+                                                                                                                : klIsPrimary
+                                                                                                                ? "bg-gradient-to-r from-red-600/40 to-red-700/30 text-white border-2 border-red-500/60 hover:border-red-400/80 hover:bg-red-600/50 shadow-lg shadow-red-500/30"
+                                                                                                                : "bg-gradient-to-r from-red-600/20 to-red-700/10 text-red-200 border-2 border-red-500/40 hover:border-red-400/60 hover:bg-red-600/30 shadow-md shadow-red-500/10"
+                                                                                                        }`}
+                                                                                                    >
+                                                                                                        <div className="flex items-center gap-2">
+                                                                                                            <div className={`w-2.5 h-2.5 rounded-full ${
+                                                                                                                klIsSelected ? "bg-white shadow-lg shadow-white/50" : hasKLData ? "bg-red-300 shadow-md shadow-red-300/50" : "bg-zinc-500"
+                                                                                                            }`} />
+                                                                                                            <span>KL University</span>
+                                                                                                            <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${
+                                                                                                                klIsSelected
+                                                                                                                    ? "bg-white/20 text-white"
+                                                                                                                    : hasKLData
+                                                                                                                    ? "bg-white/15 text-red-100"
+                                                                                                                    : "bg-zinc-900/50 text-zinc-500"
+                                                                                                            }`}>
+                                                                                                                {klCount.toLocaleString()}
+                                                                                                            </span>
+                                                                                                        </div>
+                                                                                                    </button>
+                                                                                                </>
+                                                                                            );
+                                                                                        })()}
                                                                                     </div>
 
                                                                                     {/* Show table only when a college is selected */}
@@ -1089,71 +1185,112 @@ export default function RegistrationAnalyticsClient() {
 
                                                                             {/* Team Registration Details - Enhanced */}
                                                                             {competition.team.registrations && competition.team.registrations.length > 0 && (
-                                                                                <div className="mt-6 pt-6 border-t-2 border-zinc-800/70">
-                                                                                    <div className="flex items-center justify-between mb-5">
-                                                                                        <h5 className="text-sm font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-3">
-                                                                                            <div className="w-2 h-5 bg-gradient-to-b from-purple-500 to-purple-400 rounded-full shadow-lg shadow-purple-500/30"></div>
-                                                                                            Team Registration Details
-                                                                                        </h5>
-                                                                                        <div className="text-xs text-zinc-400 px-3 py-1.5 bg-zinc-900/50 border border-zinc-800/50 rounded-lg backdrop-blur-sm">
-                                                                                            Total: {competition.team.registrations.length.toLocaleString()} teams
+                                                                                <div className="mt-8 pt-8 border-t-2 border-zinc-800/80">
+                                                                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                                                                                        <div>
+                                                                                            <h5 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-3 mb-1">
+                                                                                                <div className="w-2.5 h-6 bg-gradient-to-b from-purple-500 to-purple-400 rounded-full shadow-lg shadow-purple-500/40"></div>
+                                                                                                Team Registration Details
+                                                                                            </h5>
+                                                                                            <p className="text-xs text-zinc-400 ml-5">View detailed information for each registered team</p>
+                                                                                        </div>
+                                                                                        <div className="flex items-center gap-2">
+                                                                                            <div className="text-xs text-zinc-300 px-4 py-2 bg-gradient-to-r from-purple-500/20 to-purple-600/10 border border-purple-500/30 rounded-lg backdrop-blur-sm font-semibold">
+                                                                                                Total: <span className="text-purple-300 font-bold">{competition.team.registrations.length.toLocaleString()}</span> teams
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
                                                                                     <div className="flex flex-wrap gap-3 mb-5">
-                                                                                        {/* Other Teams Button - HIGHLIGHTED FIRST */}
-                                                                                        <button
-                                                                                            onClick={() =>
-                                                                                                setExpandedCollege(
-                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
-                                                                                                        ? { categoryId: "", competitionId: "", college: null }
-                                                                                                        : { categoryId: category.id, competitionId: competition.id, college: "other" }
-                                                                                                )
-                                                                                            }
-                                                                                            className={`group relative px-6 py-3 rounded-xl text-sm font-extrabold transition-all duration-300 ${
-                                                                                                expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
-                                                                                                    ? "bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600 text-white shadow-2xl shadow-purple-500/40 border-2 border-purple-300/70 scale-110 animate-pulse"
-                                                                                                    : "bg-gradient-to-r from-purple-600/30 via-purple-500/20 to-purple-600/30 text-white border-2 border-purple-500/50 hover:border-purple-400/70 hover:bg-purple-600/40 shadow-xl shadow-purple-500/20"
-                                                                                            }`}
-                                                                                        >
-                                                                                            <div className="flex items-center gap-3">
-                                                                                                <div className={`w-3 h-3 rounded-full ${expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other" ? "bg-white animate-pulse shadow-lg shadow-white/50" : "bg-purple-300 shadow-lg shadow-purple-300/50"}`} />
-                                                                                                <span>Other Teams</span>
-                                                                                                <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold ${
-                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
-                                                                                                        ? "bg-white/20 text-white"
-                                                                                                        : "bg-white/10 text-purple-100"
-                                                                                                }`}>
-                                                                                                    {competition.team.other.teams.toLocaleString()}
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        </button>
-                                                                                        {/* KL Teams Button - Secondary */}
-                                                                                        <button
-                                                                                            onClick={() =>
-                                                                                                setExpandedCollege(
-                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
-                                                                                                        ? { categoryId: "", competitionId: "", college: null }
-                                                                                                        : { categoryId: category.id, competitionId: competition.id, college: "kl" }
-                                                                                                )
-                                                                                            }
-                                                                                            className={`group relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                                                                                                expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
-                                                                                                    ? "bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white shadow-lg shadow-red-500/20 border-2 border-red-400/50 scale-105"
-                                                                                                    : "bg-gradient-to-r from-zinc-800/60 to-zinc-900/40 text-zinc-400 hover:text-zinc-300 border-2 border-zinc-700/50 hover:border-red-500/30 hover:bg-zinc-800/60"
-                                                                                            }`}
-                                                                                        >
-                                                                                            <div className="flex items-center gap-2.5">
-                                                                                                <div className={`w-2 h-2 rounded-full ${expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl" ? "bg-white animate-pulse" : "bg-red-500"}`} />
-                                                                                                <span>KL Teams</span>
-                                                                                                <span className={`px-2 py-0.5 rounded-md text-xs font-semibold ${
-                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
-                                                                                                        ? "bg-white/20 text-white"
-                                                                                                        : "bg-zinc-900/50 text-zinc-500"
-                                                                                                }`}>
-                                                                                                    {competition.team.kl.teams.toLocaleString()}
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        </button>
+                                                                                        {/* Determine which button should be more prominent based on data */}
+                                                                                        {(() => {
+                                                                                            const otherTeamsCount = competition.team.other.teams;
+                                                                                            const klTeamsCount = competition.team.kl.teams;
+                                                                                            const hasOtherData = otherTeamsCount > 0;
+                                                                                            const hasKLData = klTeamsCount > 0;
+                                                                                            const otherIsSelected = expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other";
+                                                                                            const klIsSelected = expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl";
+                                                                                            
+                                                                                            // Prioritize Other College Teams if it has data, otherwise prioritize KL if it has data
+                                                                                            const otherIsPrimary = hasOtherData && (otherTeamsCount >= klTeamsCount || !hasKLData);
+                                                                                            const klIsPrimary = hasKLData && !otherIsPrimary;
+                                                                                            
+                                                                                            return (
+                                                                                                <>
+                                                                                                    {/* Other College Teams Button - Highlighted only if it has data */}
+                                                                                                    <button
+                                                                                                        onClick={() =>
+                                                                                                            setExpandedCollege(
+                                                                                                                otherIsSelected
+                                                                                                                    ? { categoryId: "", competitionId: "", college: null }
+                                                                                                                    : { categoryId: category.id, competitionId: competition.id, college: "other" }
+                                                                                                            )
+                                                                                                        }
+                                                                                                        disabled={!hasOtherData}
+                                                                                                        className={`group relative px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+                                                                                                            !hasOtherData
+                                                                                                                ? "opacity-50 cursor-not-allowed bg-zinc-800/30 border-2 border-zinc-700/30 text-zinc-500"
+                                                                                                                : otherIsSelected
+                                                                                                                ? "bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600 text-white shadow-2xl shadow-purple-500/40 border-2 border-purple-300/70 scale-105"
+                                                                                                                : otherIsPrimary
+                                                                                                                ? "bg-gradient-to-r from-purple-600/40 via-purple-500/30 to-purple-600/40 text-white border-2 border-purple-500/60 hover:border-purple-400/80 hover:bg-purple-600/50 shadow-lg shadow-purple-500/30"
+                                                                                                                : "bg-gradient-to-r from-purple-600/20 via-purple-500/10 to-purple-600/20 text-purple-200 border-2 border-purple-500/40 hover:border-purple-400/60 hover:bg-purple-600/30 shadow-md shadow-purple-500/10"
+                                                                                                        }`}
+                                                                                                    >
+                                                                                                        <div className="flex items-center gap-3">
+                                                                                                            <div className={`w-2.5 h-2.5 rounded-full ${
+                                                                                                                otherIsSelected ? "bg-white shadow-lg shadow-white/50" : hasOtherData ? "bg-purple-300 shadow-md shadow-purple-300/50" : "bg-zinc-500"
+                                                                                                            }`} />
+                                                                                                            <span>Other College Teams</span>
+                                                                                                            <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold ${
+                                                                                                                otherIsSelected
+                                                                                                                    ? "bg-white/20 text-white"
+                                                                                                                    : hasOtherData
+                                                                                                                    ? "bg-white/15 text-purple-100"
+                                                                                                                    : "bg-zinc-900/50 text-zinc-500"
+                                                                                                            }`}>
+                                                                                                                {otherTeamsCount.toLocaleString()}
+                                                                                                            </span>
+                                                                                                        </div>
+                                                                                                    </button>
+                                                                                                    {/* KL Teams Button */}
+                                                                                                    <button
+                                                                                                        onClick={() =>
+                                                                                                            setExpandedCollege(
+                                                                                                                klIsSelected
+                                                                                                                    ? { categoryId: "", competitionId: "", college: null }
+                                                                                                                    : { categoryId: category.id, competitionId: competition.id, college: "kl" }
+                                                                                                            )
+                                                                                                        }
+                                                                                                        disabled={!hasKLData}
+                                                                                                        className={`group relative px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+                                                                                                            !hasKLData
+                                                                                                                ? "opacity-50 cursor-not-allowed bg-zinc-800/30 border-2 border-zinc-700/30 text-zinc-500"
+                                                                                                                : klIsSelected
+                                                                                                                ? "bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white shadow-2xl shadow-red-500/40 border-2 border-red-300/70 scale-105"
+                                                                                                                : klIsPrimary
+                                                                                                                ? "bg-gradient-to-r from-red-600/40 via-red-500/30 to-red-600/40 text-white border-2 border-red-500/60 hover:border-red-400/80 hover:bg-red-600/50 shadow-lg shadow-red-500/30"
+                                                                                                                : "bg-gradient-to-r from-red-600/20 via-red-500/10 to-red-600/20 text-red-200 border-2 border-red-500/40 hover:border-red-400/60 hover:bg-red-600/30 shadow-md shadow-red-500/10"
+                                                                                                        }`}
+                                                                                                    >
+                                                                                                        <div className="flex items-center gap-3">
+                                                                                                            <div className={`w-2.5 h-2.5 rounded-full ${
+                                                                                                                klIsSelected ? "bg-white shadow-lg shadow-white/50" : hasKLData ? "bg-red-300 shadow-md shadow-red-300/50" : "bg-zinc-500"
+                                                                                                            }`} />
+                                                                                                            <span>KL Teams</span>
+                                                                                                            <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold ${
+                                                                                                                klIsSelected
+                                                                                                                    ? "bg-white/20 text-white"
+                                                                                                                    : hasKLData
+                                                                                                                    ? "bg-white/15 text-red-100"
+                                                                                                                    : "bg-zinc-900/50 text-zinc-500"
+                                                                                                            }`}>
+                                                                                                                {klTeamsCount.toLocaleString()}
+                                                                                                            </span>
+                                                                                                        </div>
+                                                                                                    </button>
+                                                                                                </>
+                                                                                            );
+                                                                                        })()}
                                                                                     </div>
 
                                                                                     {/* Enhanced Team List */}
