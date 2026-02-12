@@ -262,22 +262,28 @@ export default function RegistrationAnalyticsClient() {
                                     </div>
                                 </div>
                                 <div className="space-y-2.5 text-sm">
-                                    <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-gradient-to-r from-zinc-900/50 to-zinc-800/30 border border-zinc-800/50 backdrop-blur-sm hover:border-blue-500/30 transition-all duration-200">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                                            <span className="text-zinc-300 font-medium">KL University</span>
+                                    {/* Other Colleges - HIGHLIGHTED FIRST */}
+                                    <div className="relative flex justify-between items-center py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600/20 via-blue-500/15 to-blue-600/20 border-2 border-blue-500/50 backdrop-blur-sm hover:border-blue-400/70 transition-all duration-200 shadow-lg shadow-blue-500/20 animate-pulse">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-transparent to-blue-500/10 rounded-xl" />
+                                        <div className="relative flex items-center gap-3">
+                                            <div className="w-3 h-3 rounded-full bg-blue-400 shadow-lg shadow-blue-400/50 animate-pulse" />
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-white font-bold text-base">Other Colleges</span>
+                                                <span className="px-2 py-0.5 bg-blue-500/30 border border-blue-400/50 rounded-md text-blue-200 text-xs font-bold uppercase tracking-wider">FOCUS</span>
+                                            </div>
                                         </div>
-                                        <span className="text-white font-bold text-base">
-                                            {collegeStats.overall.kl.participants.toLocaleString()}
+                                        <span className="relative text-blue-200 font-extrabold text-xl">
+                                            {collegeStats.overall.other.participants.toLocaleString()}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-gradient-to-r from-zinc-900/50 to-zinc-800/30 border border-zinc-800/50 backdrop-blur-sm hover:border-blue-500/30 transition-all duration-200">
+                                    {/* KL University - Secondary */}
+                                    <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-gradient-to-r from-zinc-900/50 to-zinc-800/30 border border-zinc-800/50 backdrop-blur-sm hover:border-red-500/30 transition-all duration-200">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                            <span className="text-zinc-300 font-medium">Other Colleges</span>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                            <span className="text-zinc-400 font-medium">KL University</span>
                                         </div>
-                                        <span className="text-white font-bold text-base">
-                                            {collegeStats.overall.other.participants.toLocaleString()}
+                                        <span className="text-zinc-300 font-semibold text-sm">
+                                            {collegeStats.overall.kl.participants.toLocaleString()}
                                         </span>
                                     </div>
                                     {collegeStats.overall.total.gender && (
@@ -328,22 +334,28 @@ export default function RegistrationAnalyticsClient() {
                                     </div>
                                 </div>
                                 <div className="space-y-2.5 text-sm">
-                                    <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-gradient-to-r from-zinc-900/50 to-zinc-800/30 border border-zinc-800/50 backdrop-blur-sm hover:border-green-500/30 transition-all duration-200">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                                            <span className="text-zinc-300 font-medium">KL University</span>
+                                    {/* Other Colleges - HIGHLIGHTED FIRST */}
+                                    <div className="relative flex justify-between items-center py-3 px-4 rounded-xl bg-gradient-to-r from-green-600/20 via-green-500/15 to-green-600/20 border-2 border-green-500/50 backdrop-blur-sm hover:border-green-400/70 transition-all duration-200 shadow-lg shadow-green-500/20 animate-pulse">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-transparent to-green-500/10 rounded-xl" />
+                                        <div className="relative flex items-center gap-3">
+                                            <div className="w-3 h-3 rounded-full bg-green-400 shadow-lg shadow-green-400/50 animate-pulse" />
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-white font-bold text-base">Other Colleges</span>
+                                                <span className="px-2 py-0.5 bg-green-500/30 border border-green-400/50 rounded-md text-green-200 text-xs font-bold uppercase tracking-wider">FOCUS</span>
+                                            </div>
                                         </div>
-                                        <span className="text-white font-bold text-base">
-                                            {collegeStats.individual.kl.toLocaleString()}
+                                        <span className="relative text-green-200 font-extrabold text-xl">
+                                            {collegeStats.individual.other.toLocaleString()}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-gradient-to-r from-zinc-900/50 to-zinc-800/30 border border-zinc-800/50 backdrop-blur-sm hover:border-green-500/30 transition-all duration-200">
+                                    {/* KL University - Secondary */}
+                                    <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-gradient-to-r from-zinc-900/50 to-zinc-800/30 border border-zinc-800/50 backdrop-blur-sm hover:border-red-500/30 transition-all duration-200">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                            <span className="text-zinc-300 font-medium">Other Colleges</span>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                            <span className="text-zinc-400 font-medium">KL University</span>
                                         </div>
-                                        <span className="text-white font-bold text-base">
-                                            {collegeStats.individual.other.toLocaleString()}
+                                        <span className="text-zinc-300 font-semibold text-sm">
+                                            {collegeStats.individual.kl.toLocaleString()}
                                         </span>
                                     </div>
                                     {collegeStats.individual.gender && (
@@ -394,29 +406,49 @@ export default function RegistrationAnalyticsClient() {
                                         </svg>
                                     </div>
                                 </div>
-                                <div className="space-y-2.5 text-sm">
-                                    <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-gradient-to-r from-zinc-900/50 to-zinc-800/30 border border-zinc-800/50 backdrop-blur-sm hover:border-purple-500/30 transition-all duration-200">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                                            <span className="text-zinc-300 font-medium">KL Teams</span>
+                                <div className="space-y-3 text-sm">
+                                    {/* Other Colleges Teams - HIGHLIGHTED FIRST */}
+                                    <div className="relative flex justify-between items-center py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600/20 via-purple-500/15 to-purple-600/20 border-2 border-purple-500/50 backdrop-blur-sm hover:border-purple-400/70 transition-all duration-200 shadow-lg shadow-purple-500/20 animate-pulse">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-transparent to-purple-500/10 rounded-xl" />
+                                        <div className="relative flex items-center gap-3">
+                                            <div className="w-3 h-3 rounded-full bg-purple-400 shadow-lg shadow-purple-400/50 animate-pulse" />
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-white font-bold text-base">Other Teams</span>
+                                                <span className="px-2 py-0.5 bg-purple-500/30 border border-purple-400/50 rounded-md text-purple-200 text-xs font-bold uppercase tracking-wider">FOCUS</span>
+                                            </div>
                                         </div>
-                                        <span className="text-white font-bold text-base">
-                                            {collegeStats.team.kl.teams.toLocaleString()}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-gradient-to-r from-zinc-900/50 to-zinc-800/30 border border-zinc-800/50 backdrop-blur-sm hover:border-purple-500/30 transition-all duration-200">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                            <span className="text-zinc-300 font-medium">Other Teams</span>
-                                        </div>
-                                        <span className="text-white font-bold text-base">
+                                        <span className="relative text-purple-200 font-extrabold text-xl">
                                             {collegeStats.team.other.teams.toLocaleString()}
                                         </span>
                                     </div>
-                                    <div className="pt-3 mt-3 border-t border-zinc-800/50">
-                                        <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
-                                            <span className="text-zinc-300 font-medium">Total Members</span>
-                                            <span className="text-purple-300 font-bold text-base">
+                                    {/* KL University Teams - Secondary */}
+                                    <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-gradient-to-r from-zinc-900/50 to-zinc-800/30 border border-zinc-800/50 backdrop-blur-sm hover:border-red-500/30 transition-all duration-200">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                            <span className="text-zinc-400 font-medium">KL Teams</span>
+                                        </div>
+                                        <span className="text-zinc-300 font-semibold text-sm">
+                                            {collegeStats.team.kl.teams.toLocaleString()}
+                                        </span>
+                                    </div>
+                                    {/* Other Members - HIGHLIGHTED */}
+                                    <div className="pt-3 mt-3 border-t border-purple-500/30">
+                                        <div className="relative flex justify-between items-center py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600/20 via-purple-500/15 to-purple-600/20 border-2 border-purple-500/50 backdrop-blur-sm shadow-lg shadow-purple-500/20">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-purple-400 shadow-lg shadow-purple-400/50" />
+                                                <span className="text-white font-bold text-sm">Other Members</span>
+                                                <span className="px-2 py-0.5 bg-purple-500/30 border border-purple-400/50 rounded-md text-purple-200 text-xs font-bold uppercase tracking-wider">FOCUS</span>
+                                            </div>
+                                            <span className="text-purple-200 font-extrabold text-xl">
+                                                {collegeStats.team.other.members.toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {/* Total Members - Secondary */}
+                                    <div className="pt-2 mt-2 border-t border-zinc-800/50">
+                                        <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-zinc-800/30 border border-zinc-700/50">
+                                            <span className="text-zinc-400 text-xs font-medium">Total Members</span>
+                                            <span className="text-zinc-300 font-semibold text-sm">
                                                 {collegeStats.team.total.members.toLocaleString()}
                                             </span>
                                         </div>
@@ -579,22 +611,28 @@ export default function RegistrationAnalyticsClient() {
                                                                 </div>
                                                             </div>
                                                             <div className="space-y-3">
-                                                                <div className="flex justify-between items-center py-3 px-4 rounded-lg bg-gradient-to-r from-zinc-800/40 to-zinc-900/30 border border-zinc-700/50 hover:border-green-500/30 transition-all duration-200 backdrop-blur-sm">
-                                                                    <div className="flex items-center gap-2.5">
-                                                                        <div className="w-2 h-2 rounded-full bg-red-500 shadow-lg shadow-red-500/50" />
-                                                                        <span className="text-zinc-300 font-medium">KL University</span>
+                                                                {/* Other Colleges - HIGHLIGHTED FIRST */}
+                                                                <div className="relative flex justify-between items-center py-3 px-4 rounded-xl bg-gradient-to-r from-green-600/20 via-green-500/15 to-green-600/20 border-2 border-green-500/50 backdrop-blur-sm hover:border-green-400/70 transition-all duration-200 shadow-lg shadow-green-500/20 animate-pulse">
+                                                                    <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-transparent to-green-500/10 rounded-xl" />
+                                                                    <div className="relative flex items-center gap-3">
+                                                                        <div className="w-3 h-3 rounded-full bg-green-400 shadow-lg shadow-green-400/50 animate-pulse" />
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-white font-bold text-base">Other Colleges</span>
+                                                                            <span className="px-2 py-0.5 bg-green-500/30 border border-green-400/50 rounded-md text-green-200 text-xs font-bold uppercase tracking-wider">FOCUS</span>
+                                                                        </div>
                                                                     </div>
-                                                                    <span className="text-white font-bold text-lg">
-                                                                        {category.individual.kl.toLocaleString()}
+                                                                    <span className="relative text-green-200 font-extrabold text-xl">
+                                                                        {category.individual.other.toLocaleString()}
                                                                     </span>
                                                                 </div>
-                                                                <div className="flex justify-between items-center py-3 px-4 rounded-lg bg-gradient-to-r from-zinc-800/40 to-zinc-900/30 border border-zinc-700/50 hover:border-green-500/30 transition-all duration-200 backdrop-blur-sm">
+                                                                {/* KL University - Secondary */}
+                                                                <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-gradient-to-r from-zinc-800/40 to-zinc-900/30 border border-zinc-700/50 hover:border-red-500/30 transition-all duration-200 backdrop-blur-sm">
                                                                     <div className="flex items-center gap-2.5">
-                                                                        <div className="w-2 h-2 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50" />
-                                                                        <span className="text-zinc-300 font-medium">Other Colleges</span>
+                                                                        <div className="w-2 h-2 rounded-full bg-red-500 shadow-lg shadow-red-500/50" />
+                                                                        <span className="text-zinc-400 font-medium">KL University</span>
                                                                     </div>
-                                                                    <span className="text-white font-bold text-lg">
-                                                                        {category.individual.other.toLocaleString()}
+                                                                    <span className="text-zinc-300 font-semibold text-sm">
+                                                                        {category.individual.kl.toLocaleString()}
                                                                     </span>
                                                                 </div>
                                                                 {category.individual.gender && (
@@ -651,31 +689,38 @@ export default function RegistrationAnalyticsClient() {
                                                                 </div>
                                                             </div>
                                                             <div className="space-y-3">
-                                                                <div className="grid grid-cols-2 gap-2">
-                                                                    <div className="flex flex-col py-2.5 px-3 rounded-lg bg-gradient-to-br from-zinc-800/40 to-zinc-900/30 border border-zinc-700/50 hover:border-purple-500/30 transition-all duration-200 backdrop-blur-sm">
-                                                                        <span className="text-xs text-zinc-400 mb-1">KL Teams</span>
-                                                                        <span className="text-white font-bold text-lg">
-                                                                            {category.team.kl.teams.toLocaleString()}
-                                                                        </span>
-                                                                    </div>
-                                                                    <div className="flex flex-col py-2.5 px-3 rounded-lg bg-gradient-to-br from-zinc-800/40 to-zinc-900/30 border border-zinc-700/50 hover:border-purple-500/30 transition-all duration-200 backdrop-blur-sm">
-                                                                        <span className="text-xs text-zinc-400 mb-1">Other Teams</span>
-                                                                        <span className="text-white font-bold text-lg">
+                                                                {/* Other Colleges Teams - HIGHLIGHTED FIRST */}
+                                                                <div className="relative flex flex-col py-4 px-4 rounded-xl bg-gradient-to-br from-purple-600/25 via-purple-500/20 to-purple-600/25 border-2 border-purple-500/60 backdrop-blur-sm shadow-xl shadow-purple-500/30 hover:border-purple-400/80 transition-all duration-200">
+                                                                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/15 via-transparent to-purple-500/15 rounded-xl" />
+                                                                    <div className="relative flex items-center justify-between mb-2">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <div className="w-3 h-3 rounded-full bg-purple-400 shadow-lg shadow-purple-400/50 animate-pulse" />
+                                                                            <span className="text-white font-bold text-sm">Other Teams</span>
+                                                                            <span className="px-2 py-0.5 bg-purple-500/40 border border-purple-400/60 rounded-md text-purple-100 text-xs font-bold uppercase tracking-wider">FOCUS</span>
+                                                                        </div>
+                                                                        <span className="text-purple-200 font-extrabold text-2xl">
                                                                             {category.team.other.teams.toLocaleString()}
                                                                         </span>
                                                                     </div>
-                                                                </div>
-                                                                <div className="grid grid-cols-2 gap-2">
-                                                                    <div className="flex flex-col py-2.5 px-3 rounded-lg bg-gradient-to-br from-zinc-800/40 to-zinc-900/30 border border-zinc-700/50 hover:border-purple-500/30 transition-all duration-200 backdrop-blur-sm">
-                                                                        <span className="text-xs text-zinc-400 mb-1">KL Members</span>
-                                                                        <span className="text-white font-bold text-lg">
-                                                                            {category.team.kl.members.toLocaleString()}
+                                                                    <div className="relative flex items-center justify-between pt-2 border-t border-purple-500/30">
+                                                                        <span className="text-xs text-purple-200 font-semibold">Other Members</span>
+                                                                        <span className="text-purple-100 font-extrabold text-xl">
+                                                                            {category.team.other.members.toLocaleString()}
                                                                         </span>
                                                                     </div>
-                                                                    <div className="flex flex-col py-2.5 px-3 rounded-lg bg-gradient-to-br from-zinc-800/40 to-zinc-900/30 border border-zinc-700/50 hover:border-purple-500/30 transition-all duration-200 backdrop-blur-sm">
-                                                                        <span className="text-xs text-zinc-400 mb-1">Other Members</span>
-                                                                        <span className="text-white font-bold text-lg">
-                                                                            {category.team.other.members.toLocaleString()}
+                                                                </div>
+                                                                {/* KL University Teams - Secondary */}
+                                                                <div className="grid grid-cols-2 gap-2">
+                                                                    <div className="flex flex-col py-2.5 px-3 rounded-lg bg-gradient-to-br from-zinc-800/40 to-zinc-900/30 border border-zinc-700/50 hover:border-red-500/30 transition-all duration-200 backdrop-blur-sm">
+                                                                        <span className="text-xs text-zinc-400 mb-1">KL Teams</span>
+                                                                        <span className="text-zinc-300 font-semibold text-base">
+                                                                            {category.team.kl.teams.toLocaleString()}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex flex-col py-2.5 px-3 rounded-lg bg-gradient-to-br from-zinc-800/40 to-zinc-900/30 border border-zinc-700/50 hover:border-red-500/30 transition-all duration-200 backdrop-blur-sm">
+                                                                        <span className="text-xs text-zinc-400 mb-1">KL Members</span>
+                                                                        <span className="text-zinc-300 font-semibold text-base">
+                                                                            {category.team.kl.members.toLocaleString()}
                                                                         </span>
                                                                     </div>
                                                                 </div>
@@ -728,74 +773,77 @@ export default function RegistrationAnalyticsClient() {
                                                             Overall Summary
                                                         </h4>
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                                            <div className="relative group bg-gradient-to-br from-red-500/15 via-red-600/10 to-red-500/5 border-2 border-red-500/30 rounded-xl p-5 sm:p-6 shadow-xl shadow-red-500/10 hover:shadow-2xl hover:shadow-red-500/20 hover:border-red-500/50 transition-all duration-300 overflow-hidden">
-                                                                <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                                            {/* Other Colleges - HIGHLIGHTED FIRST */}
+                                                            <div className="relative group bg-gradient-to-br from-blue-600/25 via-blue-500/20 to-blue-600/25 border-2 border-blue-500/60 rounded-xl p-5 sm:p-6 shadow-2xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 hover:border-blue-400/80 transition-all duration-300 overflow-hidden animate-pulse">
+                                                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-transparent opacity-100 transition-opacity duration-300" />
                                                                 <div className="relative z-10">
                                                                     <div className="flex items-center justify-between mb-3">
-                                                                        <div className="text-xs font-bold text-zinc-300 uppercase tracking-widest flex items-center gap-2">
-                                                                            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                                                                            KL University
+                                                                        <div className="text-xs font-extrabold text-white uppercase tracking-widest flex items-center gap-2">
+                                                                            <div className="w-3 h-3 rounded-full bg-blue-400 shadow-lg shadow-blue-400/50 animate-pulse" />
+                                                                            Other Colleges
+                                                                            <span className="ml-2 px-2 py-0.5 bg-blue-500/40 border border-blue-400/60 rounded-md text-blue-100 text-xs font-bold uppercase tracking-wider">FOCUS</span>
                                                                         </div>
-                                                                        <svg className="w-5 h-5 text-red-400/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                        <svg className="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                                         </svg>
                                                                     </div>
-                                                                    <div className="text-3xl sm:text-4xl font-extrabold text-white mb-2 bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">
-                                                                        {category.overall.kl.registrations.toLocaleString()}
+                                                                    <div className="text-4xl sm:text-5xl font-extrabold text-white mb-2 bg-gradient-to-r from-blue-200 via-white to-blue-200 bg-clip-text text-transparent">
+                                                                        {category.overall.other.registrations.toLocaleString()}
                                                                     </div>
-                                                                    <div className="text-sm text-zinc-300 mb-4 font-medium">
-                                                                        <span className="text-zinc-400">Registrations:</span> {category.overall.kl.registrations.toLocaleString()} • 
-                                                                        <span className="text-zinc-400 ml-1">Participants:</span> {category.overall.kl.participants.toLocaleString()}
+                                                                    <div className="text-sm text-blue-100 mb-4 font-bold">
+                                                                        <span className="text-blue-200">Registrations:</span> {category.overall.other.registrations.toLocaleString()} • 
+                                                                        <span className="text-blue-200 ml-1">Participants:</span> {category.overall.other.participants.toLocaleString()}
                                                                     </div>
-                                                                    {category.overall.kl.gender && (
-                                                                        <div className="pt-4 border-t border-zinc-800/50 flex items-center gap-4">
-                                                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg backdrop-blur-sm">
-                                                                                <div className="w-2 h-2 rounded-full bg-blue-400" />
-                                                                                <span className="text-xs text-zinc-300">
-                                                                                    <span className="text-blue-300 font-bold">{category.overall.kl.gender.male.toLocaleString()}</span>
+                                                                    {category.overall.other.gender && (
+                                                                        <div className="pt-4 border-t border-blue-500/40 flex items-center gap-4">
+                                                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/30 border-2 border-blue-400/50 rounded-lg backdrop-blur-sm shadow-lg shadow-blue-500/20">
+                                                                                <div className="w-2.5 h-2.5 rounded-full bg-blue-300 shadow-lg shadow-blue-300/50" />
+                                                                                <span className="text-xs text-white">
+                                                                                    <span className="text-blue-100 font-extrabold text-sm">{category.overall.other.gender.male.toLocaleString()}</span>
                                                                                 </span>
                                                                             </div>
-                                                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-pink-500/10 border border-pink-500/20 rounded-lg backdrop-blur-sm">
-                                                                                <div className="w-2 h-2 rounded-full bg-pink-400" />
-                                                                                <span className="text-xs text-zinc-300">
-                                                                                    <span className="text-pink-300 font-bold">{category.overall.kl.gender.female.toLocaleString()}</span>
+                                                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-pink-500/30 border-2 border-pink-400/50 rounded-lg backdrop-blur-sm shadow-lg shadow-pink-500/20">
+                                                                                <div className="w-2.5 h-2.5 rounded-full bg-pink-300 shadow-lg shadow-pink-300/50" />
+                                                                                <span className="text-xs text-white">
+                                                                                    <span className="text-pink-100 font-extrabold text-sm">{category.overall.other.gender.female.toLocaleString()}</span>
                                                                                 </span>
                                                                             </div>
                                                                         </div>
                                                                     )}
                                                                 </div>
                                                             </div>
-                                                            <div className="relative group bg-gradient-to-br from-blue-500/15 via-blue-600/10 to-blue-500/5 border-2 border-blue-500/30 rounded-xl p-5 sm:p-6 shadow-xl shadow-blue-500/10 hover:shadow-2xl hover:shadow-blue-500/20 hover:border-blue-500/50 transition-all duration-300 overflow-hidden">
-                                                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                                            {/* KL University - Secondary */}
+                                                            <div className="relative group bg-gradient-to-br from-red-500/10 via-red-600/5 to-red-500/5 border border-red-500/20 rounded-xl p-5 sm:p-6 shadow-lg shadow-red-500/5 hover:shadow-xl hover:shadow-red-500/10 hover:border-red-500/30 transition-all duration-300 overflow-hidden">
+                                                                <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                                                 <div className="relative z-10">
                                                                     <div className="flex items-center justify-between mb-3">
-                                                                        <div className="text-xs font-bold text-zinc-300 uppercase tracking-widest flex items-center gap-2">
-                                                                            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                                                                            Other Colleges
+                                                                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                                                                            <div className="w-2 h-2 rounded-full bg-red-500" />
+                                                                            KL University
                                                                         </div>
-                                                                        <svg className="w-5 h-5 text-blue-400/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <svg className="w-5 h-5 text-red-400/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                                         </svg>
                                                                     </div>
-                                                                    <div className="text-3xl sm:text-4xl font-extrabold text-white mb-2 bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">
-                                                                        {category.overall.other.registrations.toLocaleString()}
+                                                                    <div className="text-2xl sm:text-3xl font-bold text-zinc-300 mb-2">
+                                                                        {category.overall.kl.registrations.toLocaleString()}
                                                                     </div>
-                                                                    <div className="text-sm text-zinc-300 mb-4 font-medium">
-                                                                        <span className="text-zinc-400">Registrations:</span> {category.overall.other.registrations.toLocaleString()} • 
-                                                                        <span className="text-zinc-400 ml-1">Participants:</span> {category.overall.other.participants.toLocaleString()}
+                                                                    <div className="text-xs text-zinc-400 mb-4 font-medium">
+                                                                        <span className="text-zinc-500">Registrations:</span> {category.overall.kl.registrations.toLocaleString()} • 
+                                                                        <span className="text-zinc-500 ml-1">Participants:</span> {category.overall.kl.participants.toLocaleString()}
                                                                     </div>
-                                                                    {category.overall.other.gender && (
-                                                                        <div className="pt-4 border-t border-zinc-800/50 flex items-center gap-4">
-                                                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg backdrop-blur-sm">
-                                                                                <div className="w-2 h-2 rounded-full bg-blue-400" />
-                                                                                <span className="text-xs text-zinc-300">
-                                                                                    <span className="text-blue-300 font-bold">{category.overall.other.gender.male.toLocaleString()}</span>
+                                                                    {category.overall.kl.gender && (
+                                                                        <div className="pt-3 border-t border-zinc-800/50 flex items-center gap-3">
+                                                                            <div className="flex items-center gap-2 px-2 py-1 bg-blue-500/5 border border-blue-500/10 rounded-lg backdrop-blur-sm">
+                                                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                                                                                <span className="text-xs text-zinc-400">
+                                                                                    <span className="text-blue-300 font-semibold">{category.overall.kl.gender.male.toLocaleString()}</span>
                                                                                 </span>
                                                                             </div>
-                                                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-pink-500/10 border border-pink-500/20 rounded-lg backdrop-blur-sm">
-                                                                                <div className="w-2 h-2 rounded-full bg-pink-400" />
-                                                                                <span className="text-xs text-zinc-300">
-                                                                                    <span className="text-pink-300 font-bold">{category.overall.other.gender.female.toLocaleString()}</span>
+                                                                            <div className="flex items-center gap-2 px-2 py-1 bg-pink-500/5 border border-pink-500/10 rounded-lg backdrop-blur-sm">
+                                                                                <div className="w-1.5 h-1.5 rounded-full bg-pink-400" />
+                                                                                <span className="text-xs text-zinc-400">
+                                                                                    <span className="text-pink-300 font-semibold">{category.overall.kl.gender.female.toLocaleString()}</span>
                                                                                 </span>
                                                                             </div>
                                                                         </div>
@@ -954,7 +1002,32 @@ export default function RegistrationAnalyticsClient() {
                                                                                         <div className="w-1 h-3 bg-green-500 rounded-full"></div>
                                                                                         Individual Registration Details
                                                                                     </h5>
-                                                                                    <div className="flex gap-3 mb-4">
+                                                                                    <div className="flex flex-wrap gap-3 mb-4">
+                                                                                        {/* Other Colleges Button - HIGHLIGHTED FIRST */}
+                                                                                        <button
+                                                                                            onClick={() =>
+                                                                                                setExpandedCollege(
+                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
+                                                                                                        ? { categoryId: "", competitionId: "", college: null }
+                                                                                                        : { categoryId: category.id, competitionId: competition.id, college: "other" }
+                                                                                                )
+                                                                                            }
+                                                                                            className={`px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-200 ${
+                                                                                                expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
+                                                                                                    ? "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-xl shadow-green-500/30 border-2 border-green-400/50 scale-105 animate-pulse"
+                                                                                                    : "bg-gradient-to-r from-green-600/30 to-green-700/20 text-white border-2 border-green-500/50 hover:border-green-400/70 hover:bg-green-600/40 shadow-lg shadow-green-500/20"
+                                                                                            }`}
+                                                                                        >
+                                                                                            <div className="flex items-center gap-2">
+                                                                                                <div className="w-2.5 h-2.5 rounded-full bg-green-300 shadow-lg shadow-green-300/50" />
+                                                                                                <span>Other Colleges</span>
+                                                                                                <span className="px-2 py-0.5 bg-green-500/40 border border-green-400/50 rounded-md text-green-100 text-xs font-bold uppercase tracking-wider">FOCUS</span>
+                                                                                                <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-white/10 text-green-100">
+                                                                                                    {competition.individual.other.toLocaleString()}
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        </button>
+                                                                                        {/* KL University Button - Secondary */}
                                                                                         <button
                                                                                             onClick={() =>
                                                                                                 setExpandedCollege(
@@ -966,26 +1039,16 @@ export default function RegistrationAnalyticsClient() {
                                                                                             className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
                                                                                                 expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
                                                                                                     ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-500/20 border border-red-500/30"
-                                                                                                    : "bg-zinc-800/50 text-zinc-300 hover:bg-zinc-700/50 border border-zinc-700/50"
+                                                                                                    : "bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700/50 border border-zinc-700/50"
                                                                                             }`}
                                                                                         >
-                                                                                            KL University ({competition.individual.kl})
-                                                                                        </button>
-                                                                                        <button
-                                                                                            onClick={() =>
-                                                                                                setExpandedCollege(
-                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
-                                                                                                        ? { categoryId: "", competitionId: "", college: null }
-                                                                                                        : { categoryId: category.id, competitionId: competition.id, college: "other" }
-                                                                                                )
-                                                                                            }
-                                                                                            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                                                                                                expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
-                                                                                                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/20 border border-blue-500/30"
-                                                                                                    : "bg-zinc-800/50 text-zinc-300 hover:bg-zinc-700/50 border border-zinc-700/50"
-                                                                                            }`}
-                                                                                        >
-                                                                                            Other Colleges ({competition.individual.other})
+                                                                                            <div className="flex items-center gap-2">
+                                                                                                <div className="w-2 h-2 rounded-full bg-red-500" />
+                                                                                                <span>KL University</span>
+                                                                                                <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-zinc-900/50 text-zinc-500">
+                                                                                                    {competition.individual.kl.toLocaleString()}
+                                                                                                </span>
+                                                                                            </div>
                                                                                         </button>
                                                                                     </div>
 
@@ -1053,32 +1116,7 @@ export default function RegistrationAnalyticsClient() {
                                                                                         </div>
                                                                                     </div>
                                                                                     <div className="flex flex-wrap gap-3 mb-5">
-                                                                                        <button
-                                                                                            onClick={() =>
-                                                                                                setExpandedCollege(
-                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
-                                                                                                        ? { categoryId: "", competitionId: "", college: null }
-                                                                                                        : { categoryId: category.id, competitionId: competition.id, college: "kl" }
-                                                                                                )
-                                                                                            }
-                                                                                            className={`group relative px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
-                                                                                                expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
-                                                                                                    ? "bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white shadow-xl shadow-red-500/30 border-2 border-red-400/50 scale-105"
-                                                                                                    : "bg-gradient-to-r from-zinc-800/60 to-zinc-900/40 text-zinc-300 hover:text-white border-2 border-zinc-700/50 hover:border-red-500/30 hover:bg-zinc-800/60"
-                                                                                            }`}
-                                                                                        >
-                                                                                            <div className="flex items-center gap-2.5">
-                                                                                                <div className={`w-2 h-2 rounded-full ${expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl" ? "bg-white animate-pulse" : "bg-red-500"}`} />
-                                                                                                <span>KL Teams</span>
-                                                                                                <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${
-                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
-                                                                                                        ? "bg-white/20 text-white"
-                                                                                                        : "bg-zinc-900/50 text-zinc-400"
-                                                                                                }`}>
-                                                                                                    {competition.team.kl.teams.toLocaleString()}
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        </button>
+                                                                                        {/* Other Teams Button - HIGHLIGHTED FIRST */}
                                                                                         <button
                                                                                             onClick={() =>
                                                                                                 setExpandedCollege(
@@ -1087,21 +1125,55 @@ export default function RegistrationAnalyticsClient() {
                                                                                                         : { categoryId: category.id, competitionId: competition.id, college: "other" }
                                                                                                 )
                                                                                             }
-                                                                                            className={`group relative px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                                                                                            className={`group relative px-6 py-3 rounded-xl text-sm font-extrabold transition-all duration-300 ${
                                                                                                 expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
-                                                                                                    ? "bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 text-white shadow-xl shadow-blue-500/30 border-2 border-blue-400/50 scale-105"
-                                                                                                    : "bg-gradient-to-r from-zinc-800/60 to-zinc-900/40 text-zinc-300 hover:text-white border-2 border-zinc-700/50 hover:border-blue-500/30 hover:bg-zinc-800/60"
+                                                                                                    ? "bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600 text-white shadow-2xl shadow-purple-500/40 border-2 border-purple-300/70 scale-110 animate-pulse"
+                                                                                                    : "bg-gradient-to-r from-purple-600/30 via-purple-500/20 to-purple-600/30 text-white border-2 border-purple-500/50 hover:border-purple-400/70 hover:bg-purple-600/40 shadow-xl shadow-purple-500/20"
+                                                                                            }`}
+                                                                                        >
+                                                                                            <div className="flex items-center gap-3">
+                                                                                                <div className={`w-3 h-3 rounded-full ${expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other" ? "bg-white animate-pulse shadow-lg shadow-white/50" : "bg-purple-300 shadow-lg shadow-purple-300/50"}`} />
+                                                                                                <span>Other Teams</span>
+                                                                                                <span className={`px-2.5 py-1 rounded-md text-xs font-extrabold uppercase tracking-wider ${
+                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
+                                                                                                        ? "bg-white/30 text-white border border-white/50"
+                                                                                                        : "bg-purple-500/40 text-purple-100 border border-purple-400/50"
+                                                                                                }`}>
+                                                                                                    FOCUS
+                                                                                                </span>
+                                                                                                <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold ${
+                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
+                                                                                                        ? "bg-white/20 text-white"
+                                                                                                        : "bg-white/10 text-purple-100"
+                                                                                                }`}>
+                                                                                                    {competition.team.other.teams.toLocaleString()}
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        </button>
+                                                                                        {/* KL Teams Button - Secondary */}
+                                                                                        <button
+                                                                                            onClick={() =>
+                                                                                                setExpandedCollege(
+                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
+                                                                                                        ? { categoryId: "", competitionId: "", college: null }
+                                                                                                        : { categoryId: category.id, competitionId: competition.id, college: "kl" }
+                                                                                                )
+                                                                                            }
+                                                                                            className={`group relative px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                                                                                                expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
+                                                                                                    ? "bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white shadow-lg shadow-red-500/20 border-2 border-red-400/50 scale-105"
+                                                                                                    : "bg-gradient-to-r from-zinc-800/60 to-zinc-900/40 text-zinc-400 hover:text-zinc-300 border-2 border-zinc-700/50 hover:border-red-500/30 hover:bg-zinc-800/60"
                                                                                             }`}
                                                                                         >
                                                                                             <div className="flex items-center gap-2.5">
-                                                                                                <div className={`w-2 h-2 rounded-full ${expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other" ? "bg-white animate-pulse" : "bg-blue-500"}`} />
-                                                                                                <span>Other Teams</span>
-                                                                                                <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${
-                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
+                                                                                                <div className={`w-2 h-2 rounded-full ${expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl" ? "bg-white animate-pulse" : "bg-red-500"}`} />
+                                                                                                <span>KL Teams</span>
+                                                                                                <span className={`px-2 py-0.5 rounded-md text-xs font-semibold ${
+                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
                                                                                                         ? "bg-white/20 text-white"
-                                                                                                        : "bg-zinc-900/50 text-zinc-400"
+                                                                                                        : "bg-zinc-900/50 text-zinc-500"
                                                                                                 }`}>
-                                                                                                    {competition.team.other.teams.toLocaleString()}
+                                                                                                    {competition.team.kl.teams.toLocaleString()}
                                                                                                 </span>
                                                                                             </div>
                                                                                         </button>
