@@ -11,7 +11,7 @@ async function AdminAuthCheck({ children }: { children: React.ReactNode }) {
     headers: headersList,
   });
 
-  const allowedRoles = ["ADMIN", "MANAGER", "MASTER"];
+  const allowedRoles = ["ADMIN", "MANAGER", "MASTER", "GOD"];
   if (!session || !allowedRoles.includes(session.user.role)) {
     return redirect("/login");
   }

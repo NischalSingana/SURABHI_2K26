@@ -31,11 +31,12 @@ export default function AdminLayoutWrapper({
   }
 
   const allNavLinks = [
-    { href: "/admin/dashboard", label: "Dashboard", roles: ["ADMIN", "MASTER"] },
+    { href: "/admin/dashboard", label: "Dashboard", roles: ["ADMIN", "MASTER", "GOD"] },
     { href: "/admin/competitions", label: "Competitions", roles: ["ADMIN", "MANAGER", "MASTER"] },
     { href: "/admin/users", label: "Users", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/accommodation", label: "Stay", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/analytics", label: "Analytics", roles: ["ADMIN", "MASTER"] },
+    { href: "/admin/registration-analytics", label: "Registration Analytics", roles: ["GOD"] },
     { href: "/admin/judges", label: "Judges", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/evaluations", label: "Evaluations", roles: ["ADMIN", "MANAGER", "MASTER"] },
     { href: "/admin/registrations/approvals", label: "Registrations", roles: ["ADMIN", "MANAGER", "MASTER"] },
@@ -54,9 +55,11 @@ export default function AdminLayoutWrapper({
               <Link href="/admin/dashboard" className="text-white font-bold text-xl shrink-0">
                 {session?.user?.role === "MASTER"
                     ? "Master Panel"
-                    : session?.user?.role === "MANAGER"
-                        ? "Manager Panel"
-                        : "Admin Panel"}
+                    : session?.user?.role === "GOD"
+                        ? "Registration Analytics"
+                        : session?.user?.role === "MANAGER"
+                            ? "Manager Panel"
+                            : "Admin Panel"}
               </Link>
 
               {/* Desktop Menu */}

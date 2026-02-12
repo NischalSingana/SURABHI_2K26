@@ -213,6 +213,7 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
                                             <option value="ADMIN">Admin</option>
                                             <option value="MASTER">Master</option>
                                             <option value="JUDGE">Judge</option>
+                                            <option value="GOD">GOD</option>
                                         </select>
                                     </td>
                                 )}
