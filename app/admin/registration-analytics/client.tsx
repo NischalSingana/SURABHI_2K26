@@ -267,10 +267,7 @@ export default function RegistrationAnalyticsClient() {
                                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-transparent to-blue-500/10 rounded-xl" />
                                         <div className="relative flex items-center gap-3">
                                             <div className="w-3 h-3 rounded-full bg-blue-400 shadow-lg shadow-blue-400/50 animate-pulse" />
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-white font-bold text-base">Other Colleges</span>
-                                                <span className="px-2 py-0.5 bg-blue-500/30 border border-blue-400/50 rounded-md text-blue-200 text-xs font-bold uppercase tracking-wider">FOCUS</span>
-                                            </div>
+                                            <span className="text-white font-bold text-base">Other Colleges</span>
                                         </div>
                                         <span className="relative text-blue-200 font-extrabold text-xl">
                                             {collegeStats.overall.other.participants.toLocaleString()}
@@ -339,10 +336,7 @@ export default function RegistrationAnalyticsClient() {
                                         <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-transparent to-green-500/10 rounded-xl" />
                                         <div className="relative flex items-center gap-3">
                                             <div className="w-3 h-3 rounded-full bg-green-400 shadow-lg shadow-green-400/50 animate-pulse" />
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-white font-bold text-base">Other Colleges</span>
-                                                <span className="px-2 py-0.5 bg-green-500/30 border border-green-400/50 rounded-md text-green-200 text-xs font-bold uppercase tracking-wider">FOCUS</span>
-                                            </div>
+                                            <span className="text-white font-bold text-base">Other Colleges</span>
                                         </div>
                                         <span className="relative text-green-200 font-extrabold text-xl">
                                             {collegeStats.individual.other.toLocaleString()}
@@ -412,10 +406,7 @@ export default function RegistrationAnalyticsClient() {
                                         <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-transparent to-purple-500/10 rounded-xl" />
                                         <div className="relative flex items-center gap-3">
                                             <div className="w-3 h-3 rounded-full bg-purple-400 shadow-lg shadow-purple-400/50 animate-pulse" />
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-white font-bold text-base">Other Teams</span>
-                                                <span className="px-2 py-0.5 bg-purple-500/30 border border-purple-400/50 rounded-md text-purple-200 text-xs font-bold uppercase tracking-wider">FOCUS</span>
-                                            </div>
+                                            <span className="text-white font-bold text-base">Other Teams</span>
                                         </div>
                                         <span className="relative text-purple-200 font-extrabold text-xl">
                                             {collegeStats.team.other.teams.toLocaleString()}
@@ -437,7 +428,6 @@ export default function RegistrationAnalyticsClient() {
                                             <div className="flex items-center gap-2">
                                                 <div className="w-2 h-2 rounded-full bg-purple-400 shadow-lg shadow-purple-400/50" />
                                                 <span className="text-white font-bold text-sm">Other Members</span>
-                                                <span className="px-2 py-0.5 bg-purple-500/30 border border-purple-400/50 rounded-md text-purple-200 text-xs font-bold uppercase tracking-wider">FOCUS</span>
                                             </div>
                                             <span className="text-purple-200 font-extrabold text-xl">
                                                 {collegeStats.team.other.members.toLocaleString()}
@@ -616,10 +606,7 @@ export default function RegistrationAnalyticsClient() {
                                                                     <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-transparent to-green-500/10 rounded-xl" />
                                                                     <div className="relative flex items-center gap-3">
                                                                         <div className="w-3 h-3 rounded-full bg-green-400 shadow-lg shadow-green-400/50 animate-pulse" />
-                                                                        <div className="flex items-center gap-2">
-                                                                            <span className="text-white font-bold text-base">Other Colleges</span>
-                                                                            <span className="px-2 py-0.5 bg-green-500/30 border border-green-400/50 rounded-md text-green-200 text-xs font-bold uppercase tracking-wider">FOCUS</span>
-                                                                        </div>
+                                                                        <span className="text-white font-bold text-base">Other Colleges</span>
                                                                     </div>
                                                                     <span className="relative text-green-200 font-extrabold text-xl">
                                                                         {category.individual.other.toLocaleString()}
@@ -696,7 +683,6 @@ export default function RegistrationAnalyticsClient() {
                                                                         <div className="flex items-center gap-2">
                                                                             <div className="w-3 h-3 rounded-full bg-purple-400 shadow-lg shadow-purple-400/50 animate-pulse" />
                                                                             <span className="text-white font-bold text-sm">Other Teams</span>
-                                                                            <span className="px-2 py-0.5 bg-purple-500/40 border border-purple-400/60 rounded-md text-purple-100 text-xs font-bold uppercase tracking-wider">FOCUS</span>
                                                                         </div>
                                                                         <span className="text-purple-200 font-extrabold text-2xl">
                                                                             {category.team.other.teams.toLocaleString()}
@@ -781,7 +767,6 @@ export default function RegistrationAnalyticsClient() {
                                                                         <div className="text-xs font-extrabold text-white uppercase tracking-widest flex items-center gap-2">
                                                                             <div className="w-3 h-3 rounded-full bg-blue-400 shadow-lg shadow-blue-400/50 animate-pulse" />
                                                                             Other Colleges
-                                                                            <span className="ml-2 px-2 py-0.5 bg-blue-500/40 border border-blue-400/60 rounded-md text-blue-100 text-xs font-bold uppercase tracking-wider">FOCUS</span>
                                                                         </div>
                                                                         <svg className="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1021,7 +1006,6 @@ export default function RegistrationAnalyticsClient() {
                                                                                             <div className="flex items-center gap-2">
                                                                                                 <div className="w-2.5 h-2.5 rounded-full bg-green-300 shadow-lg shadow-green-300/50" />
                                                                                                 <span>Other Colleges</span>
-                                                                                                <span className="px-2 py-0.5 bg-green-500/40 border border-green-400/50 rounded-md text-green-100 text-xs font-bold uppercase tracking-wider">FOCUS</span>
                                                                                                 <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-white/10 text-green-100">
                                                                                                     {competition.individual.other.toLocaleString()}
                                                                                                 </span>
@@ -1134,13 +1118,6 @@ export default function RegistrationAnalyticsClient() {
                                                                                             <div className="flex items-center gap-3">
                                                                                                 <div className={`w-3 h-3 rounded-full ${expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other" ? "bg-white animate-pulse shadow-lg shadow-white/50" : "bg-purple-300 shadow-lg shadow-purple-300/50"}`} />
                                                                                                 <span>Other Teams</span>
-                                                                                                <span className={`px-2.5 py-1 rounded-md text-xs font-extrabold uppercase tracking-wider ${
-                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
-                                                                                                        ? "bg-white/30 text-white border border-white/50"
-                                                                                                        : "bg-purple-500/40 text-purple-100 border border-purple-400/50"
-                                                                                                }`}>
-                                                                                                    FOCUS
-                                                                                                </span>
                                                                                                 <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold ${
                                                                                                     expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
                                                                                                         ? "bg-white/20 text-white"
