@@ -218,9 +218,9 @@ export async function getRegistrationStatsByCollege() {
 }
 
 /**
- * Get competition-wise registration analytics
+ * Get category-wise registration analytics
  */
-export async function getCompetitionWiseAnalytics() {
+export async function getCategoryWiseAnalytics() {
     try {
         const headersList = await headers();
         const session = await auth.api.getSession({
@@ -231,56 +231,61 @@ export async function getCompetitionWiseAnalytics() {
             throw new Error("Unauthorized - GOD role required");
         }
 
-        const events = await prisma.event.findMany({
+        // Get categories with their events
+        const categories = await prisma.category.findMany({
             select: {
                 id: true,
                 name: true,
-                isGroupEvent: true,
-                Category: {
+                Event: {
                     select: {
+                        id: true,
                         name: true,
-                    },
-                },
-                individualRegistrations: {
-                    select: {
-                        id: true,
-                        createdAt: true,
-                        user: {
+                        isGroupEvent: true,
+                        individualRegistrations: {
                             select: {
                                 id: true,
-                                name: true,
-                                email: true,
-                                collage: true,
-                                collageId: true,
-                                branch: true,
-                                year: true,
-                                phone: true,
-                                gender: true,
-                                isInternational: true,
+                                createdAt: true,
+                                user: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        email: true,
+                                        collage: true,
+                                        collageId: true,
+                                        branch: true,
+                                        year: true,
+                                        phone: true,
+                                        gender: true,
+                                        isInternational: true,
+                                    },
+                                },
+                            },
+                        },
+                        groupRegistrations: {
+                            select: {
+                                id: true,
+                                groupName: true,
+                                members: true,
+                                createdAt: true,
+                                user: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        email: true,
+                                        collage: true,
+                                        collageId: true,
+                                        branch: true,
+                                        year: true,
+                                        phone: true,
+                                        gender: true,
+                                        isInternational: true,
+                                    },
+                                },
                             },
                         },
                     },
-                },
-                groupRegistrations: {
-                    select: {
-                        id: true,
-                        groupName: true,
-                        members: true,
-                        createdAt: true,
-                        user: {
-                            select: {
-                                id: true,
-                                name: true,
-                                email: true,
-                                collage: true,
-                                collageId: true,
-                                branch: true,
-                                year: true,
-                                phone: true,
-                                gender: true,
-                                isInternational: true,
-                            },
-                        },
+                    orderBy: {
+                        name: "asc",
                     },
                 },
             },
@@ -289,72 +294,115 @@ export async function getCompetitionWiseAnalytics() {
             },
         });
 
-        const competitionAnalytics = events.map((event) => {
-            // Individual registrations breakdown with gender
-            let klIndividual = 0;
-            let otherIndividual = 0;
-            let klIndividualMale = 0;
-            let klIndividualFemale = 0;
-            let otherIndividualMale = 0;
-            let otherIndividualFemale = 0;
+        const categoryAnalytics = categories.map((category) => {
+            // Aggregate all events in this category
+            let categoryKlIndividual = 0;
+            let categoryOtherIndividual = 0;
+            let categoryKlIndividualMale = 0;
+            let categoryKlIndividualFemale = 0;
+            let categoryOtherIndividualMale = 0;
+            let categoryOtherIndividualFemale = 0;
+            let categoryKlTeams = 0;
+            let categoryOtherTeams = 0;
+            let categoryKlTeamMembers = 0;
+            let categoryOtherTeamMembers = 0;
+            let categoryKlTeamMale = 0;
+            let categoryKlTeamFemale = 0;
+            let categoryOtherTeamMale = 0;
+            let categoryOtherTeamFemale = 0;
 
-            event.individualRegistrations.forEach((reg) => {
-                const isKL = isKLUniversity(reg.user);
-                const gender = reg.user.gender?.toUpperCase();
-                if (isKL) {
-                    klIndividual++;
-                    if (gender === "MALE") klIndividualMale++;
-                    else if (gender === "FEMALE") klIndividualFemale++;
-                } else {
-                    otherIndividual++;
-                    if (gender === "MALE") otherIndividualMale++;
-                    else if (gender === "FEMALE") otherIndividualFemale++;
-                }
-            });
+            // Process each event in the category
+            const competitions = category.Event.map((event) => {
+                // Individual registrations breakdown with gender
+                let klIndividual = 0;
+                let otherIndividual = 0;
+                let klIndividualMale = 0;
+                let klIndividualFemale = 0;
+                let otherIndividualMale = 0;
+                let otherIndividualFemale = 0;
 
-            // Group registrations breakdown with gender
-            let klTeams = 0;
-            let otherTeams = 0;
-            let klTeamMembers = 0;
-            let otherTeamMembers = 0;
-            let klTeamMale = 0;
-            let klTeamFemale = 0;
-            let otherTeamMale = 0;
-            let otherTeamFemale = 0;
-
-            event.groupRegistrations.forEach((reg) => {
-                const members = reg.members as Record<string, any> | null;
-                const memberCount = members ? Object.keys(members).length : 0;
-                const isKL = isKLUniversity(reg.user);
-
-                if (isKL) {
-                    klTeams++;
-                    klTeamMembers += memberCount;
-                    if (members) {
-                        Object.values(members).forEach((member: any) => {
-                            const memberGender = member.gender?.toUpperCase();
-                            if (memberGender === "MALE") klTeamMale++;
-                            else if (memberGender === "FEMALE") klTeamFemale++;
-                        });
+                event.individualRegistrations.forEach((reg) => {
+                    const isKL = isKLUniversity(reg.user);
+                    const gender = reg.user.gender?.toUpperCase();
+                    if (isKL) {
+                        klIndividual++;
+                        categoryKlIndividual++;
+                        if (gender === "MALE") {
+                            klIndividualMale++;
+                            categoryKlIndividualMale++;
+                        } else if (gender === "FEMALE") {
+                            klIndividualFemale++;
+                            categoryKlIndividualFemale++;
+                        }
+                    } else {
+                        otherIndividual++;
+                        categoryOtherIndividual++;
+                        if (gender === "MALE") {
+                            otherIndividualMale++;
+                            categoryOtherIndividualMale++;
+                        } else if (gender === "FEMALE") {
+                            otherIndividualFemale++;
+                            categoryOtherIndividualFemale++;
+                        }
                     }
-                } else {
-                    otherTeams++;
-                    otherTeamMembers += memberCount;
-                    if (members) {
-                        Object.values(members).forEach((member: any) => {
-                            const memberGender = member.gender?.toUpperCase();
-                            if (memberGender === "MALE") otherTeamMale++;
-                            else if (memberGender === "FEMALE") otherTeamFemale++;
-                        });
-                    }
-                }
-            });
+                });
 
-            return {
-                id: event.id,
-                name: event.name,
-                category: event.Category.name,
-                isGroupEvent: event.isGroupEvent,
+                // Group registrations breakdown with gender
+                let klTeams = 0;
+                let otherTeams = 0;
+                let klTeamMembers = 0;
+                let otherTeamMembers = 0;
+                let klTeamMale = 0;
+                let klTeamFemale = 0;
+                let otherTeamMale = 0;
+                let otherTeamFemale = 0;
+
+                event.groupRegistrations.forEach((reg) => {
+                    const members = reg.members as Record<string, any> | null;
+                    const memberCount = members ? Object.keys(members).length : 0;
+                    const isKL = isKLUniversity(reg.user);
+
+                    if (isKL) {
+                        klTeams++;
+                        categoryKlTeams++;
+                        klTeamMembers += memberCount;
+                        categoryKlTeamMembers += memberCount;
+                        if (members) {
+                            Object.values(members).forEach((member: any) => {
+                                const memberGender = member.gender?.toUpperCase();
+                                if (memberGender === "MALE") {
+                                    klTeamMale++;
+                                    categoryKlTeamMale++;
+                                } else if (memberGender === "FEMALE") {
+                                    klTeamFemale++;
+                                    categoryKlTeamFemale++;
+                                }
+                            });
+                        }
+                    } else {
+                        otherTeams++;
+                        categoryOtherTeams++;
+                        otherTeamMembers += memberCount;
+                        categoryOtherTeamMembers += memberCount;
+                        if (members) {
+                            Object.values(members).forEach((member: any) => {
+                                const memberGender = member.gender?.toUpperCase();
+                                if (memberGender === "MALE") {
+                                    otherTeamMale++;
+                                    categoryOtherTeamMale++;
+                                } else if (memberGender === "FEMALE") {
+                                    otherTeamFemale++;
+                                    categoryOtherTeamFemale++;
+                                }
+                            });
+                        }
+                    }
+                });
+
+                return {
+                    id: event.id,
+                    name: event.name,
+                    isGroupEvent: event.isGroupEvent,
                 individual: {
                     kl: klIndividual,
                     other: otherIndividual,
@@ -460,15 +508,94 @@ export async function getCompetitionWiseAnalytics() {
                         },
                     },
                 },
+                };
+            });
+
+            // Return category-level aggregated data
+            return {
+                id: category.id,
+                name: category.name,
+                individual: {
+                    kl: categoryKlIndividual,
+                    other: categoryOtherIndividual,
+                    total: categoryKlIndividual + categoryOtherIndividual,
+                    gender: {
+                        kl: {
+                            male: categoryKlIndividualMale,
+                            female: categoryKlIndividualFemale,
+                        },
+                        other: {
+                            male: categoryOtherIndividualMale,
+                            female: categoryOtherIndividualFemale,
+                        },
+                        total: {
+                            male: categoryKlIndividualMale + categoryOtherIndividualMale,
+                            female: categoryKlIndividualFemale + categoryOtherIndividualFemale,
+                        },
+                    },
+                },
+                team: {
+                    kl: {
+                        teams: categoryKlTeams,
+                        members: categoryKlTeamMembers,
+                        gender: {
+                            male: categoryKlTeamMale,
+                            female: categoryKlTeamFemale,
+                        },
+                    },
+                    other: {
+                        teams: categoryOtherTeams,
+                        members: categoryOtherTeamMembers,
+                        gender: {
+                            male: categoryOtherTeamMale,
+                            female: categoryOtherTeamFemale,
+                        },
+                    },
+                    total: {
+                        teams: categoryKlTeams + categoryOtherTeams,
+                        members: categoryKlTeamMembers + categoryOtherTeamMembers,
+                        gender: {
+                            male: categoryKlTeamMale + categoryOtherTeamMale,
+                            female: categoryKlTeamFemale + categoryOtherTeamFemale,
+                        },
+                    },
+                },
+                overall: {
+                    kl: {
+                        registrations: categoryKlIndividual + categoryKlTeams,
+                        participants: categoryKlIndividual + categoryKlTeamMembers,
+                        gender: {
+                            male: categoryKlIndividualMale + categoryKlTeamMale,
+                            female: categoryKlIndividualFemale + categoryKlTeamFemale,
+                        },
+                    },
+                    other: {
+                        registrations: categoryOtherIndividual + categoryOtherTeams,
+                        participants: categoryOtherIndividual + categoryOtherTeamMembers,
+                        gender: {
+                            male: categoryOtherIndividualMale + categoryOtherTeamMale,
+                            female: categoryOtherIndividualFemale + categoryOtherTeamFemale,
+                        },
+                    },
+                    total: {
+                        registrations: categoryKlIndividual + categoryOtherIndividual + categoryKlTeams + categoryOtherTeams,
+                        participants: categoryKlIndividual + categoryOtherIndividual + categoryKlTeamMembers + categoryOtherTeamMembers,
+                        gender: {
+                            male: categoryKlIndividualMale + categoryOtherIndividualMale + categoryKlTeamMale + categoryOtherTeamMale,
+                            female: categoryKlIndividualFemale + categoryOtherIndividualFemale + categoryKlTeamFemale + categoryOtherTeamFemale,
+                        },
+                    },
+                },
+                competitions: competitions,
             };
         });
 
         return {
             success: true,
-            competitions: competitionAnalytics,
+            categories: categoryAnalytics,
         };
     } catch (error: any) {
-        console.error("Error fetching competition-wise analytics:", error);
+        console.error("Error fetching category-wise analytics:", error);
         return { success: false, error: error.message };
     }
 }

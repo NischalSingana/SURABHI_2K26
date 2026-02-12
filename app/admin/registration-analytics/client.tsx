@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import {
     getRegistrationStatsByCollege,
-    getCompetitionWiseAnalytics,
+    getCategoryWiseAnalytics,
 } from "@/actions/admin/registration-analytics.action";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
@@ -45,7 +45,6 @@ interface GenderStats {
 interface CompetitionAnalytics {
     id: string;
     name: string;
-    category: string;
     isGroupEvent: boolean;
     individual: {
         kl: number;
@@ -83,12 +82,55 @@ interface CompetitionAnalytics {
     };
 }
 
+interface CategoryAnalytics {
+    id: string;
+    name: string;
+    individual: {
+        kl: number;
+        other: number;
+        total: number;
+        gender?: {
+            kl: GenderStats;
+            other: GenderStats;
+            total: GenderStats;
+        };
+    };
+    team: {
+        kl: TeamStats & { gender?: GenderStats };
+        other: TeamStats & { gender?: GenderStats };
+        total: TeamStats & { gender?: GenderStats };
+    };
+    overall: {
+        kl: {
+            registrations: number;
+            participants: number;
+            gender?: GenderStats;
+        };
+        other: {
+            registrations: number;
+            participants: number;
+            gender?: GenderStats;
+        };
+        total: {
+            registrations: number;
+            participants: number;
+            gender?: GenderStats;
+        };
+    };
+    competitions: CompetitionAnalytics[];
+}
+
 export default function RegistrationAnalyticsClient() {
     const [collegeStats, setCollegeStats] = useState<any>(null);
-    const [competitions, setCompetitions] = useState<CompetitionAnalytics[]>([]);
+    const [categories, setCategories] = useState<CategoryAnalytics[]>([]);
     const [loading, setLoading] = useState(true);
-    const [expandedCompetition, setExpandedCompetition] = useState<string | null>(null);
-    const [expandedCollege, setExpandedCollege] = useState<{ competitionId: string; college: "kl" | "other" | null }>({
+    const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+    const [expandedCompetition, setExpandedCompetition] = useState<{ categoryId: string; competitionId: string | null }>({
+        categoryId: "",
+        competitionId: null,
+    });
+    const [expandedCollege, setExpandedCollege] = useState<{ categoryId: string; competitionId: string; college: "kl" | "other" | null }>({
+        categoryId: "",
         competitionId: "",
         college: null,
     });
@@ -100,9 +142,9 @@ export default function RegistrationAnalyticsClient() {
     const loadAnalytics = async () => {
         setLoading(true);
 
-        const [collegeResult, competitionResult] = await Promise.all([
+        const [collegeResult, categoryResult] = await Promise.all([
             getRegistrationStatsByCollege(),
-            getCompetitionWiseAnalytics(),
+            getCategoryWiseAnalytics(),
         ]);
 
         if (collegeResult.success) {
@@ -111,10 +153,10 @@ export default function RegistrationAnalyticsClient() {
             toast.error("Failed to load college statistics");
         }
 
-        if (competitionResult.success && competitionResult.competitions) {
-            setCompetitions(competitionResult.competitions);
+        if (categoryResult.success && categoryResult.categories) {
+            setCategories(categoryResult.categories);
         } else {
-            toast.error("Failed to load competition analytics");
+            toast.error("Failed to load category analytics");
         }
 
         setLoading(false);
@@ -356,60 +398,56 @@ export default function RegistrationAnalyticsClient() {
                     </div>
                 )}
 
-                {/* Competition-wise Breakdown */}
+                {/* Category-wise Breakdown */}
                 <div className="mb-8">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-1 h-8 bg-gradient-to-b from-red-600 to-red-800 rounded-full" />
-                        <h2 className="text-2xl sm:text-3xl font-bold text-white">Competition-wise Analytics</h2>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-white">Category-wise Analytics</h2>
                     </div>
                     <div className="space-y-3">
-                        {competitions.map((competition) => (
+                        {categories.map((category) => (
                             <div
-                                key={competition.id}
+                                key={category.id}
                                 className="bg-gradient-to-br from-[#0a0a0f] via-[#14141a] to-[#0a0a0f] border border-zinc-800/50 rounded-xl overflow-hidden shadow-lg hover:border-red-500/30 transition-all duration-300"
                             >
                                 <button
                                     onClick={() => {
-                                        const newExpanded = expandedCompetition === competition.id ? null : competition.id;
-                                        setExpandedCompetition(newExpanded);
-                                        // Reset college selection when collapsing or switching to a different competition
+                                        const newExpanded = expandedCategory === category.id ? null : category.id;
+                                        setExpandedCategory(newExpanded);
                                         if (!newExpanded) {
-                                            setExpandedCollege({ competitionId: "", college: null });
-                                        } else if (expandedCollege.competitionId && expandedCollege.competitionId !== competition.id) {
-                                            setExpandedCollege({ competitionId: "", college: null });
+                                            setExpandedCompetition({ categoryId: "", competitionId: null });
+                                            setExpandedCollege({ categoryId: "", competitionId: "", college: null });
+                                        } else if (expandedCompetition.categoryId && expandedCompetition.categoryId !== category.id) {
+                                            setExpandedCompetition({ categoryId: "", competitionId: null });
+                                            setExpandedCollege({ categoryId: "", competitionId: "", college: null });
                                         }
                                     }}
                                     className="w-full p-5 text-left hover:bg-zinc-900/30 transition-colors flex items-center justify-between group"
                                 >
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="text-lg sm:text-xl font-bold text-white">{competition.name}</h3>
-                                            <span className="text-xs px-2.5 py-1 bg-zinc-800/50 border border-zinc-700/50 rounded-md text-zinc-300 font-medium">
-                                                {competition.category}
+                                            <h3 className="text-lg sm:text-xl font-bold text-white">{category.name}</h3>
+                                            <span className="text-xs px-2.5 py-1 bg-blue-500/20 border border-blue-500/30 rounded-md text-blue-300 font-medium">
+                                                {category.competitions.length} Competition{category.competitions.length !== 1 ? 's' : ''}
                                             </span>
-                                            {competition.isGroupEvent && (
-                                                <span className="text-xs px-2.5 py-1 bg-purple-500/20 border border-purple-500/30 rounded-md text-purple-300 font-medium">
-                                                    Team Event
-                                                </span>
-                                            )}
                                         </div>
                                         <div className="flex gap-6 text-sm text-zinc-400">
                                             <span className="flex items-center gap-1.5">
                                                 <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                                                {competition.overall.total.registrations} registrations
+                                                {category.overall.total.registrations} registrations
                                             </span>
                                             <span className="flex items-center gap-1.5">
                                                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                                {competition.overall.total.participants} participants
+                                                {category.overall.total.participants} participants
                                             </span>
                                         </div>
                                     </div>
                                     <div className={`w-8 h-8 rounded-lg bg-zinc-800/50 flex items-center justify-center transition-all duration-300 group-hover:bg-red-500/10 ${
-                                        expandedCompetition === competition.id ? "bg-red-500/20" : ""
+                                        expandedCategory === category.id ? "bg-red-500/20" : ""
                                     }`}>
                                         <svg
                                             className={`w-5 h-5 text-zinc-400 transition-transform duration-300 ${
-                                                expandedCompetition === competition.id ? "rotate-180 text-red-400" : "group-hover:text-red-400"
+                                                expandedCategory === category.id ? "rotate-180 text-red-400" : "group-hover:text-red-400"
                                             }`}
                                             fill="none"
                                             stroke="currentColor"
@@ -425,13 +463,13 @@ export default function RegistrationAnalyticsClient() {
                                     </div>
                                 </button>
 
-                                {expandedCompetition === competition.id && (
+                                {expandedCategory === category.id && (
                                     <div className="p-5 sm:p-6 border-t border-zinc-800/50 bg-gradient-to-br from-zinc-900/30 to-zinc-950/30">
                                         <div className="space-y-6">
-                                            {/* Statistics Summary */}
+                                            {/* Category Statistics Summary */}
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                                                 {/* Individual Registrations Stats */}
-                                                {competition.individual.total > 0 && (
+                                                {category.individual.total > 0 && (
                                                     <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-lg p-4">
                                                         <h4 className="text-sm font-semibold text-zinc-300 mb-4 flex items-center gap-2">
                                                             <div className="w-1 h-4 bg-green-500 rounded-full"></div>
@@ -441,27 +479,27 @@ export default function RegistrationAnalyticsClient() {
                                                             <div className="flex justify-between items-center py-2 px-3 rounded-md bg-zinc-800/30">
                                                                 <span className="text-zinc-400">KL University</span>
                                                                 <span className="text-white font-semibold">
-                                                                    {competition.individual.kl}
+                                                                    {category.individual.kl}
                                                                 </span>
                                                             </div>
                                                             <div className="flex justify-between items-center py-2 px-3 rounded-md bg-zinc-800/30">
                                                                 <span className="text-zinc-400">Other Colleges</span>
                                                                 <span className="text-white font-semibold">
-                                                                    {competition.individual.other}
+                                                                    {category.individual.other}
                                                                 </span>
                                                             </div>
-                                                            {competition.individual.gender && (
+                                                            {category.individual.gender && (
                                                                 <>
                                                                     <div className="flex justify-between items-center pt-2.5 mt-2.5 border-t border-zinc-800/50 py-2 px-3 rounded-md bg-zinc-800/20">
                                                                         <span className="text-zinc-400">Male</span>
                                                                         <span className="text-green-300 font-semibold">
-                                                                            {competition.individual.gender.total.male}
+                                                                            {category.individual.gender.total.male}
                                                                         </span>
                                                                     </div>
                                                                     <div className="flex justify-between items-center py-2 px-3 rounded-md bg-zinc-800/20">
                                                                         <span className="text-zinc-400">Female</span>
                                                                         <span className="text-pink-300 font-semibold">
-                                                                            {competition.individual.gender.total.female}
+                                                                            {category.individual.gender.total.female}
                                                                         </span>
                                                                     </div>
                                                                 </>
@@ -469,7 +507,7 @@ export default function RegistrationAnalyticsClient() {
                                                             <div className="flex justify-between items-center pt-2.5 mt-2.5 border-t border-zinc-700/50 py-2 px-3 rounded-md bg-red-500/5 border-red-500/20">
                                                                 <span className="text-zinc-300 font-medium">Total</span>
                                                                 <span className="text-white font-bold text-lg">
-                                                                    {competition.individual.total}
+                                                                    {category.individual.total}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -477,7 +515,7 @@ export default function RegistrationAnalyticsClient() {
                                                 )}
 
                                                 {/* Team Registrations Stats */}
-                                                {competition.isGroupEvent && competition.team.total.teams > 0 && (
+                                                {category.team.total.teams > 0 && (
                                                     <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-lg p-4">
                                                         <h4 className="text-sm font-semibold text-zinc-300 mb-4 flex items-center gap-2">
                                                             <div className="w-1 h-4 bg-purple-500 rounded-full"></div>
@@ -487,39 +525,39 @@ export default function RegistrationAnalyticsClient() {
                                                             <div className="flex justify-between items-center py-2 px-3 rounded-md bg-zinc-800/30">
                                                                 <span className="text-zinc-400">KL Teams</span>
                                                                 <span className="text-white font-semibold">
-                                                                    {competition.team.kl.teams}
+                                                                    {category.team.kl.teams}
                                                                 </span>
                                                             </div>
                                                             <div className="flex justify-between items-center py-2 px-3 rounded-md bg-zinc-800/30">
                                                                 <span className="text-zinc-400">KL Members</span>
                                                                 <span className="text-white font-semibold">
-                                                                    {competition.team.kl.members}
+                                                                    {category.team.kl.members}
                                                                 </span>
                                                             </div>
                                                             <div className="flex justify-between items-center py-2 px-3 rounded-md bg-zinc-800/30">
                                                                 <span className="text-zinc-400">Other Teams</span>
                                                                 <span className="text-white font-semibold">
-                                                                    {competition.team.other.teams}
+                                                                    {category.team.other.teams}
                                                                 </span>
                                                             </div>
                                                             <div className="flex justify-between items-center py-2 px-3 rounded-md bg-zinc-800/30">
                                                                 <span className="text-zinc-400">Other Members</span>
                                                                 <span className="text-white font-semibold">
-                                                                    {competition.team.other.members}
+                                                                    {category.team.other.members}
                                                                 </span>
                                                             </div>
-                                                            {competition.team.total.gender && (
+                                                            {category.team.total.gender && (
                                                                 <>
                                                                     <div className="flex justify-between items-center pt-2.5 mt-2.5 border-t border-zinc-800/50 py-2 px-3 rounded-md bg-zinc-800/20">
                                                                         <span className="text-zinc-400">Male</span>
                                                                         <span className="text-purple-300 font-semibold">
-                                                                            {competition.team.total.gender.male}
+                                                                            {category.team.total.gender.male}
                                                                         </span>
                                                                     </div>
                                                                     <div className="flex justify-between items-center py-2 px-3 rounded-md bg-zinc-800/20">
                                                                         <span className="text-zinc-400">Female</span>
                                                                         <span className="text-pink-300 font-semibold">
-                                                                            {competition.team.total.gender.female}
+                                                                            {category.team.total.gender.female}
                                                                         </span>
                                                                     </div>
                                                                 </>
@@ -527,13 +565,13 @@ export default function RegistrationAnalyticsClient() {
                                                             <div className="flex justify-between items-center pt-2.5 mt-2.5 border-t border-zinc-700/50 py-2 px-3 rounded-md bg-purple-500/5 border-purple-500/20">
                                                                 <span className="text-zinc-300 font-medium">Total Teams</span>
                                                                 <span className="text-white font-bold text-lg">
-                                                                    {competition.team.total.teams}
+                                                                    {category.team.total.teams}
                                                                 </span>
                                                             </div>
                                                             <div className="flex justify-between items-center py-2 px-3 rounded-md bg-purple-500/5 border-purple-500/20">
                                                                 <span className="text-zinc-300 font-medium">Total Members</span>
                                                                 <span className="text-white font-bold text-lg">
-                                                                    {competition.team.total.members}
+                                                                    {category.team.total.members}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -552,15 +590,15 @@ export default function RegistrationAnalyticsClient() {
                                                                 KL University
                                                             </div>
                                                             <div className="text-2xl font-bold text-white mb-1">
-                                                                {competition.overall.kl.registrations}
+                                                                {category.overall.kl.registrations}
                                                             </div>
                                                             <div className="text-sm text-zinc-400 mb-2">
-                                                                registrations • {competition.overall.kl.participants} participants
+                                                                registrations • {category.overall.kl.participants} participants
                                                             </div>
-                                                            {competition.overall.kl.gender && (
+                                                            {category.overall.kl.gender && (
                                                                 <div className="flex gap-4 text-xs text-zinc-500 mt-2 pt-2 border-t border-zinc-800/50">
-                                                                    <span>M: <span className="text-red-300 font-semibold">{competition.overall.kl.gender.male}</span></span>
-                                                                    <span>F: <span className="text-pink-300 font-semibold">{competition.overall.kl.gender.female}</span></span>
+                                                                    <span>M: <span className="text-red-300 font-semibold">{category.overall.kl.gender.male}</span></span>
+                                                                    <span>F: <span className="text-pink-300 font-semibold">{category.overall.kl.gender.female}</span></span>
                                                                 </div>
                                                             )}
                                                         </div>
@@ -569,15 +607,15 @@ export default function RegistrationAnalyticsClient() {
                                                                 Other Colleges
                                                             </div>
                                                             <div className="text-2xl font-bold text-white mb-1">
-                                                                {competition.overall.other.registrations}
+                                                                {category.overall.other.registrations}
                                                             </div>
                                                             <div className="text-sm text-zinc-400 mb-2">
-                                                                registrations • {competition.overall.other.participants} participants
+                                                                registrations • {category.overall.other.participants} participants
                                                             </div>
-                                                            {competition.overall.other.gender && (
+                                                            {category.overall.other.gender && (
                                                                 <div className="flex gap-4 text-xs text-zinc-500 mt-2 pt-2 border-t border-zinc-800/50">
-                                                                    <span>M: <span className="text-blue-300 font-semibold">{competition.overall.other.gender.male}</span></span>
-                                                                    <span>F: <span className="text-pink-300 font-semibold">{competition.overall.other.gender.female}</span></span>
+                                                                    <span>M: <span className="text-blue-300 font-semibold">{category.overall.other.gender.male}</span></span>
+                                                                    <span>F: <span className="text-pink-300 font-semibold">{category.overall.other.gender.female}</span></span>
                                                                 </div>
                                                             )}
                                                         </div>
@@ -585,50 +623,126 @@ export default function RegistrationAnalyticsClient() {
                                                 </div>
                                             </div>
 
-                                            {/* Individual Registration Details - Clickable College Sections */}
-                                            {competition.individual.registrations && competition.individual.registrations.length > 0 && (
+                                            {/* Competitions within Category */}
+                                            {category.competitions.length > 0 && (
                                                 <div className="mt-6 pt-6 border-t border-zinc-800/50">
                                                     <h4 className="text-sm font-semibold text-zinc-300 mb-4 flex items-center gap-2">
-                                                        <div className="w-1 h-4 bg-green-500 rounded-full"></div>
-                                                        Individual Registration Details
+                                                        <div className="w-1 h-4 bg-amber-500 rounded-full"></div>
+                                                        Competitions in {category.name}
                                                     </h4>
-                                                    <div className="flex gap-3 mb-4">
-                                                        <button
-                                                            onClick={() =>
-                                                                setExpandedCollege(
-                                                                    expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
-                                                                        ? { competitionId: "", college: null }
-                                                                        : { competitionId: competition.id, college: "kl" }
-                                                                )
-                                                            }
-                                                            className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                                                                expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
-                                                                    ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-500/20 border border-red-500/30"
-                                                                    : "bg-zinc-800/50 text-zinc-300 hover:bg-zinc-700/50 border border-zinc-700/50"
-                                                            }`}
-                                                        >
-                                                            KL University ({competition.individual.kl})
-                                                        </button>
-                                                        <button
-                                                            onClick={() =>
-                                                                setExpandedCollege(
-                                                                    expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
-                                                                        ? { competitionId: "", college: null }
-                                                                        : { competitionId: competition.id, college: "other" }
-                                                                )
-                                                            }
-                                                            className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                                                                expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
-                                                                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/20 border border-blue-500/30"
-                                                                    : "bg-zinc-800/50 text-zinc-300 hover:bg-zinc-700/50 border border-zinc-700/50"
-                                                            }`}
-                                                        >
-                                                            Other Colleges ({competition.individual.other})
-                                                        </button>
-                                                    </div>
+                                                    <div className="space-y-3">
+                                                        {category.competitions.map((competition) => (
+                                                            <div
+                                                                key={competition.id}
+                                                                className="bg-zinc-900/40 border border-zinc-800/50 rounded-lg overflow-hidden"
+                                                            >
+                                                                <button
+                                                                    onClick={() => {
+                                                                        const newExpanded = expandedCompetition.categoryId === category.id && expandedCompetition.competitionId === competition.id
+                                                                            ? { categoryId: "", competitionId: null }
+                                                                            : { categoryId: category.id, competitionId: competition.id };
+                                                                        setExpandedCompetition(newExpanded);
+                                                                        if (!newExpanded.competitionId) {
+                                                                            setExpandedCollege({ categoryId: "", competitionId: "", college: null });
+                                                                        } else if (expandedCollege.competitionId && expandedCollege.competitionId !== competition.id) {
+                                                                            setExpandedCollege({ categoryId: "", competitionId: "", college: null });
+                                                                        }
+                                                                    }}
+                                                                    className="w-full p-4 text-left hover:bg-zinc-800/30 transition-colors flex items-center justify-between group"
+                                                                >
+                                                                    <div className="flex-1">
+                                                                        <div className="flex items-center gap-3 mb-1">
+                                                                            <h5 className="text-base font-bold text-white">{competition.name}</h5>
+                                                                            {competition.isGroupEvent && (
+                                                                                <span className="text-xs px-2 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded-md text-purple-300 font-medium">
+                                                                                    Team Event
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="flex gap-4 text-xs text-zinc-400">
+                                                                            <span>{competition.overall.total.registrations} registrations</span>
+                                                                            <span>{competition.overall.total.participants} participants</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className={`w-6 h-6 rounded-lg bg-zinc-800/50 flex items-center justify-center transition-all duration-300 ${
+                                                                        expandedCompetition.categoryId === category.id && expandedCompetition.competitionId === competition.id ? "bg-amber-500/20" : ""
+                                                                    }`}>
+                                                                        <svg
+                                                                            className={`w-4 h-4 text-zinc-400 transition-transform duration-300 ${
+                                                                                expandedCompetition.categoryId === category.id && expandedCompetition.competitionId === competition.id ? "rotate-180 text-amber-400" : ""
+                                                                            }`}
+                                                                            fill="none"
+                                                                            stroke="currentColor"
+                                                                            viewBox="0 0 24 24"
+                                                                        >
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                                        </svg>
+                                                                    </div>
+                                                                </button>
 
-                                                    {/* Show table only when a college is selected */}
-                                                    {expandedCollege.competitionId === competition.id && expandedCollege.college && (
+                                                                {expandedCompetition.categoryId === category.id && expandedCompetition.competitionId === competition.id && (
+                                                                    <div className="p-4 border-t border-zinc-800/50 bg-zinc-950/30">
+                                                                        <div className="space-y-4">
+                                                                            {/* Competition Statistics */}
+                                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                                                <div className="bg-zinc-800/30 rounded-lg p-3">
+                                                                                    <div className="text-xs text-zinc-400 mb-1">Individual</div>
+                                                                                    <div className="text-lg font-bold text-white">{competition.individual.total}</div>
+                                                                                    <div className="text-xs text-zinc-500 mt-1">KL: {competition.individual.kl} | Other: {competition.individual.other}</div>
+                                                                                </div>
+                                                                                {competition.team.total.teams > 0 && (
+                                                                                    <div className="bg-zinc-800/30 rounded-lg p-3">
+                                                                                        <div className="text-xs text-zinc-400 mb-1">Teams</div>
+                                                                                        <div className="text-lg font-bold text-white">{competition.team.total.teams}</div>
+                                                                                        <div className="text-xs text-zinc-500 mt-1">{competition.team.total.members} members</div>
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+
+                                                                            {/* Individual Registration Details */}
+                                                                            {competition.individual.registrations && competition.individual.registrations.length > 0 && (
+                                                                                <div className="mt-4 pt-4 border-t border-zinc-800/50">
+                                                                                    <h5 className="text-xs font-semibold text-zinc-300 mb-3 flex items-center gap-2">
+                                                                                        <div className="w-1 h-3 bg-green-500 rounded-full"></div>
+                                                                                        Individual Registration Details
+                                                                                    </h5>
+                                                                                    <div className="flex gap-3 mb-4">
+                                                                                        <button
+                                                                                            onClick={() =>
+                                                                                                setExpandedCollege(
+                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
+                                                                                                        ? { categoryId: "", competitionId: "", college: null }
+                                                                                                        : { categoryId: category.id, competitionId: competition.id, college: "kl" }
+                                                                                                )
+                                                                                            }
+                                                                                            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                                                                                                expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
+                                                                                                    ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-500/20 border border-red-500/30"
+                                                                                                    : "bg-zinc-800/50 text-zinc-300 hover:bg-zinc-700/50 border border-zinc-700/50"
+                                                                                            }`}
+                                                                                        >
+                                                                                            KL University ({competition.individual.kl})
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={() =>
+                                                                                                setExpandedCollege(
+                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
+                                                                                                        ? { categoryId: "", competitionId: "", college: null }
+                                                                                                        : { categoryId: category.id, competitionId: competition.id, college: "other" }
+                                                                                                )
+                                                                                            }
+                                                                                            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                                                                                                expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
+                                                                                                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/20 border border-blue-500/30"
+                                                                                                    : "bg-zinc-800/50 text-zinc-300 hover:bg-zinc-700/50 border border-zinc-700/50"
+                                                                                            }`}
+                                                                                        >
+                                                                                            Other Colleges ({competition.individual.other})
+                                                                                        </button>
+                                                                                    </div>
+
+                                                                                    {/* Show table only when a college is selected */}
+                                                                                    {expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college && (
                                                         <div className="overflow-x-auto rounded-lg border border-zinc-800/50 bg-zinc-900/30">
                                                             <table className="w-full text-sm">
                                                                 <thead className="bg-zinc-800/50 border-b border-zinc-800/50">
@@ -673,55 +787,55 @@ export default function RegistrationAnalyticsClient() {
                                                                         ))}
                                                                 </tbody>
                                                             </table>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                            )}
 
-                                            {/* Team Registration Details - Clickable College Sections */}
-                                            {competition.team.registrations && competition.team.registrations.length > 0 && (
-                                                <div className="mt-6 pt-6 border-t border-zinc-800/50">
-                                                    <h4 className="text-sm font-semibold text-zinc-300 mb-4 flex items-center gap-2">
-                                                        <div className="w-1 h-4 bg-purple-500 rounded-full"></div>
-                                                        Team Registration Details
-                                                    </h4>
-                                                    <div className="flex gap-3 mb-4">
-                                                        <button
-                                                            onClick={() =>
-                                                                setExpandedCollege(
-                                                                    expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
-                                                                        ? { competitionId: "", college: null }
-                                                                        : { competitionId: competition.id, college: "kl" }
-                                                                )
-                                                            }
-                                                            className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                                                                expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
-                                                                    ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-500/20 border border-red-500/30"
-                                                                    : "bg-zinc-800/50 text-zinc-300 hover:bg-zinc-700/50 border border-zinc-700/50"
-                                                            }`}
-                                                        >
-                                                            KL Teams ({competition.team.kl.teams})
-                                                        </button>
-                                                        <button
-                                                            onClick={() =>
-                                                                setExpandedCollege(
-                                                                    expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
-                                                                        ? { competitionId: "", college: null }
-                                                                        : { competitionId: competition.id, college: "other" }
-                                                                )
-                                                            }
-                                                            className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                                                                expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
-                                                                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/20 border border-blue-500/30"
-                                                                    : "bg-zinc-800/50 text-zinc-300 hover:bg-zinc-700/50 border border-zinc-700/50"
-                                                            }`}
-                                                        >
-                                                            Other Teams ({competition.team.other.teams})
-                                                        </button>
-                                                    </div>
+                                                                            {/* Team Registration Details */}
+                                                                            {competition.team.registrations && competition.team.registrations.length > 0 && (
+                                                                                <div className="mt-4 pt-4 border-t border-zinc-800/50">
+                                                                                    <h5 className="text-xs font-semibold text-zinc-300 mb-3 flex items-center gap-2">
+                                                                                        <div className="w-1 h-3 bg-purple-500 rounded-full"></div>
+                                                                                        Team Registration Details
+                                                                                    </h5>
+                                                                                    <div className="flex gap-3 mb-4">
+                                                                                        <button
+                                                                                            onClick={() =>
+                                                                                                setExpandedCollege(
+                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
+                                                                                                        ? { categoryId: "", competitionId: "", college: null }
+                                                                                                        : { categoryId: category.id, competitionId: competition.id, college: "kl" }
+                                                                                                )
+                                                                                            }
+                                                                                            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                                                                                                expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "kl"
+                                                                                                    ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-500/20 border border-red-500/30"
+                                                                                                    : "bg-zinc-800/50 text-zinc-300 hover:bg-zinc-700/50 border border-zinc-700/50"
+                                                                                            }`}
+                                                                                        >
+                                                                                            KL Teams ({competition.team.kl.teams})
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={() =>
+                                                                                                setExpandedCollege(
+                                                                                                    expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
+                                                                                                        ? { categoryId: "", competitionId: "", college: null }
+                                                                                                        : { categoryId: category.id, competitionId: competition.id, college: "other" }
+                                                                                                )
+                                                                                            }
+                                                                                            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                                                                                                expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college === "other"
+                                                                                                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/20 border border-blue-500/30"
+                                                                                                    : "bg-zinc-800/50 text-zinc-300 hover:bg-zinc-700/50 border border-zinc-700/50"
+                                                                                            }`}
+                                                                                        >
+                                                                                            Other Teams ({competition.team.other.teams})
+                                                                                        </button>
+                                                                                    </div>
 
-                                                    {/* Show teams only when a college is selected */}
-                                                    {expandedCollege.competitionId === competition.id && expandedCollege.college && (
+                                                                                    {/* Show teams only when a college is selected */}
+                                                                                    {expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college && (
                                                         <div className="space-y-4">
                                                             {competition.team.registrations
                                                                 .filter((reg: any) => {
@@ -787,8 +901,16 @@ export default function RegistrationAnalyticsClient() {
                                                                         </div>
                                                                     );
                                                                 })}
-                                                        </div>
-                                                    )}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
