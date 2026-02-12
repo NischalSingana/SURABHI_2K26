@@ -210,17 +210,6 @@ export default function RegistrationAnalyticsClient() {
                                         </p>
                                     </div>
                                     
-                                    {/* Quick stats badge */}
-                                    {collegeStats && (
-                                        <div className="hidden lg:flex flex-col items-end gap-2">
-                                            <div className="px-4 py-2 bg-gradient-to-br from-red-500/10 to-red-600/5 border border-red-500/20 rounded-lg backdrop-blur-sm">
-                                                <div className="text-xs text-zinc-400 uppercase tracking-wider mb-1">Total Registrations</div>
-                                                <div className="text-2xl font-bold text-white">
-                                                    {collegeStats.overall.total.registrations.toLocaleString()}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
                                 
                                 {/* Info badges */}
@@ -250,7 +239,7 @@ export default function RegistrationAnalyticsClient() {
 
                 {/* Enhanced Overall Statistics */}
                 {collegeStats && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-10 sm:mb-14">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-10 sm:mb-14">
                         {/* Total Participants - Enhanced */}
                         <div className="relative group bg-gradient-to-br from-[#0a0a0f] via-[#14141a] to-[#0a0a0f] border border-blue-500/20 rounded-2xl p-6 sm:p-7 shadow-xl shadow-blue-500/5 hover:shadow-2xl hover:shadow-blue-500/15 hover:border-blue-500/40 transition-all duration-500 overflow-hidden">
                             {/* Animated gradient overlay */}
@@ -450,72 +439,6 @@ export default function RegistrationAnalyticsClient() {
                                                 </div>
                                                 <span className="text-pink-300 font-bold">
                                                     {collegeStats.team.total.gender.female.toLocaleString()}
-                                                </span>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Total Registrations - Enhanced */}
-                        <div className="relative group bg-gradient-to-br from-[#0a0a0f] via-[#14141a] to-[#0a0a0f] border border-red-500/20 rounded-2xl p-6 sm:p-7 shadow-xl shadow-red-500/5 hover:shadow-2xl hover:shadow-red-500/15 hover:border-red-500/40 transition-all duration-500 overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-br from-red-600/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-                            
-                            <div className="relative z-10">
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex-1">
-                                        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1">Total Registrations</h3>
-                                        <p className="text-3xl sm:text-4xl font-extrabold text-red-400 mb-1 leading-tight bg-gradient-to-r from-red-400 to-red-300 bg-clip-text text-transparent">
-                                            {collegeStats.overall.total.registrations.toLocaleString()}
-                                        </p>
-                                    </div>
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500/20 to-red-600/10 border border-red-500/30 flex items-center justify-center shadow-lg shadow-red-500/10 group-hover:scale-110 transition-transform duration-300">
-                                        <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div className="space-y-2.5 text-sm">
-                                    <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-gradient-to-r from-zinc-900/50 to-zinc-800/30 border border-zinc-800/50 backdrop-blur-sm hover:border-red-500/30 transition-all duration-200">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                                            <span className="text-zinc-300 font-medium">KL University</span>
-                                        </div>
-                                        <span className="text-white font-bold text-base">
-                                            {collegeStats.overall.kl.registrations.toLocaleString()}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-gradient-to-r from-zinc-900/50 to-zinc-800/30 border border-zinc-800/50 backdrop-blur-sm hover:border-red-500/30 transition-all duration-200">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                            <span className="text-zinc-300 font-medium">Other Colleges</span>
-                                        </div>
-                                        <span className="text-white font-bold text-base">
-                                            {collegeStats.overall.other.registrations.toLocaleString()}
-                                        </span>
-                                    </div>
-                                    {collegeStats.overall.total.gender && (
-                                        <>
-                                            <div className="pt-3 mt-3 border-t border-zinc-800/50">
-                                                <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-red-500/5 border border-red-500/10">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-2 h-2 rounded-full bg-red-400" />
-                                                        <span className="text-zinc-300 text-xs font-medium">Male</span>
-                                                    </div>
-                                                    <span className="text-red-300 font-bold">
-                                                        {collegeStats.overall.total.gender.male.toLocaleString()}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-pink-500/5 border border-pink-500/10">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-2 h-2 rounded-full bg-pink-400" />
-                                                    <span className="text-zinc-300 text-xs font-medium">Female</span>
-                                                </div>
-                                                <span className="text-pink-300 font-bold">
-                                                    {collegeStats.overall.total.gender.female.toLocaleString()}
                                                 </span>
                                             </div>
                                         </>
