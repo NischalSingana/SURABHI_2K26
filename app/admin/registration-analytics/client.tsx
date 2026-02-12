@@ -1346,23 +1346,3 @@ export default function RegistrationAnalyticsClient() {
         </div>
     );
 }
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-                </div>
-            </div>
-        </div>
-    );
-}
