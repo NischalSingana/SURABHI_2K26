@@ -37,29 +37,48 @@ interface TeamStats {
     members: number;
 }
 
+interface GenderStats {
+    male: number;
+    female: number;
+}
+
 interface CompetitionAnalytics {
     id: string;
     name: string;
     category: string;
     isGroupEvent: boolean;
-    individual: CollegeStats;
+    individual: {
+        kl: number;
+        other: number;
+        total: number;
+        gender?: {
+            kl: GenderStats;
+            other: GenderStats;
+            total: GenderStats;
+        };
+        registrations: any[];
+    };
     team: {
-        kl: TeamStats;
-        other: TeamStats;
-        total: TeamStats;
+        kl: TeamStats & { gender?: GenderStats };
+        other: TeamStats & { gender?: GenderStats };
+        total: TeamStats & { gender?: GenderStats };
+        registrations: any[];
     };
     overall: {
         kl: {
             registrations: number;
             participants: number;
+            gender?: GenderStats;
         };
         other: {
             registrations: number;
             participants: number;
+            gender?: GenderStats;
         };
         total: {
             registrations: number;
             participants: number;
+            gender?: GenderStats;
         };
     };
 }
