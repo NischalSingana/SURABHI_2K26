@@ -10,7 +10,7 @@ export async function createSchedule(image: string) {
     try {
         const headersList = await headers();
         const session = await auth.api.getSession({ headers: headersList });
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
             return { success: false, error: "Unauthorized" };
         }
 
@@ -46,7 +46,7 @@ export async function deleteSchedule(id: string) {
     try {
         const headersList = await headers();
         const session = await auth.api.getSession({ headers: headersList });
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
             return { success: false, error: "Unauthorized" };
         }
 
