@@ -85,7 +85,7 @@ async function SessionData() {
           <ReturnButton href="/" label="Home" />
           {["ADMIN", "MASTER", "MANAGER", "GOD"].includes(session.user.role) && (
             <Link
-              href="/admin/dashboard"
+              href={session.user.role === "GOD" ? "/admin/registration-analytics" : "/admin/dashboard"}
               className="px-6 py-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-300 font-medium hover:bg-amber-500/20 transition-all"
             >
               {session.user.role === "MASTER"
