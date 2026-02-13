@@ -294,7 +294,8 @@ export async function getCategoryWiseAnalytics() {
             },
         });
 
-        const categoryAnalytics = categories.map((category) => {
+        const categoryAnalytics = await Promise.all(
+            categories.map(async (category) => {
             // Aggregate all events in this category
             let categoryKlIndividual = 0;
             let categoryOtherIndividual = 0;
@@ -310,6 +311,48 @@ export async function getCategoryWiseAnalytics() {
             let categoryKlTeamFemale = 0;
             let categoryOtherTeamMale = 0;
             let categoryOtherTeamFemale = 0;
+
+            // Collect all team member phone numbers for batch lookup
+            const allMemberPhones = new Set<string>();
+            category.Event.forEach((event) => {
+                event.groupRegistrations.forEach((reg) => {
+                    const members = reg.members as Record<string, any> | null;
+                    if (members) {
+                        Object.values(members).forEach((member: any) => {
+                            if (member?.phone) {
+                                allMemberPhones.add(member.phone);
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Batch fetch all users by phone numbers
+            const usersByPhone = new Map<string, { collageId: string | null; branch: string | null; year: string | null }>();
+            if (allMemberPhones.size > 0) {
+                const users = await prisma.user.findMany({
+                    where: {
+                        phone: {
+                            in: Array.from(allMemberPhones),
+                        },
+                    },
+                    select: {
+                        phone: true,
+                        collageId: true,
+                        branch: true,
+                        year: true,
+                    },
+                });
+                users.forEach((user) => {
+                    if (user.phone) {
+                        usersByPhone.set(user.phone, {
+                            collageId: user.collageId,
+                            branch: user.branch,
+                            year: user.year,
+                        });
+                    }
+                });
+            }
 
             // Process each event in the category
             const competitions = category.Event.map((event) => {
@@ -463,24 +506,53 @@ export async function getCategoryWiseAnalytics() {
                             female: klTeamFemale + otherTeamFemale,
                         },
                     },
-                    registrations: event.groupRegistrations.map((reg) => ({
-                        id: reg.id,
-                        groupName: reg.groupName,
-                        members: reg.members,
-                        createdAt: reg.createdAt,
-                        user: {
-                            id: reg.user.id,
-                            name: reg.user.name,
-                            email: reg.user.email,
-                            collage: reg.user.collage,
-                            collageId: reg.user.collageId,
-                            branch: reg.user.branch,
-                            year: reg.user.year,
-                            phone: reg.user.phone,
-                            gender: reg.user.gender,
-                            isInternational: reg.user.isInternational,
-                        },
-                    })),
+                    registrations: event.groupRegistrations.map((reg) => {
+                        // Enrich members data by looking up users from the batch lookup map
+                        const members = reg.members as Record<string, any> | null;
+                        let enrichedMembers = members;
+                        
+                        if (members) {
+                            const memberEntries = Object.entries(members);
+                            const enrichedMemberEntries = memberEntries.map(([key, member]: [string, any]) => {
+                                if (member?.phone) {
+                                    const userData = usersByPhone.get(member.phone);
+                                    // Enrich member data with user details if found
+                                    return [
+                                        key,
+                                        {
+                                            ...member,
+                                            collageId: userData?.collageId || member.collageId || null,
+                                            branch: userData?.branch || member.branch || null,
+                                            year: userData?.year || member.year || null,
+                                        },
+                                    ];
+                                }
+                                return [key, member];
+                            });
+                            
+                            // Convert back to object
+                            enrichedMembers = Object.fromEntries(enrichedMemberEntries);
+                        }
+                        
+                        return {
+                            id: reg.id,
+                            groupName: reg.groupName,
+                            members: enrichedMembers,
+                            createdAt: reg.createdAt,
+                            user: {
+                                id: reg.user.id,
+                                name: reg.user.name,
+                                email: reg.user.email,
+                                collage: reg.user.collage,
+                                collageId: reg.user.collageId,
+                                branch: reg.user.branch,
+                                year: reg.user.year,
+                                phone: reg.user.phone,
+                                gender: reg.user.gender,
+                                isInternational: reg.user.isInternational,
+                            },
+                        };
+                    }),
                 },
                 overall: {
                     kl: {
@@ -588,7 +660,8 @@ export async function getCategoryWiseAnalytics() {
                 },
                 competitions: competitions,
             };
-        });
+            })
+        );
 
         return {
             success: true,

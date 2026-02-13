@@ -31,7 +31,7 @@ export default function AdminLayoutWrapper({
   }
 
   const allNavLinks = [
-    { href: "/admin/dashboard", label: "Dashboard", roles: ["ADMIN", "MASTER", "GOD"] },
+    { href: "/admin/dashboard", label: "Dashboard", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/competitions", label: "Competitions", roles: ["ADMIN", "MANAGER", "MASTER"] },
     { href: "/admin/users", label: "Users", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/accommodation", label: "Stay", roles: ["ADMIN", "MASTER"] },
@@ -52,7 +52,10 @@ export default function AdminLayoutWrapper({
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-12 sm:h-14">
             <div className="flex items-center flex-1 min-w-0">
-              <Link href="/admin/dashboard" className="text-white font-bold text-xl shrink-0">
+              <Link 
+                href={session?.user?.role === "GOD" ? "/admin/registration-analytics" : "/admin/dashboard"} 
+                className="text-white font-bold text-xl shrink-0"
+              >
                 {session?.user?.role === "MASTER"
                     ? "Master Panel"
                     : session?.user?.role === "GOD"

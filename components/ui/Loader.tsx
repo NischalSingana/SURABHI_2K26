@@ -59,7 +59,7 @@ export default function Loader() {
                     className="relative w-48 h-48 md:w-64 md:h-64"
                 >
                     <Image
-                        src="/images/surabhi.png"
+                        src="/images/surabhi1.png"
                         alt="Surabhi Loader"
                         fill
                         sizes="(max-width: 768px) 192px, 256px"
@@ -74,19 +74,15 @@ export default function Loader() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
-                className="-mt-4 text-center"
+                className="mt-4 md:mt-6 text-center space-y-1"
             >
-                <h1 className="text-2xl md:text-3xl font-bold tracking-[0.2em] text-white">
-                    SURABHI-2026
-                    <span className="text-red-500">.</span>
-                </h1>
                 <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: "100%" }}
                     transition={{ delay: 0.6, duration: 0.8 }}
-                    className="h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent mt-2 mx-auto max-w-[120px]"
+                    className="h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent mx-auto max-w-[120px]"
                 />
-                <p className="text-zinc-500 text-xs tracking-widest mt-2 uppercase">
+                <p className="text-zinc-400 text-sm sm:text-base md:text-lg tracking-widest uppercase">
                     Loading Experience
                 </p>
             </motion.div>
