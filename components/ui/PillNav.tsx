@@ -329,7 +329,7 @@ const PillNav: React.FC<PillNavProps> = ({
         {/* Profile/Auth Section */}
         <div className="pill-auth-section desktop-only">
           {session?.user ? (
-            <Link href="/profile" className="pill-profile-link">
+            <Link href={session.user.role === "GOD" ? "/admin/registration-analytics" : "/profile"} className="pill-profile-link">
               <div className="pill-profile-avatar">
                 <FiUser className="pill-profile-icon" size={18} />
               </div>
@@ -400,7 +400,7 @@ const PillNav: React.FC<PillNavProps> = ({
           <li className="mobile-auth-item">
             {session?.user ? (
               <Link
-                href="/profile"
+                href={session.user.role === "GOD" ? "/admin/registration-analytics" : "/profile"}
                 className="mobile-menu-link"
                 onClick={closeMobileMenu}
               >

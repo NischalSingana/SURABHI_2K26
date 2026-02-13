@@ -528,32 +528,28 @@ export default function RegistrationAnalyticsClient() {
                                             </div>
                                         </div>
                                         <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm">
-                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900/50 border border-zinc-800/50 rounded-lg backdrop-blur-sm">
+                                            <div className="flex flex-wrap items-center gap-2 px-3 py-1.5 bg-zinc-900/50 border border-zinc-800/50 rounded-lg backdrop-blur-sm">
                                                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                                                 <span className="text-zinc-300 font-medium">
                                                     <span className="text-zinc-400 mr-1">Registrations:</span>
-                                                    <span className="text-white font-bold">{category.overall.total.registrations.toLocaleString()}</span>
+                                                    <span className="text-green-300">Individual: {category.individual.total.toLocaleString()}</span>
+                                                    <span className="text-zinc-500 mx-1">•</span>
+                                                    <span className="text-purple-300">Group: {category.team.total.teams.toLocaleString()}</span>
+                                                    <span className="text-zinc-500 mx-1">•</span>
+                                                    <span className="text-white font-bold">Total: {category.overall.total.registrations.toLocaleString()}</span>
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900/50 border border-zinc-800/50 rounded-lg backdrop-blur-sm">
+                                            <div className="flex flex-wrap items-center gap-2 px-3 py-1.5 bg-zinc-900/50 border border-zinc-800/50 rounded-lg backdrop-blur-sm">
                                                 <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                                                 <span className="text-zinc-300 font-medium">
-                                                    <span className="text-zinc-400 mr-1">Participants:</span>
-                                                    <span className="text-white font-bold">{category.overall.total.participants.toLocaleString()}</span>
+                                                    <span className="text-zinc-400 mr-1">No. of Participants:</span>
+                                                    <span className="text-green-300">Individual: {category.individual.total.toLocaleString()}</span>
+                                                    <span className="text-zinc-500 mx-1">•</span>
+                                                    <span className="text-purple-300">Group: {category.team.total.members.toLocaleString()}</span>
+                                                    <span className="text-zinc-500 mx-1">•</span>
+                                                    <span className="text-white font-bold">Total: {category.overall.total.participants.toLocaleString()}</span>
                                                 </span>
                                             </div>
-                                            {category.overall.total.gender && (
-                                                <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900/50 border border-zinc-800/50 rounded-lg backdrop-blur-sm">
-                                                    <svg className="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                                    </svg>
-                                                    <span className="text-zinc-300 text-xs">
-                                                        <span className="text-blue-300 font-semibold">{category.overall.total.gender.male.toLocaleString()}</span>
-                                                        <span className="text-zinc-500 mx-1">/</span>
-                                                        <span className="text-pink-300 font-semibold">{category.overall.total.gender.female.toLocaleString()}</span>
-                                                    </span>
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
                                     <div className={`ml-4 flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 border border-zinc-700/50 flex items-center justify-center transition-all duration-300 group-hover:bg-red-500/20 group-hover:border-red-500/30 group-hover:scale-110 shadow-lg ${
@@ -775,9 +771,13 @@ export default function RegistrationAnalyticsClient() {
                                                                     <div className="text-4xl sm:text-5xl font-extrabold text-white mb-2 bg-gradient-to-r from-blue-200 via-white to-blue-200 bg-clip-text text-transparent">
                                                                         {category.overall.other.registrations.toLocaleString()}
                                                                     </div>
-                                                                    <div className="text-sm text-blue-100 mb-4 font-bold">
-                                                                        <span className="text-blue-200">Registrations:</span> {category.overall.other.registrations.toLocaleString()} • 
-                                                                        <span className="text-blue-200 ml-1">Participants:</span> {category.overall.other.participants.toLocaleString()}
+                                                                    <div className="text-sm text-blue-100 mb-4 space-y-2 font-bold">
+                                                                        <div>
+                                                                            <span className="text-blue-200">Registrations:</span> Individual: {category.individual.other.toLocaleString()} • Group: {category.team.other.teams.toLocaleString()} • Total: {category.overall.other.registrations.toLocaleString()}
+                                                                        </div>
+                                                                        <div>
+                                                                            <span className="text-blue-200">No. of Participants:</span> Individual: {category.individual.other.toLocaleString()} • Group: {category.team.other.members.toLocaleString()} • Total: {category.overall.other.participants.toLocaleString()}
+                                                                        </div>
                                                                     </div>
                                                                     {category.overall.other.gender && (
                                                                         <div className="pt-4 border-t border-blue-500/40 flex items-center gap-4">
@@ -813,9 +813,13 @@ export default function RegistrationAnalyticsClient() {
                                                                     <div className="text-2xl sm:text-3xl font-bold text-zinc-300 mb-2">
                                                                         {category.overall.kl.registrations.toLocaleString()}
                                                                     </div>
-                                                                    <div className="text-xs text-zinc-400 mb-4 font-medium">
-                                                                        <span className="text-zinc-500">Registrations:</span> {category.overall.kl.registrations.toLocaleString()} • 
-                                                                        <span className="text-zinc-500 ml-1">Participants:</span> {category.overall.kl.participants.toLocaleString()}
+                                                                    <div className="text-xs text-zinc-400 mb-4 space-y-2 font-medium">
+                                                                        <div>
+                                                                            <span className="text-zinc-500">Registrations:</span> Individual: {category.individual.kl.toLocaleString()} • Group: {category.team.kl.teams.toLocaleString()} • Total: {category.overall.kl.registrations.toLocaleString()}
+                                                                        </div>
+                                                                        <div>
+                                                                            <span className="text-zinc-500">No. of Participants:</span> Individual: {category.individual.kl.toLocaleString()} • Group: {category.team.kl.members.toLocaleString()} • Total: {category.overall.kl.participants.toLocaleString()}
+                                                                        </div>
                                                                     </div>
                                                                     {category.overall.kl.gender && (
                                                                         <div className="pt-3 border-t border-zinc-800/50 flex items-center gap-3">
@@ -1370,9 +1374,6 @@ export default function RegistrationAnalyticsClient() {
                                                                                                                                     <thead className="bg-gradient-to-r from-zinc-900/80 to-zinc-800/60 border-b-2 border-zinc-800/70 sticky top-0 z-10">
                                                                                                                                         <tr>
                                                                                                                                             <th className="px-4 py-3 text-left text-xs font-extrabold text-zinc-300 uppercase tracking-widest whitespace-nowrap">Name</th>
-                                                                                                                                            <th className="px-4 py-3 text-left text-xs font-extrabold text-zinc-300 uppercase tracking-widest whitespace-nowrap">College ID</th>
-                                                                                                                                            <th className="px-4 py-3 text-left text-xs font-extrabold text-zinc-300 uppercase tracking-widest whitespace-nowrap">Branch</th>
-                                                                                                                                            <th className="px-4 py-3 text-left text-xs font-extrabold text-zinc-300 uppercase tracking-widest whitespace-nowrap">Year</th>
                                                                                                                                             <th className="px-4 py-3 text-left text-xs font-extrabold text-zinc-300 uppercase tracking-widest whitespace-nowrap">Gender</th>
                                                                                                                                             <th className="px-4 py-3 text-left text-xs font-extrabold text-zinc-300 uppercase tracking-widest whitespace-nowrap">Phone</th>
                                                                                                                                         </tr>
@@ -1386,15 +1387,6 @@ export default function RegistrationAnalyticsClient() {
                                                                                                                                             >
                                                                                                                                                 <td className="px-4 py-3 text-white font-semibold group-hover/member:text-white transition-colors">
                                                                                                                                                     {member.name || <span className="text-zinc-500 italic">N/A</span>}
-                                                                                                                                                </td>
-                                                                                                                                                <td className="px-4 py-3 text-zinc-300 group-hover/member:text-white transition-colors font-mono text-xs">
-                                                                                                                                                    {member.collageId || <span className="text-zinc-500 italic">N/A</span>}
-                                                                                                                                                </td>
-                                                                                                                                                <td className="px-4 py-3 text-zinc-300 group-hover/member:text-white transition-colors">
-                                                                                                                                                    {member.branch || <span className="text-zinc-500 italic">N/A</span>}
-                                                                                                                                                </td>
-                                                                                                                                                <td className="px-4 py-3 text-zinc-300 group-hover/member:text-white transition-colors">
-                                                                                                                                                    {member.year || <span className="text-zinc-500 italic">N/A</span>}
                                                                                                                                                 </td>
                                                                                                                                                 <td className="px-4 py-3">
                                                                                                                                                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-200 ${

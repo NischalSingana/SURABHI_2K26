@@ -31,6 +31,12 @@ export default function ConditionalNavbar() {
         }
 
         const checkRegistrationAndRedirect = async () => {
+            // Skip registration check for admin roles (GOD, ADMIN, MASTER, MANAGER)
+            const adminRoles = ["GOD", "ADMIN", "MASTER", "MANAGER"];
+            if (!isPending && session?.user && adminRoles.includes(session.user.role)) {
+                return;
+            }
+
             // Redirect to registration if user is authenticated but hasn't completed registration
             if (!isPending && session?.user) {
                 // First check locally based on session
@@ -72,11 +78,15 @@ export default function ConditionalNavbar() {
         checkRegistrationAndRedirect();
     }, [session, isPending, pathname, router]);
 
-    // Hide navbar on admin routes, if user is a judge, OR if registration is incomplete
+    // Hide navbar on admin routes, if user is a judge, OR if registration is incomplete (but not for admin roles)
+    const adminRoles = ["GOD", "ADMIN", "MASTER", "MANAGER"];
+    const isAdminRole = session?.user?.role && adminRoles.includes(session.user.role);
+    
     if (
         pathname?.startsWith("/admin") ||
+        pathname?.startsWith("/god") ||
         session?.user?.role === "JUDGE" ||
-        (session?.user && !isRegistrationComplete(session.user) && !isServerConfirmedRegistered)
+        (session?.user && !isAdminRole && !isRegistrationComplete(session.user) && !isServerConfirmedRegistered)
     ) {
         return null;
     }
