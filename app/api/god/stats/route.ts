@@ -24,7 +24,8 @@ export async function GET() {
             totalEvents,
             individualRegistrations,
             groupRegistrations,
-            pendingApprovals
+            pendingIndividual,
+            pendingGroup
         ] = await Promise.all([
             prisma.user.count(),
             prisma.user.count({ where: { role: "ADMIN" } }),
@@ -36,10 +37,13 @@ export async function GET() {
             prisma.groupRegistration.count(),
             prisma.individualRegistration.count({
                 where: { paymentStatus: "PENDING" }
-            }) + prisma.groupRegistration.count({
+            }),
+            prisma.groupRegistration.count({
                 where: { paymentStatus: "PENDING" }
             })
         ]);
+
+        const pendingApprovals = pendingIndividual + pendingGroup;
 
         const stats = {
             totalUsers,

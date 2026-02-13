@@ -34,7 +34,7 @@ export default function GodLoginPage() {
             }
 
             // Check if user has GOD role
-            if (data?.user?.role !== "GOD") {
+            if ((data?.user as { role?: string })?.role !== "GOD") {
                 toast.error("Access denied. God role required.");
                 setLoading(false);
                 return;

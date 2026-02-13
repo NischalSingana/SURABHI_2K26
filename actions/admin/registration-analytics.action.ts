@@ -348,7 +348,7 @@ export async function getCategoryWiseAnalytics() {
                         usersByPhone.set(user.phone, {
                             collageId: user.collageId,
                             branch: user.branch,
-                            year: user.year,
+                            year: user.year != null ? String(user.year) : null,
                         });
                     }
                 });
