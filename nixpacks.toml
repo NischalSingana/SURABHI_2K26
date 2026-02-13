@@ -1,0 +1,4 @@
+# Coolify/Nixpacks: Force Node.js 22 (Next.js 16 requires >= 20.9.0)
+# Nixpacks defaults to Node 18 - this archive provides Node 22.13.1
+[phases.setup]
+nixpkgsArchive = "51ad838b03a05b1de6f9f2a0fffecee64a9788ee"
