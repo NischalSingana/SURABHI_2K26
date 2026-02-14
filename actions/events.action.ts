@@ -627,6 +627,9 @@ interface GroupMember {
   name: string;
   phone: string;
   gender: string;
+  inGameName?: string;
+  inGameId?: string;  // Free Fire, BGMI
+  riotId?: string;    // Valorant
 }
 
 export async function getUserByEmail(email: string) {

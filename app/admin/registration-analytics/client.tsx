@@ -1305,10 +1305,14 @@ export default function RegistrationAnalyticsClient() {
                                                                                                     const isKL = isKLUniversity(reg.user);
                                                                                                     return expandedCollege.college === "kl" ? isKL : !isKL;
                                                                                                 })
-                                                                                                .map((reg: any, teamIdx: number) => {
-                                                                                                    const members = reg.members as Record<string, any> | null;
-                                                                                                    const memberList = members ? Object.values(members) : [];
-                                                                                                    return (
+                                                                                                                                .map((reg: any, teamIdx: number) => {
+                                                                                                                                    const members = reg.members as Record<string, any> | null;
+                                                                                                                                    const memberList = members ? Object.values(members) : [];
+                                                                                                                                    const rd = reg.registrationDetails as Record<string, any> | null;
+                                                                                                                                    const hasInGameId = rd?.teamLeadInGameId ?? memberList.some((m: any) => m.inGameId);
+                                                                                                                                    const hasRiotId = rd?.teamLeadRiotId ?? memberList.some((m: any) => m.riotId);
+                                                                                                                                    const hasInGameFields = hasInGameId || hasRiotId || memberList.some((m: any) => m.inGameName);
+                                                                                                                                    return (
                                                                                                         <div 
                                                                                                             key={reg.id} 
                                                                                                             className="relative group/team bg-gradient-to-br from-zinc-900/60 via-zinc-950/50 to-zinc-900/60 border-2 border-zinc-800/60 rounded-xl p-6 shadow-xl hover:shadow-2xl hover:border-purple-500/40 transition-all duration-300 overflow-hidden"
@@ -1355,6 +1359,27 @@ export default function RegistrationAnalyticsClient() {
                                                                                                                                     </svg>
                                                                                                                                     <span className="text-zinc-300 text-xs font-mono">{reg.user.phone || "N/A"}</span>
                                                                                                                                 </div>
+                                                                                                                                {(() => {
+                                                                                                                                    const rd = reg.registrationDetails as Record<string, any> | null;
+                                                                                                                                    const ign = rd?.teamLeadInGameName;
+                                                                                                                                    if (!ign) return null;
+                                                                                                                                    const isFFBGMI = rd?.teamLeadInGameId;
+                                                                                                                                    const isVal = rd?.teamLeadRiotId;
+                                                                                                                                    return (
+                                                                                                                                        <>
+                                                                                                                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-lg backdrop-blur-sm">
+                                                                                                                                                <span className="text-amber-400 text-xs font-semibold">IGN:</span>
+                                                                                                                                                <span className="text-white text-xs">{ign}</span>
+                                                                                                                                            </div>
+                                                                                                                                            {(isFFBGMI || isVal) && (
+                                                                                                                                                <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-lg backdrop-blur-sm">
+                                                                                                                                                    <span className="text-amber-400 text-xs font-semibold">{isVal ? "Riot ID:" : "In-game ID:"}</span>
+                                                                                                                                                    <span className="text-white text-xs font-mono">{isVal ? rd.teamLeadRiotId : rd.teamLeadInGameId}</span>
+                                                                                                                                                </div>
+                                                                                                                                            )}
+                                                                                                                                        </>
+                                                                                                                                    );
+                                                                                                                                })()}
                                                                                                                             </div>
                                                                                                                         </div>
                                                                                                                     </div>
@@ -1376,6 +1401,13 @@ export default function RegistrationAnalyticsClient() {
                                                                                                                                             <th className="px-4 py-3 text-left text-xs font-extrabold text-zinc-300 uppercase tracking-widest whitespace-nowrap">Name</th>
                                                                                                                                             <th className="px-4 py-3 text-left text-xs font-extrabold text-zinc-300 uppercase tracking-widest whitespace-nowrap">Gender</th>
                                                                                                                                             <th className="px-4 py-3 text-left text-xs font-extrabold text-zinc-300 uppercase tracking-widest whitespace-nowrap">Phone</th>
+                                                                                                                                            {hasInGameFields && (
+                                                                                                                                                <>
+                                                                                                                                                    <th className="px-4 py-3 text-left text-xs font-extrabold text-zinc-300 uppercase tracking-widest whitespace-nowrap">In-game Name</th>
+                                                                                                                                                    {hasInGameId && <th className="px-4 py-3 text-left text-xs font-extrabold text-zinc-300 uppercase tracking-widest whitespace-nowrap">In-game ID</th>}
+                                                                                                                                                    {hasRiotId && <th className="px-4 py-3 text-left text-xs font-extrabold text-zinc-300 uppercase tracking-widest whitespace-nowrap">Riot ID</th>}
+                                                                                                                                                </>
+                                                                                                                                            )}
                                                                                                                                         </tr>
                                                                                                                                     </thead>
                                                                                                                                     <tbody className="divide-y divide-zinc-800/50">
@@ -1411,6 +1443,23 @@ export default function RegistrationAnalyticsClient() {
                                                                                                                                                 <td className="px-4 py-3 text-zinc-300 group-hover/member:text-white transition-colors font-mono text-xs">
                                                                                                                                                     {member.phone || <span className="text-zinc-500 italic">N/A</span>}
                                                                                                                                                 </td>
+                                                                                                                                                {hasInGameFields && (
+                                                                                                                                                    <>
+                                                                                                                                                        <td className="px-4 py-3 text-amber-300 group-hover/member:text-amber-200 transition-colors text-xs">
+                                                                                                                                                            {member.inGameName || <span className="text-zinc-500 italic">-</span>}
+                                                                                                                                                        </td>
+                                                                                                                                                        {hasInGameId && (
+                                                                                                                                                            <td className="px-4 py-3 text-zinc-300 group-hover/member:text-white transition-colors font-mono text-xs">
+                                                                                                                                                                {member.inGameId || <span className="text-zinc-500 italic">-</span>}
+                                                                                                                                                            </td>
+                                                                                                                                                        )}
+                                                                                                                                                        {hasRiotId && (
+                                                                                                                                                            <td className="px-4 py-3 text-zinc-300 group-hover/member:text-white transition-colors font-mono text-xs">
+                                                                                                                                                                {member.riotId || <span className="text-zinc-500 italic">-</span>}
+                                                                                                                                                            </td>
+                                                                                                                                                        )}
+                                                                                                                                                    </>
+                                                                                                                                                )}
                                                                                                                                             </tr>
                                                                                                                                         ))}
                                                                                                                                     </tbody>

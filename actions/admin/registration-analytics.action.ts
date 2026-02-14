@@ -266,6 +266,7 @@ export async function getCategoryWiseAnalytics() {
                                 id: true,
                                 groupName: true,
                                 members: true,
+                                registrationDetails: true,
                                 createdAt: true,
                                 user: {
                                     select: {
