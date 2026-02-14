@@ -66,6 +66,7 @@ interface Event {
     mentorName: string | null;
     mentorPhone: string | null;
     members: any; // key-value JSON
+    registrationDetails?: Record<string, any> | null;
     user: {
       id: string;
       name: string | null;
@@ -1474,6 +1475,20 @@ export default function EventsManagement() {
                       <p>College: {selectedGroup.user.collage || "N/A"}</p>
                       <p>ID: {selectedGroup.user.collageId || "N/A"}</p>
                       <p>Location: {[selectedGroup.user.city, selectedGroup.user.state].filter(Boolean).join(", ") || "N/A"}</p>
+                      {(() => {
+                        const rd = (selectedGroup as any).registrationDetails as Record<string, any> | null;
+                        const ign = rd?.teamLeadInGameName;
+                        if (!ign) return null;
+                        const inGameId = rd?.teamLeadInGameId;
+                        const riotId = rd?.teamLeadRiotId;
+                        return (
+                          <div className="mt-2 pt-2 border-t border-zinc-600 space-y-1">
+                            <p className="text-amber-400 font-medium">In-game: {ign}</p>
+                            {inGameId && <p className="text-amber-400/90">In-game ID: {inGameId}</p>}
+                            {riotId && <p className="text-amber-400/90">Riot ID: {riotId}</p>}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -1496,9 +1511,11 @@ export default function EventsManagement() {
                 </h3>
 
                 <div className="space-y-3">
-                  {
-                    selectedGroup.members && (selectedGroup.members as any[]).length > 0 ? (
-                      (selectedGroup.members as any[]).map((member, idx) => (
+                  {(() => {
+                    const raw = selectedGroup.members;
+                    const memberList = Array.isArray(raw) ? raw : (raw && typeof raw === "object" ? Object.values(raw) : []);
+                    return memberList.length > 0 ? (
+                      memberList.map((member: any, idx: number) => (
                         <div key={idx} className="bg-zinc-800 p-4 rounded-lg border border-zinc-700 flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 font-bold text-sm">
@@ -1511,14 +1528,21 @@ export default function EventsManagement() {
                                 <span>•</span>
                                 <span>{member.phone}</span>
                               </div>
+                              {(member.inGameName || member.inGameId || member.riotId) && (
+                                <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-amber-400/90 mt-1.5">
+                                  {member.inGameName && <span>IGN: {member.inGameName}</span>}
+                                  {member.inGameId && <span>ID: {member.inGameId}</span>}
+                                  {member.riotId && <span>Riot: {member.riotId}</span>}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
                       ))
                     ) : (
                       <p className="text-zinc-500 italic">No additional members found in record.</p>
-                    )
-                  }
+                    );
+                  })()}
                 </div>
               </div>
 
