@@ -94,6 +94,18 @@ export default function EventRegistrationPage() {
     // Vastranaut Specific
     const [styleDNA, setStyleDNA] = useState("");
     const isVastranaut = slug?.includes("vastranaut");
+    // Kurukshetra eSports: Free Fire, BGMI (In-game name + In-game ID) or Valorant (In-game name + Riot ID)
+    const isFreeFireOrBGMI = event?.name?.toLowerCase().includes("free fire") || event?.name?.toLowerCase().includes("bgmi");
+    const isValorant = event?.name?.toLowerCase().includes("valorant");
+    const needsInGameFields = isFreeFireOrBGMI || isValorant;
+    // Team lead in-game fields
+    const [teamLeadInGameName, setTeamLeadInGameName] = useState("");
+    const [teamLeadInGameId, setTeamLeadInGameId] = useState("");
+    const [teamLeadRiotId, setTeamLeadRiotId] = useState("");
+    // Member in-game fields (for add form)
+    const [currentMemberInGameName, setCurrentMemberInGameName] = useState("");
+    const [currentMemberInGameId, setCurrentMemberInGameId] = useState("");
+    const [currentMemberRiotId, setCurrentMemberRiotId] = useState("");
     const styleDNAOptions = [
         "Street Rebel",
         "Luxe Minimalist",
@@ -224,6 +236,37 @@ export default function EventRegistrationPage() {
                 toast.error("Please select a Style DNA for Vastranaut competition");
                 return;
             }
+
+            // Validate Kurukshetra eSports in-game fields
+            if (needsInGameFields) {
+                if (!teamLeadInGameName?.trim()) {
+                    toast.error("Please enter your In-game name (Team Lead)");
+                    return;
+                }
+                if (isFreeFireOrBGMI && !teamLeadInGameId?.trim()) {
+                    toast.error("Please enter your In-game ID (Team Lead)");
+                    return;
+                }
+                if (isValorant && !teamLeadRiotId?.trim()) {
+                    toast.error("Please enter your Riot ID (Team Lead)");
+                    return;
+                }
+                for (let i = 0; i < teamMembers.length; i++) {
+                    const m = teamMembers[i] as any;
+                    if (!m.inGameName?.trim()) {
+                        toast.error(`Please enter In-game name for member: ${m.name}`);
+                        return;
+                    }
+                    if (isFreeFireOrBGMI && !m.inGameId?.trim()) {
+                        toast.error(`Please enter In-game ID for member: ${m.name}`);
+                        return;
+                    }
+                    if (isValorant && !m.riotId?.trim()) {
+                        toast.error(`Please enter Riot ID for member: ${m.name}`);
+                        return;
+                    }
+                }
+            }
         }
 
         // KL and International: free; others need payment
@@ -274,13 +317,19 @@ export default function EventRegistrationPage() {
 
             let result;
             if (event.isGroupEvent) {
+                const regDetails: Record<string, any> = isVastranaut ? { styleDNA } : {};
+                if (needsInGameFields) {
+                    regDetails.teamLeadInGameName = teamLeadInGameName?.trim();
+                    if (isFreeFireOrBGMI) regDetails.teamLeadInGameId = teamLeadInGameId?.trim();
+                    if (isValorant) regDetails.teamLeadRiotId = teamLeadRiotId?.trim();
+                }
                 result = await registerGroupEvent(
                     event.id,
                     groupName,
                     teamMembers,
                     mentorName,
                     mentorPhone,
-                    isVastranaut ? { styleDNA } : undefined,
+                    Object.keys(regDetails).length ? regDetails : undefined,
                     paymentData,
                     isVirtual
                 );
@@ -326,6 +375,35 @@ export default function EventRegistrationPage() {
                 toast.error(`Please add details for all ${requiredMembers} additional members`);
                 return;
             }
+            if (needsInGameFields) {
+                if (!teamLeadInGameName?.trim()) {
+                    toast.error("Please enter your In-game name (Team Lead)");
+                    return;
+                }
+                if (isFreeFireOrBGMI && !teamLeadInGameId?.trim()) {
+                    toast.error("Please enter your In-game ID (Team Lead)");
+                    return;
+                }
+                if (isValorant && !teamLeadRiotId?.trim()) {
+                    toast.error("Please enter your Riot ID (Team Lead)");
+                    return;
+                }
+                for (let i = 0; i < teamMembers.length; i++) {
+                    const m = teamMembers[i] as any;
+                    if (!m.inGameName?.trim()) {
+                        toast.error(`Please enter In-game name for member: ${m.name}`);
+                        return;
+                    }
+                    if (isFreeFireOrBGMI && !m.inGameId?.trim()) {
+                        toast.error(`Please enter In-game ID for member: ${m.name}`);
+                        return;
+                    }
+                    if (isValorant && !m.riotId?.trim()) {
+                        toast.error(`Please enter Riot ID for member: ${m.name}`);
+                        return;
+                    }
+                }
+            }
         }
 
         // If it's a group event, go to review step first
@@ -363,22 +441,46 @@ export default function EventRegistrationPage() {
             return;
         }
 
+        if (needsInGameFields) {
+            if (!currentMemberInGameName?.trim()) {
+                toast.error("Please enter In-game name for this member");
+                return;
+            }
+            if (isFreeFireOrBGMI && !currentMemberInGameId?.trim()) {
+                toast.error("Please enter In-game ID for this member");
+                return;
+            }
+            if (isValorant && !currentMemberRiotId?.trim()) {
+                toast.error("Please enter Riot ID for this member");
+                return;
+            }
+        }
+
         // Check team size limit
         if (teamMembers.length >= (teamSize - 1)) {
             toast.error(`You have reached the team size limit of ${teamSize} (including you).`);
             return;
         }
 
-        setTeamMembers([...teamMembers, {
+        const memberObj: any = {
             name: currentMemberName.trim(),
             phone: currentMemberPhone.trim().replace(/\s+/g, ''),
             gender: currentMemberGender
-        }]);
+        };
+        if (needsInGameFields) {
+            memberObj.inGameName = currentMemberInGameName.trim();
+            if (isFreeFireOrBGMI) memberObj.inGameId = currentMemberInGameId.trim();
+            if (isValorant) memberObj.riotId = currentMemberRiotId.trim();
+        }
+        setTeamMembers([...teamMembers, memberObj]);
 
         // Reset inputs
         setCurrentMemberName("");
         setCurrentMemberPhone("");
         setCurrentMemberGender("");
+        setCurrentMemberInGameName("");
+        setCurrentMemberInGameId("");
+        setCurrentMemberRiotId("");
         toast.success("Member added to list");
     };
 
@@ -389,10 +491,13 @@ export default function EventRegistrationPage() {
     };
 
     const editMember = (index: number) => {
-        const member = teamMembers[index];
+        const member = teamMembers[index] as any;
         setCurrentMemberName(member.name);
         setCurrentMemberPhone(member.phone);
         setCurrentMemberGender(member.gender);
+        setCurrentMemberInGameName(member.inGameName || "");
+        setCurrentMemberInGameId(member.inGameId || "");
+        setCurrentMemberRiotId(member.riotId || "");
         removeMember(index);
         toast.info("Editing member details...");
     };
@@ -541,6 +646,12 @@ export default function EventRegistrationPage() {
                                                     <span className="bg-red-600/20 text-red-500 text-xs px-2 py-0.5 rounded font-bold uppercase">Team Lead</span>
                                                 </div>
                                                 <p className="text-xs text-zinc-400">{session.user.email}</p>
+                                                {needsInGameFields && teamLeadInGameName && (
+                                                    <p className="text-xs text-amber-400/90 mt-1">
+                                                        {isFreeFireOrBGMI && `IGN: ${teamLeadInGameName} • ID: ${teamLeadInGameId || "-"}`}
+                                                        {isValorant && `IGN: ${teamLeadInGameName} • Riot: ${teamLeadRiotId || "-"}`}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
 
@@ -552,6 +663,12 @@ export default function EventRegistrationPage() {
                                                         <span className="text-white font-medium">{member.name}</span>
                                                     </div>
                                                     <p className="text-xs text-zinc-400">{member.gender} • {member.phone}</p>
+                                                    {needsInGameFields && (member as any).inGameName && (
+                                                        <p className="text-xs text-amber-400/90 mt-1">
+                                                            {isFreeFireOrBGMI && `IGN: ${(member as any).inGameName} • ID: ${(member as any).inGameId || "-"}`}
+                                                            {isValorant && `IGN: ${(member as any).inGameName} • Riot: ${(member as any).riotId || "-"}`}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}
@@ -576,8 +693,8 @@ export default function EventRegistrationPage() {
                         </div>
                     ) : (
                         <div className="space-y-8">
-                            {/* ID Card Mandatory Warning - not for virtual participation */}
-                            {!isVirtual && !isInternational && (
+                            {/* ID Card Mandatory Warning - not for virtual, international, or KL users */}
+                            {!isVirtual && !isInternational && !isKLStudent && (
                             <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-4">
                                 <div className="flex items-start gap-3">
                                     <div className="text-red-500 text-xl font-bold shrink-0">⚠️</div>
@@ -620,25 +737,53 @@ export default function EventRegistrationPage() {
                                         <label className="block text-sm font-medium text-zinc-300 mb-2">
                                             Total Team Size (Including You) *
                                         </label>
-                                        <input
-                                            type="number"
-                                            min={event.minTeamSize}
-                                            max={event.maxTeamSize}
-                                            value={teamSize || ""}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                if (val === "") {
-                                                    setTeamSize(0);
-                                                    return;
-                                                }
-                                                const size = parseInt(val);
-                                                if (!isNaN(size)) {
-                                                    setTeamSize(size);
-                                                }
-                                            }}
-                                            className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none transition-all"
-                                        />
-                                        <p className="text-zinc-500 text-sm mt-1">Min: {event.minTeamSize} - Max: {event.maxTeamSize}</p>
+                                        {event.minTeamSize === event.maxTeamSize ? (
+                                            <div className="px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white font-medium flex items-center gap-2">
+                                                <span className="text-zinc-400">Fixed:</span>
+                                                <span className="text-lg tabular-nums">{event.minTeamSize}</span>
+                                                <span className="text-zinc-500 text-sm">members (including you)</span>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setTeamSize((s) => Math.max(event.minTeamSize, (s || event.minTeamSize) - 1))}
+                                                    disabled={teamSize <= event.minTeamSize}
+                                                    className="shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                                >
+                                                    <span className="text-xl font-medium">−</span>
+                                                </button>
+                                                <input
+                                                    type="number"
+                                                    min={event.minTeamSize}
+                                                    max={event.maxTeamSize}
+                                                    step={1}
+                                                    value={teamSize || ""}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        if (val === "") {
+                                                            setTeamSize(event.minTeamSize);
+                                                            return;
+                                                        }
+                                                        const size = parseInt(val, 10);
+                                                        if (!isNaN(size)) {
+                                                            setTeamSize(Math.min(event.maxTeamSize, Math.max(event.minTeamSize, size)));
+                                                        }
+                                                    }}
+                                                    onWheel={(e) => e.currentTarget.blur()}
+                                                    className="flex-1 px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none transition-all text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setTeamSize((s) => Math.min(event.maxTeamSize, (s || event.minTeamSize) + 1))}
+                                                    disabled={teamSize >= event.maxTeamSize}
+                                                    className="shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                                >
+                                                    <span className="text-xl font-medium">+</span>
+                                                </button>
+                                            </div>
+                                        )}
+                                        <p className="text-zinc-500 text-sm mt-1">Min: {event.minTeamSize} – Max: {event.maxTeamSize}</p>
                                     </div>
 
                                     {/* Mentor Info */}
@@ -681,18 +826,68 @@ export default function EventRegistrationPage() {
                                     <div className="border-t border-zinc-800 pt-6">
                                         <h3 className="text-lg font-semibold text-white mb-4">Team Members</h3>
 
-                                        <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700 mb-4 flex items-center justify-between">
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span className="text-white font-medium">You</span>
-                                                    <span className="bg-red-600/20 text-red-500 text-xs px-2 py-0.5 rounded font-bold uppercase">Team Lead</span>
+                                        <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700 mb-4">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="text-white font-medium">You</span>
+                                                        <span className="bg-red-600/20 text-red-500 text-xs px-2 py-0.5 rounded font-bold uppercase">Team Lead</span>
+                                                    </div>
+                                                    <p className="text-xs text-zinc-500">{session.user.email}</p>
                                                 </div>
-                                                <p className="text-xs text-zinc-500">{session.user.email}</p>
                                             </div>
+                                            {needsInGameFields && (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-zinc-700">
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-zinc-400 mb-1">In-game Name *</label>
+                                                        <input
+                                                            type="text"
+                                                            value={teamLeadInGameName}
+                                                            onChange={(e) => setTeamLeadInGameName(e.target.value)}
+                                                            placeholder="Your in-game name"
+                                                            className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-red-600 outline-none"
+                                                        />
+                                                    </div>
+                                                    {isFreeFireOrBGMI && (
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-zinc-400 mb-1">In-game ID *</label>
+                                                            <input
+                                                                type="text"
+                                                                value={teamLeadInGameId}
+                                                                onChange={(e) => setTeamLeadInGameId(e.target.value)}
+                                                                placeholder="Your in-game ID"
+                                                                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-red-600 outline-none"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    {isValorant && (
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-zinc-400 mb-1">Riot ID *</label>
+                                                            <input
+                                                                type="text"
+                                                                value={teamLeadRiotId}
+                                                                onChange={(e) => setTeamLeadRiotId(e.target.value)}
+                                                                placeholder="e.g. name#tag"
+                                                                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-red-600 outline-none"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
 
-                                        <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-lg mb-4">
-                                            <label className="block text-sm font-medium text-zinc-300 mb-3">Add Team Member</label>
+                                        <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-5 mb-4 shadow-lg">
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <div className="w-8 h-8 rounded-lg bg-red-600/20 border border-red-500/40 flex items-center justify-center">
+                                                    <FiUsers className="text-red-400" size={16} />
+                                                </div>
+                                                <label className="text-sm font-semibold text-zinc-200">Add Team Member</label>
+                                                {teamSize > 0 && (
+                                                    <span className="text-xs text-zinc-500 ml-auto">
+                                                        {teamMembers.length} / {Math.max(0, teamSize - 1)} added
+                                                    </span>
+                                                )}
+                                            </div>
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                                                 <input
                                                     type="text"
@@ -732,11 +927,51 @@ export default function EventRegistrationPage() {
                                                     <option value="Other">Other</option>
                                                 </select>
                                             </div>
+                                            {needsInGameFields && (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 col-span-1 md:col-span-3">
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-zinc-400 mb-1">In-game Name *</label>
+                                                        <input
+                                                            type="text"
+                                                            value={currentMemberInGameName}
+                                                            onChange={(e) => setCurrentMemberInGameName(e.target.value)}
+                                                            placeholder="Member in-game name"
+                                                            className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-red-600 outline-none"
+                                                        />
+                                                    </div>
+                                                    {isFreeFireOrBGMI && (
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-zinc-400 mb-1">In-game ID *</label>
+                                                            <input
+                                                                type="text"
+                                                                value={currentMemberInGameId}
+                                                                onChange={(e) => setCurrentMemberInGameId(e.target.value)}
+                                                                placeholder="Member in-game ID"
+                                                                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-red-600 outline-none"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    {isValorant && (
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-zinc-400 mb-1">Riot ID *</label>
+                                                            <input
+                                                                type="text"
+                                                                value={currentMemberRiotId}
+                                                                onChange={(e) => setCurrentMemberRiotId(e.target.value)}
+                                                                placeholder="e.g. name#tag"
+                                                                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-red-600 outline-none"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                             <button
+                                                type="button"
                                                 onClick={addManualMember}
-                                                className="w-full px-4 py-2 bg-zinc-100 text-black font-semibold rounded-lg hover:bg-zinc-200 transition-colors flex justify-center items-center gap-2"
+                                                className="mt-4 w-full px-4 py-2.5 text-sm bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-lg transition-all duration-200 flex justify-center items-center gap-2 shadow-md shadow-red-500/20 hover:shadow-red-500/30 border border-red-500/30 hover:scale-[1.01] active:scale-[0.99]"
                                             >
-                                                <FiUsers /> Add Member
+                                                <FiUsers size={16} strokeWidth={2.5} />
+                                                Add Member
                                             </button>
                                         </div>
 
@@ -746,6 +981,12 @@ export default function EventRegistrationPage() {
                                                     <div>
                                                         <p className="text-white font-medium">{member.name}</p>
                                                         <p className="text-xs text-zinc-400">{member.gender} • {member.phone}</p>
+                                                        {needsInGameFields && (member as any).inGameName && (
+                                                            <p className="text-xs text-amber-400/90 mt-1">
+                                                                {isFreeFireOrBGMI && `IGN: ${(member as any).inGameName} • ID: ${(member as any).inGameId || "-"}`}
+                                                                {isValorant && `IGN: ${(member as any).inGameName} • Riot: ${(member as any).riotId || "-"}`}
+                                                            </p>
+                                                        )}
                                                     </div>
                                                     <div className="flex items-center gap-1">
                                                         <button
@@ -1048,6 +1289,7 @@ export default function EventRegistrationPage() {
                                                 </div>
                                             </div>
 
+                                            {(!isKLStudent || isVirtual || isInternational) && (
                                             <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800/50">
                                                 <h3 className="text-[10px] md:text-xs font-semibold text-zinc-500 mb-2 uppercase tracking-wider">
                                                     {isVirtual || isInternational ? "Virtual Participation Includes:" : "Also Includes Complimentary:"}
@@ -1086,9 +1328,10 @@ export default function EventRegistrationPage() {
                                                     )}
                                                 </ul>
                                             </div>
+                                            )}
 
-                                            {/* ID Card Mandatory Warning – not shown for virtual participation */}
-                                            {!isVirtual && !isInternational && (
+                                            {/* ID Card Mandatory Warning – not shown for virtual, international, or KL users */}
+                                            {!isVirtual && !isInternational && !isKLStudent && (
                                                 <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-3 md:p-4">
                                                     <div className="flex items-start gap-2 md:gap-3">
                                                         <div className="text-red-500 text-lg md:text-xl font-bold shrink-0">⚠️</div>
