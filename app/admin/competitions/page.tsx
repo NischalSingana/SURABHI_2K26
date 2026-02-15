@@ -40,6 +40,7 @@ interface Event {
   createdAt?: Date;
   updatedAt?: Date;
   individualRegistrations?: Array<{
+    paymentStatus?: string;
     user: {
       id: string;
       name: string | null;
@@ -67,6 +68,7 @@ interface Event {
     mentorPhone: string | null;
     members: any; // key-value JSON
     registrationDetails?: Record<string, any> | null;
+    paymentStatus?: string;
     user: {
       id: string;
       name: string | null;
@@ -984,8 +986,11 @@ export default function EventsManagement() {
             {/* Content - Scrollable (data-lenis-prevent enables native trackpad scroll) */}
             <div className="px-8 py-6 overflow-y-auto flex-1 min-h-0" data-lenis-prevent>
               {(() => {
-                const groupRegistrations = selectedEventForRegistrations.groupRegistrations || [];
-                const individualRegistrations = selectedEventForRegistrations.individualRegistrations || [];
+                // Only show registrations that have been approved (payment approved in Registrations Management)
+                const allGroupRegs = selectedEventForRegistrations.groupRegistrations || [];
+                const allIndividualRegs = selectedEventForRegistrations.individualRegistrations || [];
+                const groupRegistrations = allGroupRegs.filter((g: any) => g.paymentStatus === "APPROVED");
+                const individualRegistrations = allIndividualRegs.filter((r: any) => r.paymentStatus === "APPROVED");
 
                 // Filter out students who are team leads (already in groupRegistrations)
                 const teamLeadIds = new Set(groupRegistrations.map(g => g.user.id));

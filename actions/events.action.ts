@@ -135,6 +135,7 @@ export async function getCategories(includeFullData: boolean = true): Promise<{ 
                   mentorPhone: true,
                   members: true,
                   registrationDetails: true,
+                  paymentStatus: true,
                   user: {
                     select: {
                       id: true,
