@@ -33,7 +33,7 @@ model User {
   assignedEventId          String?
   country                  String?
   isInternational          Boolean                   @default(false)
-  accommodationBookings    AccommodationBooking?
+  accommodationBookings    AccommodationBooking[]
   accounts                 Account[]
   evaluationsGiven         Evaluation[]              @relation("JudgeEvaluations")
   evaluationsReceived      Evaluation[]              @relation("ParticipantEvaluations")
@@ -208,7 +208,7 @@ model AccommodationBooking {
   id            String        @id @default(cuid())
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  userId        String        @unique
+  userId        String
   gender        Gender
   bookingType   BookingType
   primaryName   String
@@ -222,6 +222,7 @@ model AccommodationBooking {
   status        BookingStatus @default(PENDING)
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, gender])
   @@index([paymentStatus])
   @@index([status])
   @@map("accommodation_bookings")
