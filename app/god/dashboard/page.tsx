@@ -58,7 +58,7 @@ export default function GodDashboard() {
 
     const handleLogout = async () => {
         await signOut();
-        router.push("/auth/login");
+        router.push("/");
         toast.success("Logged out successfully");
     };
 
