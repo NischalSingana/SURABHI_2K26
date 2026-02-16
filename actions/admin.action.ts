@@ -304,6 +304,37 @@ export async function updateRegistrationStatus(
                 },
             });
 
+            if (status === "REJECTED") {
+                // Cancel accommodation if user has no remaining PENDING/APPROVED physical registrations
+                const [remainingIndividual, remainingGroup] = await Promise.all([
+                    prisma.individualRegistration.count({
+                        where: {
+                            userId: registration.userId,
+                            paymentStatus: { in: ["PENDING", "APPROVED"] },
+                            isVirtual: false,
+                        },
+                    }),
+                    prisma.groupRegistration.count({
+                        where: {
+                            userId: registration.userId,
+                            paymentStatus: { in: ["PENDING", "APPROVED"] },
+                            isVirtual: false,
+                        },
+                    }),
+                ]);
+                if (remainingIndividual === 0 && remainingGroup === 0) {
+                    await prisma.accommodationBooking.updateMany({
+                        where: {
+                            userId: registration.userId,
+                            status: { notIn: ["CANCELLED", "REJECTED"] },
+                        },
+                        data: { status: "CANCELLED", paymentStatus: "REJECTED" },
+                    });
+                    revalidatePath("/accommodation");
+                    revalidatePath("/profile");
+                }
+            }
+
             if (status === "APPROVED") {
                 const userFull = await prisma.user.findUnique({
                     where: { id: registration.userId },
@@ -402,6 +433,37 @@ export async function updateRegistrationStatus(
                     teamSize: Array.isArray(registration.members) ? (registration.members as any[]).length + 1 : 1,
                 },
             });
+
+            if (status === "REJECTED") {
+                // Cancel accommodation if team lead has no remaining PENDING/APPROVED physical registrations
+                const [remainingIndividual, remainingGroup] = await Promise.all([
+                    prisma.individualRegistration.count({
+                        where: {
+                            userId: registration.userId,
+                            paymentStatus: { in: ["PENDING", "APPROVED"] },
+                            isVirtual: false,
+                        },
+                    }),
+                    prisma.groupRegistration.count({
+                        where: {
+                            userId: registration.userId,
+                            paymentStatus: { in: ["PENDING", "APPROVED"] },
+                            isVirtual: false,
+                        },
+                    }),
+                ]);
+                if (remainingIndividual === 0 && remainingGroup === 0) {
+                    await prisma.accommodationBooking.updateMany({
+                        where: {
+                            userId: registration.userId,
+                            status: { notIn: ["CANCELLED", "REJECTED"] },
+                        },
+                        data: { status: "CANCELLED", paymentStatus: "REJECTED" },
+                    });
+                    revalidatePath("/accommodation");
+                    revalidatePath("/profile");
+                }
+            }
 
             if (status === "APPROVED") {
                 const lead = await prisma.user.findUnique({
