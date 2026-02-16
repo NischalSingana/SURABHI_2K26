@@ -587,10 +587,16 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
         }
       }
 
-      // Validate country for international
+      // Validate country for international (India excluded)
       if (formData.college === "INTERNATIONAL") {
         if (!formData.country || !formData.country.trim()) {
           toast.error("Please select your country");
+          setIsSubmitting(false);
+          return;
+        }
+        const countryNorm = formData.country.trim().toLowerCase();
+        if (countryNorm === "india") {
+          toast.error("International registration is only for students from outside India. Please select KL University or Other College if you are in India.");
           setIsSubmitting(false);
           return;
         }
@@ -1206,11 +1212,11 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
                     </div>
                   )}
 
-                  {/* Country - International only: searchable dropdown */}
+                  {/* Country - International only: searchable dropdown (India excluded - domestic registration only) */}
                   {formData.college === "INTERNATIONAL" && (
                     <SearchableSelect
                       label="Country"
-                      options={COUNTRIES_WITH_DIAL.map((c) => ({
+                      options={COUNTRIES_WITH_DIAL.filter((c) => c.iso2 !== "IN" && c.name !== "India").map((c) => ({
                         value: c.name,
                         label: `${getCountryFlag(c.iso2)} ${c.name}`,
                       }))}

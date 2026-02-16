@@ -283,7 +283,7 @@ export async function updateRegistrationStatus(
                     approvedBy: session.user.id,
                     approvedAt: new Date(),
                 },
-                include: { user: true, event: true }
+                include: { user: true, event: { select: { id: true, name: true, date: true, venue: true, startTime: true, endTime: true, description: true, termsandconditions: true, virtualTermsAndConditions: true, whatsappLink: true } } }
             });
 
             // Log the approval/rejection activity
@@ -312,26 +312,31 @@ export async function updateRegistrationStatus(
                 if (!userFull) return;
 
                 const isInternational = !!userFull.isInternational;
+                const isVirtual = !!registration.isVirtual;
+                const isVirtualParticipant = isInternational || isVirtual;
+
                 (async () => {
                     try {
-                        const { generateTicketPDF } = await import("@/lib/pdf-generator");
-                        const pdfBuffer = await generateTicketPDF({
-                            userId: userFull.id,
-                            name: userFull.name || "Participant",
-                            email: userFull.email,
-                            phone: userFull.phone,
-                            collage: userFull.collage,
-                            collageId: userFull.collageId,
-                            paymentStatus: "PAID",
-                            isApproved: true,
-                            eventName: registration.event.name,
-                            isGroupEvent: false,
-                            eventId: registration.event.id,
-                            gender: userFull.gender,
-                            state: userFull.state,
-                            city: userFull.city,
-                            isInternational: isInternational || undefined,
-                        });
+                        let pdfBuffer: Buffer | null = null;
+                        if (!isVirtualParticipant) {
+                            const { generateTicketPDF } = await import("@/lib/pdf-generator");
+                            pdfBuffer = await generateTicketPDF({
+                                userId: userFull.id,
+                                name: userFull.name || "Participant",
+                                email: userFull.email,
+                                phone: userFull.phone,
+                                collage: userFull.collage,
+                                collageId: userFull.collageId,
+                                paymentStatus: "PAID",
+                                isApproved: true,
+                                eventName: registration.event.name,
+                                isGroupEvent: false,
+                                eventId: registration.event.id,
+                                gender: userFull.gender,
+                                state: userFull.state,
+                                city: userFull.city,
+                            });
+                        }
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
                         await sendEventConfirmationEmail(
                             { name: userFull.name || "User", email: userFull.email },
@@ -348,9 +353,11 @@ export async function updateRegistrationStatus(
                             {
                                 description: registration.event.description,
                                 termsAndConditions: registration.event.termsandconditions,
+                                virtualTermsAndConditions: registration.event.virtualTermsAndConditions,
                                 whatsappLink: registration.event.whatsappLink
                             },
-                            isInternational
+                            isInternational,
+                            isVirtualParticipant
                         );
                     } catch (e) {
                         console.error("Failed to send approval email", e);
@@ -375,7 +382,7 @@ export async function updateRegistrationStatus(
                     approvedBy: session.user.id,
                     approvedAt: new Date(),
                 },
-                include: { user: true, event: true }
+                include: { user: true, event: { select: { id: true, name: true, date: true, venue: true, startTime: true, endTime: true, description: true, termsandconditions: true, virtualTermsAndConditions: true, whatsappLink: true } } }
             });
 
             // Log the approval/rejection activity
@@ -406,29 +413,33 @@ export async function updateRegistrationStatus(
                 const members = registration.members as any || [];
                 const groupName = registration.groupName || "Team";
                 const isInternational = !!lead.isInternational;
+                const isVirtual = !!registration.isVirtual;
+                const isVirtualParticipant = isInternational || isVirtual;
 
                 (async () => {
                     try {
-                        const { generateTicketPDF } = await import("@/lib/pdf-generator");
-                        const pdfBuffer = await generateTicketPDF({
-                            userId: lead.id,
-                            name: lead.name || "Team Lead",
-                            email: lead.email,
-                            phone: lead.phone,
-                            collage: lead.collage,
-                            collageId: lead.collageId,
-                            paymentStatus: "PAID",
-                            isApproved: true,
-                            eventName: registration.event.name,
-                            isGroupEvent: true,
-                            groupName: groupName,
-                            teamMembers: members,
-                            eventId: registration.event.id,
-                            gender: lead.gender,
-                            state: lead.state,
-                            city: lead.city,
-                            isInternational: isInternational || undefined,
-                        });
+                        let pdfBuffer: Buffer | null = null;
+                        if (!isVirtualParticipant) {
+                            const { generateTicketPDF } = await import("@/lib/pdf-generator");
+                            pdfBuffer = await generateTicketPDF({
+                                userId: lead.id,
+                                name: lead.name || "Team Lead",
+                                email: lead.email,
+                                phone: lead.phone,
+                                collage: lead.collage,
+                                collageId: lead.collageId,
+                                paymentStatus: "PAID",
+                                isApproved: true,
+                                eventName: registration.event.name,
+                                isGroupEvent: true,
+                                groupName: groupName,
+                                teamMembers: members,
+                                eventId: registration.event.id,
+                                gender: lead.gender,
+                                state: lead.state,
+                                city: lead.city,
+                            });
+                        }
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
                         await sendEventConfirmationEmail(
                             { name: lead.name || "User", email: lead.email },
@@ -445,9 +456,11 @@ export async function updateRegistrationStatus(
                             {
                                 description: registration.event.description,
                                 termsAndConditions: registration.event.termsandconditions,
+                                virtualTermsAndConditions: registration.event.virtualTermsAndConditions,
                                 whatsappLink: registration.event.whatsappLink
                             },
-                            isInternational
+                            isInternational,
+                            isVirtualParticipant
                         );
                     } catch (e) {
                         console.error("Failed to send group approval email", e);
