@@ -24,7 +24,7 @@ import {
 } from "react-icons/fi";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { signOut } from "@/lib/auth-client";
+import { signOut, useSession } from "@/lib/auth-client";
 import { updateProfile } from "@/actions/profile.action";
 import { unregisterFromEvent } from "@/actions/events.action";
 import Image from "next/image";
@@ -92,6 +92,7 @@ export default function ProfileClient({
   hasMicrosoftAccount,
 }: ProfileClientProps) {
   const router = useRouter();
+  const { refetch: refetchSession } = useSession();
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"profile" | "events" | "pass">("profile");
@@ -164,7 +165,9 @@ export default function ProfileClient({
     if (result.success) {
       toast.success("Profile updated successfully!");
       setIsEditing(false);
-      window.location.reload();
+      // Refetch session from DB (bypass cookie cache) so UI reflects changes immediately
+      await refetchSession({ query: { disableCookieCache: true } });
+      router.refresh();
     } else {
       toast.error(result.error || "Failed to update profile");
     }

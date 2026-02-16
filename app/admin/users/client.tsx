@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getAllUsers, approveUser, rejectUser, updatePaymentStatus, updateUserRole } from "@/actions/admin/users.action";
 import { PaymentStatus, Role } from "@prisma/client";
 import { toast } from "sonner";
 import { FiSearch, FiUsers, FiGlobe, FiMapPin } from "react-icons/fi";
+import { useSession } from "@/lib/auth-client";
 
 type User = {
     id: string;
@@ -22,7 +24,9 @@ type User = {
     };
 };
 
-export default function UsersPage({ currentRole }: { currentRole: Role }) {
+export default function UsersPage({ currentRole, currentUserId }: { currentRole: Role; currentUserId?: string }) {
+    const router = useRouter();
+    const { refetch: refetchSession } = useSession();
     const isMaster = currentRole === Role.MASTER;
     const [allUsers, setAllUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -111,6 +115,11 @@ export default function UsersPage({ currentRole }: { currentRole: Role }) {
         if (result.success) {
             toast.success(result.message);
             loadUsers();
+            // If admin changed their own role, refetch session so UI reflects immediately
+            if (currentUserId && userId === currentUserId) {
+                await refetchSession({ query: { disableCookieCache: true } });
+                router.refresh();
+            }
         } else {
             toast.error(result.error);
         }
