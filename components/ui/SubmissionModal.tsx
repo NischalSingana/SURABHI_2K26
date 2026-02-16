@@ -50,11 +50,11 @@ export default function SubmissionModal({
 
         if (result.success) {
             setSuccess(true);
+            onSuccess?.();
             setTimeout(() => {
-                onSuccess?.();
                 onClose();
                 setSuccess(false);
-            }, 2000);
+            }, 600);
         } else {
             setError(result.error || "Failed to submit");
         }
@@ -80,7 +80,7 @@ export default function SubmissionModal({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                    className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[1000000] p-4"
                     onClick={handleClose}
                 >
                     <motion.div
