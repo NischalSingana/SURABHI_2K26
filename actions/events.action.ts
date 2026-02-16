@@ -103,12 +103,21 @@ export async function getCategories(includeFullData: boolean = true): Promise<{ 
                   submissionLink: true,
                   youtubeChannelName: true,
                   notes: true,
+                  updatedAt: true,
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      email: true,
+                    }
+                  }
                 },
               },
               individualRegistrations: {
                 select: {
                   id: true,
                   paymentStatus: true,
+                  isVirtual: true,
                   user: {
                     select: {
                       id: true,
@@ -136,6 +145,7 @@ export async function getCategories(includeFullData: boolean = true): Promise<{ 
                   members: true,
                   registrationDetails: true,
                   paymentStatus: true,
+                  isVirtual: true,
                   user: {
                     select: {
                       id: true,
@@ -766,50 +776,25 @@ export async function registerGroupEvent(
     revalidatePath("/events");
     revalidatePath("/profile");
 
-    // International: send virtual participation confirmation email with PDF
+    // International: send virtual participation email (no PDF) - Zoom link sent 2 days before
     if (registrationResult.success && registrationResult.paymentStatus === "APPROVED" && isInternational && registrationResult.event) {
       (async () => {
         try {
           const userFull = await prisma.user.findUnique({
             where: { id: session.user!.id },
-            select: { id: true, name: true, email: true, phone: true, collage: true, collageId: true, gender: true, state: true, city: true },
+            select: { id: true, name: true, email: true },
           });
           if (!userFull) return;
-          const { generateTicketPDF } = await import("@/lib/pdf-generator");
           const ev = registrationResult.event!;
-          const pdfBuffer = await generateTicketPDF({
-            userId: userFull.id,
-            name: userFull.name || "Team Lead",
-            email: userFull.email,
-            phone: userFull.phone,
-            collage: userFull.collage,
-            collageId: userFull.collageId,
-            paymentStatus: "APPROVED",
-            isApproved: true,
-            eventName: ev.name,
-            isGroupEvent: true,
-            groupName: registrationResult.groupName || "Team",
-            teamMembers: registrationResult.members || [],
-            eventId: ev.id,
-            gender: userFull.gender,
-            state: userFull.state,
-            city: userFull.city,
-            isInternational: true,
-          });
           const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
           await sendEventConfirmationEmail(
             { name: userFull.name || "Team Lead", email: userFull.email },
-            {
-              name: ev.name,
-              date: ev.date,
-              venue: ev.venue,
-              startTime: ev.startTime ?? undefined,
-              endTime: ev.endTime ?? undefined,
-            },
-            pdfBuffer,
+            { name: ev.name, date: ev.date, venue: "Virtual", startTime: ev.startTime ?? undefined, endTime: ev.endTime ?? undefined },
+            null,
             "GROUP",
             { groupName: registrationResult.groupName || "Team", members: registrationResult.members || [] },
-            { description: ev.description, termsAndConditions: ev.termsandconditions, whatsappLink: ev.whatsappLink },
+            { termsAndConditions: ev.termsandconditions, virtualTermsAndConditions: ev.virtualTermsAndConditions, whatsappLink: ev.whatsappLink },
+            true,
             true
           );
         } catch (e) {
@@ -1045,48 +1030,25 @@ export async function registerForEvent(
       return { success: true, message: "Registration submitted! Please wait for admin to review and approve your registration. You'll receive an email when confirmed." };
     }
 
-    // International: send virtual participation confirmation email with PDF
+    // International: send virtual participation email (no PDF) - Zoom link sent 2 days before
     if (registrationResult.success && registrationResult.paymentStatus === "APPROVED" && isInternational && registrationResult.event) {
       (async () => {
         try {
           const userFull = await prisma.user.findUnique({
             where: { id: session.user!.id },
-            select: { id: true, name: true, email: true, phone: true, collage: true, collageId: true, gender: true, state: true, city: true },
+            select: { id: true, name: true, email: true },
           });
           if (!userFull) return;
-          const { generateTicketPDF } = await import("@/lib/pdf-generator");
           const ev = registrationResult.event!;
-          const pdfBuffer = await generateTicketPDF({
-            userId: userFull.id,
-            name: userFull.name || "Participant",
-            email: userFull.email,
-            phone: userFull.phone,
-            collage: userFull.collage,
-            collageId: userFull.collageId,
-            paymentStatus: "APPROVED",
-            isApproved: true,
-            eventName: ev.name,
-            isGroupEvent: false,
-            eventId: ev.id,
-            gender: userFull.gender,
-            state: userFull.state,
-            city: userFull.city,
-            isInternational: true,
-          });
           const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
           await sendEventConfirmationEmail(
             { name: userFull.name || "Participant", email: userFull.email },
-            {
-              name: ev.name,
-              date: ev.date,
-              venue: ev.venue,
-              startTime: ev.startTime ?? undefined,
-              endTime: ev.endTime ?? undefined,
-            },
-            pdfBuffer,
+            { name: ev.name, date: ev.date, venue: "Virtual", startTime: ev.startTime ?? undefined, endTime: ev.endTime ?? undefined },
+            null,
             "INDIVIDUAL",
             undefined,
-            { description: ev.description, termsAndConditions: ev.termsandconditions, whatsappLink: ev.whatsappLink },
+            { termsAndConditions: ev.termsandconditions, virtualTermsAndConditions: ev.virtualTermsAndConditions, whatsappLink: ev.whatsappLink },
+            true,
             true
           );
         } catch (e) {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import {
   getCategories,
@@ -41,6 +41,7 @@ interface Event {
   updatedAt?: Date;
   individualRegistrations?: Array<{
     paymentStatus?: string;
+    isVirtual?: boolean;
     user: {
       id: string;
       name: string | null;
@@ -60,6 +61,12 @@ interface Event {
     submissionLink: string;
     youtubeChannelName: string | null;
     notes: string | null;
+    updatedAt?: Date;
+    user?: {
+      id: string;
+      name: string | null;
+      email: string;
+    };
   }>;
   groupRegistrations?: Array<{
     id: string;
@@ -69,6 +76,7 @@ interface Event {
     members: any; // key-value JSON
     registrationDetails?: Record<string, any> | null;
     paymentStatus?: string;
+    isVirtual?: boolean;
     user: {
       id: string;
       name: string | null;
@@ -151,6 +159,14 @@ export default function EventsManagement() {
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const [showGroupDetailsModal, setShowGroupDetailsModal] = useState(false);
 
+  // Event Registrations modal tab: KL University | Other College | International
+  const [registrationsTab, setRegistrationsTab] = useState<"kl" | "other" | "international">("kl");
+
+  // Submissions modal state
+  const [showSubmissionsModal, setShowSubmissionsModal] = useState(false);
+  const [selectedEventForSubmissions, setSelectedEventForSubmissions] = useState<Event | null>(null);
+  const [expandedSubmissionId, setExpandedSubmissionId] = useState<string | null>(null);
+
   const getSubmissionForStudent = (studentId: string) => {
     if (!selectedEventForRegistrations?.submissions) return null;
     return selectedEventForRegistrations.submissions.find(
@@ -162,21 +178,38 @@ export default function EventsManagement() {
     fetchCategoriesWithEvents();
   }, []);
 
+  useEffect(() => {
+    if (showRegistrationsModal && selectedEventForRegistrations) {
+      setRegistrationsTab("kl");
+    }
+  }, [showRegistrationsModal, selectedEventForRegistrations?.id]);
+
   const fetchCategoriesWithEvents = async () => {
     setLoading(true);
-    const result = await getCategories(true);
-    if (result.success && result.data) {
-      setCategories(result.data as Category[]);
-      // Update selected event if open
-      if (selectedEventForRegistrations) {
-        const updatedCategory = (result.data as Category[]).find((c: Category) => c.Event.find((e: Event) => e.id === selectedEventForRegistrations.id));
-        const updatedEvent = updatedCategory?.Event.find((e: Event) => e.id === selectedEventForRegistrations.id);
-        if (updatedEvent) setSelectedEventForRegistrations(updatedEvent);
+    try {
+      const result = await getCategories(true);
+      if (result.success && result.data) {
+        const data = result.data as Category[];
+        setCategories(data);
+        // Update selected event if open
+        if (selectedEventForRegistrations) {
+          const updatedCategory = data.find((c: Category) => c.Event.some((e: Event) => e.id === selectedEventForRegistrations.id));
+          const updatedEvent = updatedCategory?.Event.find((e: Event) => e.id === selectedEventForRegistrations.id);
+          if (updatedEvent) setSelectedEventForRegistrations(updatedEvent);
+        }
+        if (selectedEventForSubmissions) {
+          const updatedCategory = data.find((c: Category) => c.Event.some((e: Event) => e.id === selectedEventForSubmissions.id));
+          const updatedEvent = updatedCategory?.Event.find((e: Event) => e.id === selectedEventForSubmissions.id);
+          if (updatedEvent) setSelectedEventForSubmissions(updatedEvent);
+        }
+        return data;
+      } else if (!result.success) {
+        toast.error(result.error || "Failed to fetch categories");
       }
-    } else if (!result.success) {
-      toast.error(result.error || "Failed to fetch categories");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+    return null;
   };
 
   const handleDeleteRegistration = async (id: string, type: "INDIVIDUAL" | "GROUP") => {
@@ -209,6 +242,7 @@ export default function EventsManagement() {
       showScheduleModal ||
       showDeleteEventModal ||
       showRegistrationsModal ||
+      showSubmissionsModal ||
       showEventForm ||
       showStudentDetailsModal ||
       showGroupDetailsModal
@@ -229,6 +263,7 @@ export default function EventsManagement() {
     showScheduleModal,
     showDeleteEventModal,
     showRegistrationsModal,
+    showSubmissionsModal,
     showEventForm,
     showStudentDetailsModal,
     showGroupDetailsModal,
@@ -708,6 +743,38 @@ export default function EventsManagement() {
                             <span className="sm:hidden lg:inline">Registrations</span>
                             <span className="hidden sm:inline lg:hidden">Regs</span>
                           </motion.button>
+                          {event.allowSubmissions && (
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={async () => {
+                                const data = await fetchCategoriesWithEvents();
+                                const updatedCategory = data?.find((c: Category) =>
+                                  c.Event.some((e: Event) => e.id === event.id)
+                                );
+                                const updatedEvent = updatedCategory?.Event.find((e: Event) => e.id === event.id) ?? event;
+                                setSelectedEventForSubmissions(updatedEvent);
+                                setShowSubmissionsModal(true);
+                              }}
+                              className="flex-1 sm:flex-none justify-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm transition-colors whitespace-nowrap flex items-center gap-1"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                                />
+                              </svg>
+                              <span className="sm:hidden lg:inline">Submissions</span>
+                              <span className="hidden sm:inline lg:hidden">Subs</span>
+                            </motion.button>
+                          )}
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
@@ -983,6 +1050,39 @@ export default function EventsManagement() {
               </button>
             </div>
 
+            {/* Tabs: KL University | Other College | International */}
+            <div className="px-8 pt-4 pb-2 border-b border-zinc-800 shrink-0">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setRegistrationsTab("kl")}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${registrationsTab === "kl"
+                    ? "bg-red-600 text-white"
+                    : "bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700"
+                    }`}
+                >
+                  KL University
+                </button>
+                <button
+                  onClick={() => setRegistrationsTab("other")}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${registrationsTab === "other"
+                    ? "bg-red-600 text-white"
+                    : "bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700"
+                    }`}
+                >
+                  Other College
+                </button>
+                <button
+                  onClick={() => setRegistrationsTab("international")}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${registrationsTab === "international"
+                    ? "bg-amber-600 text-white"
+                    : "bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700"
+                    }`}
+                >
+                  International / Virtual
+                </button>
+              </div>
+            </div>
+
             {/* Content - Scrollable (data-lenis-prevent enables native trackpad scroll) */}
             <div className="px-8 py-6 overflow-y-auto flex-1 min-h-0" data-lenis-prevent>
               {(() => {
@@ -1006,7 +1106,7 @@ export default function EventsManagement() {
                   );
                 };
 
-                // Split: International first, then domestic (KL vs Other)
+                // Split: International (virtual), domestic KL vs Other
                 const internationalGroups = groupRegistrations.filter(g => isInternational(g.user));
                 const internationalSolo = soloStudents.filter(s => isInternational(s.user));
                 const domesticGroups = groupRegistrations.filter(g => !isInternational(g.user));
@@ -1029,41 +1129,38 @@ export default function EventsManagement() {
                   );
                 }
 
-                const renderRegistrationSection = (title: string, groups: typeof groupRegistrations, solo: typeof soloStudents, isInternationalSection?: boolean) => {
-                  if (groups.length === 0 && solo.length === 0) return null;
+                const groupsForTab = registrationsTab === "kl" ? klGroups : registrationsTab === "other" ? otherGroups : internationalGroups;
+                const soloForTab = registrationsTab === "kl" ? klSolo : registrationsTab === "other" ? otherSolo : internationalSolo;
+
+                const renderRegistrationContent = () => {
+                  if (groupsForTab.length === 0 && soloForTab.length === 0) {
+                    return (
+                      <div className="text-center py-12">
+                        <p className="text-zinc-400">
+                          No registrations in {registrationsTab === "kl" ? "KL University" : registrationsTab === "other" ? "Other College" : "International / Virtual"}
+                        </p>
+                      </div>
+                    );
+                  }
 
                   return (
-                    <div className="mb-10 last:mb-0">
-                      <div className={`flex items-center gap-3 mb-6 p-4 rounded-lg border-l-4 ${isInternationalSection ? "bg-amber-900/20 border-amber-500" : "bg-zinc-800/50 border-red-600"}`}>
-                        <h2 className="text-xl font-bold text-white uppercase tracking-wider">{title}</h2>
-                        {isInternationalSection && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-900/30 text-amber-400 border border-amber-700/50">
-                            Virtual
-                          </span>
-                        )}
-                        <span className="px-3 py-1 bg-zinc-700 rounded-full text-xs text-zinc-300 font-mono">
-                          {groups.length} Teams • {solo.length} Individuals
-                        </span>
-                      </div>
-
-                      <div className="space-y-8 pl-2">
-                        {/* Group Registrations Section */}
-                        {groups.length > 0 && (
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-2">
-                              <h3 className="text-white font-bold text-lg flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                                Group Registrations
-                              </h3>
-                              <p className="text-zinc-400 text-sm">
-                                Total Teams:{" "}
-                                <span className="text-white font-semibold">
-                                  {groups.length}
-                                </span>
-                              </p>
-                            </div>
-                            <div className="grid grid-cols-1 gap-4">
-                              {groups.map((group, index) => (
+                    <div className="space-y-8">
+                      {/* Group Registrations */}
+                      {groupsForTab.length > 0 && (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-2">
+                            <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                              Group Registrations
+                            </h3>
+                            <p className="text-zinc-400 text-sm">
+                              Total Teams: <span className="text-white font-semibold">{groupsForTab.length}</span>
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-1 gap-4">
+                            {groupsForTab.map((group: any, index: number) => {
+                              const isVirtual = !!group.isVirtual || !!group.user?.isInternational;
+                              return (
                                 <div
                                   key={group.id}
                                   onClick={() => {
@@ -1078,8 +1175,15 @@ export default function EventsManagement() {
                                         {index + 1}
                                       </div>
                                       <div>
-                                        <h4 className="text-white font-bold text-lg">{group.groupName}</h4>
-                                        <p className="text-zinc-400 text-sm flex items-center gap-2 flex-wrap">
+                                        <h4 className="text-white font-bold text-lg flex items-center gap-2 flex-wrap">
+                                          {group.groupName}
+                                          {isVirtual && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-900/30 text-amber-400 border border-amber-700/50">
+                                              Virtual Participation
+                                            </span>
+                                          )}
+                                        </h4>
+                                        <p className="text-zinc-400 text-sm flex items-center gap-2 flex-wrap mt-1">
                                           <span className="bg-zinc-700/50 px-2 py-0.5 rounded text-xs text-zinc-300">Lead: {group.user.name}</span>
                                           {group.user.isInternational && (
                                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-900/30 text-amber-400 border border-amber-700/50">
@@ -1107,105 +1211,311 @@ export default function EventsManagement() {
                                           </svg>
                                         </button>
                                       )}
-
                                     </div>
                                   </div>
                                 </div>
-                              ))}
-                            </div>
+                              );
+                            })}
                           </div>
-                        )}
+                        </div>
+                      )}
 
-                        {/* Individual Registrations Section */}
-                        {solo.length > 0 && (
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-2">
-                              <h3 className="text-white font-bold text-lg flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                                Individual Registrations
-                              </h3>
-                              <p className="text-zinc-400 text-sm">
-                                Count:{" "}
-                                <span className="text-white font-semibold">
-                                  {solo.length}
-                                </span>
-                              </p>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {solo.map(
-                                (reg: any, index: number) => {
-                                  const student = reg.user;
-                                  return (
-                                    <div
-                                      key={student.id}
-                                      onClick={() => {
-                                        setSelectedStudent(student);
-                                        setShowStudentDetailsModal(true);
-                                      }}
-                                      className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-red-600/50 transition-all cursor-pointer group"
-                                    >
-                                      <div className="flex items-start gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500 font-bold">
-                                          {index + 1}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                          <h4 className="text-white font-semibold flex items-center gap-2 flex-wrap">
-                                            {student.name || "No name"}
-                                            {student.isInternational && (
-                                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-900/30 text-amber-400 border border-amber-700/50">
-                                                International
-                                              </span>
-                                            )}
-                                            {getSubmissionForStudent(student.id) && (
-                                              <span title="Submission Available" className="text-green-500">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                                                </svg>
-                                              </span>
-                                            )}
-                                          </h4>
-                                          <p className="text-zinc-400 text-sm truncate">
-                                            {student.email}
-                                          </p>
-                                          {student.phone && (
-                                            <p className="text-zinc-400 text-sm mt-1">
-                                              {student.phone}
-                                            </p>
-                                          )}
-                                        </div>
-                                        {session?.user.role === "MASTER" && (
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleDeleteRegistration(reg.id, "INDIVIDUAL");
-                                            }}
-                                            className="text-zinc-500 hover:text-red-500 p-2 rounded-full hover:bg-red-500/10 transition-colors"
-                                            title="Delete Registration"
-                                          >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                          </button>
-                                        )}
-                                      </div>
+                      {/* Individual Registrations */}
+                      {soloForTab.length > 0 && (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-2">
+                            <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                              Individual Registrations
+                            </h3>
+                            <p className="text-zinc-400 text-sm">
+                              Count: <span className="text-white font-semibold">{soloForTab.length}</span>
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {soloForTab.map((reg: any, index: number) => {
+                              const student = reg.user;
+                              const isVirtual = !!reg.isVirtual || !!student.isInternational;
+                              return (
+                                <div
+                                  key={student.id}
+                                  onClick={() => {
+                                    setSelectedStudent(student);
+                                    setShowStudentDetailsModal(true);
+                                  }}
+                                  className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-red-600/50 transition-all cursor-pointer group"
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500 font-bold">
+                                      {index + 1}
                                     </div>
-                                  );
-                                }
-                              )}
-                            </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="text-white font-semibold flex items-center gap-2 flex-wrap">
+                                        {student.name || "No name"}
+                                        {isVirtual && (
+                                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-900/30 text-amber-400 border border-amber-700/50">
+                                            Virtual Participation
+                                          </span>
+                                        )}
+                                        {getSubmissionForStudent(student.id) && (
+                                          <span title="Submission Available" className="text-green-500">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                            </svg>
+                                          </span>
+                                        )}
+                                      </h4>
+                                      <p className="text-zinc-400 text-sm truncate">{student.email}</p>
+                                      {student.phone && (
+                                        <p className="text-zinc-400 text-sm mt-1">{student.phone}</p>
+                                      )}
+                                    </div>
+                                    {session?.user.role === "MASTER" && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteRegistration(reg.id, "INDIVIDUAL");
+                                        }}
+                                        className="text-zinc-500 hover:text-red-500 p-2 rounded-full hover:bg-red-500/10 transition-colors"
+                                        title="Delete Registration"
+                                      >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   );
                 };
 
+                return renderRegistrationContent();
+              })()}
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Submissions Modal */}
+      {showSubmissionsModal && selectedEventForSubmissions && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[1000000] p-4 overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-zinc-900 rounded-xl w-full max-w-4xl border border-zinc-800 shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
+          >
+            <div className="px-8 py-6 border-b border-zinc-800 flex items-center justify-between shrink-0">
+              <div>
+                <h2 className="text-2xl font-bold text-white">Event Submissions</h2>
+                <p className="text-zinc-400 mt-1">
+                  {selectedEventForSubmissions.name}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={async () => {
+                    const data = await fetchCategoriesWithEvents();
+                    const updatedCategory = data?.find((c: Category) =>
+                      c.Event.some((e: Event) => e.id === selectedEventForSubmissions.id)
+                    );
+                    const updatedEvent = updatedCategory?.Event.find((e: Event) => e.id === selectedEventForSubmissions.id);
+                    if (updatedEvent) setSelectedEventForSubmissions(updatedEvent);
+                    toast.success("Submissions refreshed");
+                  }}
+                  className="px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-lg text-emerald-400 text-sm font-medium transition-colors"
+                >
+                  Refresh
+                </button>
+                <button
+                  onClick={() => {
+                    setShowSubmissionsModal(false);
+                    setSelectedEventForSubmissions(null);
+                    setExpandedSubmissionId(null);
+                  }}
+                  className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div className="px-8 py-6 overflow-y-auto flex-1 min-h-0" data-lenis-prevent>
+              {(() => {
+                const submissions = selectedEventForSubmissions.submissions || [];
+                if (submissions.length === 0) {
+                  return (
+                    <div className="text-center py-12">
+                      <p className="text-zinc-400">No submissions yet</p>
+                      <p className="text-zinc-500 text-sm mt-1">Participants can submit their work from My Competitions or Profile.</p>
+                    </div>
+                  );
+                }
                 return (
                   <div className="space-y-4">
-                    {renderRegistrationSection("International Students", internationalGroups, internationalSolo, true)}
-                    {renderRegistrationSection("KL University", klGroups, klSolo)}
-                    {renderRegistrationSection("Other Colleges", otherGroups, otherSolo)}
+                    <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
+                      <h3 className="text-white font-bold text-lg">
+                        {submissions.length} Submission{submissions.length !== 1 ? "s" : ""}
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3">
+                      {submissions.map((sub: any, index: number) => {
+                        const participant = sub.user;
+                        const groupReg = selectedEventForSubmissions.groupRegistrations?.find(
+                          (g: any) => g.user.id === sub.userId
+                        );
+                        const isTeamSubmission = !!groupReg;
+                        const memberList = groupReg?.members
+                          ? (Array.isArray(groupReg.members) ? groupReg.members : Object.values(groupReg.members))
+                          : [];
+                        const totalMembers = memberList.length + 1; // +1 for lead
+                        const isExpanded = expandedSubmissionId === sub.id;
+
+                        return (
+                          <div
+                            key={sub.id}
+                            className="bg-zinc-800 rounded-lg border border-zinc-700 overflow-hidden"
+                          >
+                            {/* Collapsed header - click to expand/collapse */}
+                            <button
+                              type="button"
+                              onClick={() => setExpandedSubmissionId(isExpanded ? null : sub.id)}
+                              className="w-full flex items-center justify-between gap-4 p-4 text-left hover:bg-zinc-800/80 transition-colors"
+                            >
+                              <div className="flex items-center gap-4 flex-1 min-w-0">
+                                <div className="w-10 h-10 rounded-full bg-emerald-600/20 flex items-center justify-center text-emerald-500 font-bold shrink-0">
+                                  {index + 1}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="text-white font-bold text-lg">
+                                    {isTeamSubmission ? (groupReg.groupName || "Unnamed Team") : (participant?.name || "Unknown")}
+                                  </h4>
+                                  <p className="text-zinc-400 text-sm flex items-center gap-2 flex-wrap mt-1">
+                                    <span className="bg-zinc-700/50 px-2 py-0.5 rounded text-xs text-zinc-300">
+                                      Lead: {participant?.name || "Unknown"}
+                                    </span>
+                                    {isTeamSubmission && (
+                                      <>
+                                        <span className="text-zinc-500">•</span>
+                                        <span>{totalMembers} Members</span>
+                                      </>
+                                    )}
+                                    <span className="text-zinc-500">•</span>
+                                    <span className="text-zinc-400 truncate">{participant?.email}</span>
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-emerald-400 text-sm font-medium">
+                                  {isExpanded ? "Hide" : "View Submission"}
+                                </span>
+                                <motion.svg
+                                  animate={{ rotate: isExpanded ? 180 : 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="w-5 h-5 text-zinc-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </motion.svg>
+                              </div>
+                            </button>
+
+                            {/* Expanded content - full details */}
+                            <AnimatePresence>
+                              {isExpanded && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="px-4 pb-4 pt-0 space-y-4 border-t border-zinc-700">
+                                    {/* Submission details */}
+                                    <div className="pl-4 ml-2 space-y-2 text-sm border-l-2 border-emerald-600/30 pt-4">
+                                      <h5 className="text-emerald-400 font-semibold text-xs uppercase tracking-wider mb-2">Submission Details</h5>
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="text-zinc-500">Video:</span>
+                                        <a
+                                          href={sub.submissionLink}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-emerald-400 hover:text-emerald-300 break-all"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          {sub.submissionLink}
+                                        </a>
+                                      </div>
+                                      {sub.youtubeChannelName && (
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-zinc-500">Channel:</span>
+                                          <span className="text-zinc-300">{sub.youtubeChannelName}</span>
+                                        </div>
+                                      )}
+                                      {sub.notes && (
+                                        <div>
+                                          <span className="text-zinc-500">Notes:</span>
+                                          <p className="text-zinc-300 mt-0.5">{sub.notes}</p>
+                                        </div>
+                                      )}
+                                      {sub.updatedAt && (
+                                        <div className="text-zinc-500 text-xs">
+                                          Updated: {new Date(sub.updatedAt).toLocaleString()}
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Team member details - for group submissions */}
+                                    {isTeamSubmission && (memberList.length > 0 || totalMembers > 0) && (
+                                      <div className="pl-4">
+                                        <h5 className="text-zinc-400 font-semibold text-xs uppercase tracking-wider mb-3">Team Members</h5>
+                                        <div className="space-y-2">
+                                          <div className="bg-zinc-900/50 p-3 rounded-lg border border-zinc-700 flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-emerald-600/20 flex items-center justify-center text-emerald-500 font-bold text-sm shrink-0">1</div>
+                                            <div>
+                                              <p className="text-white font-medium">{participant?.name || "Unknown"} (Lead)</p>
+                                              <p className="text-xs text-zinc-400">{participant?.email}</p>
+                                            </div>
+                                          </div>
+                                          {memberList.map((member: any, idx: number) => (
+                                            <div key={idx} className="bg-zinc-900/50 p-3 rounded-lg border border-zinc-700 flex items-center gap-3">
+                                              <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 font-bold text-sm shrink-0">{idx + 2}</div>
+                                              <div>
+                                                <p className="text-white font-medium">{member.name || "Unknown"}</p>
+                                                <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-xs text-zinc-400 mt-0.5">
+                                                  {member.email && <span>{member.email}</span>}
+                                                  {member.phone && <><span>•</span><span>{member.phone}</span></>}
+                                                  {member.gender && <><span>•</span><span>{member.gender}</span></>}
+                                                </div>
+                                                {(member.inGameName || member.inGameId || member.riotId) && (
+                                                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-amber-400/90 mt-1.5">
+                                                    {member.inGameName && <span>IGN: {member.inGameName}</span>}
+                                                    {member.inGameId && <span>ID: {member.inGameId}</span>}
+                                                    {member.riotId && <span>Riot: {member.riotId}</span>}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })()}
