@@ -287,23 +287,23 @@ export default function AccommodationPage() {
             {/* Group Members Modal */}
             {selectedBooking && (
                 <div
-                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000000] flex items-center justify-center p-4 overflow-y-auto"
                     onClick={() => setSelectedBooking(null)}
                 >
                     <div
-                        className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full border border-gray-700"
+                        className="bg-gray-800 rounded-lg max-w-2xl w-full border border-gray-700 flex flex-col h-[90vh] max-h-[90vh] overflow-hidden my-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-bold text-white">Group Members & Competitions</h2>
+                        <div className="flex justify-between items-center gap-4 p-6 pb-4 shrink-0">
+                            <h2 className="text-xl font-bold text-white break-words min-w-0 pr-2">Group Members & Competitions</h2>
                             <button
                                 onClick={() => setSelectedBooking(null)}
-                                className="text-gray-400 hover:text-white"
+                                className="text-gray-400 hover:text-white shrink-0 p-1"
                             >
                                 ✕
                             </button>
                         </div>
-                        <div className="space-y-4">
+                        <div className="space-y-4 px-6 pb-6 overflow-y-auto overflow-x-hidden flex-1 min-h-0 overscroll-contain">
                             <div className="bg-gray-700 rounded p-4">
                                 <h3 className="text-white font-semibold mb-2">Primary Contact</h3>
                                 <div className="text-sm text-gray-300 space-y-1">
@@ -346,10 +346,10 @@ export default function AccommodationPage() {
                                     </h3>
                                     <div className="space-y-3">
                                         {selectedBooking.groupMembers.map((member: any, index: number) => (
-                                            <div key={index} className="text-sm text-gray-300 border-b border-gray-600 pb-2">
+                                            <div key={index} className="text-sm text-gray-300 border-b border-gray-600 pb-2 last:border-b-0">
                                                 <div>Name: {member.name}</div>
-                                                <div>Email: {member.email}</div>
-                                                <div>Phone: {member.phone}</div>
+                                                {member.email && <div>Email: {member.email}</div>}
+                                                {member.phone && <div>Phone: {member.phone}</div>}
                                             </div>
                                         ))}
                                     </div>
