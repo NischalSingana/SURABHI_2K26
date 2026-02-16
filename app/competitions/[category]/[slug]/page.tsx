@@ -279,7 +279,7 @@ function EventDetailPageContent() {
   const [hasGoogleAccount, setHasGoogleAccount] = useState(false);
   const [termsTab, setTermsTab] = useState<"physical" | "virtual">("physical");
   const { data: session } = useSession();
-  const isOutsider = session?.user?.email && !session.user.email.endsWith("@kluniversity.in");
+  const isKL = !!session?.user?.email?.endsWith("@kluniversity.in");
   const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
 
 
@@ -740,8 +740,8 @@ function EventDetailPageContent() {
                     <FiCheck size={20} />
                     Registered
                   </div>
-                  {/* Hide unregister button for Google login users or outsiders */}
-                  {!(hasGoogleAccount || isOutsider) && (
+                  {/* Hide unregister for other college (physical & virtual); show only for KL and International */}
+                  {(isKL || isInternational) && (
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}

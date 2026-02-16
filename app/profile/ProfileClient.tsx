@@ -1128,7 +1128,7 @@ export default function ProfileClient({
                             )}
                           </motion.button>
                         )}
-                        {user.isApproved && event.registrationStatus === 'APPROVED' && (
+                        {user.isApproved && event.registrationStatus === 'APPROVED' && !event.isVirtual && (
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -1190,8 +1190,8 @@ export default function ProfileClient({
                           Results
                         </motion.button>
 
-                        {/* Hide unregister button for Google login users or outsiders */}
-                        {!(hasGoogleAccount || !user.email.endsWith("@kluniversity.in")) && (
+                        {/* Hide unregister for other college; show only for KL and International */}
+                        {(user.email?.endsWith("@kluniversity.in") || user.isInternational) && (
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
