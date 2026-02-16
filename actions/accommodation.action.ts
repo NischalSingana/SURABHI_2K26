@@ -80,11 +80,11 @@ export async function createAccommodationBooking(
         accommodationBookings: true,
         individualRegistrations: {
           where: { paymentStatus: { not: "REJECTED" } },
-          select: { id: true },
+          select: { id: true, isVirtual: true },
         },
         groupRegistrations: {
           where: { paymentStatus: { not: "REJECTED" } },
-          select: { id: true },
+          select: { id: true, isVirtual: true },
         },
         visitorPassRegistrations: { select: { id: true } },
       },
@@ -94,44 +94,66 @@ export async function createAccommodationBooking(
       return { success: false, error: "User not found" };
     }
 
-    // Restriction 1: KL University Students cannot book accommodation here
-    if (userData.email.endsWith("@kluniversity.in")) {
+    // Restriction 1: KL University Vaddeswaram campus students cannot book accommodation
+    const isVaddeswaramCampus = 
+      userData.email.endsWith("@kluniversity.in") ||
+      (userData.collage && userData.collage.toLowerCase().includes("vaddeswaram"));
+    
+    if (isVaddeswaramCampus) {
       return {
         success: false,
-        error: "Accommodation booking is not available for KL University students.",
+        error: "KL University Vaddeswaram campus students are not eligible for accommodation booking.",
       };
     }
 
-    // Restriction 2: Only competition participants—visitor pass holders are NOT eligible
-    const hasCompetitionReg =
-      userData.individualRegistrations.length > 0 ||
-      userData.groupRegistrations.length > 0;
-    if (!hasCompetitionReg) {
-      const hasVisitorPass = userData.visitorPassRegistrations.length > 0;
+    // Restriction 2: International (virtual) participants cannot book accommodation
+    const isInternational = !!(userData as { isInternational?: boolean }).isInternational;
+    if (isInternational) {
       return {
         success: false,
-        error: hasVisitorPass
-          ? "Visitor pass holders cannot book accommodation. Only participants registered for competitions are eligible."
-          : "You must be registered for at least one competition to book accommodation.",
+        error: "Accommodation is only for physical participants. International (virtual) participants are not eligible.",
       };
     }
 
-    const existingBooking = userData.accommodationBookings;
+    // Restriction 3: Visitor pass holders are NOT eligible
+    if (userData.visitorPassRegistrations.length > 0) {
+      return {
+        success: false,
+        error: "Visitor pass holders cannot book accommodation. Only competition participants are eligible.",
+      };
+    }
 
-    if (existingBooking) {
-      if (existingBooking.status === "REJECTED" || existingBooking.status === "CANCELLED") {
-        // If booking was rejected or cancelled, delete it to allow new booking
-        // (Since schema enforces unique userId, we must remove the old one or update it. 
-        // Deleting is cleaner for a fresh start)
-        await prisma.accommodationBooking.delete({
-          where: { id: existingBooking.id },
-        });
-      } else {
-        return {
-          success: false,
-          error: "You already have an active accommodation booking.",
-        };
-      }
+    // Restriction 4: Must have PHYSICAL (non-virtual) competition registration
+    const physicalIndividualRegs = userData.individualRegistrations.filter(
+      (r: { isVirtual?: boolean }) => !r.isVirtual
+    );
+    const physicalGroupRegs = userData.groupRegistrations.filter(
+      (r: { isVirtual?: boolean }) => !r.isVirtual
+    );
+    const hasPhysicalCompetitionReg =
+      physicalIndividualRegs.length > 0 || physicalGroupRegs.length > 0;
+
+    if (!hasPhysicalCompetitionReg) {
+      const hasAnyCompetitionReg =
+        userData.individualRegistrations.length > 0 || userData.groupRegistrations.length > 0;
+      return {
+        success: false,
+        error: hasAnyCompetitionReg
+          ? "Accommodation is only for physical participants. Virtual participants are not eligible."
+          : "You must be registered for at least one competition (physical participation) to book accommodation.",
+      };
+    }
+
+    // Check for existing booking of same gender (user can have one MALE + one FEMALE)
+    const existingBookingOfGender = userData.accommodationBookings.find(
+      (b: { gender: string; status: string }) =>
+        b.gender === bookingData.gender && b.status !== "REJECTED" && b.status !== "CANCELLED"
+    );
+    if (existingBookingOfGender) {
+      return {
+        success: false,
+        error: `You already have an active ${bookingData.gender.toLowerCase()} accommodation booking.`,
+      };
     }
 
     // Calculate total members
@@ -173,6 +195,212 @@ export async function createAccommodationBooking(
   } catch (error) {
     console.error("Error creating accommodation booking:", error);
     return { success: false, error: "Failed to create booking" };
+  }
+}
+
+/**
+ * Get physical competition registration data for accommodation auto-fill
+ */
+export async function getCompetitionDataForAccommodation() {
+  try {
+    const headersList = await headers();
+    const session = await auth.api.getSession({ headers: headersList });
+
+    if (!session || !session.user) {
+      return { success: false, error: "Please login" };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+        gender: true,
+        isInternational: true,
+        collage: true,
+      },
+    });
+
+    if (!user) return { success: false, error: "User not found" };
+
+    // Block KL University Vaddeswaram campus students
+    const isVaddeswaramCampus = 
+      user.email.endsWith("@kluniversity.in") ||
+      (user.collage && user.collage.toLowerCase().includes("vaddeswaram"));
+    
+    if (isVaddeswaramCampus) {
+      return {
+        success: false,
+        error: "KL University Vaddeswaram campus students are not eligible for accommodation booking.",
+      };
+    }
+
+    // Block international (virtual)
+    if (user.isInternational) {
+      return { success: false, error: "Accommodation is only for physical participants." };
+    }
+
+    const [individualRegs, groupRegs] = await Promise.all([
+      prisma.individualRegistration.findMany({
+        where: {
+          userId: session.user.id,
+          paymentStatus: { not: "REJECTED" },
+          isVirtual: false,
+        },
+        select: { id: true },
+      }),
+      prisma.groupRegistration.findMany({
+        where: {
+          userId: session.user.id,
+          paymentStatus: { not: "REJECTED" },
+          isVirtual: false,
+        },
+        select: { members: true },
+      }),
+    ]);
+
+    const hasIndividualPhysical = individualRegs.length > 0;
+    const hasGroupPhysical = groupRegs.length > 0;
+
+    if (!hasIndividualPhysical && !hasGroupPhysical) {
+      return { success: false, error: "No physical competition registrations found." };
+    }
+
+    const teamLead = {
+      name: user.name || session.user.name || "",
+      email: user.email || "",
+      phone: user.phone || "",
+      gender: user.gender?.toUpperCase() === "FEMALE" ? "FEMALE" as const : "MALE" as const,
+    };
+
+    if (hasGroupPhysical && !hasIndividualPhysical) {
+      // Use group data - collect all members from all group regs
+      const allMembers: { name: string; phone: string; gender?: string }[] = [];
+      for (const gr of groupRegs) {
+        const members = (gr.members as any) || [];
+        for (const m of members) {
+          if (m && typeof m === "object") {
+            const g = (m.gender || "").toString().toUpperCase();
+            allMembers.push({
+              name: m.name || "",
+              phone: m.phone || "",
+              gender: g === "FEMALE" || g === "MALE" ? g : undefined,
+            });
+          }
+        }
+      }
+
+      const maleMembers = allMembers.filter(m => (m.gender || "").toUpperCase() === "MALE");
+      const femaleMembers = allMembers.filter(m => (m.gender || "").toUpperCase() === "FEMALE");
+      const maleCount = (teamLead.gender === "MALE" ? 1 : 0) + maleMembers.length;
+      const femaleCount = (teamLead.gender === "FEMALE" ? 1 : 0) + femaleMembers.length;
+
+      const suggestedRegistrations: Array<{
+        gender: "MALE" | "FEMALE";
+        bookingType: "INDIVIDUAL" | "GROUP";
+        primaryName: string;
+        primaryEmail: string;
+        primaryPhone: string;
+        numberOfGuests: number;
+        groupMembers: { name: string; phone: string; gender?: string }[];
+      }> = [];
+
+      if (maleCount > 0) {
+        const maleGroupMembers = maleMembers.map(m => ({ name: m.name, phone: m.phone }));
+        if (teamLead.gender === "MALE") {
+          suggestedRegistrations.push({
+            gender: "MALE",
+            bookingType: maleCount === 1 ? "INDIVIDUAL" : "GROUP",
+            primaryName: teamLead.name,
+            primaryEmail: teamLead.email,
+            primaryPhone: teamLead.phone,
+            numberOfGuests: maleCount,
+            groupMembers: maleCount === 1 ? [] : maleGroupMembers,
+          });
+        } else {
+          const firstMale = maleMembers[0];
+          suggestedRegistrations.push({
+            gender: "MALE",
+            bookingType: maleCount === 1 ? "INDIVIDUAL" : "GROUP",
+            primaryName: firstMale?.name || "",
+            primaryEmail: "",
+            primaryPhone: firstMale?.phone || "",
+            numberOfGuests: maleCount,
+            groupMembers: maleCount === 1 ? [] : maleGroupMembers.slice(1),
+          });
+        }
+      }
+      if (femaleCount > 0) {
+        const femaleGroupMembers = femaleMembers.map(m => ({ name: m.name, phone: m.phone }));
+        if (teamLead.gender === "FEMALE") {
+          suggestedRegistrations.push({
+            gender: "FEMALE",
+            bookingType: femaleCount === 1 ? "INDIVIDUAL" : "GROUP",
+            primaryName: teamLead.name,
+            primaryEmail: teamLead.email,
+            primaryPhone: teamLead.phone,
+            numberOfGuests: femaleCount,
+            groupMembers: femaleCount === 1 ? [] : femaleGroupMembers,
+          });
+        } else {
+          const firstFemale = femaleMembers[0];
+          suggestedRegistrations.push({
+            gender: "FEMALE",
+            bookingType: femaleCount === 1 ? "INDIVIDUAL" : "GROUP",
+            primaryName: firstFemale?.name || "",
+            primaryEmail: "",
+            primaryPhone: firstFemale?.phone || "",
+            numberOfGuests: femaleCount,
+            groupMembers: femaleCount === 1 ? [] : femaleGroupMembers.slice(1),
+          });
+        }
+      }
+
+      if (suggestedRegistrations.length === 0) {
+        suggestedRegistrations.push({
+          gender: teamLead.gender,
+          bookingType: allMembers.length === 0 ? "INDIVIDUAL" : "GROUP",
+          primaryName: teamLead.name,
+          primaryEmail: teamLead.email,
+          primaryPhone: teamLead.phone,
+          numberOfGuests: allMembers.length + 1,
+          groupMembers: allMembers.map(m => ({ name: m.name, phone: m.phone })),
+        });
+      }
+
+      return {
+        success: true,
+        data: {
+          hasIndividualPhysical: false,
+          hasGroupPhysical: true,
+          teamLead,
+          suggestedRegistrations,
+        },
+      };
+    }
+
+    // Individual only
+    return {
+      success: true,
+      data: {
+        hasIndividualPhysical: true,
+        hasGroupPhysical: false,
+        teamLead,
+        suggestedRegistrations: [{
+          gender: teamLead.gender,
+          bookingType: "INDIVIDUAL" as const,
+          primaryName: teamLead.name,
+          primaryEmail: teamLead.email,
+          primaryPhone: teamLead.phone,
+          numberOfGuests: 1,
+          groupMembers: [],
+        }],
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching competition data for accommodation:", error);
+    return { success: false, error: "Failed to fetch data" };
   }
 }
 

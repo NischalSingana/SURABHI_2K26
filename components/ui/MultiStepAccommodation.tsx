@@ -17,8 +17,9 @@ import {
   FiGift,
   FiMinus,
   FiPlus,
+  FiDownload,
 } from "react-icons/fi";
-import { createAccommodationBooking, getUserAccommodationBookings } from "@/actions/accommodation.action";
+import { createAccommodationBooking, getUserAccommodationBookings, getCompetitionDataForAccommodation } from "@/actions/accommodation.action";
 
 type Gender = "MALE" | "FEMALE" | "";
 type BookingType = "INDIVIDUAL" | "GROUP" | "";
@@ -39,11 +40,24 @@ interface AccommodationData {
   groupMembers: GroupMember[];
 }
 
+type PendingRegistration = {
+  gender: "MALE" | "FEMALE";
+  bookingType: "INDIVIDUAL" | "GROUP";
+  primaryName: string;
+  primaryEmail: string;
+  primaryPhone: string;
+  numberOfGuests: number;
+  groupMembers: { name: string; phone: string }[];
+};
+
 const MultiStepAccommodation = () => {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [existingBooking, setExistingBooking] = useState<any>(null);
+  const [pendingRegistrations, setPendingRegistrations] = useState<PendingRegistration[] | null>(null);
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
+  const [eligibilityError, setEligibilityError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<AccommodationData>({
     gender: "",
@@ -61,10 +75,9 @@ const MultiStepAccommodation = () => {
       try {
         const result = await getUserAccommodationBookings();
         if (result.success && result.data && result.data.length > 0) {
-          // Take the latest booking that isn't cancelled
-          const activeBooking = result.data.find((b: any) => b.status !== "CANCELLED") || result.data[0];
-          if (activeBooking && activeBooking.status !== "CANCELLED") {
-            setExistingBooking(activeBooking);
+          const activeBookings = result.data.filter((b: any) => b.status !== "CANCELLED" && b.status !== "REJECTED");
+          if (activeBookings.length > 0) {
+            setExistingBooking(activeBookings[0]);
           }
         }
       } catch (error) {
@@ -75,6 +88,55 @@ const MultiStepAccommodation = () => {
     };
     fetchBooking();
   }, []);
+
+  const handleAutoFill = async () => {
+    setIsAutoFilling(true);
+    setEligibilityError(null);
+    try {
+      const result = await getCompetitionDataForAccommodation();
+      if (!result.success || !result.data) {
+        setEligibilityError(result.error || "Could not fetch competition data.");
+        toast.error(result.error || "Could not auto-fill.");
+        return;
+      }
+      const { suggestedRegistrations } = result.data;
+      if (suggestedRegistrations.length === 0) {
+        toast.error("No competition data to auto-fill.");
+        return;
+      }
+      if (suggestedRegistrations.length === 1) {
+        const reg = suggestedRegistrations[0];
+        setFormData({
+          gender: reg.gender,
+          bookingType: reg.bookingType,
+          name: reg.primaryName,
+          email: reg.primaryEmail,
+          phone: reg.primaryPhone,
+          numberOfGuests: reg.numberOfGuests,
+          genderConfirmed: true,
+          groupMembers: reg.groupMembers,
+        });
+        setCurrentStep(2);
+        toast.success("Data auto-filled from your competition registration!");
+      } else {
+        setPendingRegistrations(suggestedRegistrations.map(r => ({
+          gender: r.gender,
+          bookingType: r.bookingType,
+          primaryName: r.primaryName,
+          primaryEmail: r.primaryEmail,
+          primaryPhone: r.primaryPhone,
+          numberOfGuests: r.numberOfGuests,
+          groupMembers: r.groupMembers,
+        })));
+        setCurrentStep(2);
+        toast.success(`Found ${suggestedRegistrations.length} registrations (Male & Female). Review and edit below.`);
+      }
+    } catch (error) {
+      toast.error("Failed to auto-fill.");
+    } finally {
+      setIsAutoFilling(false);
+    }
+  };
 
   const handleGenderSelect = (gender: Gender) => {
     setFormData({ ...formData, gender, genderConfirmed: false });
@@ -168,10 +230,53 @@ const MultiStepAccommodation = () => {
       });
 
       if (result.success) {
-        toast.success("Requests submitted successfully!");
+        toast.success("Request submitted successfully!");
         window.location.reload();
       } else {
-        toast.error(result.error || "Failed to submit bookings");
+        toast.error(result.error || "Failed to submit booking");
+      }
+    } catch (error) {
+      toast.error("Booking failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdatePendingRegistration = (index: number, field: keyof PendingRegistration, value: any) => {
+    if (!pendingRegistrations) return;
+    const updated = [...pendingRegistrations];
+    (updated[index] as any)[field] = value;
+    setPendingRegistrations(updated);
+  };
+
+  const handleSubmitMultiple = async () => {
+    if (!pendingRegistrations || pendingRegistrations.length === 0) return;
+    setIsSubmitting(true);
+    let successCount = 0;
+    try {
+      for (const reg of pendingRegistrations) {
+        if (!reg.primaryName || !reg.primaryEmail || !reg.primaryPhone) {
+          toast.error("All fields are required for each registration.");
+          setIsSubmitting(false);
+          return;
+        }
+        const result = await createAccommodationBooking({
+          gender: reg.gender,
+          bookingType: reg.bookingType,
+          name: reg.primaryName,
+          email: reg.primaryEmail,
+          phone: reg.primaryPhone,
+          numberOfGuests: reg.numberOfGuests,
+          groupMembers: reg.groupMembers,
+        });
+        if (result.success) successCount++;
+        else toast.error(`${reg.gender}: ${result.error}`);
+      }
+      if (successCount === pendingRegistrations.length) {
+        toast.success("All accommodation requests submitted successfully!");
+        window.location.reload();
+      } else if (successCount > 0) {
+        toast.warning(`Submitted ${successCount} of ${pendingRegistrations.length}. Please fix errors and retry.`);
       }
     } catch (error) {
       toast.error("Booking failed. Please try again.");
@@ -181,6 +286,7 @@ const MultiStepAccommodation = () => {
   };
 
   const steps = [
+    { number: 0, title: "Start" },
     { number: 1, title: "Gender" },
     { number: 2, title: "Details" },
     { number: 3, title: "Confirm" },
@@ -283,14 +389,14 @@ const MultiStepAccommodation = () => {
           {Array.isArray(existingBooking.groupMembers) && existingBooking.groupMembers.length > 0 && (
             <div className="border-t border-zinc-800 pt-6">
               <h3 className="text-white font-bold mb-4">Additional Guests</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-4 rounded-xl bg-zinc-800/60 border-2 border-zinc-700 ring-1 ring-white/5 space-y-3">
                 {existingBooking.groupMembers.map((member: any, idx: number) => (
-                  <div key={idx} className="p-3 bg-zinc-900/50 rounded-lg border border-zinc-800 flex justify-between items-center">
+                  <div key={idx} className="p-3 rounded-lg bg-zinc-900/80 border-2 border-zinc-600/80 flex justify-between items-center">
                     <div>
-                      <p className="text-zinc-300 font-medium text-sm">{member.name}</p>
-                      <p className="text-zinc-500 text-xs">{member.phone}</p>
+                      <p className="text-zinc-200 font-medium text-sm">{member.name}</p>
+                      <p className="text-zinc-400 text-xs">{member.phone}</p>
                     </div>
-                    <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500 text-xs font-bold">
+                    <div className="w-7 h-7 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 text-xs font-bold">
                       {idx + 2}
                     </div>
                   </div>
@@ -347,6 +453,10 @@ const MultiStepAccommodation = () => {
                 <li className="flex items-start gap-2">
                   <span className="mt-1.5 w-1.5 h-1.5 bg-amber-400 rounded-full shrink-0" />
                   <span><strong>Visitor pass holders are not eligible</strong> for accommodation.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1.5 w-1.5 h-1.5 bg-amber-400 rounded-full shrink-0" />
+                  <span><strong>KL University Vaddeswaram campus students</strong> are not eligible for accommodation booking.</span>
                 </li>
               </ul>
             </motion.div>
@@ -418,7 +528,7 @@ const MultiStepAccommodation = () => {
         {/* Eligibility banner – visible above form */}
         <div className="max-w-2xl mx-auto w-full mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40">
           <p className="text-amber-200/90 text-sm font-medium">
-            <strong>Eligibility:</strong> Only competition participants can book. Visitor pass holders are not eligible.
+            <strong>Eligibility:</strong> Only competition participants can book. Visitor pass holders and KL University Vaddeswaram campus students are not eligible.
           </p>
         </div>
 
@@ -428,7 +538,7 @@ const MultiStepAccommodation = () => {
             <div className="absolute left-0 top-6 -translate-y-1/2 w-full h-0.5 bg-zinc-800 -z-10 rounded-full" />
             <div
               className="absolute left-0 top-6 -translate-y-1/2 h-0.5 bg-gradient-to-r from-red-600 to-red-900 -z-10 transition-all duration-500 rounded-full"
-              style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
+              style={{ width: `${(currentStep / Math.max(1, steps.length - 1)) * 100}%` }}
             />
 
             {steps.map((step) => (
@@ -454,6 +564,54 @@ const MultiStepAccommodation = () => {
 
         <div className="max-w-xl mx-auto w-full flex-1">
           <AnimatePresence mode="wait">
+            {currentStep === 0 && (
+              <motion.div
+                key="step0"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-8"
+              >
+                <div className="text-center">
+                  <h2 className="text-3xl font-bold mb-3">Book Accommodation</h2>
+                  <p className="text-zinc-400">Choose how you would like to register.</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <button
+                    onClick={handleAutoFill}
+                    disabled={isAutoFilling}
+                    className="relative p-6 rounded-2xl border-2 border-zinc-800 bg-zinc-900 hover:border-amber-500/50 hover:bg-amber-500/5 transition-all duration-300 disabled:opacity-50 text-left group"
+                  >
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-amber-500/10 text-amber-400 mb-4">
+                      {isAutoFilling ? (
+                        <span className="animate-spin text-lg">⟳</span>
+                      ) : (
+                        <FiDownload size={24} />
+                      )}
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">Auto-fill from Competition</h3>
+                    <p className="text-sm text-zinc-400">
+                      Fetch your details from your competition registration. Fastest option if you&apos;re already registered.
+                    </p>
+                  </button>
+
+                  <button
+                    onClick={() => setCurrentStep(1)}
+                    className="relative p-6 rounded-2xl border-2 border-zinc-800 bg-zinc-900 hover:border-red-500/50 hover:bg-red-500/5 transition-all duration-300 text-left group"
+                  >
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-red-500/10 text-red-400 mb-4">
+                      <FiUser size={24} />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">Register Manually</h3>
+                    <p className="text-sm text-zinc-400">
+                      Fill in your details step by step. Choose gender, enter your information, and submit.
+                    </p>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
             {currentStep === 1 && (
               <motion.div
                 key="step1"
@@ -502,6 +660,15 @@ const MultiStepAccommodation = () => {
                     </div>
                   </button>
                 </div>
+
+                <div className="flex justify-center pt-4">
+                  <button
+                    onClick={() => setCurrentStep(0)}
+                    className="flex items-center gap-2 px-6 py-3 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl transition-all"
+                  >
+                    <FiChevronLeft /> Back to Start
+                  </button>
+                </div>
               </motion.div>
             )}
 
@@ -518,6 +685,104 @@ const MultiStepAccommodation = () => {
                   <p className="text-zinc-400">Fill in your information to reserve your spot.</p>
                 </div>
 
+                {eligibilityError && (
+                  <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-200 text-sm">
+                    {eligibilityError}
+                  </div>
+                )}
+
+                {pendingRegistrations && pendingRegistrations.length >= 2 ? (
+                  <div className="space-y-6">
+                    <p className="text-zinc-400 text-sm text-center">Review and edit your Male & Female accommodation registrations below, then submit.</p>
+                    {pendingRegistrations.map((reg, idx) => (
+                      <div key={idx} className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl space-y-4">
+                        <h4 className="font-bold text-white flex items-center gap-2">
+                          {reg.gender === "MALE" ? <span className="text-blue-400">Male</span> : <span className="text-pink-400">Female</span>} Accommodation
+                        </h4>
+                        <div className="grid gap-3">
+                          <div>
+                            <label className="block text-xs text-zinc-500 mb-1">Full Name *</label>
+                            <input
+                              type="text"
+                              value={reg.primaryName}
+                              onChange={(e) => handleUpdatePendingRegistration(idx, "primaryName", e.target.value)}
+                              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-zinc-500 mb-1">Email * <span className="text-zinc-600 font-normal">(fill contact email for this group)</span></label>
+                            <input
+                              type="email"
+                              value={reg.primaryEmail}
+                              onChange={(e) => handleUpdatePendingRegistration(idx, "primaryEmail", e.target.value)}
+                              placeholder="Required if not auto-filled"
+                              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white placeholder:text-zinc-600"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-zinc-500 mb-1">Phone *</label>
+                            <input
+                              type="tel"
+                              value={reg.primaryPhone}
+                              onChange={(e) => handleUpdatePendingRegistration(idx, "primaryPhone", e.target.value)}
+                              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white"
+                            />
+                          </div>
+                          {reg.groupMembers.length > 0 && (
+                            <div className="p-4 rounded-xl bg-zinc-800/60 border-2 border-zinc-700 ring-1 ring-white/5">
+                              <label className="block text-sm font-semibold text-zinc-300 mb-3">Additional Guests</label>
+                              <div className="space-y-3">
+                                {reg.groupMembers.map((m, mi) => (
+                                  <div key={mi} className="flex gap-2 p-2 rounded-lg bg-zinc-900/80 border border-zinc-600/80">
+                                    <input
+                                      type="text"
+                                      value={m.name}
+                                      onChange={(e) => {
+                                        const updated = [...reg.groupMembers];
+                                        updated[mi] = { ...updated[mi], name: e.target.value };
+                                        handleUpdatePendingRegistration(idx, "groupMembers", updated);
+                                      }}
+                                      placeholder="Name"
+                                      className="flex-1 bg-zinc-800 border-2 border-zinc-600 rounded-lg px-4 py-2.5 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/30"
+                                    />
+                                    <input
+                                      type="tel"
+                                      value={m.phone}
+                                      onChange={(e) => {
+                                        const updated = [...reg.groupMembers];
+                                        updated[mi] = { ...updated[mi], phone: e.target.value };
+                                        handleUpdatePendingRegistration(idx, "groupMembers", updated);
+                                      }}
+                                      placeholder="Phone"
+                                      className="flex-1 bg-zinc-800 border-2 border-zinc-600 rounded-lg px-4 py-2.5 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/30"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    <div className="flex gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setPendingRegistrations(null)}
+                        className="flex-1 py-3 border border-zinc-700 text-zinc-300 rounded-xl hover:bg-zinc-800"
+                      >
+                        Start Fresh
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSubmitMultiple}
+                        disabled={isSubmitting || pendingRegistrations.some(r => !r.primaryName || !r.primaryEmail || !r.primaryPhone)}
+                        className="flex-1 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-50"
+                      >
+                        {isSubmitting ? "Submitting..." : "Submit Both Registrations"}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
                 <div className="space-y-6">
                   {/* Booking Type */}
                   <div className="p-1 bg-zinc-900 border border-zinc-800 rounded-xl grid grid-cols-2 gap-1">
@@ -541,40 +806,58 @@ const MultiStepAccommodation = () => {
                     </button>
                   </div>
 
-                  {/* Inputs */}
+                  {/* Inputs - all mandatory */}
                   <div className="space-y-4">
-                    <div className="relative group">
-                      <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-red-500 transition-colors" />
-                      <input
+                    <div>
+                      <label className="block text-sm font-semibold text-zinc-400 mb-1">
+                        Full Name <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative group">
+                        <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-red-500 transition-colors" />
+                        <input
                         type="text"
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
+                        required
                         className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/50 transition-all placeholder:text-zinc-700"
                         placeholder="Full Name"
                       />
+                      </div>
                     </div>
-                    <div className="relative group">
-                      <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-red-500 transition-colors" />
+                    <div>
+                      <label className="block text-sm font-semibold text-zinc-400 mb-1">
+                        Email Address <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative group">
+                        <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-red-500 transition-colors" />
                       <input
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
+                        required
                         className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/50 transition-all placeholder:text-zinc-700"
                         placeholder="Email Address"
                       />
+                      </div>
                     </div>
-                    <div className="relative group">
-                      <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-red-500 transition-colors" />
+                    <div>
+                      <label className="block text-sm font-semibold text-zinc-400 mb-1">
+                        Phone Number <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative group">
+                        <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-red-500 transition-colors" />
                       <input
                         type="tel"
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
+                        required
                         className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/50 transition-all placeholder:text-zinc-700"
                         placeholder="Phone Number"
                       />
+                      </div>
                     </div>
                   </div>
 
@@ -622,27 +905,27 @@ const MultiStepAccommodation = () => {
                           </div>
                           <p className="text-xs text-zinc-500 text-right">Max 10 guests allowed per group</p>
 
-                          {/* Group Members Inputs */}
-                          <div className="space-y-4 mt-6">
-                            <h4 className="text-sm font-semibold text-zinc-300">Guest Details <span className="text-zinc-600 font-normal ml-2">(Guest 1 is you)</span></h4>
+                          {/* Additional Guests Inputs */}
+                          <div className="space-y-4 mt-6 p-4 rounded-xl bg-zinc-800/60 border-2 border-zinc-700 ring-1 ring-white/5">
+                            <h4 className="text-sm font-semibold text-zinc-200">Additional Guests <span className="text-zinc-500 font-normal ml-2">(Guest 1 is you)</span></h4>
                             <div className="space-y-3">
                               {formData.groupMembers.map((member, idx) => (
-                                <div key={idx} className="p-3 bg-black/40 border border-zinc-800 rounded-lg">
-                                  <div className="text-xs text-zinc-500 font-bold mb-2 uppercase tracking-wider">Guest {idx + 2}</div>
+                                <div key={idx} className="p-3 rounded-lg bg-zinc-900/80 border-2 border-zinc-600/80">
+                                  <div className="text-xs text-zinc-400 font-bold mb-2 uppercase tracking-wider">Guest {idx + 2}</div>
                                   <div className="flex flex-col sm:flex-row gap-3">
                                     <input
                                       type="text"
                                       placeholder="Full Name"
                                       value={member.name}
                                       onChange={(e) => handleGroupMemberChange(idx, 'name', e.target.value)}
-                                      className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-red-500 transition-all"
+                                      className="flex-1 bg-zinc-800 border-2 border-zinc-600 rounded-lg py-2.5 px-4 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/30 transition-all"
                                     />
                                     <input
                                       type="tel"
                                       placeholder="Phone"
                                       value={member.phone}
                                       onChange={(e) => handleGroupMemberChange(idx, 'phone', e.target.value)}
-                                      className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-red-500 transition-all"
+                                      className="flex-1 bg-zinc-800 border-2 border-zinc-600 rounded-lg py-2.5 px-4 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/30 transition-all"
                                     />
                                   </div>
                                 </div>
@@ -687,6 +970,7 @@ const MultiStepAccommodation = () => {
                     </button>
                   </div>
                 </div>
+                )}
               </motion.div>
             )}
 
@@ -727,15 +1011,15 @@ const MultiStepAccommodation = () => {
                     </div>
                   </div>
 
-                  {/* Group Members Review */}
+                  {/* Additional Guests Review */}
                   {formData.groupMembers.length > 0 && (
-                    <div className="p-6 bg-zinc-900/50">
-                      <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4">Other Guests</h4>
-                      <div className="grid grid-cols-1 gap-3">
+                    <div className="p-4 rounded-xl bg-zinc-800/60 border-2 border-zinc-700 ring-1 ring-white/5">
+                      <h4 className="text-sm font-semibold text-zinc-200 mb-3">Additional Guests</h4>
+                      <div className="space-y-2">
                         {formData.groupMembers.map((m, i) => (
-                          <div key={i} className="flex justify-between items-center text-sm">
-                            <span className="text-zinc-400">Guest {i + 2}: </span>
-                            <span className="text-white font-medium">{m.name} <span className="text-zinc-600 mx-1">|</span> {m.phone}</span>
+                          <div key={i} className="flex justify-between items-center p-2 rounded-lg bg-zinc-900/80 border border-zinc-600/80 text-sm">
+                            <span className="text-zinc-400 font-medium">Guest {i + 2}</span>
+                            <span className="text-white">{m.name} <span className="text-zinc-600 mx-1">|</span> {m.phone}</span>
                           </div>
                         ))}
                       </div>
