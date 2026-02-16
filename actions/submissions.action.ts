@@ -18,7 +18,7 @@ export async function submitEventWork(eventId: string, submissionLink: string, y
 
         const event = await prisma.event.findUnique({
             where: { id: eventId },
-            select: { allowSubmissions: true }
+            select: { allowSubmissions: true, name: true, Category: { select: { name: true } } }
         });
         if (!event) {
             return { success: false, error: "Event not found" };
@@ -27,11 +27,12 @@ export async function submitEventWork(eventId: string, submissionLink: string, y
             return { success: false, error: "Submissions are disabled for this event" };
         }
 
+        const categoryName = (event.Category as { name: string })?.name?.toLowerCase() || "";
+        const eventName = event.name?.toLowerCase() || "";
+        const isCinecarnival = /cinecarnival|cine carnival/.test(categoryName) || /cinecarnival|cine carnival/.test(eventName);
+
         if (!submissionLink || !submissionLink.trim()) {
-            return { success: false, error: "YouTube video link is required" };
-        }
-        if (!youtubeChannelName || !youtubeChannelName.trim()) {
-            return { success: false, error: "YouTube channel name is required" };
+            return { success: false, error: isCinecarnival ? "YouTube/Google Drive video link is required" : "Google Drive link is required" };
         }
 
         const trimmedLink = submissionLink.trim();
@@ -40,8 +41,15 @@ export async function submitEventWork(eventId: string, submissionLink: string, y
         } catch {
             return { success: false, error: "Please enter a valid URL" };
         }
-        if (!(trimmedLink.includes("youtube.com") || trimmedLink.includes("youtu.be"))) {
-            return { success: false, error: "Please enter a valid YouTube video link" };
+
+        if (isCinecarnival) {
+            if (!trimmedLink.includes("youtube.com") && !trimmedLink.includes("youtu.be") && !trimmedLink.includes("drive.google.com")) {
+                return { success: false, error: "Please enter a valid YouTube or Google Drive video link" };
+            }
+        } else {
+            if (!trimmedLink.includes("drive.google.com")) {
+                return { success: false, error: "Please enter a valid Google Drive link" };
+            }
         }
 
         // Check registration and existing submission in parallel for faster response
@@ -78,7 +86,7 @@ export async function submitEventWork(eventId: string, submissionLink: string, y
                 },
                 data: {
                     submissionLink: trimmedLink,
-                    youtubeChannelName: youtubeChannelName.trim(),
+                    youtubeChannelName: youtubeChannelName?.trim() || null,
                     notes: notes?.trim() || null,
                     updatedAt: new Date(),
                 },
@@ -90,7 +98,7 @@ export async function submitEventWork(eventId: string, submissionLink: string, y
                     userId: session.user.id,
                     eventId: eventId,
                     submissionLink: trimmedLink,
-                    youtubeChannelName: youtubeChannelName.trim(),
+                    youtubeChannelName: youtubeChannelName?.trim() || null,
                     notes: notes?.trim() || null,
                 },
             });

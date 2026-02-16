@@ -13,6 +13,7 @@ interface Event {
     venue: string;
     startTime: string;
     endTime: string;
+    Category?: { id: string; name: string };
 }
 
 interface SubmissionModalProps {
@@ -34,6 +35,11 @@ export default function SubmissionModal({
     existingSubmission,
     onSuccess,
 }: SubmissionModalProps) {
+    const isCinecarnival = Boolean(
+        event.Category?.name?.toLowerCase().match(/cinecarnival|cine carnival/) ||
+        event.name?.toLowerCase().match(/cinecarnival|cine carnival/)
+    );
+
     const [submissionLink, setSubmissionLink] = useState(existingSubmission?.submissionLink || "");
     const [youtubeChannelName, setYoutubeChannelName] = useState(existingSubmission?.youtubeChannelName || "");
     const [notes, setNotes] = useState(existingSubmission?.notes || "");
@@ -46,7 +52,7 @@ export default function SubmissionModal({
         setError(null);
         setLoading(true);
 
-        const result = await submitEventWork(event.id, submissionLink, youtubeChannelName, notes);
+        const result = await submitEventWork(event.id, submissionLink, isCinecarnival ? youtubeChannelName : undefined, notes);
 
         if (result.success) {
             setSuccess(true);
@@ -126,17 +132,32 @@ export default function SubmissionModal({
                                     Submission Guidelines
                                 </h4>
                                 <div className="space-y-2 text-sm text-zinc-300">
-                                    <p>📌 Upload your video to YouTube</p>
-                                    <p>📌 Ensure the video is public or unlisted</p>
-                                    <p>📌 Paste the YouTube video link and your channel name below</p>
-                                    <p>📌 The work must be genuinely yours</p>
+                                    {isCinecarnival ? (
+                                        <>
+                                            <p>📌 Upload your video to YouTube or Google Drive</p>
+                                            <p>📌 Paste the YouTube/Google Drive video link below</p>
+                                            <p>📌 YouTube Channel Name is optional</p>
+                                            <p>📌 The work must be genuinely yours</p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p>📌 Upload your work to Google Drive</p>
+                                            <p>📌 Paste the Google Drive link below</p>
+                                            <p>📌 Add a note if needed</p>
+                                            <p>📌 The work must be genuinely yours</p>
+                                        </>
+                                    )}
                                 </div>
                             </div>
 
-                            {/* YouTube Video Link Input */}
+                            {/* Video/Link Input */}
                             <div>
                                 <label className="block text-sm font-semibold text-white mb-2">
-                                    YouTube Video Link <span className="text-red-500">*</span>
+                                    {isCinecarnival ? (
+                                        <>YouTube/Google Drive Video Link <span className="text-red-500">*</span></>
+                                    ) : (
+                                        <>Google Drive Link <span className="text-red-500">*</span></>
+                                    )}
                                 </label>
                                 <div className="relative">
                                     <FiLink className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
@@ -144,7 +165,9 @@ export default function SubmissionModal({
                                         type="url"
                                         value={submissionLink}
                                         onChange={(e) => setSubmissionLink(e.target.value)}
-                                        placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                                        placeholder={isCinecarnival
+                                            ? "https://www.youtube.com/watch?v=... or https://drive.google.com/..."
+                                            : "https://drive.google.com/..."}
                                         required
                                         disabled={loading}
                                         className="w-full pl-12 pr-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all placeholder-zinc-500 disabled:opacity-50"
@@ -152,26 +175,27 @@ export default function SubmissionModal({
                                 </div>
                             </div>
 
-                            {/* YouTube Channel Name Input */}
-                            <div>
-                                <label className="block text-sm font-semibold text-white mb-2">
-                                    YouTube Channel Name <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={youtubeChannelName}
-                                    onChange={(e) => setYoutubeChannelName(e.target.value)}
-                                    placeholder="Your YouTube channel name"
-                                    required
-                                    disabled={loading}
-                                    className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all placeholder-zinc-500 disabled:opacity-50"
-                                />
-                            </div>
+                            {/* YouTube Channel Name (Cinecarnival only, optional) */}
+                            {isCinecarnival && (
+                                <div>
+                                    <label className="block text-sm font-semibold text-white mb-2">
+                                        YouTube Channel Name <span className="text-zinc-500">(Optional)</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={youtubeChannelName}
+                                        onChange={(e) => setYoutubeChannelName(e.target.value)}
+                                        placeholder="Your YouTube channel name"
+                                        disabled={loading}
+                                        className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all placeholder-zinc-500 disabled:opacity-50"
+                                    />
+                                </div>
+                            )}
 
                             {/* Notes (Optional) */}
                             <div>
                                 <label className="block text-sm font-semibold text-white mb-2">
-                                    Additional Notes <span className="text-zinc-500">(Optional)</span>
+                                    Note <span className="text-zinc-500">(Optional)</span>
                                 </label>
                                 <textarea
                                     value={notes}
@@ -212,8 +236,8 @@ export default function SubmissionModal({
                             <div className="flex gap-4 pt-2">
                                 <button
                                     type="submit"
-                                    disabled={loading || !submissionLink.trim() || !youtubeChannelName.trim()}
-                                    className={`flex-1 bg-red-500 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${loading || !submissionLink.trim() || !youtubeChannelName.trim()
+                                    disabled={loading || !submissionLink.trim()}
+                                    className={`flex-1 bg-red-500 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${loading || !submissionLink.trim()
                                         ? "opacity-50 cursor-not-allowed"
                                         : "hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/50"
                                         }`}
