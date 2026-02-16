@@ -14,5 +14,5 @@ export default async function UsersPage() {
         return redirect("/admin/competitions");
     }
 
-    return <UsersClient currentRole={session?.user.role as Role} />;
+    return <UsersClient currentRole={session?.user.role as Role} currentUserId={session?.user.id} />;
 }
