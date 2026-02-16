@@ -19,12 +19,23 @@ export default function GodLoginPage() {
         setLoading(true);
 
         try {
-            // Use email directly as username
-            const email = username;
-            
+            const email = username.trim().toLowerCase();
+            const pass = password.trim();
+
+            if (!email || !pass) {
+                toast.error("Please enter both email and password.");
+                setLoading(false);
+                return;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                toast.error("Please enter a valid email address.");
+                setLoading(false);
+                return;
+            }
+
             const { data, error } = await signIn.email({
                 email,
-                password,
+                password: pass,
             });
 
             if (error) {
@@ -88,12 +99,13 @@ export default function GodLoginPage() {
                         <div className="relative">
                             <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                             <input
-                                type="text"
+                                type="email"
+                                inputMode="email"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 required
-                                autoComplete="off"
-                                name="username"
+                                autoComplete="email"
+                                name="email"
                                 className="w-full bg-[#111] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all"
                                 placeholder="pro-vc@klusurabhi.in"
                             />
