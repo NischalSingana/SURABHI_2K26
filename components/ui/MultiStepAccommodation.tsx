@@ -767,7 +767,10 @@ const MultiStepAccommodation = () => {
                     <div className="flex gap-4">
                       <button
                         type="button"
-                        onClick={() => setPendingRegistrations(null)}
+                        onClick={() => {
+                          setPendingRegistrations(null);
+                          setCurrentStep(1);
+                        }}
                         className="flex-1 py-3 border border-zinc-700 text-zinc-300 rounded-xl hover:bg-zinc-800"
                       >
                         Start Fresh
