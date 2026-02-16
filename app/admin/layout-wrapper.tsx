@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { signOut } from "@/lib/auth-client";
+import { FiLogOut } from "react-icons/fi";
+import { toast } from "sonner";
 
 export default function AdminLayoutWrapper({
   children,
@@ -20,6 +23,12 @@ export default function AdminLayoutWrapper({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleLogout = async () => {
+    await signOut();
+    router.push(session?.user?.role === "GOD" ? "/" : "/auth/login");
+    toast.success("Logged out successfully");
+  };
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -50,42 +59,40 @@ export default function AdminLayoutWrapper({
     <div className="min-h-screen bg-black">
       <nav className="bg-gray-800 border-b border-gray-700 fixed top-0 left-0 right-0 z-50">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-12 sm:h-14">
-            <div className="flex items-center flex-1 min-w-0">
-              <Link 
-                href={session?.user?.role === "GOD" ? "/admin/registration-analytics" : "/admin/dashboard"} 
-                className="text-white font-bold text-xl shrink-0"
-              >
-                {session?.user?.role === "MASTER"
-                    ? "Master Panel"
-                    : session?.user?.role === "GOD"
-                        ? "Registration Analytics"
-                        : session?.user?.role === "MANAGER"
-                            ? "Manager Panel"
-                            : "Admin Panel"}
-              </Link>
+          <div className="flex items-center justify-between h-12 sm:h-14 gap-2 sm:gap-4">
+            <Link
+              href={session?.user?.role === "GOD" ? "/admin/registration-analytics" : "/admin/dashboard"}
+              className="text-white font-bold text-xl shrink-0 hidden sm:block"
+            >
+              {session?.user?.role === "MASTER"
+                ? "Master Panel"
+                : session?.user?.role === "GOD"
+                  ? "Registration Analytics"
+                  : session?.user?.role === "MANAGER"
+                    ? "Manager Panel"
+                    : "Admin Panel"}
+            </Link>
 
-              {/* Desktop Menu */}
-              <div className="hidden md:block ml-6 lg:ml-10 flex-1 overflow-x-auto">
-                <div className="flex items-center space-x-1 lg:space-x-2">
-                  {navLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className={`px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${pathname === link.href
-                        ? "bg-gray-900 text-white"
-                        : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                        }`}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
+            {/* Desktop Menu - scrollable, prevents overlap with right section */}
+            <div className="hidden md:flex flex-1 min-w-0 overflow-x-auto [&::-webkit-scrollbar]:h-0">
+              <div className="flex items-center space-x-1 lg:space-x-2 py-1 pr-2">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${pathname === link.href
+                      ? "bg-gray-900 text-white"
+                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                      }`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
               </div>
             </div>
 
-            {/* Desktop User Info & Back Link */}
-            <div className="hidden md:flex items-center gap-3 lg:gap-4 shrink-0">
+            {/* Desktop User Info, Back Link & Logout - always visible, no overlap */}
+            <div className="hidden md:flex items-center gap-2 lg:gap-3 shrink-0 ml-auto">
               <Link
                 href="/"
                 className="text-gray-300 hover:text-white text-sm transition-colors whitespace-nowrap"
@@ -95,6 +102,13 @@ export default function AdminLayoutWrapper({
               <div className="text-gray-300 text-sm border-l border-gray-600 pl-3 lg:pl-4 whitespace-nowrap">
                 {session?.user?.name || session?.user?.email}
               </div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-3 py-1.5 text-gray-300 hover:text-white hover:bg-gray-700 rounded-md text-sm transition-colors"
+              >
+                <FiLogOut size={14} />
+                Logout
+              </button>
             </div>
 
             {/* Mobile Menu Button */}
@@ -159,6 +173,16 @@ export default function AdminLayoutWrapper({
                   >
                     ← Back to Site
                   </Link>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-gray-400 hover:text-white hover:bg-gray-700"
+                  >
+                    <FiLogOut size={16} />
+                    Logout
+                  </button>
                 </div>
               </div>
             </motion.div>
