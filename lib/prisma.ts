@@ -8,22 +8,24 @@ const prismaClientSingleton = () => {
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   };
 
-  // Configure connection pool for better performance
+  // Configure connection pool - prevent "Error { kind: Closed }" from stale idle connections
   if (process.env.DATABASE_URL) {
     let url = process.env.DATABASE_URL;
-    
+
     // Only add connection params if not already present
     if (!url.includes("connection_limit")) {
       const isDev = process.env.NODE_ENV === "development";
-      // Development: More connections for Hot Module Reload
-      // Production: Optimized for serverless
-      const connectionLimit = isDev ? 20 : 10;
-      const poolTimeout = isDev ? 20 : 10;
-      
-      url += `${url.includes("?") ? "&" : "?"}connection_limit=${connectionLimit}&pool_timeout=${poolTimeout}&connect_timeout=10`;
-      
+      // Lower pool size reduces stale connections; cloud DBs often close idle connections
+      // Dev: 5 connections to avoid holding many stale refs after HMR
+      // Prod: 10 for serverless
+      const connectionLimit = isDev ? 5 : 10;
+      const poolTimeout = 15;
+      const connectTimeout = 15;
+
+      url += `${url.includes("?") ? "&" : "?"}connection_limit=${connectionLimit}&pool_timeout=${poolTimeout}&connect_timeout=${connectTimeout}`;
+
       adapterOptions.datasources = {
-        db: { url }
+        db: { url },
       };
     }
   }
@@ -31,13 +33,11 @@ const prismaClientSingleton = () => {
   return new PrismaClient(adapterOptions);
 };
 
-export const prisma = globalForPrisma.prisma || prismaClientSingleton();
+export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
 
-// Cleanup on module reload in development
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
-  
-  // Add cleanup handler
+
   if (typeof window === "undefined") {
     process.on("beforeExit", async () => {
       await prisma.$disconnect();
