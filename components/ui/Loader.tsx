@@ -64,7 +64,7 @@ export default function Loader() {
                         fill
                         sizes="(max-width: 768px) 192px, 256px"
                         className="object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-                        priority
+                        loading="eager"
                     />
                 </motion.div>
             </div>
