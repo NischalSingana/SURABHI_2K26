@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { checkVirtualEligibility } from "@/lib/virtual-eligibility";
 import { Role, Prisma } from "@prisma/client";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -701,6 +702,22 @@ export async function registerGroupEvent(
       return { success: false, error: "Payment details are required for non-KL and non-international students." };
     }
 
+    // Validate virtual eligibility for AP/Telangana - must be physical
+    if (isVirtual && !isKLStudent && !isInternational) {
+      const userWithState = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { state: true, email: true, isInternational: true },
+      });
+      const eligibility = checkVirtualEligibility({
+        email: userWithState?.email,
+        state: userWithState?.state ?? undefined,
+        isInternational: userWithState?.isInternational ?? false,
+      });
+      if (!eligibility.isEligible) {
+        return { success: false, error: eligibility.reason ?? "You are not eligible for virtual participation." };
+      }
+    }
+
     const paymentStatus = (isKLStudent || isInternational) ? "APPROVED" : "PENDING";
 
     const registrationResult = await prisma.$transaction(
@@ -911,6 +928,22 @@ export async function registerForEvent(
 
     if (!user?.isApproved) {
       return { success: false, error: "Please wait till admin approves your registration." };
+    }
+
+    // Validate virtual eligibility for AP/Telangana - must be physical
+    if (isVirtual && !isKLStudent && !isInternational) {
+      const userWithState = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { state: true, email: true, isInternational: true },
+      });
+      const eligibility = checkVirtualEligibility({
+        email: userWithState?.email,
+        state: userWithState?.state ?? undefined,
+        isInternational: userWithState?.isInternational ?? false,
+      });
+      if (!eligibility.isEligible) {
+        return { success: false, error: eligibility.reason ?? "You are not eligible for virtual participation." };
+      }
     }
 
     // Use transaction with serializable isolation to prevent race conditions

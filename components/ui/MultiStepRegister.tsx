@@ -16,7 +16,7 @@ import {
 } from "react-icons/fi";
 import { useSession, signOut } from "@/lib/auth-client";
 import SignInOAuthButton from "./signInOAuthButton";
-import { BRANCHES } from "@/lib/constants";
+import { BRANCHES, INDIAN_STATES } from "@/lib/constants";
 import SearchableSelect from "./SearchableSelect";
 import { COUNTRIES_WITH_DIAL, PROGRAMS_OF_STUDY, getCountryFlag } from "@/lib/registration-data";
 
@@ -265,6 +265,9 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
   const validateStateRegion = (state: string): { valid: boolean; error?: string } => {
     if (!state || !state.trim()) {
       return { valid: false, error: "State/Region is required" };
+    }
+    if (formData.college !== "INTERNATIONAL" && !INDIAN_STATES.includes(state.trim())) {
+      return { valid: false, error: "Please select a valid state from the list" };
     }
     if (state.trim().length < 2) {
       return { valid: false, error: "State/Region must be at least 2 characters" };
@@ -1161,25 +1164,21 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
                         State *
                       </label>
                       <div className="relative">
-                        <FiBook className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
-                        <input
-                          type="text"
+                        <FiBook className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg pointer-events-none z-10" />
+                        <select
                           name="state"
                           value={formData.state || ""}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            if (value.length <= 50) {
-                              setFormData({ ...formData, state: value });
-                            }
-                          }}
+                          onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                           required
-                          maxLength={50}
-                          className="w-full pl-12 pr-4 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all"
-                          placeholder="Enter your state (e.g., Andhra Pradesh, Karnataka)"
-                        />
-                        {formData.state && formData.state.length < 2 && (
-                          <p className="text-xs text-amber-400 mt-1">State must be at least 2 characters</p>
-                        )}
+                          className="w-full pl-12 pr-10 py-3 text-base bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all appearance-none cursor-pointer"
+                        >
+                          <option value="">Select your state</option>
+                          {INDIAN_STATES.map((state) => (
+                            <option key={state} value={state}>
+                              {state}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       </div>
                       {/* City/Town - For KL and Other College (mandatory) */}
