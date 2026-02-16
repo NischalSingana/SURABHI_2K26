@@ -72,7 +72,8 @@ export default function MyEventsPage() {
     const [unregistering, setUnregistering] = useState<string | null>(null);
     const [showUnregisterConfirm, setShowUnregisterConfirm] = useState<string | null>(null);
     const [hasGoogleAccount, setHasGoogleAccount] = useState(false);
-    const isOutsider = session?.user?.email && !session.user.email.endsWith("@kluniversity.in");
+    const isKL = !!session?.user?.email?.endsWith("@kluniversity.in");
+    const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
 
     useEffect(() => {
         fetchMyEvents();
@@ -323,34 +324,36 @@ export default function MyEventsPage() {
                                                             )}
                                                         </button>
                                                     )}
-                                                    <button
-                                                        onClick={async () => {
-                                                            try {
-                                                                const response = await fetch(`/api/ticket/download?eventId=${event.id}`);
-                                                                if (!response.ok) {
-                                                                    const error = await response.json();
-                                                                    toast.error(error.error || 'Failed to download ticket');
-                                                                    return;
+                                                    {!event.isVirtual && (
+                                                        <button
+                                                            onClick={async () => {
+                                                                try {
+                                                                    const response = await fetch(`/api/ticket/download?eventId=${event.id}`);
+                                                                    if (!response.ok) {
+                                                                        const error = await response.json();
+                                                                        toast.error(error.error || 'Failed to download ticket');
+                                                                        return;
+                                                                    }
+                                                                    const blob = await response.blob();
+                                                                    const url = window.URL.createObjectURL(blob);
+                                                                    const a = document.createElement('a');
+                                                                    a.href = url;
+                                                                    a.download = `surabhi-2026-ticket-${event.name.replace(/\s+/g, '-')}.pdf`;
+                                                                    document.body.appendChild(a);
+                                                                    a.click();
+                                                                    window.URL.revokeObjectURL(url);
+                                                                    document.body.removeChild(a);
+                                                                    toast.success('Ticket downloaded successfully!');
+                                                                } catch (error) {
+                                                                    toast.error('Failed to download ticket');
                                                                 }
-                                                                const blob = await response.blob();
-                                                                const url = window.URL.createObjectURL(blob);
-                                                                const a = document.createElement('a');
-                                                                a.href = url;
-                                                                a.download = `surabhi-2026-ticket-${event.name.replace(/\s+/g, '-')}.pdf`;
-                                                                document.body.appendChild(a);
-                                                                a.click();
-                                                                window.URL.revokeObjectURL(url);
-                                                                document.body.removeChild(a);
-                                                                toast.success('Ticket downloaded successfully!');
-                                                            } catch (error) {
-                                                                toast.error('Failed to download ticket');
-                                                            }
-                                                        }}
-                                                        className="w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white hover:shadow-lg hover:shadow-red-600/40"
-                                                    >
-                                                        <FiCreditCard size={16} />
-                                                        Download Ticket
-                                                    </button>
+                                                            }}
+                                                            className="w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white hover:shadow-lg hover:shadow-red-600/40"
+                                                        >
+                                                            <FiCreditCard size={16} />
+                                                            Download Ticket
+                                                        </button>
+                                                    )}
                                                     {event.allowSubmissions ? (
                                                         <button
                                                             onClick={() => handleSubmitClick(event)}
@@ -382,8 +385,8 @@ export default function MyEventsPage() {
                                                 </>
                                             )}
 
-                                            {/* Hide unregister button for Google login users or outsiders */}
-                                            {!(hasGoogleAccount || isOutsider) && (
+                                            {/* Hide unregister for other college; show only for KL and International */}
+                                            {(isKL || isInternational) && (
                                                 <button
                                                     onClick={() => setShowUnregisterConfirm(event.id)}
                                                     disabled={unregistering === event.id}
@@ -449,7 +452,7 @@ export default function MyEventsPage() {
             {/* Unregister Confirmation Modal */}
             <AnimatePresence>
                 {showUnregisterConfirm && (
-                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[1000000] p-4">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}

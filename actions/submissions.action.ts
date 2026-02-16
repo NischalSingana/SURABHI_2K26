@@ -44,47 +44,28 @@ export async function submitEventWork(eventId: string, submissionLink: string, y
             return { success: false, error: "Please enter a valid YouTube video link" };
         }
 
-        // Check if user is registered for the event
-        const individualReg = await prisma.individualRegistration.findUnique({
-            where: {
-                userId_eventId: {
-                    userId: session.user.id,
-                    eventId: eventId,
+        // Check registration and existing submission in parallel for faster response
+        const [individualReg, groupReg, existingSubmission] = await Promise.all([
+            prisma.individualRegistration.findUnique({
+                where: {
+                    userId_eventId: { userId: session.user.id, eventId },
                 },
-            },
-        });
-
-        const groupReg = await prisma.groupRegistration.findUnique({
-            where: {
-                userId_eventId: {
-                    userId: session.user.id,
-                    eventId: eventId,
+            }),
+            prisma.groupRegistration.findUnique({
+                where: {
+                    userId_eventId: { userId: session.user.id, eventId },
                 },
-            },
-        });
+            }),
+            prisma.eventSubmission.findUnique({
+                where: {
+                    userId_eventId: { userId: session.user.id, eventId },
+                },
+            }),
+        ]);
 
-        const memberInGroup = await prisma.groupRegistration.findFirst({
-            where: {
-                eventId: eventId,
-                members: {
-                    array_contains: [{ email: session.user.email }]
-                }
-            }
-        });
-
-        if (!individualReg && !groupReg && !memberInGroup) {
+        if (!individualReg && !groupReg) {
             return { success: false, error: "You must be registered for this event to submit" };
         }
-
-        // Check if submission already exists
-        const existingSubmission = await prisma.eventSubmission.findUnique({
-            where: {
-                userId_eventId: {
-                    userId: session.user.id,
-                    eventId: eventId,
-                },
-            },
-        });
 
         if (existingSubmission) {
             // Update existing submission
@@ -115,7 +96,9 @@ export async function submitEventWork(eventId: string, submissionLink: string, y
             });
         }
 
-        revalidatePath("/profile/events");
+        revalidatePath("/profile");
+        revalidatePath("/profile/competitions");
+        revalidatePath("/admin/competitions");
         return { success: true, message: "Submission saved successfully" };
     } catch (error) {
         console.error("Error submitting event work:", error);
@@ -278,13 +261,13 @@ export async function getUserRegisteredEvents() {
         const groupEvents = user.groupRegistrations.map(reg => ({
             ...reg.event,
             registrationStatus: reg.paymentStatus as any,
-            isVirtual: false // Group registrations don't have isVirtual field yet
+            isVirtual: reg.isVirtual || false
         }));
 
         const memberEvents = memberInGroups.map(reg => ({
             ...reg.event,
             registrationStatus: reg.paymentStatus as any,
-            isVirtual: false // Group registrations don't have isVirtual field yet
+            isVirtual: reg.isVirtual || false
         }));
 
         const allEvents = [...individualEvents, ...groupEvents, ...memberEvents];
