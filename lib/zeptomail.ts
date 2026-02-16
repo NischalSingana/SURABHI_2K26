@@ -105,8 +105,10 @@ export async function sendEventConfirmationEmail(
     pdfBuffer: Buffer | null,
     registrationType: "INDIVIDUAL" | "GROUP" | "VISITOR",
     teamDetails?: { groupName: string; members: any[] },
-    eventDetails?: { description?: string; termsAndConditions?: string; whatsappLink?: string | null },
-    isInternational?: boolean
+    eventDetails?: { description?: string; termsAndConditions?: string; virtualTermsAndConditions?: string | null; whatsappLink?: string | null },
+    isInternational?: boolean,
+    /** For virtual/international competition participants: no PDF, virtual-only content, Zoom sent 2 days before */
+    isVirtualParticipant?: boolean
 ) {
     // 1. Prepare Logos - Using Public URLs
     // Assuming site is at https://klusurabhi.in
@@ -129,6 +131,9 @@ export async function sendEventConfirmationEmail(
 
     // Theme colors: #dc2626 (Red), #000000 (Black), #18181b (Zinc-900)
 
+    // Virtual participants (competitions): no PDF, virtual-only content, Zoom sent 2 days before
+    const useVirtualTemplate = !!isVirtualParticipant;
+
     let headingTitle = "You are IN!";
     let welcomeMessage = `Congratulations! your registration for <strong class="highlight">${event.name}</strong> has been confirmed.`;
 
@@ -139,12 +144,13 @@ export async function sendEventConfirmationEmail(
         headingTitle = "Visitor Pass Confirmed";
         welcomeMessage = `Your Visitor Pass for <strong class="highlight">Surabhi 2026</strong> is confirmed. Get ready to witness the grand celebration!`;
         subjectLine = `Your Ticket for Visitor Pass - Surabhi 2026`;
-    }
-
-    // International participants: virtual participation, PDF attached with venue Virtual and time announced later
-    if (isInternational) {
+    } else if (useVirtualTemplate) {
         headingTitle = "Virtual Participation – You're Registered!";
-        welcomeMessage = `We are delighted to confirm your <strong class="highlight">virtual participation</strong> for <strong class="highlight">${event.name}</strong>. Your ticket (PDF) is attached. Thank you for being part of Surabhi International Cultural Fest 2026.`;
+        welcomeMessage = `We are delighted to confirm your <strong class="highlight">virtual participation</strong> for <strong class="highlight">${event.name}</strong>. The Zoom meeting link will be sent to your email before 2 days of the event date. Thank you for being part of Surabhi International Cultural Fest 2026.`;
+        subjectLine = `Registration Confirmed (Virtual): ${event.name} - Surabhi 2026`;
+    } else if (isInternational) {
+        headingTitle = "Virtual Participation – You're Registered!";
+        welcomeMessage = `We are delighted to confirm your <strong class="highlight">virtual participation</strong> for <strong class="highlight">${event.name}</strong>. Thank you for being part of Surabhi International Cultural Fest 2026.`;
         subjectLine = `Registration Confirmed (Virtual): ${event.name} - Surabhi 2026`;
     }
 
@@ -159,25 +165,34 @@ export async function sendEventConfirmationEmail(
         `;
     }
 
-    // Event Details Section (Description & T&C)
+    // Event Details Section - for virtual: only virtual rules; for physical: description & T&C
     let eventDetailsSection = "";
     if (eventDetails) {
-        if (eventDetails.description) {
-            eventDetailsSection += `
-                <div style="margin-top: 30px;">
-                    <h3 style="color: #dc2626; font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">About the Event</h3>
-                    <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${eventDetails.description}</p>
-                </div>
-            `;
-        }
-
-        if (eventDetails.termsAndConditions) {
+        if (useVirtualTemplate) {
+            const virtualRules = eventDetails.virtualTermsAndConditions?.trim() || eventDetails.termsAndConditions?.trim() || "Please refer to the Virtual Participation Guidelines, Rules and Regulations for this competition on the event page.";
             eventDetailsSection += `
                 <div style="margin-top: 25px;">
-                    <h3 style="color: #dc2626; font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">Terms & Conditions</h3>
-                    <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${eventDetails.termsAndConditions}</p>
+                    <h3 style="color: #dc2626; font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">Virtual Participation Rules & Regulations</h3>
+                    <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${virtualRules}</p>
                 </div>
             `;
+        } else {
+            if (eventDetails.description) {
+                eventDetailsSection += `
+                    <div style="margin-top: 30px;">
+                        <h3 style="color: #dc2626; font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">About the Event</h3>
+                        <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${eventDetails.description}</p>
+                    </div>
+                `;
+            }
+            if (eventDetails.termsAndConditions) {
+                eventDetailsSection += `
+                    <div style="margin-top: 25px;">
+                        <h3 style="color: #dc2626; font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">Terms & Conditions</h3>
+                        <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${eventDetails.termsAndConditions}</p>
+                    </div>
+                `;
+            }
         }
     }
 
@@ -244,17 +259,20 @@ export async function sendEventConfirmationEmail(
                 <div class="event-card">
                     <div class="event-name">${event.name}</div>
                     <div class="event-meta">📅 ${dateStr}</div>
-                    ${!isInternational && event.startTime && event.endTime ? `<div class="event-meta">⏰ ${event.startTime} - ${event.endTime}</div>` : ''}
-                    ${isInternational ? `<div class="event-meta">📍 Virtual</div><div class="event-meta">⏰ Time will be announced later to your convenient timezone.</div>` : `<div class="event-meta">📍 ${event.venue}</div>`}
+                    ${useVirtualTemplate
+                        ? `<div class="event-meta">📍 Virtual</div><div class="event-meta">🔗 Zoom meeting link will be sent to your email before 2 days of the event date.</div>`
+                        : isInternational
+                            ? `<div class="event-meta">📍 Virtual</div><div class="event-meta">⏰ Time will be announced later to your convenient timezone.</div>`
+                            : `<div class="event-meta">⏰ ${event.startTime || ''} ${event.endTime ? `- ${event.endTime}` : ''}</div><div class="event-meta">📍 ${event.venue}</div>`}
                 </div>
 
                 ${additionalInfo}
 
-                ${isInternational ? `
+                ${(useVirtualTemplate || isInternational) ? `
                 <div style="background-color: #18181b; padding: 20px; border-left: 4px solid #dc2626; margin: 25px 0; border-radius: 0 8px 8px 0;">
                     <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 12px;">🌐 Virtual Participation</p>
                     <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; margin: 0;">
-                        This competition will be conducted <strong style="color: #ffffff;">virtually</strong>. Your ticket (PDF) is attached. Please follow the <strong style="color: #ffffff;">Virtual Participation Guidelines, Rules and Regulations</strong> in the attached ticket. Time will be announced later to your convenient timezone. You will receive further instructions and meeting links before the event. We look forward to your participation from across the globe!
+                        This competition will be conducted <strong style="color: #ffffff;">virtually</strong>. ${useVirtualTemplate ? 'The Zoom meeting link will be sent to your email before 2 days of the event date. ' : ''}Please refer to the <strong style="color: #ffffff;">Virtual Participation Rules and Regulations</strong> for this competition (see below). ${!useVirtualTemplate ? 'Your ticket (PDF) is attached. ' : ''}We look forward to your participation!
                     </p>
                 </div>
                 <div style="background-color: #18181b; padding: 18px; border-radius: 8px; margin: 20px 0; border: 1px solid #333;">
@@ -269,6 +287,15 @@ export async function sendEventConfirmationEmail(
 
                 <div class="divider"></div>
 
+                ${useVirtualTemplate ? `
+                <p style="color: #ffffff; font-size: 18px; text-align: center; margin-bottom: 15px;">
+                    <strong>🔗 Zoom Link Coming Soon</strong>
+                </p>
+                <p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-bottom: 0;">
+                    No physical ticket is required. The Zoom meeting link will be sent to your email before 2 days of the event date. Please follow the Virtual Participation Rules and Regulations for this competition.
+                </p>
+                <p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-top: 10px; margin-bottom: 0;">For queries: <a href="mailto:surabhi@kluniversity.in" style="color: #dc2626;">surabhi@kluniversity.in</a></p>
+                ` : `
                 <p style="color: #ffffff; font-size: 18px; text-align: center; margin-bottom: 15px;">
                     <strong>🎟️ Your Entry Pass is Attached</strong>
                 </p>
@@ -276,6 +303,7 @@ export async function sendEventConfirmationEmail(
                     ${isInternational ? 'Please find your virtual participation ticket (PDF) attached. Follow the Virtual Participation Guidelines in the ticket.' : 'Please find your official entry pass (PDF) attached below. Keep it handy for security checks at the venue.'}
                 </p>
                 ${isInternational ? '<p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-top: 10px; margin-bottom: 0;">For queries: <a href="mailto:surabhi@kluniversity.in" style="color: #dc2626;">surabhi@kluniversity.in</a></p>' : ''}
+                `}
 
                 <div style="margin-top: 40px; text-align: center;">
                     <p class="text-body" style="font-size: 14px; font-style: italic;">
@@ -295,12 +323,12 @@ export async function sendEventConfirmationEmail(
     </html>
     `;
 
-    // 3. Send Email (attach PDF for all; international gets virtual ticket)
+    // 3. Send Email - virtual participants: no PDF; others: attach PDF
     return sendZeptoMail({
         to: [{ email: user.email, name: user.name }],
         subject: subjectLine,
         htmlBody: htmlBody,
-        ...(pdfBuffer && {
+        ...(pdfBuffer && !useVirtualTemplate && {
             attachments: [{
                 content: pdfBuffer.toString('base64'),
                 mime_type: "application/pdf",

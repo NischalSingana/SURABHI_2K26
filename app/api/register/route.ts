@@ -64,6 +64,14 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
+      // International registration is only for non-India countries
+      const countryNorm = (country || "").trim().toLowerCase();
+      if (countryNorm === "india" || countryNorm === "in") {
+        return NextResponse.json(
+          { error: "International registration is only for students from outside India. If you are in India, please select KL University or Other College." },
+          { status: 400 }
+        );
+      }
     } else {
       if (!collegeName || !phone || !collageId || !branch || !year || !gender || !state?.trim() || !city?.trim()) {
         return NextResponse.json(
