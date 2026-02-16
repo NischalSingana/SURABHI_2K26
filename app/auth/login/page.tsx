@@ -107,7 +107,7 @@ export default function GodLoginPage() {
                                 autoComplete="email"
                                 name="email"
                                 className="w-full bg-[#111] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all"
-                                placeholder="pro-vc@klusurabhi.in"
+                                placeholder=""
                             />
                         </div>
                     </div>
@@ -124,7 +124,7 @@ export default function GodLoginPage() {
                                 autoComplete="off"
                                 name="password"
                                 className="w-full bg-[#111] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all"
-                                placeholder="••••••••"
+                                placeholder=""
                             />
                         </div>
                     </div>
