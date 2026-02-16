@@ -40,11 +40,15 @@ export function checkVirtualEligibility(user: {
     };
   }
 
-  // Check if user is from excluded states (AP or Telangana)
-  if (VIRTUAL_EXCLUDED_STATES.includes(user.state)) {
+  // Check if user is from excluded states (AP or Telangana) - case-insensitive
+  const stateLower = user.state.trim().toLowerCase();
+  const isExcludedState = VIRTUAL_EXCLUDED_STATES.some(
+    (s) => s.toLowerCase() === stateLower
+  );
+  if (isExcludedState) {
     return {
       isEligible: false,
-      reason: `Students from ${user.state} must participate physically at KL University`,
+      reason: `Students from Andhra Pradesh and Telangana must participate physically at KL University`,
     };
   }
 

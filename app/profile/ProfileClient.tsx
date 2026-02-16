@@ -338,7 +338,7 @@ export default function ProfileClient({
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 w-full md:w-auto">
-          {activeTab === "profile" && !isEditing && (
+          {activeTab === "profile" && !isEditing && (user.email?.endsWith("@kluniversity.in") || user.isInternational) && (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -679,21 +679,18 @@ export default function ProfileClient({
               <div>
                 <label className="block text-zinc-400 text-sm mb-2">State</label>
                 {isEditing ? (
-                  <>
-                    <input
-                      list="states-list"
-                      type="text"
-                      value={formData.state}
-                      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                      className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-600"
-                      placeholder="Search or Select State"
-                    />
-                    <datalist id="states-list">
-                      {INDIAN_STATES.map((state) => (
-                        <option key={state} value={state} />
-                      ))}
-                    </datalist>
-                  </>
+                  <select
+                    value={INDIAN_STATES.includes(formData.state || "") ? formData.state : ""}
+                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                    className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-red-600 appearance-none cursor-pointer"
+                  >
+                    <option value="">Select State</option>
+                    {INDIAN_STATES.map((state) => (
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
+                    ))}
+                  </select>
                 ) : (
                   <p className="text-white font-medium px-4 py-3 bg-zinc-800/50 rounded-lg">
                     {user.state || "Not provided"}
