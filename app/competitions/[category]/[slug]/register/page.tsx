@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import Image from "next/image";
 import {
     FiUser,
-    FiMail,
-    FiPhone,
     FiCheck,
     FiChevronLeft,
     FiUsers,
@@ -19,11 +17,10 @@ import {
 import { FaWhatsapp } from "react-icons/fa";
 import {
     registerForEvent,
-    checkEventRegistration,
     registerGroupEvent
 } from "@/actions/events.action";
 import { useSession } from "@/lib/auth-client";
-import { checkVirtualEligibility, getRegistrationFee, getFeeDisplay } from "@/lib/virtual-eligibility";
+import { checkVirtualEligibility, getRegistrationFee } from "@/lib/virtual-eligibility";
 import { REGISTRATION_FEES } from "@/lib/constants";
 
 interface Event {
@@ -75,7 +72,7 @@ export default function EventRegistrationPage() {
 
     const [event, setEvent] = useState<Event | null>(null);
     const [loading, setLoading] = useState(true);
-    const [registering, setRegistering] = useState(false);
+    const [registering, setRegistering] = useState(false); // eslint-disable-line @typescript-eslint/no-unused-vars
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [hasScrolled, setHasScrolled] = useState(false);
     
@@ -168,13 +165,7 @@ export default function EventRegistrationPage() {
 
 
 
-    useEffect(() => {
-        if (slug) {
-            fetchEvent();
-        }
-    }, [slug]);
-
-    const fetchEvent = async () => {
+    const fetchEvent = useCallback(async () => {
         try {
             const { getEventBySlug } = await import("@/actions/events.action");
             const result = await getEventBySlug(slug);
@@ -192,7 +183,13 @@ export default function EventRegistrationPage() {
             console.error("Error fetching event", e);
         }
         setLoading(false);
-    };
+    }, [slug, categorySlug, router]);
+
+    useEffect(() => {
+        if (slug) {
+            fetchEvent();
+        }
+    }, [slug, fetchEvent]);
 
     const processPaymentAndRegister = async () => {
         const isKLStudent = session?.user?.email?.endsWith("@kluniversity.in");
