@@ -1424,8 +1424,8 @@ export default function EventRegistrationPage() {
                                                                     onChange={(e) => {
                                                                         const file = e.target.files?.[0];
                                                                         if (file) {
-                                                                            if (file.size > 5 * 1024 * 1024) {
-                                                                                toast.error("File size exceeds 5MB limit");
+                                                                    if (file.size > 4 * 1024 * 1024) {
+                                                                                toast.error("File size exceeds 4MB limit");
                                                                                 e.target.value = "";
                                                                                 return;
                                                                             }
