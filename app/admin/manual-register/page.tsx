@@ -32,7 +32,7 @@ export default async function ManualRegisterPage() {
   }
 
   const categoriesRes = await getCategories(true);
-  const categories = categoriesRes.success ? categoriesRes.data : [];
+  const categories = categoriesRes.success ? (categoriesRes.data as any[]) : [];
   
   return (
     <div className="p-8">
