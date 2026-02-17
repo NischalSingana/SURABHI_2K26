@@ -130,7 +130,8 @@ export default function AccommodationAnalyticsClient() {
   ];
 
   return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-[#030303] text-white">
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-white">
           Accommodation Analytics
@@ -328,6 +329,7 @@ export default function AccommodationAnalyticsClient() {
           </motion.div>
         </div>
       )}
+      </div>
     </div>
   );
 }

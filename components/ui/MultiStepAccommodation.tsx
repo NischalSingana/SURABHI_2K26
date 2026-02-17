@@ -375,10 +375,19 @@ const MultiStepAccommodation = () => {
                     </div>
                   )}
                   {(existingBooking.status === 'APPROVED' || existingBooking.status === 'CONFIRMED') && (
-                    <div className="p-3 bg-green-500/5 rounded-lg border border-green-500/10">
+                    <div className="p-3 bg-green-500/5 rounded-lg border border-green-500/10 space-y-2">
                       <p className="text-xs text-green-500/80 leading-relaxed">
-                        Accommodation confirmed! Check your email for details.
+                        Accommodation confirmed! Check your email for details and your accommodation pass (PDF).
                       </p>
+                      <a
+                        href={`/api/accommodation/download?bookingId=${existingBooking.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-green-600/20 hover:bg-green-600/30 text-green-400 text-xs font-medium rounded-lg border border-green-500/30 transition-colors"
+                      >
+                        <FiDownload size={14} />
+                        Download Accommodation Pass
+                      </a>
                     </div>
                   )}
                 </div>
