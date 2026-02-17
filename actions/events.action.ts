@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { checkVirtualEligibility } from "@/lib/virtual-eligibility";
-import { Role, Prisma } from "@prisma/client";
+import { Role, Prisma, PaymentStatus } from "@prisma/client";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { logAdminActivity } from "@/lib/admin-logs";
@@ -64,7 +64,7 @@ export async function deleteRegistration(id: string, type: 'INDIVIDUAL' | 'GROUP
   }
 }
 
-export async function getCategories(includeFullData: boolean = true): Promise<{ success: true; data: any } | { success: false; error: string }> {
+export async function getCategories(includeFullData: boolean = true): Promise<{ success: true; data: unknown } | { success: false; error: string }> {
   try {
     if (includeFullData) {
       // Full data for admin pages
@@ -678,7 +678,7 @@ export async function registerGroupEvent(
   members: GroupMember[],
   mentorName?: string,
   mentorPhone?: string,
-  registrationDetails?: any,
+  registrationDetails?: Prisma.InputJsonValue,
   paymentDetails?: {
     paymentScreenshot: string;
     utrId: string;
@@ -774,13 +774,13 @@ export async function registerGroupEvent(
             groupName: groupName || "Team",
             mentorName,
             mentorPhone,
-            members: members as any, // Storing manual details
+            members: members as unknown as Prisma.InputJsonValue, // Storing manual details
             isVirtual: isVirtual || false,
             registrationDetails: registrationDetails || undefined,
             paymentScreenshot: paymentDetails?.paymentScreenshot || null,
             utrId: paymentDetails?.utrId || null,
             payeeName: paymentDetails?.payeeName || null,
-            paymentStatus: paymentStatus as any
+            paymentStatus: paymentStatus as PaymentStatus
           },
         });
 
@@ -894,7 +894,7 @@ export async function getPublicEvents() {
 
 export async function registerForEvent(
   eventId: string,
-  registrationDetails?: any,
+  registrationDetails?: Prisma.InputJsonValue,
   paymentDetails?: {
     paymentScreenshot: string;
     utrId: string;
@@ -1005,7 +1005,7 @@ export async function registerForEvent(
             paymentScreenshot: paymentDetails?.paymentScreenshot || null,
             utrId: paymentDetails?.utrId || null,
             payeeName: paymentDetails?.payeeName || null,
-            paymentStatus: paymentStatus as any
+            paymentStatus: paymentStatus as PaymentStatus
           }
         });
 
@@ -1378,9 +1378,9 @@ export async function registerUserByAdmin(
     
     return { success: true, message: `Successfully registered ${registrationResult.userName} for ${registrationResult.eventName}. Status set to PENDING.` };
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error in registerUserByAdmin:", error);
-    return { success: false, error: error.message || "Failed to register user manually" };
+    return { success: false, error: error instanceof Error ? error.message : "Failed to register user manually" };
   }
 }
 
