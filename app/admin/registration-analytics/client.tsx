@@ -175,16 +175,7 @@ export default function RegistrationAnalyticsClient() {
 
     return (
         <div className="min-h-screen bg-[#030303] text-white relative overflow-x-hidden">
-            {/* Enhanced Background with animated gradients */}
-            <div className="fixed inset-0 z-0">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#0a0303] via-[#1a0505] to-[#0a0303]" />
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-red-900/20 via-transparent to-transparent" />
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent" />
-                {/* Subtle grid pattern overlay */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
-            </div>
-            
-            <div className="relative z-10 p-4 sm:p-6 lg:p-8">
+            <div className="p-4 sm:p-6 lg:p-8">
                 <div className="max-w-7xl mx-auto">
                     {/* Enhanced Header Section */}
                     <div className="mb-8 sm:mb-12">
