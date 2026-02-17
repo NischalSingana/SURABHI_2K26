@@ -1,6 +1,6 @@
 import { Document, Page, Text, View, Image, StyleSheet, Font } from '@react-pdf/renderer';
 import { renderToBuffer } from '@react-pdf/renderer';
-import { generateTicketQR } from './qr-generator';
+import { generateTicketQR, generateAccommodationQR } from './qr-generator';
 import fs from 'fs';
 import path from 'path';
 
@@ -547,4 +547,145 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
     );
 
     return await renderToBuffer(TicketDocument);
+}
+
+// Accommodation pass data
+export interface AccommodationPassData {
+    passToken: string;
+    primaryName: string;
+    primaryEmail: string;
+    primaryPhone: string;
+    collage?: string | null;
+    collageId?: string | null;
+    gender: string;
+    bookingType: string;
+    members: { name: string; email: string; phone: string }[];
+    competitions: { name: string; category?: string; date?: Date; venue?: string }[];
+}
+
+const ACCOMMODATION_RULES = [
+    "This accommodation pass is mandatory for entry to the accommodation facility during Surabhi 2026.",
+    "All guests must carry a valid College ID / Govt ID for identity verification.",
+    "Strict discipline must be maintained within the accommodation premises at all times.",
+    "Possession or consumption of alcohol, drugs, or smoking is strictly prohibited.",
+    "Any form of misbehavior or damage to property will result in immediate eviction and penalties.",
+    "The organizers reserve the right to admission and to modify accommodation arrangements as needed.",
+    "Guests must report to the accommodation desk at the designated check-in time.",
+    "For queries, contact: surabhi@kluniversity.in",
+];
+
+export async function generateAccommodationPassPDF(data: AccommodationPassData): Promise<Buffer> {
+    loadAssets();
+    const qrCodeDataURL = await generateAccommodationQR(data.passToken);
+    const logoBase64 = logoCache.surabhiWhite;
+    const klLogoBase64 = logoCache.klWhite;
+    const surabhiTextLogoBase64 = logoCache.surabhiText;
+
+    const Doc = (
+        <Document>
+            <Page size="A4" style={styles.page}>
+                <View style={styles.coverContainer}>
+                    <View style={styles.topLine} />
+                    <View style={styles.headerRow}>
+                        {klLogoBase64 && <Image src={klLogoBase64} style={styles.klLogo} />}
+                        {surabhiTextLogoBase64 && <Image src={surabhiTextLogoBase64} style={styles.surabhiTextLogo} />}
+                    </View>
+                    <Text style={styles.title}>SURABHI-2026</Text>
+                    <Text style={styles.subtitle}>ACCOMMODATION PASS</Text>
+                    <View style={styles.eventTitleBox}>
+                        <Text style={styles.eventTitle}>ACCOMMODATION</Text>
+                    </View>
+
+                    <View style={styles.ticketCard}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+                            <View style={{ flex: 1, paddingRight: 20 }}>
+                                <View style={{ marginBottom: 15 }}>
+                                    <Text style={styles.label}>PRIMARY GUEST</Text>
+                                    <Text style={styles.value}>{data.primaryName}</Text>
+                                    <Text style={styles.valueSmall}>{data.primaryEmail}</Text>
+                                    {data.primaryPhone && <Text style={styles.valueSmall}>{data.primaryPhone}</Text>}
+                                </View>
+                                <View style={{ marginBottom: 10 }}>
+                                    <Text style={styles.label}>INSTITUTION</Text>
+                                    <Text style={styles.valueSmall}>{data.collage || 'N/A'}</Text>
+                                    {data.collageId && <Text style={styles.valueSmall}>ID: {data.collageId}</Text>}
+                                </View>
+                                <View>
+                                    <Text style={styles.label}>BOOKING TYPE</Text>
+                                    <Text style={styles.valueSmall}>{data.bookingType} • {data.gender}</Text>
+                                </View>
+                            </View>
+                            <View style={styles.qrSection}>
+                                <Image src={qrCodeDataURL} style={styles.qrCode} />
+                                <Text style={styles.qrText}>SCAN TO VERIFY</Text>
+                            </View>
+                        </View>
+
+                        <View style={{ marginBottom: 20, borderTop: '1px solid #27272a', paddingTop: 15 }}>
+                            <Text style={styles.label}>STATUS</Text>
+                            <Text style={{ ...styles.value, color: '#22c55e' }}>CONFIRMED</Text>
+                        </View>
+
+                        {data.members && data.members.length > 0 && (
+                            <View style={{ borderTop: '1px solid #27272a', paddingTop: 15 }}>
+                                <Text style={{ ...styles.label, marginBottom: 10 }}>ACCOMMODATION MEMBERS</Text>
+                                <View style={styles.tableHeader}>
+                                    <Text style={[styles.tableHeadText, styles.col1]}>NAME</Text>
+                                    <Text style={[styles.tableHeadText, styles.col2]}>EMAIL</Text>
+                                    <Text style={[styles.tableHeadText, styles.col3]}>PHONE</Text>
+                                </View>
+                                {data.members.map((m, i) => (
+                                    <View key={i} style={styles.tableRow}>
+                                        <Text style={[styles.tableText, styles.col1]}>{m.name}</Text>
+                                        <Text style={[styles.tableText, styles.col2]}>{m.email}</Text>
+                                        <Text style={[styles.tableText, styles.col3]}>{m.phone || '-'}</Text>
+                                    </View>
+                                ))}
+                            </View>
+                        )}
+
+                        {data.competitions && data.competitions.length > 0 && (
+                            <View style={{ borderTop: '1px solid #27272a', paddingTop: 15, marginTop: 15 }}>
+                                <Text style={{ ...styles.label, marginBottom: 10 }}>REGISTERED COMPETITIONS</Text>
+                                {data.competitions.map((c, i) => (
+                                    <View key={i} style={{ marginBottom: 6 }}>
+                                        <Text style={styles.valueSmall}>• {c.name}{c.category ? ` (${c.category})` : ''}</Text>
+                                    </View>
+                                ))}
+                            </View>
+                        )}
+
+                        <View style={{ borderTop: '1px solid #27272a', paddingTop: 15, marginTop: 'auto' }}>
+                            <Text style={styles.label}>VENUE</Text>
+                            <Text style={styles.valueSmall}>KL University, Vijayawada</Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.footer}>
+                        <Text style={styles.footerText}>Generated on {new Date().toLocaleDateString()} • Surabhi 2026</Text>
+                    </View>
+                    <View style={styles.bottomLine} />
+                </View>
+            </Page>
+
+            <Page size="A4" style={styles.page}>
+                <View style={styles.rulesContainer}>
+                    <Text style={styles.pageTitle}>ACCOMMODATION RULES & REGULATIONS</Text>
+                    {ACCOMMODATION_RULES.map((rule, i) => (
+                        <View key={i} style={styles.bulletRow}>
+                            <View style={styles.bullet} />
+                            <Text style={styles.ruleText}>{rule}</Text>
+                        </View>
+                    ))}
+                    <View style={{ marginTop: 'auto', borderTop: '1px solid #333', paddingTop: 5, alignItems: 'center' }}>
+                        {surabhiTextLogoBase64 && <Image src={surabhiTextLogoBase64} style={{ width: 150, height: 50, objectFit: 'contain', marginBottom: 5 }} />}
+                        <Text style={{ color: '#71717a', fontSize: 14, fontWeight: 'bold' }}>Surabhi 2026 • KL University</Text>
+                    </View>
+                </View>
+                <View style={styles.bottomLine} />
+            </Page>
+        </Document>
+    );
+
+    return await renderToBuffer(Doc);
 }
