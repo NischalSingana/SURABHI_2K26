@@ -8,7 +8,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { logAdminActivity } from "@/lib/admin-logs";
 import { createDeleteRequest } from "@/actions/admin/approval.action";
-import { updateRegistrationStatus } from "@/actions/admin.action";
+
 
 const EVENT_FULL_ERROR = "EVENT_FULL";
 
@@ -1370,13 +1370,13 @@ export async function registerUserByAdmin(
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
     );
 
-    // Auto-approve to trigger email and notifications
-    await updateRegistrationStatus(registrationResult.regId, "INDIVIDUAL", "APPROVED");
+    // Auto-approval removed. Registration stays PENDING for manual approval.
+    // await updateRegistrationStatus(registrationResult.regId, "INDIVIDUAL", "APPROVED");
 
     revalidatePath("/admin/events");
     revalidatePath("/admin/registrations");
     
-    return { success: true, message: `Successfully registered and approved ${registrationResult.userName} for ${registrationResult.eventName}. Email sent.` };
+    return { success: true, message: `Successfully registered ${registrationResult.userName} for ${registrationResult.eventName}. Status set to PENDING.` };
 
   } catch (error: any) {
     console.error("Error in registerUserByAdmin:", error);
