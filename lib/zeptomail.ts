@@ -114,7 +114,7 @@ export async function sendEventConfirmationEmail(
     // Assuming site is at https://klusurabhi.in
     const baseUrl = "https://klusurabhi.in";
     const klLogoUrl = `${baseUrl}/images/kl_logo_white_text.png`;
-    const surabhiLogoUrl = `${baseUrl}/images/surabhi.png`;
+    const surabhiLogoUrl = `${baseUrl}/images/surabhi1.png`;
 
     // No inline images to prevent attachments
     const inlineImages: any[] = [];
@@ -336,5 +336,137 @@ export async function sendEventConfirmationEmail(
             }],
         }),
         inlineImages: inlineImages
+    });
+}
+
+export async function sendAccommodationConfirmationEmail(
+    user: { name: string; email: string },
+    accommodationDetails: {
+        primaryName: string;
+        primaryEmail: string;
+        primaryPhone: string;
+        bookingType: string;
+        gender: string;
+        totalMembers: number;
+        members: { name: string; email: string; phone: string }[];
+        competitions: { name: string; category?: string }[];
+    },
+    pdfBuffer: Buffer
+) {
+    const baseUrl = "https://klusurabhi.in";
+    const klLogoUrl = `${baseUrl}/images/kl_logo_white_text.png`;
+    const surabhiLogoUrl = `${baseUrl}/images/surabhi1.png`;
+
+    const membersList = accommodationDetails.members
+        .map((m) => `<li>${m.name}${m.phone ? ` – ${m.phone}` : ""}</li>`)
+        .join("");
+    const competitionsList =
+        accommodationDetails.competitions.length > 0
+            ? accommodationDetails.competitions
+                  .map((c) => `<li>${c.name}${c.category ? ` (${c.category})` : ""}</li>`)
+                  .join("")
+            : "<li>N/A</li>";
+
+    const htmlBody = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>Accommodation Confirmed - Surabhi 2026</title>
+        <style>
+            body { margin: 0; padding: 0; background-color: #000000; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+            .container { max-width: 600px; margin: 0 auto; background-color: #0a0a0a; border: 1px solid #333; }
+            .content { padding: 40px 30px; color: #ffffff; }
+            .welcome-header { font-size: 20px; color: #dc2626; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+            .main-heading { font-size: 28px; color: #ffffff; font-weight: 800; margin-bottom: 20px; line-height: 1.2; }
+            .text-body { color: #d4d4d8; font-size: 16px; line-height: 1.6; margin-bottom: 20px; }
+            .details-card { background-color: #18181b; border: 1px solid #333; border-radius: 8px; padding: 25px; margin: 25px 0; }
+            .details-card h3 { color: #dc2626; font-size: 16px; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+            .footer { background-color: #18181b; padding: 30px; text-align: center; color: #52525b; font-size: 12px; border-top: 1px solid #333; }
+            .highlight { color: #dc2626; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #000000; border-bottom: 3px solid #dc2626;">
+                <tr>
+                    <td align="left" style="padding: 20px;"><img src="${klLogoUrl}" alt="KL University" width="130"></td>
+                    <td align="right" style="padding: 20px;"><img src="${surabhiLogoUrl}" alt="Surabhi 2026" width="110"></td>
+                </tr>
+            </table>
+
+            <div class="content">
+                <div class="welcome-header">Welcome to Surabhi 2026!</div>
+                <div class="main-heading">Your Accommodation is Confirmed</div>
+
+                <p class="text-body">Dear <strong style="color: #ffffff;">${user.name}</strong>,</p>
+                <p class="text-body">
+                    We are delighted to confirm your accommodation booking for <strong class="highlight">Surabhi International Cultural Fest 2026</strong>. 
+                    Thank you for choosing to be part of this grand celebration at KL University!
+                </p>
+
+                <div class="details-card">
+                    <h3>Accommodation Details</h3>
+                    <p style="color: #d4d4d8; margin: 8px 0;"><strong style="color: #ffffff;">Primary Guest:</strong> ${accommodationDetails.primaryName}</p>
+                    <p style="color: #d4d4d8; margin: 8px 0;"><strong style="color: #ffffff;">Email:</strong> ${accommodationDetails.primaryEmail}</p>
+                    <p style="color: #d4d4d8; margin: 8px 0;"><strong style="color: #ffffff;">Phone:</strong> ${accommodationDetails.primaryPhone || "N/A"}</p>
+                    <p style="color: #d4d4d8; margin: 8px 0;"><strong style="color: #ffffff;">Booking Type:</strong> ${accommodationDetails.bookingType}</p>
+                    <p style="color: #d4d4d8; margin: 8px 0;"><strong style="color: #ffffff;">Gender:</strong> ${accommodationDetails.gender}</p>
+                    <p style="color: #d4d4d8; margin: 8px 0;"><strong style="color: #ffffff;">Total Members:</strong> ${accommodationDetails.totalMembers}</p>
+                </div>
+
+                <div class="details-card">
+                    <h3>Accommodation Members</h3>
+                    <ul style="color: #d4d4d8; padding-left: 20px; margin: 0;">${membersList}</ul>
+                </div>
+
+                <div class="details-card">
+                    <h3>Registered Competitions</h3>
+                    <ul style="color: #d4d4d8; padding-left: 20px; margin: 0;">${competitionsList}</ul>
+                </div>
+
+                <div style="background-color: #f59e0b; border: 2px solid #d97706; padding: 20px; margin: 25px 0; border-radius: 8px; text-align: center;">
+                    <p style="color: #000000; font-size: 16px; font-weight: 700; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px;">⚠️ Important – Read Carefully</p>
+                    <p style="color: #1c1917; font-size: 15px; font-weight: 600; margin: 0; line-height: 1.6;">
+                        The accommodation allotment will be directly done on campus. Please carry the accommodation pass PDF and your college physical ID card.
+                    </p>
+                </div>
+
+                <div style="background-color: #dc2626/20; border-left: 4px solid #dc2626; padding: 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
+                    <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 10px;">🎟️ Your Accommodation Pass is Attached</p>
+                    <p style="color: #d4d4d8; font-size: 14px; margin: 0;">
+                        Please find your official accommodation pass (PDF) attached to this email. 
+                        Keep it handy for check-in and verification. The pass includes a QR code for quick verification at the venue.
+                    </p>
+                </div>
+
+                <p class="text-body">
+                    We look forward to welcoming you at KL University. Safe travels, and see you at Surabhi 2026!
+                </p>
+
+                <p class="text-body" style="font-style: italic;">
+                    "Ignite Your Passion – Let's make this fest memorable together!"
+                </p>
+                <p style="color: #52525b; font-size: 12px; margin-top: 20px;">For queries: <a href="mailto:surabhi@kluniversity.in" style="color: #dc2626;">surabhi@kluniversity.in</a></p>
+            </div>
+
+            <div class="footer">
+                <p>&copy; 2026 KL University. All rights reserved.</p>
+                <p>Koneru Lakshmaiah Education Foundation, Vijayawada, Andhra Pradesh.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+
+    return sendZeptoMail({
+        to: [{ email: user.email, name: user.name }],
+        subject: "Accommodation Confirmed - Surabhi 2026",
+        htmlBody,
+        attachments: [{
+            content: pdfBuffer.toString("base64"),
+            mime_type: "application/pdf",
+            name: "Surabhi_2026_Accommodation_Pass.pdf",
+        }],
     });
 }

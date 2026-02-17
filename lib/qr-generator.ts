@@ -65,4 +65,21 @@ export async function generateTicketQR(data: TicketData): Promise<string> {
     return qrCodeDataURL;
 }
 
+/**
+ * Generate QR code for accommodation pass verification
+ * URL points to /verify/accommodation/[token]
+ */
+export async function generateAccommodationQR(passToken: string): Promise<string> {
+    const baseUrl = (process.env.BETTER_AUTH_URL || "https://klusurabhi.in").replace(/\/$/, "");
+    const verificationUrl = `${baseUrl}/verify/accommodation/${passToken}`;
 
+    const qrCodeDataURL = await QRCode.toDataURL(verificationUrl, {
+        errorCorrectionLevel: "M",
+        type: "image/png",
+        width: 600,
+        margin: 2,
+        color: { dark: "#000000", light: "#ffffff" },
+    });
+
+    return qrCodeDataURL;
+}

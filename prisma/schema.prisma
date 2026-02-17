@@ -220,11 +220,16 @@ model AccommodationBooking {
   paymentId     String?
   amount        Decimal?      @db.Decimal(10, 2)
   status        BookingStatus @default(PENDING)
+  passToken     String?       @unique
+  isUsed        Boolean       @default(false)
+  usedAt        DateTime?
+  usedBy        String?
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, gender])
   @@index([paymentStatus])
   @@index([status])
+  @@index([passToken])
   @@map("accommodation_bookings")
 }
 
