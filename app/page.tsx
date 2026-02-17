@@ -3,14 +3,13 @@
 import Link from 'next/link';
 import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
 import Image from "next/image";
-import MainPoster from "./MainPoster.png";
 import dynamic from 'next/dynamic';
 const CircularGallery = dynamic(() => import("@/components/ui/CircularGallery"), {
     ssr: false,
     loading: () => <div className="w-full h-full flex items-center justify-center text-gray-500">Loading gallery...</div>
 });
 import { CircularGalleryHandle } from "@/components/ui/CircularGallery";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, type SyntheticEvent } from "react";
 import Footer from '@/components/ui/Footer';
 
 const ScheduleTimeline = dynamic(() => import('@/components/ui/ScheduleTimeline'), {
@@ -21,8 +20,8 @@ import CountUp from '@/components/ui/CountUp';
 import { FiGlobe, FiAward, FiUsers, FiFeather, FiHeart, FiTrendingUp, FiVolume2, FiVolumeX } from "react-icons/fi";
 
 // Hero video: CDN first; Chrome often needs direct Spaces URL (Range/206), Safari works with CDN
-const HERO_VIDEO_CDN = "https://surabhi-images.sgp1.cdn.digitaloceanspaces.com/SurabhiPromo.mp4";
-const HERO_VIDEO_DIRECT = "https://surabhi-images.sgp1.digitaloceanspaces.com/SurabhiPromo.mp4";
+const HERO_VIDEO_CDN = "https://surabhi-images.sgp1.cdn.digitaloceanspaces.com/SURABHI-PROMO.MP4";
+const HERO_VIDEO_DIRECT = "https://surabhi-images.sgp1.digitaloceanspaces.com/SURABHI-PROMO.MP4";
 
 // Particles for fiery background (stable positions for SSR/hydration)
 const PARTICLES = Array.from({ length: 24 }, (_, i) => ({
@@ -37,20 +36,95 @@ const HomePage = () => {
     const posterSectionRef = useRef<HTMLElement>(null);
     const galleryRef = useRef<CircularGalleryHandle>(null);
 
-    /* 
-    Video related logic preserved for later use
     const [videoSrc, setVideoSrc] = useState(HERO_VIDEO_CDN);
     const [usedFallback, setUsedFallback] = useState(false);
-    const videoFrameRef = useRef<HTMLDivElement>(null);
+    const videoFrameRef = useRef<HTMLElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
-    const [isMuted, setIsMuted] = useState(true);
-    const [playFailed, setPlayFailed] = useState(false);
+    // Sound button state — reflects the ACTUAL muted state of the video.
+    const [isMuted, setIsMuted] = useState(false);
+    const [isVideoReady, setIsVideoReady] = useState(false);
+    // Whether the user has explicitly toggled mute (prevents auto-unmute from overriding)
+    const userToggledRef = useRef(false);
+    // Whether auto-unmute listeners are registered (avoid duplicates)
+    const autoUnmuteRegisteredRef = useRef(false);
+    // Show a hint to the user when browser forces muted playback
+    const [showSoundHint, setShowSoundHint] = useState(false);
+    // Guard: true while we're doing the initial play attempt (prevents onPause from interfering)
+    const initialPlayRef = useRef(false);
 
-    const handleCanPlay = () => {
-        videoRef.current?.play().catch(() => setPlayFailed(true));
+    // Register one-time listeners to auto-unmute on first user interaction
+    const registerAutoUnmute = () => {
+        if (autoUnmuteRegisteredRef.current) return;
+        autoUnmuteRegisteredRef.current = true;
+
+        const autoUnmute = () => {
+            const v = videoRef.current;
+            if (v && !userToggledRef.current) {
+                v.muted = false;
+                setIsMuted(false);
+                setShowSoundHint(false);
+                v.play().catch(() => {});
+            }
+            cleanup();
+        };
+        const cleanup = () => {
+            autoUnmuteRegisteredRef.current = false;
+            document.removeEventListener("click", autoUnmute, true);
+            document.removeEventListener("touchstart", autoUnmute, true);
+            document.removeEventListener("keydown", autoUnmute, true);
+            document.removeEventListener("scroll", autoUnmute, true);
+        };
+        document.addEventListener("click", autoUnmute, true);
+        document.addEventListener("touchstart", autoUnmute, true);
+        document.addEventListener("keydown", autoUnmute, true);
+        document.addEventListener("scroll", autoUnmute, true);
     };
 
-    const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    // Drive ALL playback from this effect — no autoPlay attribute on the video element.
+    // This gives us full control: try unmuted first, fall back to muted only if browser blocks.
+    useEffect(() => {
+        const v = videoRef.current;
+        if (!v) return;
+        if (userToggledRef.current) return;
+
+        initialPlayRef.current = true;
+
+        void (async () => {
+            try {
+                // 1) Try unmuted play — works if Chrome's Media Engagement Index allows it
+                v.muted = false;
+                await v.play();
+                setIsMuted(false);
+                setIsVideoReady(true);
+                setShowSoundHint(false);
+            } catch {
+                // 2) Browser blocked unmuted play — fall back to muted
+                try {
+                    v.muted = true;
+                    await v.play();
+                    setIsMuted(true);
+                    setIsVideoReady(true);
+                    setShowSoundHint(true);
+                    registerAutoUnmute();
+                } catch {
+                    // Even muted play failed (very rare) — wait for canplay
+                    console.error("Both unmuted and muted autoplay failed");
+                }
+            }
+            initialPlayRef.current = false;
+        })();
+    }, [videoSrc]);
+
+    const handleCanPlay = () => {
+        setIsVideoReady(true);
+        // If the video isn't playing yet (e.g. slow load), kick off playback
+        const v = videoRef.current;
+        if (v && v.paused && !initialPlayRef.current) {
+            v.play().catch(() => {});
+        }
+    };
+
+    const handleVideoError = (e: SyntheticEvent<HTMLVideoElement, Event>) => {
         const v = e.currentTarget;
         const err = v.error;
         if (err) {
@@ -62,30 +136,41 @@ const HomePage = () => {
             setVideoSrc(HERO_VIDEO_DIRECT);
         }
     };
-    const handlePlayClick = () => {
-        setPlayFailed(false);
-        videoRef.current?.play().catch(() => setPlayFailed(true));
-    };
 
     const handleToggleMute = () => {
+        userToggledRef.current = true; // User explicitly chose — stop auto-unmute
         const video = videoRef.current;
         if (video) {
-            video.muted = !video.muted;
-            setIsMuted(video.muted);
-            if (!video.muted) {
+            const next = !isMuted;
+            video.muted = next;
+            setIsMuted(next);
+            if (!next) {
                 video.play().catch(() => {});
             }
+            setShowSoundHint(false);
         } else {
             setIsMuted((m) => !m);
         }
     };
 
     useEffect(() => {
-        if (videoRef.current) {
-            videoRef.current.muted = isMuted;
-        }
-    }, [isMuted]);
-    */
+        // If the tab becomes visible again, ensure the hero resumes playback.
+        const onVis = () => {
+            if (document.visibilityState === "visible") {
+                const v = videoRef.current;
+                if (v && v.paused) {
+                    v.play().catch(() => {});
+                }
+            }
+        };
+        document.addEventListener("visibilitychange", onVis);
+        return () => document.removeEventListener("visibilitychange", onVis);
+    }, []);
+    useEffect(() => {
+        // When the source changes (e.g., fallback), reset ready state.
+        // The main playback useEffect will re-run because videoSrc is in its deps.
+        setIsVideoReady(false);
+    }, [videoSrc]);
 
     useEffect(() => {
         // Fetch poster gallery items from API
@@ -152,16 +237,16 @@ const HomePage = () => {
         <main className="relative w-full bg-[#030303]">
             <h1 className="sr-only">Surabhi International Cultural Fest 2026 - KL University</h1>
             {/* Fiery Red Background - Edge to Edge, no white bleed */}
-            <div className="fixed inset-0 z-0 bg-gradient-to-br from-[#0a0303] via-[#1a0505] to-[#0a0303]">
+            <div className="fixed inset-0 z-0 bg-black md:bg-gradient-to-br md:from-[#0a0303] md:via-[#1a0505] md:to-[#0a0303]">
                 {/* CSS animated gradient overlay - Optimized for performance */}
                 <div
-                    className="absolute inset-0 animate-gradient-slow opacity-30"
+                    className="absolute inset-0 animate-gradient-slow opacity-30 hidden md:block"
                     style={{
                         background: "radial-gradient(circle at 50% 50%, rgba(220, 38, 38, 0.4), transparent 70%), radial-gradient(circle at 0% 100%, rgba(185, 28, 28, 0.3), transparent 50%)"
                     }}
                 />
                 {/* Fire-like particles effect - Optimized with CSS */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute inset-0 overflow-hidden pointer-events-none hidden md:block">
                     {PARTICLES.map((particle, i) => (
                         <div
                             key={i}
@@ -176,12 +261,16 @@ const HomePage = () => {
                     ))}
                 </div>
             </div>
-            {/* 
-            Video Hero - Preserved for later use
             <section
                 ref={videoFrameRef}
                 id="video-frame"
-                className="fixed inset-0 z-10 w-full h-full overflow-hidden bg-black"
+                className={[
+                    // Mobile: video fills from the very top — no gap, compact height
+                    "relative z-10 w-full overflow-hidden bg-black pt-0",
+                    "h-[55vh] sm:h-[65vh]",
+                    // Desktop: keep current perfect fixed hero behavior
+                    "md:pt-0 md:fixed md:inset-0 md:h-full",
+                ].join(" ")}
                 aria-label="Surabhi 2K26 hero video"
             >
                 <h2 className="sr-only">Surabhi 2K26 - International Cultural Fest</h2>
@@ -191,81 +280,77 @@ const HomePage = () => {
                     transition={{ duration: 1.0, ease: "easeOut" }}
                     className="absolute inset-0 w-full h-full"
                 >
+
                     <video
                         key={videoSrc}
                         ref={videoRef}
-                        src={videoSrc}
-                        autoPlay
                         loop
-                        muted={isMuted}
                         playsInline
                         preload="auto"
+                        controls={false}
+                        disablePictureInPicture
+                        disableRemotePlayback
                         onCanPlay={handleCanPlay}
+                        onCanPlayThrough={handleCanPlay}
+                        onPause={() => {
+                            const v = videoRef.current;
+                            if (!v) return;
+                            if (document.visibilityState !== "visible") return;
+                            if (v.ended) return;
+                            // Don't interfere with our initial play attempt
+                            if (initialPlayRef.current) return;
+                            // Resume playback — keep current muted state
+                            window.setTimeout(() => v.play().catch(() => {}), 150);
+                        }}
                         onError={handleVideoError}
-                        className="absolute left-0 top-0 w-full h-full min-w-full min-h-full object-cover object-center"
-                    />
-                    {playFailed && (
-                        <button
-                            type="button"
-                            onClick={handlePlayClick}
-                            className="absolute inset-0 z-30 flex items-center justify-center bg-black/60 text-white text-lg font-medium"
-                        >
-                            Click to play video
-                        </button>
+                        className={[
+                            // Mobile: full video visible (object-contain), black bars fill gaps
+                            // Desktop: video fills entire viewport (object-cover)
+                            "absolute left-0 top-0 w-full h-full min-w-full min-h-full object-contain md:object-cover object-center",
+                            "transition-opacity duration-300",
+                            isVideoReady ? "opacity-100" : "opacity-0",
+                        ].join(" ")}
+                    >
+                        <source src={videoSrc} type="video/mp4" />
+                    </video>
+
+                    {/* Loading backdrop */}
+                    {!isVideoReady && (
+                        <div className="absolute inset-0 bg-black md:bg-gradient-to-b md:from-black md:via-[#120404] md:to-black" />
                     )}
 
                     <button
                         type="button"
                         onClick={handleToggleMute}
-                        className="absolute top-[5.5rem] left-4 z-50 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white transition-colors backdrop-blur-sm border border-white/10 shadow-lg"
+                        className="absolute top-[4.5rem] left-4 md:top-[5.5rem] z-50 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white transition-colors backdrop-blur-sm border border-white/10 shadow-lg"
                     >
                         {isMuted ? <FiVolumeX size={22} /> : <FiVolume2 size={22} />}
                     </button>
 
-                    <div className="absolute inset-0 flex flex-col items-center justify-end pb-6 md:pb-10 px-4 z-40 pointer-events-none">
-                        <h1 className="text-white font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight drop-shadow-lg text-center [text-shadow:0_2px_20px_rgba(0,0,0,0.8)]">
+                    {showSoundHint && (
+                        <div className="absolute top-[6.5rem] left-4 md:top-[8.5rem] z-50 animate-pulse">
+                            <span className="text-xs text-white/80 bg-black/70 px-2 py-1 rounded-full backdrop-blur-sm border border-white/10">
+                                🔊 Tap anywhere for sound
+                            </span>
+                        </div>
+                    )}
+
+                    <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 md:pb-10 px-4 z-40 pointer-events-none">
+                        <h1 className="text-white font-bold text-3xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight drop-shadow-lg text-center [text-shadow:0_2px_20px_rgba(0,0,0,0.8)]">
                             SURABHI<b>-2K26</b>
                         </h1>
-                        <p className="text-white/90 text-sm sm:text-base md:text-lg mt-1 md:mt-2 tracking-[0.3em] md:tracking-[0.4em] uppercase font-medium [text-shadow:0_2px_12px_rgba(0,0,0,0.8)]">
+                        <p className="text-white/90 text-xs sm:text-base md:text-lg mt-0 md:mt-2 tracking-[0.2em] md:tracking-[0.4em] uppercase font-medium [text-shadow:0_2px_12px_rgba(0,0,0,0.8)]">
                             — international cultural fest
                         </p>
                     </div>
                 </motion.div>
             </section>
 
-            <div className="relative z-0 h-screen w-full flex-shrink-0" aria-hidden="true" />
-            */}
-
-            {/* Poster Section - Edge to Edge (left, right, bottom), top space for navbar */}
-            <section className="relative w-full h-auto md:h-screen flex items-center justify-center overflow-hidden z-10 pt-16 pb-0">
-                <h2 className="sr-only">Event Poster</h2>
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 1.0, ease: "easeOut" }}
-                    className="relative w-full h-auto md:h-full flex items-center justify-center bg-[#0f0505] py-0"
-                >
-                    {/* Ambient Background Gradient - No duplicate image */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#1a0505] via-[#2d0a0a] to-[#0f0505]" />
-                    {/* Subtle red glow in center */}
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(127,29,29,0.1)_0%,transparent_70%)] opacity-50" />
-                    {/* Poster Container */}
-                    <div className="relative w-full h-auto md:h-full flex items-center justify-center z-10 px-0">
-                        <Image
-                            src={MainPoster}
-                            alt="Surabhi International Cultural Fest 2026 Poster"
-                            className="w-full h-auto md:h-full object-contain md:object-fill drop-shadow-2xl"
-                            priority
-                            sizes="100vw"
-                            quality={85}
-                            fetchPriority="high"
-                        />
-                    </div>
-                </motion.div>
-            </section>
+            {/* Only needed for desktop fixed hero; mobile hero is in-flow */}
+            <div className="relative z-0 hidden md:block h-screen w-full flex-shrink-0" aria-hidden="true" />
 
             {/* About Surabhi Section - Bento Grid Redesign */}
-            <section className="relative z-10 w-full min-h-screen bg-[#0a0000] flex items-start md:items-center justify-center px-4 sm:px-6 lg:px-8 pt-12 pb-8 sm:py-16 md:py-20 lg:py-24 overflow-visible">
+            <section className="relative z-10 w-full min-h-screen bg-[#0a0000] flex items-start md:items-center justify-center px-4 sm:px-6 lg:px-8 pt-10 pb-8 sm:py-16 md:py-20 lg:py-24 overflow-visible">
                 {/* Background Noise/Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-tr from-red-900/10 via-black to-black pointer-events-none" />
 

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Schibsted_Grotesk, Martian_Mono, Lexend } from "next/font/google";
 import "./globals.css";
@@ -26,13 +26,58 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
-  title: "Surabhi",
+  metadataBase: new URL("https://klusurabhi.in"),
+  title: {
+    default: "Surabhi 2K26",
+    template: "%s | Surabhi 2K26",
+  },
   description:
-    "A website for Surabhi International Cultural Fest by kl university  ",
+    "Surabhi 2K26 — KL University’s international cultural fest. Explore competitions, events, schedule, and updates.",
   creator: "Nischal Singana",
   icons: {
     icon: "/favicon.svg",
   },
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: "Surabhi 2K26",
+    title: "Surabhi 2K26",
+    description:
+      "KL University’s international cultural fest. Explore competitions, events, schedule, and updates.",
+    images: [
+      {
+        url: "/images/surabhi_white_logo.png",
+        alt: "Surabhi 2K26",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Surabhi 2K26",
+    description:
+      "KL University’s international cultural fest. Explore competitions, events, schedule, and updates.",
+    images: ["/images/surabhi_white_logo.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+};
+
+// Ensure Tailwind breakpoints behave correctly on phones
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -42,6 +87,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="bg-[#030303]" suppressHydrationWarning>
+      <head>
+        {/* Speed up hero video fetch */}
+        <link
+          rel="preconnect"
+          href="https://surabhi-images.sgp1.cdn.digitaloceanspaces.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preconnect"
+          href="https://surabhi-images.sgp1.digitaloceanspaces.com"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body
         className={`${schibstedGrotesk.variable} ${martianMono.variable} ${lexend.variable} bg-[#030303] min-h-screen text-zinc-100`}
         style={{ backgroundColor: "#030303" }}
