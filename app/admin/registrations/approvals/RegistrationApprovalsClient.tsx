@@ -13,7 +13,18 @@ function isKLUniversity(reg: { user?: { email?: string | null; collage?: string 
     if (!u) return false;
     if (u.email?.toLowerCase().endsWith("@kluniversity.in")) return true;
     const c = (u.collage || "").toLowerCase();
-    return c.includes("kl university") || c.includes("kl") || c.includes("koneru") || c.includes("klef");
+    // More specific checks to avoid false positives like "Brooklyn" matching "kl"
+    return (
+        c.includes("kl university") || 
+        c.includes("koneru") || 
+        c.includes("klef") || 
+        c === "kl" || 
+        c.startsWith("kl ") || 
+        c.endsWith(" kl") || 
+        c.includes(" kl ") ||
+        c.includes("k l university") ||
+        c.includes("k.l. university")
+    );
 }
 
 type Registration = {
@@ -74,7 +85,7 @@ export default function RegistrationApprovalsClient() {
         setCollegeFilter("ALL");
     }, [activeTab, viewMode]);
 
-    const fetchRegistrations = async () => {
+    async function fetchRegistrations() {
         setLoading(true);
         const result = viewMode === "PENDING"
             ? await getPendingRegistrations()
@@ -108,7 +119,7 @@ export default function RegistrationApprovalsClient() {
             toast.error("Failed to fetch registrations");
         }
         setLoading(false);
-    };
+    }
 
     const handleStatusUpdate = async (
         id: string,

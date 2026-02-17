@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { logAdminActivity } from "@/lib/admin-logs";
 import { createDeleteRequest } from "@/actions/admin/approval.action";
+import { updateRegistrationStatus } from "@/actions/admin.action";
 
 const EVENT_FULL_ERROR = "EVENT_FULL";
 
@@ -1272,5 +1273,152 @@ export async function unregisterFromEvent(eventId: string) {
   } catch (error) {
     console.error("Error unregistering from event:", error);
     return { success: false, error: "Failed to unregister from event" };
+  }
+}
+
+export async function registerUserByAdmin(
+  targetEmail: string,
+  eventId: string,
+  paymentDetails: {
+    paymentScreenshot: string;
+    utrId: string;
+    payeeName: string;
+  }
+) {
+  try {
+    const headersList = await headers();
+    const session = await auth.api.getSession({
+      headers: headersList,
+    });
+
+    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "MASTER")) {
+      return { success: false, error: "Unauthorized: Only admins and masters can manually register users." };
+    }
+
+    // 1. Find Target User
+    const targetUser = await prisma.user.findUnique({
+      where: { email: targetEmail },
+      select: { id: true, email: true, name: true, isApproved: true }
+    });
+
+    if (!targetUser) {
+      return { success: false, error: `User with email ${targetEmail} not found.` };
+    }
+
+    // 2. Transaction for Registration
+    // Use transaction with serializable isolation to prevent race conditions
+    const registrationResult = await prisma.$transaction(
+      async (tx) => {
+        const event = await tx.event.findUnique({
+            where: { id: eventId },
+            include: {
+            _count: {
+                select: {
+                individualRegistrations: true,
+                groupRegistrations: true,
+                },
+            },
+            },
+        });
+
+        if (!event) {
+            throw new Error("Event not found");
+        }
+
+        const currentParticipants = event._count.individualRegistrations + event._count.groupRegistrations;
+
+        if (currentParticipants >= event.participantLimit) {
+            throw new Error("Event is full");
+        }
+
+        // Check if user already has an Individual Registration
+        const existingIndividualReg = await tx.individualRegistration.findUnique({
+            where: {
+            userId_eventId: {
+                userId: targetUser.id,
+                eventId: eventId
+            }
+            }
+        });
+
+        if (existingIndividualReg) {
+            if (existingIndividualReg.paymentStatus === "REJECTED") {
+                await tx.individualRegistration.delete({
+                where: { id: existingIndividualReg.id }
+                });
+            } else {
+                throw new Error("User is already registered for this event.");
+            }
+        }
+
+        // Create Individual Registration Record
+        // Set paymentStatus = PENDING initially, then auto-approve to trigger email
+        const newReg = await tx.individualRegistration.create({
+            data: {
+            userId: targetUser.id,
+            eventId: eventId,
+            paymentScreenshot: paymentDetails.paymentScreenshot,
+            utrId: paymentDetails.utrId,
+            payeeName: paymentDetails.payeeName,
+            paymentStatus: "PENDING", 
+            isVirtual: false
+            },
+        });
+        
+        return { success: true, eventName: event.name, userName: targetUser.name, regId: newReg.id };
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    );
+
+    // Auto-approve to trigger email and notifications
+    await updateRegistrationStatus(registrationResult.regId, "INDIVIDUAL", "APPROVED");
+
+    revalidatePath("/admin/events");
+    revalidatePath("/admin/registrations");
+    
+    return { success: true, message: `Successfully registered and approved ${registrationResult.userName} for ${registrationResult.eventName}. Email sent.` };
+
+  } catch (error: any) {
+    console.error("Error in registerUserByAdmin:", error);
+    return { success: false, error: error.message || "Failed to register user manually" };
+  }
+}
+
+export async function searchUsers(query: string) {
+  try {
+    const headersList = await headers();
+    const session = await auth.api.getSession({
+      headers: headersList,
+    });
+
+    if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    if (!query || query.length < 2) {
+      return { success: true, data: [] };
+    }
+
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { email: { contains: query, mode: "insensitive" } },
+          { name: { contains: query, mode: "insensitive" } }
+        ]
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        collage: true,
+        collageId: true
+      },
+      take: 10
+    });
+
+    return { success: true, data: users };
+  } catch (error) {
+    console.error("Error searching users:", error);
+    return { success: false, error: "Failed to search users" };
   }
 }

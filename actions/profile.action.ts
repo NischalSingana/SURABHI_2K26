@@ -50,112 +50,121 @@ export async function updateProfile(data: RegistrationData) {
 
 
 export async function getMyRegisteredEvents() {
-  try {
-    const headersList = await headers();
-    const session = await auth.api.getSession({
-      headers: headersList,
-    });
+    try {
+        const headersList = await headers();
+        const session = await auth.api.getSession({
+            headers: headersList,
+        });
 
-    if (!session || !session.user) {
-      return { success: false, error: "Unauthorized" };
-    }
+        if (!session || !session.user) {
+            return { success: false, error: "Please login to view your events" };
+        }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: {
-        individualRegistrations: {
-          include: {
-            event: {
-              include: {
-                Category: true,
-                _count: {
-                  select: {
-                    individualRegistrations: true,
-                    groupRegistrations: true,
-                  },
+        const user = await prisma.user.findUnique({
+            where: {
+                id: session.user.id,
+            },
+            include: {
+                individualRegistrations: {
+                    where: {
+                        paymentStatus: { not: "REJECTED" }
+                    },
+                    include: {
+                        event: {
+                            include: {
+                                Category: true,
+                                _count: {
+                                    select: {
+                                        individualRegistrations: true,
+                                        groupRegistrations: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
-              },
-            },
-          },
-        },
-        groupRegistrations: {
-          include: {
-            event: {
-              include: {
-                Category: true,
-                _count: {
-                  select: {
-                    individualRegistrations: true,
-                    groupRegistrations: true,
-                  },
+                groupRegistrations: {
+                    where: {
+                        paymentStatus: { not: "REJECTED" }
+                    },
+                    include: {
+                        event: {
+                            include: {
+                                Category: true,
+                                _count: {
+                                    select: {
+                                        individualRegistrations: true,
+                                        groupRegistrations: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
-              },
+                eventSubmissions: true,
             },
-          },
-        },
-      },
-    });
+        });
 
-    if (!user) {
-      return { success: false, error: "User not found" };
+        if (!user) {
+            return { success: false, error: "User not found" };
+        }
+
+        // Find groups where user is a member (exclude REJECTED)
+        const memberInGroups = await prisma.groupRegistration.findMany({
+            where: {
+                members: {
+                    array_contains: [{ email: session.user.email }]
+                },
+                userId: { not: session.user.id },
+                paymentStatus: { not: "REJECTED" }
+            },
+            include: {
+                event: {
+                    include: {
+                        Category: true,
+                        _count: {
+                            select: {
+                                individualRegistrations: true,
+                                groupRegistrations: true,
+                            },
+                        },
+                    },
+                },
+            }
+        });
+
+        // Combine events - REJECTED registrations already filtered at database level
+        const individualEvents = user.individualRegistrations.map(reg => ({
+            ...reg.event,
+            registrationStatus: reg.paymentStatus,
+            isVirtual: reg.isVirtual || false
+        }));
+
+        const groupEvents = user.groupRegistrations.map(reg => ({
+            ...reg.event,
+            registrationStatus: reg.paymentStatus,
+            isVirtual: reg.isVirtual || false
+        }));
+
+        const memberEvents = memberInGroups.map((reg) => ({
+            ...reg.event,
+            registrationStatus: reg.paymentStatus,
+            isVirtual: reg.isVirtual || false
+        }));
+
+        const allEvents = [...individualEvents, ...groupEvents, ...memberEvents];
+        const uniqueEventsMap = new Map();
+        allEvents.forEach(e => {
+            uniqueEventsMap.set(e.id, e);
+        });
+
+        const uniqueEvents = Array.from(uniqueEventsMap.values()).sort((a, b) =>
+            new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+
+        return { success: true, data: uniqueEvents };
+    } catch (error) {
+        console.error("Error fetching registered events:", error);
+        return { success: false, error: "Failed to fetch registered events" };
     }
-
-    // Combine and format events
-    const individualEvents = user.individualRegistrations.map(reg => ({
-      ...reg.event,
-      registrationStatus: reg.paymentStatus as any,
-      isVirtual: reg.isVirtual || false
-    }));
-
-    const groupEvents = user.groupRegistrations.map(reg => ({
-      ...reg.event,
-      registrationStatus: reg.paymentStatus as any,
-      isVirtual: reg.isVirtual || false
-    }));
-
-    // Find groups where user is a member but not the leader
-    const memberInGroups = await prisma.groupRegistration.findMany({
-      where: {
-        members: {
-          array_contains: [{ email: session.user.email }]
-        },
-        userId: { not: session.user.id } // Already covered in groupEvents as leader
-      },
-      include: {
-        event: {
-          include: {
-            Category: true,
-            _count: {
-              select: {
-                individualRegistrations: true,
-                groupRegistrations: true,
-              },
-            },
-          },
-        },
-      }
-    });
-
-    const memberEvents = memberInGroups.map((reg: any) => ({
-      ...reg.event,
-      registrationStatus: reg.paymentStatus as any,
-      isVirtual: reg.isVirtual || false
-    }));
-
-    // deduplicate events
-    const allEvents = [...individualEvents, ...groupEvents, ...memberEvents];
-    const uniqueEventsMap = new Map();
-    allEvents.forEach(e => {
-      uniqueEventsMap.set(e.id, e);
-    });
-
-    const uniqueEvents = Array.from(uniqueEventsMap.values()).sort((a, b) =>
-      new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
-
-    return { success: true, data: uniqueEvents };
-  } catch (error) {
-    console.error("Error fetching registered events:", error);
-    return { success: false, error: "Failed to fetch registered events" };
-  }
 }

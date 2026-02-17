@@ -44,6 +44,9 @@ export async function getEvaluations() {
                     }
                 },
                 groupRegistrations: {
+                    where: {
+                        paymentStatus: "APPROVED"
+                    },
                     include: {
                         user: {
                             select: {

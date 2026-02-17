@@ -1100,9 +1100,15 @@ export default function EventsManagement() {
                 const isKLStudent = (user: any) => {
                   return (
                     user.email?.toLowerCase().endsWith("@kluniversity.in") ||
-                    user.collage?.toLowerCase().includes("kl") ||
+                    user.collage?.toLowerCase().includes("kl university") ||
                     user.collage?.toLowerCase().includes("koneru") ||
-                    user.collage?.toLowerCase().includes("klef")
+                    user.collage?.toLowerCase().includes("klef") ||
+                    user.collage?.toLowerCase() === "kl" ||
+                    user.collage?.toLowerCase().startsWith("kl ") ||
+                    user.collage?.toLowerCase().endsWith(" kl") ||
+                    user.collage?.toLowerCase().includes(" kl ") ||
+                    user.collage?.toLowerCase().includes("k l university") ||
+                    user.collage?.toLowerCase().includes("k.l. university")
                   );
                 };
 

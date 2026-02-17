@@ -3,9 +3,9 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
-import { Role, PaymentStatus } from "@prisma/client";
+import { Role, PaymentStatus, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { sendEmail, emailTemplates } from "../../lib/email";
+import { sendEmail, emailTemplates, EmailOptions } from "../../lib/email";
 
 export async function getAllUsers(filters?: {
     paymentStatus?: PaymentStatus;
@@ -22,7 +22,7 @@ export async function getAllUsers(filters?: {
             throw new Error("Unauthorized");
         }
 
-        const where: any = {};
+        const where: Prisma.UserWhereInput = {};
 
         if (filters?.paymentStatus) {
             where.paymentStatus = filters.paymentStatus;
@@ -72,8 +72,8 @@ export async function getAllUsers(filters?: {
         }));
 
         return { success: true, users: serializedUsers };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
     }
 }
 
@@ -126,7 +126,7 @@ export async function approveUser(userId: string) {
                 // Send approval email
                 const emailTemplate = emailTemplates.userApproved(user.name || "", user.email);
 
-                const emailOptions: any = {
+                const emailOptions: EmailOptions = {
                     to: user.email,
                     subject: emailTemplate.subject,
                     html: emailTemplate.html,
@@ -137,9 +137,9 @@ export async function approveUser(userId: string) {
                 if (!emailResult.success) throw new Error(emailResult.error);
                 emailSent = true;
 
-            } catch (err: any) {
+            } catch (err) {
                 console.error("Failed to send approval email:", err);
-                emailError = err.message || "Unknown email error";
+                emailError = err instanceof Error ? err.message : "Unknown email error";
             }
         }
 
@@ -151,9 +151,9 @@ export async function approveUser(userId: string) {
             return { success: true, message: `User approved, but failed to send email: ${emailError}` }; // Return success so UI updates
         }
 
-    } catch (error: any) {
+    } catch (error) {
         console.error("Error approving user:", error);
-        return { success: false, error: error.message };
+        return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
     }
 }
 
@@ -174,8 +174,8 @@ export async function rejectUser(userId: string) {
         });
 
         return { success: true, message: "User rejected" };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
     }
 }
 
@@ -220,8 +220,8 @@ export async function updatePaymentStatus(userId: string, status: PaymentStatus)
         }
 
         return { success: true, message: "Payment status updated successfully" };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
     }
 }
 
@@ -249,7 +249,7 @@ export async function updateUserRole(userId: string, role: Role) {
 
         revalidatePath("/admin/users");
         return { success: true, message: "User role updated successfully" };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
     }
 }

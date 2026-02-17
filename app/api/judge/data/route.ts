@@ -28,6 +28,9 @@ export async function GET() {
             include: {
                 // Include registered users (individual)
                 individualRegistrations: {
+                    where: {
+                        paymentStatus: "APPROVED"
+                    },
                     include: {
                         user: {
                             select: {
@@ -42,6 +45,9 @@ export async function GET() {
                 },
                 // Include group registrations
                 groupRegistrations: {
+                    where: {
+                        paymentStatus: "APPROVED"
+                    },
                     include: {
                         user: {
                             select: {

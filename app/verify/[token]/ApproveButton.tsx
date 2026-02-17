@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { FiCheckCircle } from "react-icons/fi";
 import { useRouter } from "next/navigation";
-import { approveUser } from "@/app/actions/user";
+import { approveUser } from "@/actions/admin/users.action";
 
 export default function ApproveButton({ userId }: { userId: string }) {
     const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ export default function ApproveButton({ userId }: { userId: string }) {
             } else {
                 toast.error(result.error || "Approval failed");
             }
-        } catch (error) {
+        } catch {
             toast.error("Failed to connect to server");
         } finally {
             setLoading(false);
