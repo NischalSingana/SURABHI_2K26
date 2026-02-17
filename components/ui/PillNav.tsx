@@ -48,6 +48,7 @@ const PillNav: React.FC<PillNavProps> = ({
   const { data: session } = useSession();
   const resolvedPillTextColor = pillTextColor ?? baseColor;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isMobileMenuOpenRef = useRef(false);
   const circleRefs = useRef<Array<HTMLSpanElement | null>>([]);
   // Removed unused logo refs
   const hamburgerRef = useRef<HTMLButtonElement | null>(null);
@@ -98,13 +99,18 @@ const PillNav: React.FC<PillNavProps> = ({
 
   const backdropRef = useRef<HTMLDivElement | null>(null);
 
+  // Keep ref in sync with state
+  useEffect(() => {
+    isMobileMenuOpenRef.current = isMobileMenuOpen;
+  }, [isMobileMenuOpen]);
+
   // Auto-close mobile menu when pathname changes (user navigates)
   useEffect(() => {
     // Only close if menu is open AND pathname has actually changed
-    // We use a ref to track if this is the initial render
     const handlePathnameChange = () => {
-      if (isMobileMenuOpen) {
+      if (isMobileMenuOpenRef.current) {
         setIsMobileMenuOpen(false);
+        isMobileMenuOpenRef.current = false;
         const hamburger = hamburgerRef.current;
         const menu = mobileMenuRef.current;
         const backdrop = backdropRef.current;
@@ -112,13 +118,13 @@ const PillNav: React.FC<PillNavProps> = ({
         if (hamburger) {
           const lines = hamburger.querySelectorAll('.hamburger-line');
           gsap.to(lines[0], { rotation: 0, y: 0, duration: 0.3, ease });
-          gsap.to(lines[1], { rotation: 0, x: 0, opacity: 1, duration: 0.3, ease }); // Reset middle line
+          gsap.to(lines[1], { rotation: 0, x: 0, opacity: 1, duration: 0.3, ease });
           gsap.to(lines[2], { rotation: 0, y: 0, duration: 0.3, ease });
         }
 
         if (menu) {
           gsap.to(menu, {
-            x: '100%', // Slide out to right
+            x: '100%',
             duration: 0.4,
             ease: 'power3.inOut',
             onComplete: () => {
@@ -142,7 +148,7 @@ const PillNav: React.FC<PillNavProps> = ({
     // Create a small delay to prevent immediate closing on mount
     const timeoutId = setTimeout(handlePathnameChange, 100);
     return () => clearTimeout(timeoutId);
-  }, [pathname, ease, isMobileMenuOpen]);
+  }, [pathname, ease]);
 
 
 
