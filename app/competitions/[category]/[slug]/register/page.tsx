@@ -1217,12 +1217,12 @@ export default function EventRegistrationPage() {
                 {/* Payment Modal */}
                 <AnimatePresence>
                     {showPaymentModal && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm pt-20 pb-10">
+                        <div className="fixed inset-0 z-[100] flex items-start md:items-center justify-center px-4 bg-black/80 backdrop-blur-sm pt-16 pb-6 md:pt-20 md:pb-10 overflow-y-auto" data-lenis-prevent>
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
-                                className={`bg-zinc-900 border border-zinc-800 rounded-2xl w-full shadow-2xl max-h-full flex flex-col transition-all duration-300 ${(isKLStudent || isInternational) ? 'max-w-md' : 'max-w-md md:max-w-5xl'}`}
+                                className={`bg-zinc-900 border border-zinc-800 rounded-2xl w-full shadow-2xl max-h-[90vh] md:max-h-full flex flex-col overflow-y-auto custom-scrollbar transition-all duration-300 ${(isKLStudent || isInternational) ? 'max-w-md' : 'max-w-md md:max-w-5xl'}`}
                             >
                                 <div className="p-0 h-full flex flex-col">
                                     {/* Mobile Only Header */}

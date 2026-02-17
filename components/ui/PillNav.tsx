@@ -49,8 +49,6 @@ const PillNav: React.FC<PillNavProps> = ({
   const resolvedPillTextColor = pillTextColor ?? baseColor;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const circleRefs = useRef<Array<HTMLSpanElement | null>>([]);
-  const tlRefs = useRef<Array<gsap.core.Timeline | null>>([]);
-  const activeTweenRefs = useRef<Array<gsap.core.Tween | null>>([]);
   // Removed unused logo refs
   const hamburgerRef = useRef<HTMLButtonElement | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
@@ -144,12 +142,9 @@ const PillNav: React.FC<PillNavProps> = ({
     // Create a small delay to prevent immediate closing on mount
     const timeoutId = setTimeout(handlePathnameChange, 100);
     return () => clearTimeout(timeoutId);
-  }, [pathname]); // Remove isMobileMenuOpen from dependencies
+  }, [pathname, ease, isMobileMenuOpen]);
 
-  // Simplified handlers - primarily for state or future use if needed, 
-  // but for now CSS handles the visual hover.
-  const handleEnter = (i: number) => { };
-  const handleLeave = (i: number) => { };
+
 
   // handleLogoEnter removed for CSS hover effect
 
@@ -280,8 +275,8 @@ const PillNav: React.FC<PillNavProps> = ({
                     href={item.href}
                     className={`pill${currentActiveHref === item.href ? ' is-active' : ''}`}
                     aria-label={item.ariaLabel || item.label}
-                    onMouseEnter={() => handleEnter(i)}
-                    onMouseLeave={() => handleLeave(i)}
+                    onMouseEnter={undefined}
+                    onMouseLeave={undefined}
                   >
                     <span
                       className="hover-circle"
@@ -303,8 +298,8 @@ const PillNav: React.FC<PillNavProps> = ({
                     href={item.href}
                     className={`pill${currentActiveHref === item.href ? ' is-active' : ''}`}
                     aria-label={item.ariaLabel || item.label}
-                    onMouseEnter={() => handleEnter(i)}
-                    onMouseLeave={() => handleLeave(i)}
+                    onMouseEnter={undefined}
+                    onMouseLeave={undefined}
                   >
                     <span
                       className="hover-circle"
