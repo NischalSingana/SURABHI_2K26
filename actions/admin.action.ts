@@ -357,8 +357,7 @@ export async function updateRegistrationStatus(
                 const isVirtualParticipant = isInternational || isVirtual;
 
                 (async () => {
-                    // Skip email for KL students
-                    if (userFull.email.endsWith("@kluniversity.in")) return;
+
 
                     try {
                         let pdfBuffer: Buffer | null = null;
@@ -493,8 +492,7 @@ export async function updateRegistrationStatus(
                 const isVirtualParticipant = isInternational || isVirtual;
 
                 (async () => {
-                    // Skip email for KL students
-                    if (lead.email.endsWith("@kluniversity.in")) return;
+
 
                     try {
                         let pdfBuffer: Buffer | null = null;
