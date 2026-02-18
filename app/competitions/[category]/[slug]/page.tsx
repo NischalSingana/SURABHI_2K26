@@ -740,8 +740,8 @@ function EventDetailPageContent() {
                     <FiCheck size={20} />
                     Registered
                   </div>
-                  {/* Hide unregister for other college (physical & virtual); show only for KL and International */}
-                  {(isKL || isInternational) && (
+                  {/* Hide unregister for other college (physical & virtual) & KL; show only for International */}
+                  {isInternational && (
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}

@@ -46,6 +46,15 @@ interface Event {
     };
 }
 
+interface GroupMember {
+    name: string;
+    phone: string;
+    gender: string;
+    inGameName?: string;
+    inGameId?: string;
+    riotId?: string;
+}
+
 // Add custom scrollbar styles for the modal
 const scrollbarStyles = `
   .custom-scrollbar::-webkit-scrollbar {
@@ -82,7 +91,7 @@ export default function EventRegistrationPage() {
     // Group Registration State
     const [teamSize, setTeamSize] = useState(0);
     const [groupName, setGroupName] = useState("");
-    const [teamMembers, setTeamMembers] = useState<any[]>([]);
+    const [teamMembers, setTeamMembers] = useState<GroupMember[]>([]);
     const [mentorName, setMentorName] = useState("");
     const [mentorPhone, setMentorPhone] = useState("");
     const [currentMemberName, setCurrentMemberName] = useState("");
@@ -171,7 +180,7 @@ export default function EventRegistrationPage() {
             const result = await getEventBySlug(slug);
 
             if (result.success && result.data) {
-                setEvent(result.data as any);
+                setEvent(result.data as unknown as Event);
                 if (result.data.isGroupEvent) {
                     setTeamSize(result.data.minTeamSize);
                 }
@@ -192,7 +201,7 @@ export default function EventRegistrationPage() {
     }, [slug, fetchEvent]);
 
     const processPaymentAndRegister = async () => {
-        const isKLStudent = session?.user?.email?.endsWith("@kluniversity.in");
+
         const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
 
         // Validate Group Registration Fields
@@ -249,7 +258,7 @@ export default function EventRegistrationPage() {
                     return;
                 }
                 for (let i = 0; i < teamMembers.length; i++) {
-                    const m = teamMembers[i] as any;
+                    const m = teamMembers[i];
                     if (!m.inGameName?.trim()) {
                         toast.error(`Please enter In-game name for member: ${m.name}`);
                         return;
@@ -266,8 +275,8 @@ export default function EventRegistrationPage() {
             }
         }
 
-        // KL and International: free; others need payment
-        if (!isKLStudent && !isInternational) {
+        // International: free; others need payment
+        if (!isInternational) {
             if (!paymentDetails.screenshot || !paymentDetails.utrId || !paymentDetails.payeeName) {
                 toast.error("Please complete all payment details (Upload Screenshot, UTR, Payee Name)");
                 return;
@@ -293,7 +302,7 @@ export default function EventRegistrationPage() {
         try {
             let uploadedScreenshotUrl = "";
 
-            if (!isKLStudent && !isInternational && paymentDetails.screenshot) {
+            if (!isInternational && paymentDetails.screenshot) {
                 const formData = new FormData();
                 formData.append("file", paymentDetails.screenshot);
 
@@ -306,7 +315,7 @@ export default function EventRegistrationPage() {
                 uploadedScreenshotUrl = uploadResult.url;
             }
 
-            const paymentData = !isKLStudent && !isInternational ? {
+            const paymentData = !isInternational ? {
                 paymentScreenshot: uploadedScreenshotUrl,
                 utrId: paymentDetails.utrId,
                 payeeName: paymentDetails.payeeName
@@ -314,6 +323,7 @@ export default function EventRegistrationPage() {
 
             let result;
             if (event.isGroupEvent) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const regDetails: Record<string, any> = isVastranaut ? { styleDNA } : {};
                 if (needsInGameFields) {
                     regDetails.teamLeadInGameName = teamLeadInGameName?.trim();
@@ -340,16 +350,16 @@ export default function EventRegistrationPage() {
             }
 
             if (result.success) {
-                const freeUser = isKLStudent || isInternational;
+                const freeUser = isInternational;
                 toast.success(freeUser ? "Registration Confirmed!" : "Registration Submitted! Pending Approval.");
                 setShowPaymentModal(false);
                 router.push(`/competitions/${categorySlug}/${slug}`); // Redirect
             } else {
                 toast.error(result.error || "Registration failed");
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Registration error:", err);
-            toast.error(err.message || "An unexpected error occurred");
+            toast.error((err as Error).message || "An unexpected error occurred");
         } finally {
             setPaymentProcessing(false);
         }
@@ -386,7 +396,7 @@ export default function EventRegistrationPage() {
                     return;
                 }
                 for (let i = 0; i < teamMembers.length; i++) {
-                    const m = teamMembers[i] as any;
+                    const m = teamMembers[i];
                     if (!m.inGameName?.trim()) {
                         toast.error(`Please enter In-game name for member: ${m.name}`);
                         return;
@@ -459,7 +469,7 @@ export default function EventRegistrationPage() {
             return;
         }
 
-        const memberObj: any = {
+        const memberObj: GroupMember = {
             name: currentMemberName.trim(),
             phone: currentMemberPhone.trim().replace(/\s+/g, ''),
             gender: currentMemberGender
@@ -488,7 +498,7 @@ export default function EventRegistrationPage() {
     };
 
     const editMember = (index: number) => {
-        const member = teamMembers[index] as any;
+        const member = teamMembers[index];
         setCurrentMemberName(member.name);
         setCurrentMemberPhone(member.phone);
         setCurrentMemberGender(member.gender);
@@ -513,12 +523,12 @@ export default function EventRegistrationPage() {
     const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
     const virtualEligibility = session?.user ? checkVirtualEligibility({
         email: session.user.email,
-        state: (session.user as any).state,
+        state: (session.user as { state?: string }).state,
         isInternational: isInternational
     }) : { isEligible: false };
     
     const memberCount = event.isGroupEvent ? teamSize : 1;
-    const feePerPerson = (isKLStudent || isInternational) ? 0 : getRegistrationFee(isVirtual);
+    const feePerPerson = isInternational ? 0 : getRegistrationFee(isVirtual);
     const totalFee = memberCount * feePerPerson;
 
     return (
@@ -540,9 +550,9 @@ export default function EventRegistrationPage() {
                             {event.isGroupEvent ? "Team Registration" : "Individual Registration"}
                         </p>
                         {isKLStudent && (
-                            <div className="mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg inline-block">
-                                <p className="text-green-300 text-sm font-medium">
-                                    🎉 Free Registration for KL University Students
+                            <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg inline-block">
+                                <p className="text-blue-300 text-sm font-medium">
+                                    ℹ️ KL University Students must participate physically.
                                 </p>
                             </div>
                         )}
@@ -660,10 +670,10 @@ export default function EventRegistrationPage() {
                                                         <span className="text-white font-medium">{member.name}</span>
                                                     </div>
                                                     <p className="text-xs text-zinc-400">{member.gender} • {member.phone}</p>
-                                                    {needsInGameFields && (member as any).inGameName && (
+                                                    {needsInGameFields && member.inGameName && (
                                                         <p className="text-xs text-amber-400/90 mt-1">
-                                                            {isFreeFireOrBGMI && `IGN: ${(member as any).inGameName} • ID: ${(member as any).inGameId || "-"}`}
-                                                            {isValorant && `IGN: ${(member as any).inGameName} • Riot: ${(member as any).riotId || "-"}`}
+                                                            {isFreeFireOrBGMI && `IGN: ${member.inGameName} • ID: ${member.inGameId || "-"}`}
+                                                            {isValorant && `IGN: ${member.inGameName} • Riot: ${member.riotId || "-"}`}
                                                         </p>
                                                     )}
                                                 </div>
@@ -974,14 +984,14 @@ export default function EventRegistrationPage() {
 
                                         <div className="space-y-3">
                                             {teamMembers.map((member, idx) => (
-                                                <div key={member.id || idx} className="bg-zinc-800 p-3 rounded-lg border border-zinc-700 flex items-center justify-between">
+                                                <div key={idx} className="bg-zinc-800 p-3 rounded-lg border border-zinc-700 flex items-center justify-between">
                                                     <div>
                                                         <p className="text-white font-medium">{member.name}</p>
                                                         <p className="text-xs text-zinc-400">{member.gender} • {member.phone}</p>
-                                                        {needsInGameFields && (member as any).inGameName && (
+                                                        {needsInGameFields && member.inGameName && (
                                                             <p className="text-xs text-amber-400/90 mt-1">
-                                                                {isFreeFireOrBGMI && `IGN: ${(member as any).inGameName} • ID: ${(member as any).inGameId || "-"}`}
-                                                                {isValorant && `IGN: ${(member as any).inGameName} • Riot: ${(member as any).riotId || "-"}`}
+                                                                {isFreeFireOrBGMI && `IGN: ${member.inGameName} • ID: ${member.inGameId || "-"}`}
+                                                                {isValorant && `IGN: ${member.inGameName} • Riot: ${member.riotId || "-"}`}
                                                             </p>
                                                         )}
                                                     </div>
@@ -1047,7 +1057,7 @@ export default function EventRegistrationPage() {
                             )}
 
                             {/* Virtual Participation Selection */}
-                            {event.virtualEnabled && virtualEligibility.isEligible && !isKLStudent && !isInternational && (
+                            {event.virtualEnabled && virtualEligibility.isEligible && !isInternational && (
                                 <div className="border-t border-zinc-800 pt-6">
                                     <h3 className="text-lg font-semibold text-white mb-4">Participation Mode</h3>
                                     <div className="space-y-3">
@@ -1113,7 +1123,7 @@ export default function EventRegistrationPage() {
                             )}
 
                             {/* Show ineligibility message if virtual is enabled but user is not eligible */}
-                            {event.virtualEnabled && !virtualEligibility.isEligible && !isKLStudent && !isInternational && (
+                            {event.virtualEnabled && !virtualEligibility.isEligible && !isInternational && (
                                 <div className="border-t border-zinc-800 pt-6">
                                     <div className="bg-zinc-800/50 border border-zinc-700 rounded-lg p-4">
                                         <p className="text-zinc-400 text-sm">
@@ -1204,7 +1214,7 @@ export default function EventRegistrationPage() {
                                     disabled={!acceptedTerms || registering || (isVastranaut && !styleDNA) || (event.isGroupEvent && (!groupName || teamSize < event.minTeamSize || teamSize > event.maxTeamSize))}
                                     className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {event.isGroupEvent ? "Review Details" : isKLStudent ? "Proceed to Register" : "Proceed to Payment"}
+                                    {event.isGroupEvent ? "Review Details" : "Proceed to Payment"}
                                 </button>
                             </div>
                         </div>
@@ -1219,7 +1229,7 @@ export default function EventRegistrationPage() {
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
-                                className={`bg-zinc-900 border border-zinc-800 rounded-2xl w-full shadow-2xl max-h-[90vh] md:max-h-full flex flex-col overflow-y-auto custom-scrollbar transition-all duration-300 ${(isKLStudent || isInternational) ? 'max-w-md' : 'max-w-md md:max-w-5xl'}`}
+                                className={`bg-zinc-900 border border-zinc-800 rounded-2xl w-full shadow-2xl max-h-[90vh] md:max-h-full flex flex-col overflow-y-auto custom-scrollbar transition-all duration-300 ${isInternational ? 'max-w-md' : 'max-w-md md:max-w-5xl'}`}
                             >
                                 <div className="p-0 h-full flex flex-col">
                                     {/* Mobile Only Header */}
@@ -1232,7 +1242,7 @@ export default function EventRegistrationPage() {
                                         </button>
                                         <div>
                                             <h2 className="text-xl font-bold text-white">
-                                                {(isKLStudent || isInternational) ? "Confirm Registration" : "Payment Summary"}
+                                                {isInternational ? "Confirm Registration" : "Payment Summary"}
                                             </h2>
                                             <p className="text-zinc-400 text-xs">
                                                 {isInternational ? "Virtual participation – free registration" : "Complete your registration"}
@@ -1242,8 +1252,8 @@ export default function EventRegistrationPage() {
 
                                     <div className="h-full flex flex-col">
                                         {/* LEFT COLUMN: Summary & Details */}
-                                        <div className={`p-5 md:p-6 bg-zinc-950/50 space-y-5 w-full ${paymentStep === 1 && !isKLStudent && !isInternational ? 'hidden' : 'block'}`}>
-                                            {!isKLStudent && !isInternational && (
+                                        <div className={`p-5 md:p-6 bg-zinc-950/50 space-y-5 w-full ${paymentStep === 1 && !isInternational ? 'hidden' : 'block'}`}>
+                                            {!isInternational && (
                                                 <div className="hidden md:flex items-center gap-3">
                                                     <button
                                                         onClick={() => setShowPaymentModal(false)}
@@ -1262,7 +1272,7 @@ export default function EventRegistrationPage() {
                                                 <div className="flex justify-between items-center text-xs md:text-base">
                                                     <span className="text-zinc-400">Fee per person</span>
                                                     <span className="text-white">
-                                                        {(isKLStudent || isInternational) ? (
+                                                        {isInternational ? (
                                                             <span className="text-green-500 font-bold">Waived</span>
                                                         ) : (
                                                             `₹${feePerPerson}`
@@ -1277,7 +1287,7 @@ export default function EventRegistrationPage() {
                                                 <div className="flex justify-between items-center font-bold text-sm md:text-xl">
                                                     <span className="text-white">Total</span>
                                                     <span className="text-red-500 text-base md:text-2xl">
-                                                        {(isKLStudent || isInternational) ? (
+                                                        {isInternational ? (
                                                             <span className="text-green-500">Free</span>
                                                         ) : (
                                                             `₹${totalFee}`
@@ -1286,7 +1296,7 @@ export default function EventRegistrationPage() {
                                                 </div>
                                             </div>
 
-                                            {(!isKLStudent || isVirtual || isInternational) && (
+                                            {(isVirtual || isInternational) && (
                                             <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800/50">
                                                 <h3 className="text-[10px] md:text-xs font-semibold text-zinc-500 mb-2 uppercase tracking-wider">
                                                     {isVirtual || isInternational ? "Virtual Participation Includes:" : "Also Includes Complimentary:"}
@@ -1328,7 +1338,7 @@ export default function EventRegistrationPage() {
                                             )}
 
                                             {/* ID Card Mandatory Warning – not shown for virtual, international, or KL users */}
-                                            {!isVirtual && !isInternational && !isKLStudent && (
+                                            {!isVirtual && !isInternational && (
                                                 <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-3 md:p-4">
                                                     <div className="flex items-start gap-2 md:gap-3">
                                                         <div className="text-red-500 text-lg md:text-xl font-bold shrink-0">⚠️</div>
@@ -1346,7 +1356,7 @@ export default function EventRegistrationPage() {
 
                                             {/* Mobile Buttons - Now Visible on Desktop too */}
                                             <div className="pt-2">
-                                                {!isKLStudent && !isInternational && (
+                                                {!isInternational && (
                                                     <button
                                                         onClick={() => setPaymentStep(1)}
                                                         className="w-full py-2.5 md:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-sm md:text-base shadow-lg shadow-red-600/20 active:scale-95 transition-all"
@@ -1354,7 +1364,7 @@ export default function EventRegistrationPage() {
                                                         Proceed
                                                     </button>
                                                 )}
-                                                {(isKLStudent || isInternational) && (
+                                                {isInternational && (
                                                     <button
                                                         onClick={processPaymentAndRegister}
                                                         disabled={paymentProcessing}
@@ -1372,7 +1382,7 @@ export default function EventRegistrationPage() {
                                         </div>
 
                                         {/* RIGHT COLUMN: Payment Details – not shown for international (virtual participation) */}
-                                        {!isKLStudent && !isInternational && (
+                                        {!isInternational && (
                                             <div className={`p-5 md:p-6 space-y-5 w-full ${paymentStep === 1 ? 'block' : 'hidden'}`}>
                                                 <div className="hidden md:block">
                                                     <h2 className="text-lg md:text-2xl font-bold text-white mb-0.5">Payment</h2>
@@ -1523,7 +1533,7 @@ export default function EventRegistrationPage() {
                                 <div className="px-6 py-3 bg-zinc-950 border-t border-zinc-800 text-center">
                                     <p className="text-xs text-zinc-500 flex items-center justify-center gap-1">
                                         <span className={`w-2 h-2 rounded-full ${isInternational ? "bg-green-500" : "bg-yellow-500"}`} />
-                                        {isKLStudent ? "KL University Student Verification Active" : isInternational ? "Virtual Participation – Free Registration" : "Payment Verification Required"}
+                                        {isInternational ? "Virtual Participation – Free Registration" : "Payment Verification Required"}
                                     </p>
                                 </div>
                             </motion.div>

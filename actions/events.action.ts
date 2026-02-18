@@ -696,15 +696,14 @@ export async function registerGroupEvent(
       return { success: false, error: "Please login to register for events" };
     }
 
-    const isKLStudent = session.user.email.endsWith("@kluniversity.in");
     const isInternational = !!(session.user as { isInternational?: boolean }).isInternational;
 
-    if (!isKLStudent && !isInternational && !paymentDetails) {
-      return { success: false, error: "Payment details are required for non-KL and non-international students." };
+    if (!isInternational && !paymentDetails) {
+      return { success: false, error: "Payment details are required for non-international students." };
     }
 
     // Validate virtual eligibility for AP/Telangana - must be physical
-    if (isVirtual && !isKLStudent && !isInternational) {
+    if (isVirtual && !isInternational) {
       const userWithState = await prisma.user.findUnique({
         where: { id: session.user.id },
         select: { state: true, email: true, isInternational: true },
@@ -719,7 +718,7 @@ export async function registerGroupEvent(
       }
     }
 
-    const paymentStatus = (isKLStudent || isInternational) ? "APPROVED" : "PENDING";
+    const paymentStatus = isInternational ? "APPROVED" : "PENDING";
 
     const registrationResult = await prisma.$transaction(
       async (tx) => {
@@ -912,14 +911,13 @@ export async function registerForEvent(
       return { success: false, error: "Please login to register for events" };
     }
 
-    const isKLStudent = session.user.email.endsWith("@kluniversity.in");
     const isInternational = !!(session.user as { isInternational?: boolean }).isInternational;
 
-    if (!isKLStudent && !isInternational && !paymentDetails) {
-      return { success: false, error: "Payment details are required for non-KL and non-international students." };
+    if (!isInternational && !paymentDetails) {
+      return { success: false, error: "Payment details are required for non-international students." };
     }
 
-    const paymentStatus = (isKLStudent || isInternational) ? "APPROVED" : "PENDING";
+    const paymentStatus = isInternational ? "APPROVED" : "PENDING";
 
     // Check approval status
     const user = await prisma.user.findUnique({
@@ -932,7 +930,7 @@ export async function registerForEvent(
     }
 
     // Validate virtual eligibility for AP/Telangana - must be physical
-    if (isVirtual && !isKLStudent && !isInternational) {
+    if (isVirtual && !isInternational) {
       const userWithState = await prisma.user.findUnique({
         where: { id: session.user.id },
         select: { state: true, email: true, isInternational: true },
@@ -1246,6 +1244,13 @@ export async function unregisterFromEvent(eventId: string) {
 
     if (!session || !session.user) {
       return { success: false, error: "Please login to unregister from events" };
+    }
+
+    // Only International students can unregister
+    // KL students and other college students cannot unregister once registered/paid
+    const isInternational = (session.user as any).isInternational;
+    if (!isInternational) {
+      return { success: false, error: "Unregistration is disabled. Please contact support if you have issues." };
     }
 
     // Delete individual registration

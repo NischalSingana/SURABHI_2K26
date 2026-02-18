@@ -385,8 +385,8 @@ export default function MyEventsPage() {
                                                 </>
                                             )}
 
-                                            {/* Hide unregister for other college; show only for KL and International */}
-                                            {(isKL || isInternational) && (
+                                            {/* Hide unregister for other college & KL; show only for International */}
+                                            {isInternational && (
                                                 <button
                                                     onClick={() => setShowUnregisterConfirm(event.id)}
                                                     disabled={unregistering === event.id}

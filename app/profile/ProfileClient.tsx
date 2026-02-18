@@ -1190,8 +1190,8 @@ export default function ProfileClient({
                           Results
                         </motion.button>
 
-                        {/* Hide unregister for other college; show only for KL and International */}
-                        {(user.email?.endsWith("@kluniversity.in") || user.isInternational) && (
+                        {/* Hide unregister for other college & KL; show only for International */}
+                        {user.isInternational && (
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}

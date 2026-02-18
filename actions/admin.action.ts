@@ -2,10 +2,19 @@
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Role } from "@prisma/client";
+import { Role, Prisma } from "@prisma/client";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { logAdminActivity } from "@/lib/admin-logs";
+
+interface GroupMember {
+    name: string;
+    phone: string;
+    gender: string;
+    inGameName?: string;
+    inGameId?: string;
+    riotId?: string;
+}
 
 export async function getPendingRegistrations() {
     try {
@@ -254,9 +263,10 @@ export async function updateRegistrationStatus(
                         if (!emailResult || !emailResult.success) {
                             console.error(`Failed to send visitor pass approval email to ${user.email}:`, emailResult?.error || "Unknown error");
                         }
-                    } catch (e: any) {
+                    } catch (e: unknown) {
+                        const err = e as Error;
                         console.error(`Failed to send visitor pass approval email to ${user.email}:`, e);
-                        console.error("Error details:", { message: e?.message, stack: e?.stack, name: e?.name });
+                        console.error("Error details:", { message: err?.message, stack: err?.stack, name: err?.name });
                     }
                 })();
             }
@@ -278,7 +288,7 @@ export async function updateRegistrationStatus(
 
             const registration = await prisma.individualRegistration.update({
                 where: { id },
-                data: { 
+                data: {
                     paymentStatus: status,
                     approvedBy: session.user.id,
                     approvedAt: new Date(),
@@ -347,6 +357,9 @@ export async function updateRegistrationStatus(
                 const isVirtualParticipant = isInternational || isVirtual;
 
                 (async () => {
+                    // Skip email for KL students
+                    if (userFull.email.endsWith("@kluniversity.in")) return;
+
                     try {
                         let pdfBuffer: Buffer | null = null;
                         if (!isVirtualParticipant) {
@@ -390,8 +403,9 @@ export async function updateRegistrationStatus(
                             isInternational,
                             isVirtualParticipant
                         );
-                    } catch (e) {
-                        console.error("Failed to send approval email", e);
+                    } catch (e: unknown) {
+                        const err = e as Error;
+                        console.error("Failed to send approval email", err);
                     }
                 })();
             }
@@ -408,7 +422,7 @@ export async function updateRegistrationStatus(
 
             const registration = await prisma.groupRegistration.update({
                 where: { id },
-                data: { 
+                data: {
                     paymentStatus: status,
                     approvedBy: session.user.id,
                     approvedAt: new Date(),
@@ -430,7 +444,7 @@ export async function updateRegistrationStatus(
                     eventName: registration.event.name,
                     groupName: registration.groupName,
                     status: status,
-                    teamSize: Array.isArray(registration.members) ? (registration.members as any[]).length + 1 : 1,
+                    teamSize: Array.isArray(registration.members) ? (registration.members as Prisma.JsonArray).length + 1 : 1,
                 },
             });
 
@@ -472,13 +486,16 @@ export async function updateRegistrationStatus(
                 });
                 if (!lead) return;
 
-                const members = registration.members as any || [];
+                const members = (registration.members as unknown as GroupMember[]) || [];
                 const groupName = registration.groupName || "Team";
                 const isInternational = !!lead.isInternational;
                 const isVirtual = !!registration.isVirtual;
                 const isVirtualParticipant = isInternational || isVirtual;
 
                 (async () => {
+                    // Skip email for KL students
+                    if (lead.email.endsWith("@kluniversity.in")) return;
+
                     try {
                         let pdfBuffer: Buffer | null = null;
                         if (!isVirtualParticipant) {
