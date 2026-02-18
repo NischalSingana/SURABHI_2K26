@@ -126,7 +126,8 @@ export const ACCOMMODATION_KNOWLEDGE = `
 Accommodation for Surabhi 2026:
 - Only competition participants can book accommodation. Visitor pass holders are NOT eligible.
 - Free accommodation for out-station participants registered for Surabhi competitions (not visitor pass). 100% free stay, zero cost.
-- Complimentary food: lunch is provided.
+- KL University students: Free special lunch and accommodation provided (same as other college participants).
+- Complimentary food: lunch is provided for all physical participants.
 - Key guidelines: Separate hostels for Boys and Girls; strictly no mixed-gender groups; carry valid college ID card.
 - Book at: ${WEBSITE_URL}/accommodation
 `.trim();
@@ -159,7 +160,7 @@ export const VIRTUAL_EXCLUDED_STATES = ["Andhra Pradesh", "Telangana"];
 export const VIRTUAL_PARTICIPATION_KNOWLEDGE = `
 Virtual participation at Surabhi 2026:
 - Available for participants from states OTHER than Andhra Pradesh (AP) and Telangana. Students from AP and Telangana must participate physically at KL University.
-- KL University students must participate physically; they are not eligible for virtual mode.
+- KL University students: NO virtual participation option. Must participate physically. Same fees as other colleges (₹350 per member). Free special lunch and accommodation provided.
 - Registration fee for virtual participation (eligible Indian students from other states): ₹150 only.
 - All virtual events are conducted in an online meeting. Student coordinators are present during the session, and judges evaluate your performance online.
 - Virtual participants are eligible to win cash prizes—same opportunity as physical participants.
@@ -173,10 +174,12 @@ International students:
 `.trim();
 
 export const PHYSICAL_OUTSTATION_KNOWLEDGE = `
-Physical participants from other colleges (outside KL University):
+Physical participants (KL University and other colleges):
+- All domestic physical participants (KL University and other colleges) pay ₹350 per member.
 - Free one-day accommodation is provided for out-station physical participants.
-- Free lunch is provided.
-- They must be registered for at least one competition (not visitor pass only) to avail accommodation.
+- Free special lunch is provided for all physical participants including KL University students.
+- KL University students: same fees (₹350), no virtual option, free lunch and accommodation.
+- Must be registered for at least one competition (not visitor pass only) to avail accommodation.
 `.trim();
 
 export const CHIEF_GUEST_KNOWLEDGE = `
@@ -192,18 +195,18 @@ How to register for Surabhi 2026:
    - International students: name, email, phone (with country code), country, state/region, institution, program of study, gender.
 4. Submit registration; wait for admin approval (you may receive an email when approved).
 5. After approval, go to Competitions, browse categories, and open the event you want. Click "Register Now".
-6. Read and accept the event terms and conditions (scroll through fully if required). For virtual-eligible events you may see an option to register as virtual (₹150) or physical (₹350). International students get free virtual registration.
-7. If payment is required: pay the required amount (₹350 physical / ₹150 virtual for eligible Indian students), upload payment screenshot, enter UTR number and payee name. Submit.
+6. Read and accept the event terms and conditions (scroll through fully if required). For virtual-eligible events (not KL) you may see an option to register as virtual (₹150) or physical (₹350). KL students must register physically only. International students get free virtual registration.
+7. If payment is required: pay the required amount (₹350 physical for KL and other colleges / ₹150 virtual for eligible Indian students from other states), upload payment screenshot, enter UTR number and payee name. Submit.
 8. Wait for registration approval. Once approved, you can see your ticket/event in Profile. For virtual events you will receive meeting link and time (scheduled to your timezone for international).
 Competition dates: Fest dates are ${SURABHI_DATES}. Exact date and time for each competition are listed on the event page (from schedule).
 `.trim();
 
 export const REGISTRATION_FEES_KNOWLEDGE = `
 Registration fees (mention clearly when asked):
-- KL University students: FREE competition fees (no registration fee).
-- Physical participation (other colleges, at KL University): ₹350 per registration.
+- KL University students and other college students: ₹350 per member (same fee for all domestic physical participants).
 - Virtual participation (eligible Indian students from states other than AP and Telangana): ₹150 per registration.
 - International students (virtual participation): FREE.
+- KL University students: No virtual participation option; must participate physically. Free special lunch and accommodation provided.
 `.trim();
 
 /** Build static knowledge block for the system prompt (no competition list). */

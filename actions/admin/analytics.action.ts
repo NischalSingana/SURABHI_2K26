@@ -283,6 +283,7 @@ export async function getDailyReportStats() {
                     },
                 },
                 individualRegistrations: {
+                    where: { paymentStatus: { not: "REJECTED" } },
                     select: {
                         createdAt: true,
                         user: {
@@ -293,8 +294,10 @@ export async function getDailyReportStats() {
                     },
                 },
                 groupRegistrations: {
+                    where: { paymentStatus: { not: "REJECTED" } },
                     select: {
                         createdAt: true,
+                        members: true,
                         user: {
                             select: {
                                 email: true,
@@ -315,19 +318,14 @@ export async function getDailyReportStats() {
             const individualRegs = event.individualRegistrations;
             const groupRegs = event.groupRegistrations;
 
-            // Helper to check if email is KL
             const isKL = (email: string) => email.endsWith("@kluniversity.in");
-
-            // Helper to check if registration is from today
             const isToday = (date: Date) => new Date(date) >= today;
 
-            // Helper to calculation participants count
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const getParticipantCount = (groupRegs: any[]) => {
                 return groupRegs.reduce((acc, reg) => {
-                    const members = reg.members || {};
-                    // Count leader (1) + number of members
-                    const memberCount = Object.keys(members).length;
+                    const members = reg.members;
+                    const memberCount = Array.isArray(members) ? members.length : (members ? Object.keys(members).length : 0);
                     return acc + 1 + memberCount;
                 }, 0);
             };

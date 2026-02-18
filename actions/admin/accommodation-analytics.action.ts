@@ -34,15 +34,11 @@ export async function getAccommodationAnalytics() {
       orderBy: { createdAt: "desc" },
     });
 
-    // Filter: other colleges physical participants only
-    // Exclude: KL University (@kluniversity.in, vaddeswaram), international, virtual
+    // Filter: physical participants only (KL and other colleges eligible for accommodation)
+    // Exclude: international (virtual), virtual-only participants
     const eligibleBookings = bookings.filter((b) => {
       const u = b.user;
       if (!u) return false;
-      // KL University
-      if (u.email?.toLowerCase().endsWith("@kluniversity.in")) return false;
-      if ((u.collage || "").toLowerCase().includes("vaddeswaram")) return false;
-      // International
       if (!!(u as { isInternational?: boolean }).isInternational) return false;
       return true;
     });

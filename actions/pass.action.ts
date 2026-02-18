@@ -22,14 +22,6 @@ export async function generateVisitorPass(paymentDetails?: {
 
     const userId = session.user.id;
 
-    const isKLStudent = session.user.email.endsWith("@kluniversity.in");
-
-    if (!isKLStudent && !paymentDetails) {
-      return { success: false, error: "Payment details are required for non-KL students." };
-    }
-
-    const paymentStatus = isKLStudent ? "APPROVED" : "PENDING";
-
     const existing = await prisma.visitorPassRegistration.findFirst({
       where: { userId },
       orderBy: { createdAt: "desc" },
@@ -63,6 +55,12 @@ export async function generateVisitorPass(paymentDetails?: {
 
     const isRegisteredForEvent =
       user.individualRegistrations.length > 0 || user.groupRegistrations.length > 0;
+
+    if (!isRegisteredForEvent && !paymentDetails) {
+      return { success: false, error: "Payment details are required for visitor pass (₹350). Competition participants get free pass." };
+    }
+
+    const paymentStatus = "PENDING";
 
     const reg = await prisma.visitorPassRegistration.create({
       data: {

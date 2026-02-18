@@ -13,7 +13,7 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
 ### 🎭 Event Management
 - **Dynamic Event Catalog**: Browse competitions across multiple categories (Dance, Music, Theatre, Fine Arts, etc.)
 - **Individual & Group Registration**: Support for both solo and team-based events
-- **College Types**: KL University (free), Other College (India), International Student flows
+- **College Types**: KL University, Other College (India), International Student flows (KL and other colleges: ₹350 per member)
 - **Real-time Availability**: Track participant limits and registration status
 - **Event Submissions**: Participants can submit their work/links for events
 - **Terms & Conditions**: Mandatory scroll-through acceptance for registrations

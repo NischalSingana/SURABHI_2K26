@@ -519,7 +519,6 @@ export default function EventRegistrationPage() {
 
     if (!event) return null;
 
-    const isKLStudent = session?.user?.email?.endsWith("@kluniversity.in");
     const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
     const virtualEligibility = session?.user ? checkVirtualEligibility({
         email: session.user.email,
@@ -549,10 +548,10 @@ export default function EventRegistrationPage() {
                         <p className="text-zinc-400">
                             {event.isGroupEvent ? "Team Registration" : "Individual Registration"}
                         </p>
-                        {isKLStudent && (
+                        {session?.user?.email?.endsWith("@kluniversity.in") && (
                             <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg inline-block">
                                 <p className="text-blue-300 text-sm font-medium">
-                                    ℹ️ KL University Students must participate physically.
+                                    ℹ️ KL University students must participate physically. Fee: ₹350 per member. Free special lunch and accommodation provided.
                                 </p>
                             </div>
                         )}
@@ -694,14 +693,14 @@ export default function EventRegistrationPage() {
                                     onClick={() => setShowPaymentModal(true)}
                                     className="flex-1 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-red-600/20"
                                 >
-                                    Proceed to {(isKLStudent || isInternational) ? "Registration" : "Payment"}
+                                    Proceed to {isInternational ? "Registration" : "Payment"}
                                 </button>
                             </div>
                         </div>
                     ) : (
                         <div className="space-y-8">
                             {/* ID Card Mandatory Warning - not for virtual, international, or KL users */}
-                            {!isVirtual && !isInternational && !isKLStudent && (
+                            {!isVirtual && !isInternational && (
                             <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-4">
                                 <div className="flex items-start gap-3">
                                     <div className="text-red-500 text-xl font-bold shrink-0">⚠️</div>
@@ -1296,7 +1295,6 @@ export default function EventRegistrationPage() {
                                                 </div>
                                             </div>
 
-                                            {(isVirtual || isInternational) && (
                                             <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800/50">
                                                 <h3 className="text-[10px] md:text-xs font-semibold text-zinc-500 mb-2 uppercase tracking-wider">
                                                     {isVirtual || isInternational ? "Virtual Participation Includes:" : "Also Includes Complimentary:"}
@@ -1321,21 +1319,20 @@ export default function EventRegistrationPage() {
                                                         <>
                                                             <li className="flex items-start gap-2">
                                                                 <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
-                                                                <span>Accommodation (1 Day)</span>
+                                                                <span>Complimentary Accommodation (1 Day)</span>
                                                             </li>
                                                             <li className="flex items-start gap-2">
                                                                 <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
-                                                                <span>Lunch</span>
+                                                                <span>Complimentary Special Lunch</span>
                                                             </li>
                                                             <li className="flex items-start gap-2">
                                                                 <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
-                                                                <span>6th and 7th march free visitor access</span>
+                                                                <span>Access to all Events & Pro Shows</span>
                                                             </li>
                                                         </>
                                                     )}
                                                 </ul>
                                             </div>
-                                            )}
 
                                             {/* ID Card Mandatory Warning – not shown for virtual, international, or KL users */}
                                             {!isVirtual && !isInternational && (

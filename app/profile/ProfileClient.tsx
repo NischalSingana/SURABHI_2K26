@@ -210,10 +210,7 @@ export default function ProfileClient({
   };
 
   const handleGeneratePass = async () => {
-    const isKLStudent = user.email.endsWith("@kluniversity.in");
-
-    // For non-KL students, validate payment details
-    if (!isKLStudent && showPaymentModal) {
+    if (showPaymentModal) {
       if (!paymentDetails.screenshot || !paymentDetails.utrId || !paymentDetails.payeeName) {
         toast.error("Please fill all payment details");
         return;
@@ -226,8 +223,7 @@ export default function ProfileClient({
     try {
       let paymentData = undefined;
 
-      // Upload screenshot if non-KL student
-      if (!isKLStudent && paymentDetails.screenshot) {
+      if (paymentDetails.screenshot) {
         const formData = new FormData();
         formData.append("file", paymentDetails.screenshot);
 
@@ -256,27 +252,21 @@ export default function ProfileClient({
         setHasPass(true);
         
         if (result.passToken) {
-          // KL students get auto-approved with passToken
           setPassToken(result.passToken);
           setPassPaymentStatus("APPROVED");
-
-          // Only download for KL students (auto-approved)
-          if (isKLStudent) {
-            const response = await fetch(`/api/pass/download/${result.passToken}`);
-            if (response.ok) {
-              const blob = await response.blob();
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `surabhi-2026-visitor-pass.pdf`;
-              document.body.appendChild(a);
-              a.click();
-              window.URL.revokeObjectURL(url);
-              document.body.removeChild(a);
-            }
+          const response = await fetch(`/api/pass/download/${result.passToken}`);
+          if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `surabhi-2026-visitor-pass.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
           }
         } else {
-          // Non-KL students submit proofs and get PENDING status
           setPassPaymentStatus("PENDING");
           setPassToken(null);
           

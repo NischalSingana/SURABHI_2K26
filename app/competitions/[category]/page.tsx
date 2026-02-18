@@ -200,10 +200,8 @@ function CategoryPageContent() {
 
     if (!selectedEvent) return;
 
-    // Check for Manual Payment Requirement (Non-KL Users)
-    const isKLStudent = userEmail?.endsWith("@kluniversity.in");
-
-    if (!isKLStudent && !showPaymentStep) {
+    // Payment required for all domestic students (KL and other colleges) - Rs 350 per member. International (virtual) is free.
+    if (!isInternational && !showPaymentStep) {
       setShowPaymentStep(true);
       return;
     }
@@ -654,7 +652,7 @@ function CategoryPageContent() {
                 </div>
               </div>
 
-              {!showPaymentStep && !userEmail?.endsWith("@kluniversity.in") && (
+              {!showPaymentStep && !isInternational && (
                 <div className="mb-6 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700">
                   <h4 className="text-sm font-semibold text-white mb-2">Includes (₹350):</h4>
                   <ul className="space-y-1 text-xs text-zinc-300">
@@ -739,7 +737,7 @@ function CategoryPageContent() {
                 >
                   <h4 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
                     Payment Verification
-                    <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded">Required for Non-KL</span>
+                    <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded">₹350 per member</span>
                   </h4>
 
                   {/* ID Card Mandatory Warning */}
@@ -848,7 +846,7 @@ function CategoryPageContent() {
                 >
                   {registrationStatus.loading || uploadingPayment ?
                     (uploadingPayment ? "Uploading Proof..." : "Registering...") :
-                    (showPaymentStep ? "Submit & Pay" : (userEmail?.endsWith("@kluniversity.in") ? "Confirm Registration" : "Proceed to Payment"))
+                    (showPaymentStep ? "Submit & Pay" : "Proceed to Payment")
                   }
                 </button>
                 <button
@@ -892,9 +890,7 @@ function CategoryPageContent() {
                 </div>
                 <h3 className="text-2xl font-bold text-green-500 mb-2">Success!</h3>
                 <p className="text-zinc-300 mb-6">
-                  {userEmail?.endsWith("@kluniversity.in")
-                    ? "Successfully registered for the event!"
-                    : "Your registration is submitted! Please wait for admin approval (2-3 business days). You will receive an email with your ticket once approved."}
+                  Your registration is submitted! Please wait for admin approval (2-3 business days). You will receive an email with your ticket once approved.
                 </p>
 
                 <div className="space-y-3">
