@@ -43,8 +43,8 @@ export async function getUserStats() {
                 paymentRejected,
             },
         };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+    } catch (error: unknown) {
+        return { success: false, error: (error as Error).message };
     }
 }
 
@@ -97,8 +97,8 @@ export async function getEventStats() {
                 })),
             },
         };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+    } catch (error: unknown) {
+        return { success: false, error: (error as Error).message };
     }
 }
 
@@ -153,8 +153,8 @@ export async function getAccommodationStats() {
                 totalMembers: totalMembersAgg._sum.totalMembers || 0,
             },
         };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+    } catch (error: unknown) {
+        return { success: false, error: (error as Error).message };
     }
 }
 
@@ -220,6 +220,8 @@ export async function getDetailedEventRegistrations() {
                                 phone: true,
                                 collage: true,
                                 collageId: true,
+                                branch: true,
+                                year: true,
                                 state: true,
                                 city: true,
                                 country: true,
@@ -250,8 +252,133 @@ export async function getDetailedEventRegistrations() {
                 groupRegistrations: event.groupRegistrations,
             })),
         };
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error fetching detailed event registrations:", error);
-        return { success: false, error: error.message };
+        return { success: false, error: (error as Error).message };
+    }
+}
+
+export async function getDailyReportStats() {
+    try {
+        const headersList = await headers();
+        const session = await auth.api.getSession({
+            headers: headersList,
+        });
+
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+            throw new Error("Unauthorized");
+        }
+
+        // Get start of today (local time consideration might be needed, using server time for now)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const events = await prisma.event.findMany({
+            select: {
+                id: true,
+                name: true,
+                Category: {
+                    select: {
+                        name: true,
+                    },
+                },
+                individualRegistrations: {
+                    select: {
+                        createdAt: true,
+                        user: {
+                            select: {
+                                email: true,
+                            },
+                        },
+                    },
+                },
+                groupRegistrations: {
+                    select: {
+                        createdAt: true,
+                        user: {
+                            select: {
+                                email: true,
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: {
+                Category: {
+                    name: "asc", 
+                }
+            }
+        });
+
+        // Process data for the report
+        const reportData = events.map(event => {
+            const individualRegs = event.individualRegistrations;
+            const groupRegs = event.groupRegistrations;
+
+            // Helper to check if email is KL
+            const isKL = (email: string) => email.endsWith("@kluniversity.in");
+
+            // Helper to check if registration is from today
+            const isToday = (date: Date) => new Date(date) >= today;
+
+            // Helper to calculation participants count
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const getParticipantCount = (groupRegs: any[]) => {
+                return groupRegs.reduce((acc, reg) => {
+                    const members = reg.members || {};
+                    // Count leader (1) + number of members
+                    const memberCount = Object.keys(members).length;
+                    return acc + 1 + memberCount;
+                }, 0);
+            };
+
+            // KL Stats
+            const klIndividualTotal = individualRegs.filter(r => isKL(r.user.email)).length;
+            const klGroupRegs = groupRegs.filter(r => isKL(r.user.email));
+            const klGroupParticipants = getParticipantCount(klGroupRegs);
+            const klTotal = klIndividualTotal + klGroupParticipants;
+
+            const klIndividualNew = individualRegs.filter(r => isKL(r.user.email) && isToday(r.createdAt)).length;
+            const klGroupRegsNew = groupRegs.filter(r => isKL(r.user.email) && isToday(r.createdAt));
+            const klGroupParticipantsNew = getParticipantCount(klGroupRegsNew);
+            const klNewToday = klIndividualNew + klGroupParticipantsNew;
+
+            // Non-KL Stats
+            const nonKlIndividualTotal = individualRegs.filter(r => !isKL(r.user.email)).length;
+            const nonKlGroupRegs = groupRegs.filter(r => !isKL(r.user.email));
+            const nonKlGroupParticipants = getParticipantCount(nonKlGroupRegs);
+            const nonKlTotal = nonKlIndividualTotal + nonKlGroupParticipants;
+
+            const nonKlIndividualNew = individualRegs.filter(r => !isKL(r.user.email) && isToday(r.createdAt)).length;
+            const nonKlGroupRegsNew = groupRegs.filter(r => !isKL(r.user.email) && isToday(r.createdAt));
+            const nonKlGroupParticipantsNew = getParticipantCount(nonKlGroupRegsNew);
+            const nonKlNewToday = nonKlIndividualNew + nonKlGroupParticipantsNew;
+
+            return {
+                eventId: event.id,
+                eventName: event.name,
+                categoryName: event.Category.name,
+                klStats: {
+                    total: klTotal,
+                    newToday: klNewToday,
+                    previousTotal: klTotal - klNewToday
+                },
+                nonKlStats: {
+                    total: nonKlTotal,
+                    newToday: nonKlNewToday,
+                    previousTotal: nonKlTotal - nonKlNewToday
+                }
+            };
+        });
+
+        return {
+            success: true,
+            data: reportData,
+            timestamp: new Date().toISOString()
+        };
+
+    } catch (error: unknown) {
+        console.error("Error fetching daily report stats:", error);
+        return { success: false, error: (error as Error).message };
     }
 }

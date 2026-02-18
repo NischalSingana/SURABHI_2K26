@@ -1,30 +1,102 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
     getUserStats,
     getEventStats,
     getAccommodationStats,
     getDetailedEventRegistrations,
+    getDailyReportStats,
 } from "@/actions/admin/analytics.action";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+// Interfaces for analytics data
+interface UserStats {
+    total: number;
+    approved: number;
+    pending: number;
+    paymentApproved: number;
+    paymentPending: number;
+    paymentRejected: number;
+}
+
+interface EventStats {
+    totalEvents: number;
+    categories: { name: string; eventCount: number }[];
+    registrations: { name: string; count: number }[];
+}
+
+interface AccommodationStats {
+    totalBookings: number;
+    individualBookings: number;
+    groupBookings: number;
+    maleBookings: number;
+    femaleBookings: number;
+    confirmedBookings: number;
+    pendingBookings: number;
+    cancelledBookings: number;
+    totalMembers: number;
+}
+
+interface RegistrationUser {
+    id: string;
+    name: string | null;
+    email: string;
+    phone: string | null;
+    collage: string | null;
+    collageId: string | null;
+    branch: string | null;
+    year: number | null;
+    state: string | null;
+    city: string | null;
+    country: string | null;
+    isInternational: boolean | null;
+    gender: string | null;
+}
+
+interface IndividualRegistration {
+    id: string;
+    createdAt: Date;
+    paymentStatus: string;
+    user: RegistrationUser;
+}
+
+interface GroupRegistration {
+    id: string;
+    groupName: string | null;
+    mentorName: string | null;
+    mentorPhone: string | null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    members?: any;
+    createdAt: Date;
+    paymentStatus: string;
+    user: RegistrationUser;
+}
+
+interface DetailedEvent {
+    id: string;
+    name: string;
+    category: string;
+    isGroupEvent: boolean;
+    totalRegistrations: number;
+    individualCount: number;
+    groupCount: number;
+    individualRegistrations: IndividualRegistration[];
+    groupRegistrations: GroupRegistration[];
+}
 
 export default function AnalyticsPage() {
-    const [userStats, setUserStats] = useState<any>(null);
-    const [eventStats, setEventStats] = useState<any>(null);
-    const [accommodationStats, setAccommodationStats] = useState<any>(null);
-    const [detailedEvents, setDetailedEvents] = useState<any[]>([]);
+    const [userStats, setUserStats] = useState<UserStats | null>(null);
+    const [eventStats, setEventStats] = useState<EventStats | null>(null);
+    const [accommodationStats, setAccommodationStats] = useState<AccommodationStats | null>(null);
+    const [detailedEvents, setDetailedEvents] = useState<DetailedEvent[]>([]);
     const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    const [loadingDetails, setLoadingDetails] = useState(false);
 
-    useEffect(() => {
-        loadStats();
-    }, []);
-
-    const loadStats = async () => {
-        setLoading(true);
+    const loadStats = useCallback(async () => {
 
         const [userResult, eventResult, accommodationResult, detailedResult] = await Promise.all([
             getUserStats(),
@@ -33,19 +105,19 @@ export default function AnalyticsPage() {
             getDetailedEventRegistrations(),
         ]);
 
-        if (userResult.success) {
+        if (userResult.success && userResult.stats) {
             setUserStats(userResult.stats);
         } else {
             toast.error("Failed to load user stats");
         }
 
-        if (eventResult.success) {
+        if (eventResult.success && eventResult.stats) {
             setEventStats(eventResult.stats);
         } else {
             toast.error("Failed to load event stats");
         }
 
-        if (accommodationResult.success) {
+        if (accommodationResult.success && accommodationResult.stats) {
             setAccommodationStats(accommodationResult.stats);
         } else {
             toast.error("Failed to load accommodation stats");
@@ -58,13 +130,18 @@ export default function AnalyticsPage() {
         }
 
         setLoading(false);
-    };
+    }, []);
 
-    const downloadEventRegistrations = (event: any) => {
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        void loadStats();
+    }, [loadStats]);
+
+    const downloadEventRegistrations = (event: DetailedEvent) => {
         try {
             // Prepare Individual Registrations Data
-            const individualData: any[] = [];
-            event.individualRegistrations.forEach((reg: any) => {
+            const individualData: Record<string, string | number>[] = [];
+            event.individualRegistrations.forEach((reg) => {
                 individualData.push({
                     "Name": reg.user.name || "",
                     "Email": reg.user.email || "",
@@ -80,11 +157,12 @@ export default function AnalyticsPage() {
                 });
             });
 
+
             // Prepare Group Registrations Data
-            const groupData: any[] = [];
-            event.groupRegistrations.forEach((reg: any) => {
-                const members = reg.members || {};
-                const memberList = Object.values(members).map((m: any) => m.name).filter(Boolean);
+            const groupData: Record<string, string | number>[] = [];
+            event.groupRegistrations.forEach((reg) => {
+                const members = (reg.members as Record<string, { name: string }>) || {};
+                const memberList = Object.values(members).map((m) => m.name).filter(Boolean);
                 
                 groupData.push({
                     "Group Name": reg.groupName || "",
@@ -206,9 +284,9 @@ export default function AnalyticsPage() {
     const downloadAllRegistrations = () => {
         try {
             // Prepare Individual Registrations Data (from ALL events)
-            const individualData: any[] = [];
+            const individualData: Record<string, string | number>[] = [];
             detailedEvents.forEach(event => {
-                event.individualRegistrations.forEach((reg: any) => {
+                event.individualRegistrations.forEach((reg) => {
                     individualData.push({
                         "Event": event.name,
                         "Category": event.category,
@@ -228,11 +306,11 @@ export default function AnalyticsPage() {
             });
 
             // Prepare Group Registrations Data (from ALL events)
-            const groupData: any[] = [];
+            const groupData: Record<string, string | number>[] = [];
             detailedEvents.forEach(event => {
-                event.groupRegistrations.forEach((reg: any) => {
-                    const members = reg.members || {};
-                    const memberList = Object.values(members).map((m: any) => m.name).filter(Boolean);
+                event.groupRegistrations.forEach((reg) => {
+                    const members = (reg.members as Record<string, { name: string }>) || {};
+                    const memberList = Object.values(members).map((m) => m.name).filter(Boolean);
                     
                     groupData.push({
                         "Event": event.name,
@@ -358,6 +436,116 @@ export default function AnalyticsPage() {
         }
     };
 
+    const generateDailyReport = async () => {
+        try {
+            const result = await getDailyReportStats();
+            if (!result.success || !result.data) {
+                toast.error("Failed to fetch daily report data");
+                return;
+            }
+
+            const doc = new jsPDF();
+            const timestamp = new Date().toLocaleString("en-GB", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: true
+            }).toUpperCase();
+            const reportData = result.data;
+
+            // Page 1: Other Colleges (Non-KL)
+            doc.setFontSize(16);
+            doc.text(`Daily Registration Report - Other Colleges`, 14, 15);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(41, 128, 185); // Highlight color
+            doc.text(`Generated on: ${timestamp}`, 14, 22);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(0, 0, 0); // Reset color
+            doc.setFontSize(8);
+            doc.text(`Note: Counts represent total participants (including group members).`, 14, 26);
+
+interface DailyReportItem {
+    eventId: string;
+    eventName: string;
+    categoryName: string;
+    klStats: { total: number; newToday: number; previousTotal: number };
+    nonKlStats: { total: number; newToday: number; previousTotal: number };
+}
+
+            const nonKlRows = reportData.map((item: DailyReportItem) => {
+                const stats = item.nonKlStats;
+                const increase = stats.previousTotal > 0 
+                    ? ((stats.newToday / stats.previousTotal) * 100).toFixed(1) + "%" 
+                    : stats.newToday > 0 ? "100%" : "0%";
+                
+                return [
+                    item.categoryName,
+                    item.eventName,
+                    stats.total,
+                    stats.newToday,
+                    increase
+                ];
+            });
+
+            autoTable(doc, {
+                startY: 25,
+                head: [['Category', 'Event', 'Total Registered', 'New Today', '% Increase']],
+                body: nonKlRows,
+                theme: 'grid',
+                headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+                styles: { fontSize: 8 },
+            });
+
+            // Page 2: KL University
+            doc.addPage();
+            doc.setFontSize(16);
+            doc.text(`Daily Registration Report - KL University`, 14, 15);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(41, 128, 185); // Highlight color
+            doc.text(`Generated on: ${timestamp}`, 14, 22);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(0, 0, 0); // Reset color
+            doc.setFontSize(8);
+            doc.text(`Note: Counts represent total participants (including group members).`, 14, 26);
+
+            const klRows = reportData.map((item: DailyReportItem) => {
+                const stats = item.klStats;
+                const increase = stats.previousTotal > 0 
+                    ? ((stats.newToday / stats.previousTotal) * 100).toFixed(1) + "%" 
+                    : stats.newToday > 0 ? "100%" : "0%";
+                
+                return [
+                    item.categoryName,
+                    item.eventName,
+                    stats.total,
+                    stats.newToday,
+                    increase
+                ];
+            });
+
+            autoTable(doc, {
+                startY: 25,
+                head: [['Category', 'Event', 'Total Registered', 'New Today', '% Increase']],
+                body: klRows,
+                theme: 'grid',
+                headStyles: { fillColor: [192, 57, 43], textColor: 255 },
+                styles: { fontSize: 8 },
+            });
+
+            doc.save(`Daily_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+            toast.success("Daily report generated successfully");
+
+        } catch (error) {
+            console.error("Error generating daily report:", error);
+            toast.error("Failed to generate report");
+        }
+    };
+
     if (loading) {
         return (
             <div className="px-4 py-6">
@@ -371,7 +559,10 @@ export default function AnalyticsPage() {
             <div className="flex items-center justify-between mb-8">
                 <h1 className="text-3xl font-bold text-white">Analytics Dashboard</h1>
                 <button
-                    onClick={loadStats}
+                    onClick={() => {
+                        setLoading(true);
+                        loadStats();
+                    }}
                     disabled={loading}
                     className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
@@ -490,6 +681,17 @@ export default function AnalyticsPage() {
             <div className="mb-8">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-semibold text-white">Competition Statistics</h2>
+                <div className="flex gap-2">
+                    <button
+                        onClick={generateDailyReport}
+                        disabled={loading}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Daily Report
+                    </button>
                     <button
                         onClick={downloadAllRegistrations}
                         disabled={loading || detailedEvents.length === 0}
@@ -510,6 +712,7 @@ export default function AnalyticsPage() {
                         </svg>
                         Download All (XLSX)
                     </button>
+                </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -535,15 +738,15 @@ export default function AnalyticsPage() {
                                 </svg>
                             </div>
                         </div>
-                        {eventStats?.categories && eventStats.categories.length > 0 && (
-                            <div className="space-y-2">
-                                <p className="text-gray-400 text-sm font-medium">Categories:</p>
-                                {eventStats.categories.map((cat: any, index: number) => (
-                                    <div key={index} className="flex justify-between text-sm">
-                                        <span className="text-gray-300">{cat.name}</span>
-                                        <span className="text-white font-medium">{cat.eventCount} events</span>
-                                    </div>
-                                ))}
+                                {eventStats?.categories && eventStats.categories.length > 0 && (
+                                    <div className="space-y-2">
+                                        <p className="text-gray-400 text-sm font-medium">Categories:</p>
+                                    {eventStats.categories.map((cat: { name: string; eventCount: number }, index: number) => (
+                                        <div key={index} className="flex justify-between text-sm">
+                                            <span className="text-gray-300">{cat.name}</span>
+                                            <span className="text-white font-medium">{cat.eventCount} events</span>
+                                        </div>
+                                    ))}
                             </div>
                         )}
                     </div>
@@ -552,17 +755,17 @@ export default function AnalyticsPage() {
                         <p className="text-gray-400 text-sm mb-4">Top Registered Events</p>
                         <div className="space-y-3">
                             {eventStats?.registrations
-                                ?.filter((event: any) => event.count > 0)
-                                .sort((a: any, b: any) => b.count - a.count)
+                                ?.filter((event: { name: string; count: number }) => event.count > 0)
+                                .sort((a: { count: number }, b: { count: number }) => b.count - a.count)
                                 .slice(0, 5)
-                                .map((event: any, index: number) => (
+                                .map((event: { name: string; count: number }, index: number) => (
                                     <div key={index} className="flex justify-between items-center">
                                         <span className="text-gray-300 text-sm truncate flex-1">{event.name}</span>
                                         <span className="text-white font-medium ml-2">{event.count}</span>
                                     </div>
                                 ))}
                             {(!eventStats?.registrations ||
-                                eventStats.registrations.filter((e: any) => e.count > 0).length === 0) && (
+                                eventStats.registrations.filter((e: { count: number }) => e.count > 0).length === 0) && (
                                     <p className="text-gray-500 text-sm text-center py-4">No event registrations yet</p>
                                 )}
                         </div>
@@ -683,7 +886,7 @@ export default function AnalyticsPage() {
                                                                 </tr>
                                                             </thead>
                                                             <tbody className="divide-y divide-gray-700">
-                                                                {event.individualRegistrations.map((reg: any) => (
+                                                                {event.individualRegistrations.map((reg) => (
                                                                     <tr key={reg.id} className="text-gray-300 hover:bg-gray-900/50">
                                                                         <td className="px-3 py-2">{reg.user.name || "—"}</td>
                                                                         <td className="px-3 py-2 text-xs">{reg.user.email}</td>
@@ -760,8 +963,9 @@ export default function AnalyticsPage() {
                                                                 </tr>
                                                             </thead>
                                                             <tbody className="divide-y divide-gray-700">
-                                                                {event.groupRegistrations.map((reg: any) => {
-                                                                    const members = reg.members || {};
+                                                                {event.groupRegistrations.map((reg) => {
+
+                                                                    const members = (reg.members as Record<string, { name: string }>) || {};
                                                                     const memberCount = Object.keys(members).length;
                                                                     return (
                                                                         <tr key={reg.id} className="text-gray-300 hover:bg-gray-900/50">

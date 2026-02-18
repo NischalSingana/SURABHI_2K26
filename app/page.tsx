@@ -1,8 +1,8 @@
 "use client";
 
-import Link from 'next/link';
+
 import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
-import Image from "next/image";
+
 import dynamic from 'next/dynamic';
 const CircularGallery = dynamic(() => import("@/components/ui/CircularGallery"), {
     ssr: false,
@@ -17,7 +17,7 @@ const ScheduleTimeline = dynamic(() => import('@/components/ui/ScheduleTimeline'
     loading: () => <div className="min-h-screen flex items-center justify-center text-zinc-500 bg-[#030303]">Loading schedule...</div>,
 });
 import CountUp from '@/components/ui/CountUp';
-import { FiGlobe, FiAward, FiUsers, FiFeather, FiHeart, FiTrendingUp, FiVolume2, FiVolumeX } from "react-icons/fi";
+import { FiAward, FiUsers, FiFeather, FiVolume2, FiVolumeX } from "react-icons/fi";
 
 // Hero video: CDN first; Chrome often needs direct Spaces URL (Range/206), Safari works with CDN
 const HERO_VIDEO_CDN = "https://surabhi-images.sgp1.cdn.digitaloceanspaces.com/SURABHI-PROMO.MP4";
