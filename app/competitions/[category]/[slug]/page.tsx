@@ -9,23 +9,23 @@ import {
   FiCalendar,
   FiClock,
   FiMapPin,
-  FiUsers,
   FiX,
   FiCheck,
   FiShare2,
   FiLink,
   FiFileText,
   FiCopy,
+  FiAward,
 } from "react-icons/fi";
 import { FaWhatsapp, FaTelegram, FaEnvelope } from "react-icons/fa";
 import { toast } from "sonner";
 import {
-  getPublicEvents,
   checkEventRegistration,
   unregisterFromEvent,
 } from "@/actions/events.action";
 import { formatTime } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
+import { PRIZE_DATA } from "@/lib/prize-data";
 
 function ShareModal({
   show,
@@ -43,7 +43,7 @@ function ShareModal({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setMounted(true); // eslint-disable-line
     return () => setMounted(false);
   }, []);
 
@@ -94,7 +94,7 @@ function ShareModal({
         try {
           await navigator.clipboard.writeText(url);
           toast.success("Link copied to clipboard!");
-        } catch (err) {
+        } catch {
           toast.error("Failed to copy link");
         }
       },
@@ -178,7 +178,7 @@ function ImageModal({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setMounted(true); // eslint-disable-line
     return () => setMounted(false);
   }, []);
 
@@ -207,11 +207,12 @@ function ImageModal({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Full Image */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={image}
               alt={name}
               className="w-full h-auto max-h-[85vh] object-contain rounded-lg shadow-2xl"
-              onError={(e) => {
+              onError={(e: React.SyntheticEvent<HTMLImageElement, globalThis.Event>) => {
                 e.currentTarget.src =
                   "https://via.placeholder.com/1920x1080?text=Event+Image";
               }}
@@ -269,17 +270,17 @@ function EventDetailPageContent() {
   const [loading, setLoading] = useState(true);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isApproved, setIsApproved] = useState<boolean | undefined>(undefined);
-  const [registrationStatus, setRegistrationStatus] = useState<string | null>(null);
+  /* unused: const [registrationStatus, setRegistrationStatus] = useState<string | null>(null); */
   const [checkingRegistration, setCheckingRegistration] = useState(true);
   const [unregistering, setUnregistering] = useState(false);
   const [showUnregisterConfirm, setShowUnregisterConfirm] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showVastranautTooltip, setShowVastranautTooltip] = useState(false);
-  const [hasGoogleAccount, setHasGoogleAccount] = useState(false);
+  /* unused: const [hasGoogleAccount, setHasGoogleAccount] = useState(false); */
   const [termsTab, setTermsTab] = useState<"physical" | "virtual">("physical");
   const { data: session } = useSession();
-  const isKL = !!session?.user?.email?.endsWith("@kluniversity.in");
+  /* unused: const isKL = !!session?.user?.email?.endsWith("@kluniversity.in"); */
   const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
 
 
@@ -288,30 +289,14 @@ function EventDetailPageContent() {
     if (slug) {
       fetchEvent();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   useEffect(() => {
     setTermsTab("physical");
   }, [slug]);
 
-  // Check if user has Google account
-  useEffect(() => {
-    const checkGoogleAccount = async () => {
-      if (session?.user?.id) {
-        try {
-          const response = await fetch(`/api/check-user-accounts?userId=${session.user.id}`);
-          if (response.ok) {
-            const data = await response.json();
-            setHasGoogleAccount(data.hasGoogleAccount || false);
-          }
-        } catch (error) {
-          console.error("Error checking Google account:", error);
-        }
-      }
-    };
-    checkGoogleAccount();
-  }, [session]);
-
+  /* Google check removed */
   // Lock body scroll when any modal is open
   useEffect(() => {
     if (showImageModal || showUnregisterConfirm) {
@@ -333,7 +318,7 @@ function EventDetailPageContent() {
       const result = await getEventBySlug(slug);
 
       if (result.success && result.data) {
-        setEvent(result.data as any);
+        setEvent(result.data as unknown as Event);
         // Check registration with ID once we have the event
         checkRegistration(result.data.id);
       } else {
@@ -351,7 +336,7 @@ function EventDetailPageContent() {
       setIsRegistered(result.isRegistered || false);
       setIsApproved(result.isApproved);
       if (result.registrationStatus) {
-        setRegistrationStatus(result.registrationStatus);
+        /* setRegistrationStatus(result.registrationStatus); */
       }
     }
     setCheckingRegistration(false);
@@ -374,9 +359,9 @@ function EventDetailPageContent() {
         await navigator.clipboard.writeText(url);
         toast.success("Event link copied to clipboard!");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Ignore AbortError (user cancelled) or InvalidStateError (share already in progress)
-      if (err.name !== 'AbortError' && err.name !== 'InvalidStateError') {
+      if (err instanceof Error && err.name !== 'AbortError' && err.name !== 'InvalidStateError') {
         console.error("Error sharing:", err);
         // Fallback to clipboard if share failed for other reasons
         try {
@@ -446,11 +431,12 @@ function EventDetailPageContent() {
           className="absolute inset-0 cursor-pointer"
           onClick={() => setShowImageModal(true)}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={event.image}
             alt={event.name}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => {
+            onError={(e: React.SyntheticEvent<HTMLImageElement, globalThis.Event>) => {
               e.currentTarget.src =
                 "https://via.placeholder.com/1920x1080?text=Event+Image";
             }}
@@ -568,6 +554,58 @@ function EventDetailPageContent() {
                 {event.description}
               </p>
             </motion.div>
+
+            {/* Prize Money Section - Enhanced UI */}
+            {event && PRIZE_DATA[event.name] && (
+              <div className="bg-gradient-to-br from-zinc-900/50 to-zinc-950/50 backdrop-blur-md border border-zinc-800 rounded-2xl p-6 sm:p-8 relative overflow-hidden group hover:border-zinc-700/50 transition-colors">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+                
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3 relative z-10">
+                  <span className="p-2 bg-yellow-500/10 rounded-lg text-yellow-500">
+                    <FiAward size={24} />
+                  </span>
+                  Prize Money
+                </h3>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+                  {/* 1st Prize - Gold */}
+                  <div className="bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-yellow-500/50 hover:bg-zinc-800/80 transition-all group/card">
+                    <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-yellow-400 transition-colors">1st Prize</span>
+                    <span className="text-2xl font-bold text-yellow-400 drop-shadow-sm">{PRIZE_DATA[event.name].first}</span>
+                  </div>
+                  
+                  {PRIZE_DATA[event.name].runnerUp ? (
+                     /* Runner Up - Silver */
+                    <div className="bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-zinc-400/50 hover:bg-zinc-800/80 transition-all group/card">
+                      <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-zinc-300 transition-colors">Runner Up</span>
+                      <span className="text-2xl font-bold text-zinc-300 drop-shadow-sm">{PRIZE_DATA[event.name].runnerUp}</span>
+                    </div>
+                  ) : (
+                    <>
+                      {/* 2nd Prize - Silver */}
+                      <div className="bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-zinc-400/50 hover:bg-zinc-800/80 transition-all group/card">
+                        <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-zinc-300 transition-colors">2nd Prize</span>
+                        <span className="text-2xl font-bold text-zinc-300 drop-shadow-sm">{PRIZE_DATA[event.name].second}</span>
+                      </div>
+                      
+                      {/* 3rd Prize - Bronze */}
+                      <div className="bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-orange-700/50 hover:bg-zinc-800/80 transition-all group/card">
+                        <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-orange-400 transition-colors">3rd Prize</span>
+                        <span className="text-2xl font-bold text-orange-400 drop-shadow-sm">{PRIZE_DATA[event.name].third}</span>
+                      </div>
+                    </>
+                  )}
+                  
+                  {/* Total Prize Pool */}
+                  <div className="bg-zinc-950 p-5 rounded-xl border border-zinc-800 flex items-center justify-between sm:col-span-2 mt-2 shadow-inner">
+                    <div className="flex flex-col">
+                      <span className="text-zinc-500 text-xs uppercase tracking-wider font-semibold">Total Prize Pool</span>
+                      <span className="text-3xl font-bold text-white mt-1">{PRIZE_DATA[event.name].total}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Terms and Conditions */}
             <motion.div
