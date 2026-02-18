@@ -129,6 +129,11 @@ async function tryBytez(messages: Message[], systemPrompt: string): Promise<stri
   return content ?? null;
 }
 
+/** Strip model thinking tags (e.g. Qwen's <think>…</think>) from responses */
+function stripThinkingTags(text: string): string {
+  return text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+}
+
 /** Try Groq first, then OpenRouter, then Bytez. Returns content or throws. */
 export async function getAiReply(
   messages: Message[],
@@ -138,8 +143,11 @@ export async function getAiReply(
   const errs: string[] = [];
   for (const fn of [tryGroq, tryOpenRouter, tryBytez]) {
     try {
-      const content = await fn(messages, systemPrompt);
-      if (content) return content;
+      const raw = await fn(messages, systemPrompt);
+      if (raw) {
+        const content = stripThinkingTags(raw);
+        if (content) return content;
+      }
     } catch (e) {
       errs.push(e instanceof Error ? e.message : String(e));
     }
