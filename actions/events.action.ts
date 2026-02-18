@@ -1248,7 +1248,7 @@ export async function unregisterFromEvent(eventId: string) {
 
     // Only International students can unregister
     // KL students and other college students cannot unregister once registered/paid
-    const isInternational = (session.user as any).isInternational;
+    const isInternational = !!(session.user as { isInternational?: boolean }).isInternational;
     if (!isInternational) {
       return { success: false, error: "Unregistration is disabled. Please contact support if you have issues." };
     }

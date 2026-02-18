@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiUser,
-  FiMail,
-  FiPhone,
   FiBook,
   FiCalendar,
   FiCreditCard,
@@ -24,6 +22,7 @@ import {
 } from "react-icons/fi";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { signOut, useSession } from "@/lib/auth-client";
 import { updateProfile } from "@/actions/profile.action";
 import { unregisterFromEvent } from "@/actions/events.action";
@@ -89,7 +88,7 @@ export default function ProfileClient({
   ipAddress,
   userAgent,
   hasGoogleAccount,
-  hasMicrosoftAccount,
+  // hasMicrosoftAccount, // eslint-disable-line @typescript-eslint/no-unused-vars
 }: ProfileClientProps) {
   const router = useRouter();
   const { refetch: refetchSession } = useSession();
@@ -1042,14 +1041,14 @@ export default function ProfileClient({
                   No Events Registered
                 </h3>
                 <p className="text-zinc-400 mb-6">
-                  You haven't registered for any events yet
+                  You have not registered for any events yet
                 </p>
-                <a
+                <Link
                   href="/competitions"
                   className="inline-block px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
                 >
                   Browse Events
-                </a>
+                </Link>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1061,14 +1060,13 @@ export default function ProfileClient({
                     className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden hover:border-red-600/50 transition-all flex flex-col"
                   >
                     <div className="relative h-40 md:h-48 shrink-0">
-                      <img
+                      <Image
                         src={event.image}
                         alt={event.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src =
-                            "https://via.placeholder.com/400x300?text=Event";
-                        }}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        quality={80}
                       />
                       <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-medium">
                         {event.Category.name}
@@ -1150,7 +1148,7 @@ export default function ProfileClient({
                                 window.URL.revokeObjectURL(url);
                                 document.body.removeChild(a);
                                 toast.success('Ticket downloaded successfully!');
-                              } catch (error) {
+                              } catch {
                                 toast.error('Failed to download ticket');
                               }
                             }}
@@ -1237,7 +1235,7 @@ export default function ProfileClient({
                 <p className="text-zinc-300 mb-4">
                   Are you sure you want to unregister from{" "}
                   <span className="font-semibold text-white">
-                    "{eventToUnregister.name}"
+                    &quot;{eventToUnregister.name}&quot;
                   </span>
                   ?
                 </p>

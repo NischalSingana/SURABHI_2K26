@@ -1,4 +1,5 @@
 import { getCategories } from "@/actions/events.action";
+import { Category, Event } from "@prisma/client";
 import ManualRegisterForm from "./form";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -32,7 +33,8 @@ export default async function ManualRegisterPage() {
   }
 
   const categoriesRes = await getCategories(true);
-  const categories = categoriesRes.success ? (categoriesRes.data as any[]) : [];
+  type CategoryWithEvents = Category & { Event: Event[] };
+  const categories = categoriesRes.success ? (categoriesRes.data as CategoryWithEvents[]) : [];
   
   return (
     <div className="p-8">

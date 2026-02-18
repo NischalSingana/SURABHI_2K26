@@ -596,13 +596,7 @@ function EventDetailPageContent() {
                     </>
                   )}
                   
-                  {/* Total Prize Pool */}
-                  <div className="bg-zinc-950 p-5 rounded-xl border border-zinc-800 flex items-center justify-between sm:col-span-2 mt-2 shadow-inner">
-                    <div className="flex flex-col">
-                      <span className="text-zinc-500 text-xs uppercase tracking-wider font-semibold">Total Prize Pool</span>
-                      <span className="text-3xl font-bold text-white mt-1">{PRIZE_DATA[event.name].total}</span>
-                    </div>
-                  </div>
+
                 </div>
               </div>
             )}

@@ -4,10 +4,21 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { registerUserByAdmin, searchUsers } from "@/actions/events.action";
 import { uploadPaymentScreenshot } from "@/actions/upload.action";
+import { Category, Event } from "@prisma/client";
 
-export default function ManualRegisterForm({ categories }: { categories: any[] }) {
+type CategoryWithEvents = Category & { Event: Event[] };
+
+interface SearchedUser {
+    id: string;
+    name: string | null;
+    email: string;
+    collage: string | null;
+    collageId: string | null;
+}
+
+export default function ManualRegisterForm({ categories }: { categories: CategoryWithEvents[] }) {
     const [email, setEmail] = useState("");
-    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [searchResults, setSearchResults] = useState<SearchedUser[]>([]);
     const [showDropdown, setShowDropdown] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
     
@@ -44,7 +55,7 @@ export default function ManualRegisterForm({ categories }: { categories: any[] }
         }
     };
 
-    const selectUser = (user: any) => {
+    const selectUser = (user: SearchedUser) => {
         setEmail(user.email);
         setShowDropdown(false);
     };
@@ -136,7 +147,7 @@ export default function ManualRegisterForm({ categories }: { categories: any[] }
                     className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
                  >
                     <option value="">Select Category</option>
-                    {categories.map((c: any) => (
+                    {categories.map((c) => (
                         <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                  </select>
@@ -151,7 +162,7 @@ export default function ManualRegisterForm({ categories }: { categories: any[] }
                     disabled={!selectedCategory}
                  >
                     <option value="">Select Event</option>
-                    {events.map((ev: any) => (
+                    {events.map((ev) => (
                         <option key={ev.id} value={ev.id}>{ev.name}</option>
                     ))}
                  </select>

@@ -77,23 +77,18 @@ export default function RegistrationApprovalsClient() {
         actions: "",
     });
 
-    useEffect(() => {
-        fetchRegistrations();
-    }, [viewMode]);
-
-    useEffect(() => {
-        setCollegeFilter("ALL");
-    }, [activeTab, viewMode]);
-
-    async function fetchRegistrations() {
+    const fetchRegistrations = async () => {
         setLoading(true);
         const result = viewMode === "PENDING"
             ? await getPendingRegistrations()
             : await getRegistrationHistory();
 
         if (result.success && result.data) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const individual = result.data.individual.map((r: any) => ({ ...r, type: "INDIVIDUAL" }));
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const group = result.data.group.map((r: any) => ({ ...r, type: "GROUP" }));
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const visitor = (result.data.visitorPasses || []).map((p: any) => ({
                 id: p.id,
                 user: p.user || { name: null, email: "", phone: null, collage: null, collageId: null },
@@ -110,7 +105,8 @@ export default function RegistrationApprovalsClient() {
             }));
 
             // Combine and sort by date desc
-            const all = [...individual, ...group, ...visitor].sort((a, b) =>
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const all = [...individual, ...group, ...visitor].sort((a: any, b: any) =>
                 new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
             );
 
@@ -119,7 +115,12 @@ export default function RegistrationApprovalsClient() {
             toast.error("Failed to fetch registrations");
         }
         setLoading(false);
-    }
+    };
+
+    useEffect(() => {
+        fetchRegistrations();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [viewMode]);
 
     const handleStatusUpdate = async (
         id: string,
@@ -231,6 +232,10 @@ export default function RegistrationApprovalsClient() {
             toast.error("Failed to export");
         }
     };
+
+    if (loading) {
+        return <Loader />;
+    }
 
     return (
         <div className="px-4 py-6">

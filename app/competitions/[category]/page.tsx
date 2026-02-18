@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { getPublicEvents, registerForEvent, getUserRegistrations, getCategories } from "@/actions/events.action";
-import { FiArrowLeft, FiCalendar, FiMapPin, FiClock, FiUsers, FiFileText } from "react-icons/fi";
-import { FaWhatsapp } from "react-icons/fa";
+import { FiArrowLeft, FiCalendar, FiMapPin, FiClock, FiFileText } from "react-icons/fi";
 import SubmissionModal from "@/components/ui/SubmissionModal";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
@@ -36,6 +35,16 @@ interface Event {
     groupRegistrations: number;
   };
   isGroupEvent: boolean;
+  slug?: string;
+}
+
+interface CategoryData {
+  id: string;
+  name: string;
+  slug: string;
+  image: string | null;
+  video: string | null;
+  Event: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 // Fallback poster paths when event has no image
@@ -95,10 +104,6 @@ function CategoryPageContent() {
   const { data: session } = useSession();
   const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
 
-  useEffect(() => {
-    fetchEvents();
-  }, [categoryParam]);
-
   const getEmbedUrl = (url: string) => {
     if (!url) return null;
     try {
@@ -120,14 +125,15 @@ function CategoryPageContent() {
     return url;
   };
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     const categoryResult = await getCategories(false);
     let resolvedCategory: { slug: string; name: string } | null = null;
 
     if (categoryResult.success && categoryResult.data) {
       const decoded = decodeURIComponent(categoryParam);
-      const currentCategory = (categoryResult.data as Array<{ id: string; name: string; slug: string; image: string | null; video: string | null; Event: any[] }>).find(
-        (c: { id: string; name: string; slug: string; image: string | null; video: string | null; Event: any[] }) => c.slug === categoryParam || c.name.toLowerCase() === decoded.toLowerCase()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const currentCategory = (categoryResult.data as any[]).find(
+        (c: CategoryData) => c.slug === categoryParam || c.name.toLowerCase() === decoded.toLowerCase()
       );
       if (currentCategory) {
         resolvedCategory = { slug: currentCategory.slug, name: currentCategory.name };
@@ -164,7 +170,11 @@ function CategoryPageContent() {
       toast.error("Failed to load events: " + result.error);
     }
     setLoading(false);
-  };
+  }, [categoryParam]);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   const handleEventClick = (eventId: string) => {
     setExpandedEventId(expandedEventId === eventId ? null : eventId);
@@ -174,7 +184,7 @@ function CategoryPageContent() {
     e.stopPropagation();
 
     toast.info("Redirecting to registration page...");
-    const eventIdentifier = (event as any).slug || event.id;
+    const eventIdentifier = event.slug || event.id;
     router.push(`/competitions/${categorySlug}/${eventIdentifier}`);
   };
 
@@ -265,7 +275,7 @@ function CategoryPageContent() {
           success: false,
         });
       }
-    } catch (error) {
+    } catch {
       setRegistrationStatus({
         loading: false,
         error: "An unexpected error occurred",

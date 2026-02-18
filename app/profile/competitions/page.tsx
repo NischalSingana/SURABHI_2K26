@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { getUserRegisteredEvents } from "@/actions/submissions.action";
@@ -49,6 +49,12 @@ interface Submission {
     updatedAt: Date;
 }
 
+interface Member {
+    name?: string | null;
+    email: string;
+    userId?: string;
+}
+
 interface GroupRegistration {
     id: string;
     eventId: string;
@@ -56,7 +62,7 @@ interface GroupRegistration {
     groupName: string | null;
     mentorName: string | null;
     mentorPhone: string | null;
-    members: any;
+    members: Member[];
 }
 
 
@@ -71,41 +77,33 @@ export default function MyEventsPage() {
     const [showSubmissionModal, setShowSubmissionModal] = useState(false);
     const [unregistering, setUnregistering] = useState<string | null>(null);
     const [showUnregisterConfirm, setShowUnregisterConfirm] = useState<string | null>(null);
-    const [hasGoogleAccount, setHasGoogleAccount] = useState(false);
-    const isKL = !!session?.user?.email?.endsWith("@kluniversity.in");
+    // const [hasGoogleAccount, setHasGoogleAccount] = useState(false); // Unused
+    // const isKL = !!session?.user?.email?.endsWith("@kluniversity.in"); // Unused
     const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
 
-    useEffect(() => {
-        fetchMyEvents();
-    }, []);
-
-    // Check if user has Google account
-    useEffect(() => {
-        const checkGoogleAccount = async () => {
-            if (session?.user?.id) {
-                try {
-                    const response = await fetch(`/api/check-user-accounts?userId=${session.user.id}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        setHasGoogleAccount(data.hasGoogleAccount || false);
-                    }
-                } catch (error) {
-                    console.error("Error checking Google account:", error);
-                }
-            }
-        };
-        checkGoogleAccount();
-    }, [session]);
-
-    const fetchMyEvents = async () => {
+    const fetchMyEvents = useCallback(async () => {
         const result = await getUserRegisteredEvents();
         if (result.success && result.data) {
-            setEvents(result.data);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const eventsData = result.data.map((e: any) => ({
+                ...e,
+                slug: e.slug || "", // Ensure slug exists
+            }));
+            setEvents(eventsData);
             setSubmissions(result.submissions || []);
-            setGroupRegistrations(result.groupRegistrations || []);
+             // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            setGroupRegistrations((result.groupRegistrations || []).map((g: any) => ({
+                ...g,
+                members: g.members as Member[]
+            })));
         }
         setLoading(false);
-    };
+    }, []);
+
+    useEffect(() => {
+        // eslint-disable-next-line
+        fetchMyEvents();
+    }, [fetchMyEvents]);
 
     const getSubmissionForEvent = (eventId: string) => {
         return submissions.find((sub) => sub.eventId === eventId);
@@ -173,7 +171,8 @@ export default function MyEventsPage() {
                             <FiCalendar size={40} className="text-zinc-600" />
                         </div>
                         <h3 className="text-2xl font-bold text-white mb-2">No Competitions Yet</h3>
-                        <p className="text-zinc-400 mb-6">You haven't registered for any competitions</p>
+                        <h3 className="text-2xl font-bold text-white mb-2">No Competitions Yet</h3>
+                        <p className="text-zinc-400 mb-6">You have not registered for any competitions</p>
                         <button
                             onClick={() => router.push("/competitions")}
                             className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
@@ -239,7 +238,7 @@ export default function MyEventsPage() {
                                         {(() => {
                                             const group = groupRegistrations.find(g => g.eventId === event.id);
                                             if (!group) return null;
-                                            const members = group.members as any[];
+                                            const members = group.members;
                                             return (
                                                 <div className="mb-4 p-3 bg-zinc-800/50 rounded-lg border border-zinc-700">
                                                     <div className="flex items-center gap-2 mb-2">
@@ -247,7 +246,7 @@ export default function MyEventsPage() {
                                                         <span className="font-semibold text-white text-sm">{group.groupName || "Team"}</span>
                                                     </div>
                                                     <div className="space-y-1">
-                                                        {members && members.map((m: any, idx: number) => (
+                                                        {members && members.map((m, idx) => (
                                                             <div key={idx} className="text-xs text-zinc-400 flex justify-between">
                                                                 <span>{m.name || m.email}</span>
                                                                 {m.userId === group.userId && <span className="text-red-500 text-[10px] ml-2">LEAD</span>}
@@ -344,7 +343,7 @@ export default function MyEventsPage() {
                                                                     window.URL.revokeObjectURL(url);
                                                                     document.body.removeChild(a);
                                                                     toast.success('Ticket downloaded successfully!');
-                                                                } catch (error) {
+                                                                } catch {
                                                                     toast.error('Failed to download ticket');
                                                                 }
                                                             }}

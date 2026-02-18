@@ -73,8 +73,8 @@ interface Event {
     groupName: string | null;
     mentorName: string | null;
     mentorPhone: string | null;
-    members: any; // key-value JSON
-    registrationDetails?: Record<string, any> | null;
+    members: any[]; // key-value JSON or array
+    registrationDetails?: Record<string, unknown> | null;
     paymentStatus?: string;
     isVirtual?: boolean;
     user: {
@@ -109,7 +109,7 @@ interface Schedule {
 
 export default function EventsManagement() {
   const { data: session } = useSession();
-  const [statusMessage, setStatusMessage] = useState<string>("");
+  // statusMessage removed as it was unused
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -152,11 +152,11 @@ export default function EventsManagement() {
   );
 
   // Student Details Modal State
-  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [selectedStudent, setSelectedStudent] = useState<any>(null); // Keeping any as structure is dynamic
   const [showStudentDetailsModal, setShowStudentDetailsModal] = useState(false);
 
   // Group Details Modal State
-  const [selectedGroup, setSelectedGroup] = useState<any>(null);
+  const [selectedGroup, setSelectedGroup] = useState<any>(null); // Keeping any as structure is dynamic
   const [showGroupDetailsModal, setShowGroupDetailsModal] = useState(false);
 
   // Event Registrations modal tab: KL University | Other College | International
@@ -176,13 +176,14 @@ export default function EventsManagement() {
 
   useEffect(() => {
     fetchCategoriesWithEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (showRegistrationsModal && selectedEventForRegistrations) {
       setRegistrationsTab("kl");
     }
-  }, [showRegistrationsModal, selectedEventForRegistrations?.id]);
+  }, [showRegistrationsModal, selectedEventForRegistrations]);
 
   const fetchCategoriesWithEvents = async () => {
     setLoading(true);
@@ -291,7 +292,7 @@ export default function EventsManagement() {
     if (!scheduleImage) return;
 
     setUploadingSchedule(true);
-    setStatusMessage("Uploading to Storage...");
+    // setStatusMessage("Uploading to Storage...");
     try {
       const formData = new FormData();
       formData.append("file", scheduleImage);
@@ -300,11 +301,11 @@ export default function EventsManagement() {
       if (!uploadResult.success || !uploadResult.url) {
         toast.error(uploadResult.error || "Failed to upload image");
         setUploadingSchedule(false);
-        setStatusMessage("");
+        // setStatusMessage("");
         return;
       }
 
-      setStatusMessage("Saving to Database...");
+      // setStatusMessage("Saving to Database...");
       const result = await createSchedule(uploadResult.url);
       if (result.success) {
         toast.success("Schedule uploaded successfully");
@@ -315,10 +316,11 @@ export default function EventsManagement() {
         toast.error(result.error || "Failed to create schedule entry");
       }
     } catch (error) {
+      console.error(error);
       toast.error("An error occurred while uploading schedule");
     } finally {
       setUploadingSchedule(false);
-      setStatusMessage("");
+      // setStatusMessage("");
     }
   };
 
@@ -407,6 +409,7 @@ export default function EventsManagement() {
         toast.error(result.error || `Failed to ${editingCategory ? "update" : "create"} category`);
       }
     } catch (error) {
+      console.error(error);
       toast.error(`An error occurred while ${editingCategory ? "updating" : "creating"} category`);
       setUploadingCategory(false);
     }
@@ -804,7 +807,7 @@ export default function EventsManagement() {
         {categories.length === 0 && (
           <div className="text-center py-12 bg-zinc-900 rounded-xl border border-zinc-800">
             <p className="text-zinc-400 text-lg">
-              No categories yet. Click "Add Category" to get started.
+              No categories yet. Click &quot;Add Category&quot; to get started.
             </p>
           </div>
         )}
@@ -860,10 +863,12 @@ export default function EventsManagement() {
                 />
                 {categoryImagePreview && (
                   <div className="mt-3 relative w-full h-32 bg-zinc-950 rounded-lg overflow-hidden border border-zinc-700">
-                    <img
+                    <Image
                       src={categoryImagePreview}
                       alt="Preview"
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      unoptimized
                     />
                     <button
                       type="button"
@@ -933,7 +938,7 @@ export default function EventsManagement() {
             <p className="text-zinc-300 mb-6">
               Are you sure you want to delete the category{" "}
               <span className="font-semibold text-white">
-                "{categoryToDelete.name}"
+                &quot;{categoryToDelete.name}&quot;
               </span>
               ?
               {categoryToDelete.Event.length > 0 && (
@@ -980,7 +985,7 @@ export default function EventsManagement() {
             <p className="text-zinc-300 mb-6">
               Are you sure you want to delete the event{" "}
               <span className="font-semibold text-white">
-                "{eventToDelete.name}"
+                &quot;{eventToDelete.name}&quot;
               </span>
               ?
               <span className="block mt-2 text-zinc-400 text-sm">
@@ -1089,15 +1094,18 @@ export default function EventsManagement() {
                 // Only show registrations that have been approved (payment approved in Registrations Management)
                 const allGroupRegs = selectedEventForRegistrations.groupRegistrations || [];
                 const allIndividualRegs = selectedEventForRegistrations.individualRegistrations || [];
-                const groupRegistrations = allGroupRegs.filter((g: any) => g.paymentStatus === "APPROVED");
-                const individualRegistrations = allIndividualRegs.filter((r: any) => r.paymentStatus === "APPROVED");
+                const groupRegistrations = allGroupRegs.filter((g) => g.paymentStatus === "APPROVED");
+                const individualRegistrations = allIndividualRegs.filter((r) => r.paymentStatus === "APPROVED");
 
                 // Filter out students who are team leads (already in groupRegistrations)
                 const teamLeadIds = new Set(groupRegistrations.map(g => g.user.id));
                 const soloStudents = individualRegistrations.filter(reg => !teamLeadIds.has(reg.user.id));
 
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const isInternational = (user: any) => !!user?.isInternational;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const isKLStudent = (user: any) => {
+                  if (!user) return false;
                   return (
                     user.email?.toLowerCase().endsWith("@kluniversity.in") ||
                     user.collage?.toLowerCase().includes("kl university") ||
@@ -1197,6 +1205,7 @@ export default function EventsManagement() {
                                             </span>
                                           )}
                                           <span className="text-zinc-500">•</span>
+                                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                           <span>{group.members ? (group.members as any[]).length + 1 : 1} Members</span>
                                         </p>
                                       </div>
@@ -1378,7 +1387,7 @@ export default function EventsManagement() {
                         );
                         const isTeamSubmission = !!groupReg;
                         const memberList = groupReg?.members
-                          ? (Array.isArray(groupReg.members) ? groupReg.members : Object.values(groupReg.members))
+                          ? (Array.isArray(groupReg.members) ? groupReg.members : Object.values(groupReg.members || {}))
                           : [];
                         const totalMembers = memberList.length + 1; // +1 for lead
                         const isExpanded = expandedSubmissionId === sub.id;
@@ -1491,7 +1500,8 @@ export default function EventsManagement() {
                                               <p className="text-xs text-zinc-400">{participant?.email}</p>
                                             </div>
                                           </div>
-                                          {memberList.map((member: any, idx: number) => (
+                                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                      {memberList.map((member: any, idx: number) => (
                                             <div key={idx} className="bg-zinc-900/50 p-3 rounded-lg border border-zinc-700 flex items-center gap-3">
                                               <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 font-bold text-sm shrink-0">{idx + 2}</div>
                                               <div>
@@ -1587,7 +1597,13 @@ export default function EventsManagement() {
                     </div>
                     {scheduleImagePreview && (
                       <div className="mt-4 w-full h-48 bg-zinc-950 rounded-lg overflow-hidden border border-zinc-700 relative">
-                        <img src={scheduleImagePreview} alt="Preview" className="w-full h-full object-contain" />
+                        <Image
+                          src={scheduleImagePreview}
+                          alt="Preview"
+                          fill
+                          className="object-contain"
+                          unoptimized
+                        />
                       </div>
                     )}
                   </form>
@@ -1797,6 +1813,7 @@ export default function EventsManagement() {
                       <p>ID: {selectedGroup.user.collageId || "N/A"}</p>
                       <p>Location: {[selectedGroup.user.city, selectedGroup.user.state].filter(Boolean).join(", ") || "N/A"}</p>
                       {(() => {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         const rd = (selectedGroup as any).registrationDetails as Record<string, any> | null;
                         const ign = rd?.teamLeadInGameName;
                         if (!ign) return null;
@@ -1833,10 +1850,18 @@ export default function EventsManagement() {
 
                 <div className="space-y-3">
                   {(() => {
+                    interface GroupMember {
+                      name: string;
+                      gender: string;
+                      phone: string;
+                      inGameName?: string;
+                      inGameId?: string;
+                      riotId?: string;
+                    }
                     const raw = selectedGroup.members;
-                    const memberList = Array.isArray(raw) ? raw : (raw && typeof raw === "object" ? Object.values(raw) : []);
+                    const memberList: GroupMember[] = Array.isArray(raw) ? raw : (raw && typeof raw === "object" ? Object.values(raw) : []);
                     return memberList.length > 0 ? (
-                      memberList.map((member: any, idx: number) => (
+                      memberList.map((member: GroupMember, idx: number) => (
                         <div key={idx} className="bg-zinc-800 p-4 rounded-lg border border-zinc-700 flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 font-bold text-sm">
