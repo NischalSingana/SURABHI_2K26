@@ -60,36 +60,21 @@ export async function generateVisitorPass(paymentDetails?: {
       return { success: false, error: "Payment details are required for visitor pass (₹350). Competition participants get free pass." };
     }
 
-    const paymentStatus = "PENDING";
-
-    const reg = await prisma.visitorPassRegistration.create({
+    await prisma.visitorPassRegistration.create({
       data: {
         userId,
-        ...(paymentStatus === "APPROVED" && { passToken: crypto.randomUUID() }),
         paymentScreenshot: paymentDetails?.paymentScreenshot ?? null,
         utrId: paymentDetails?.utrId ?? null,
         payeeName: paymentDetails?.payeeName ?? null,
-        paymentStatus: paymentStatus as "APPROVED" | "PENDING",
+        paymentStatus: "PENDING",
       },
     });
 
-    if (paymentStatus === "PENDING") {
-      revalidatePath("/profile");
-      return {
-        success: true,
-        message:
-          "Visitor pass request submitted! Please wait for admin to review and approve your registration. You'll receive an email when confirmed.",
-      };
-    }
-
     revalidatePath("/profile");
-
     return {
       success: true,
-      passToken: reg.passToken ?? undefined,
-      message: isRegisteredForEvent
-        ? "Visitor Pass generated (Free for Participant)"
-        : "Visitor Pass generated successfully",
+      message:
+        "Visitor pass request submitted! Please wait for admin to review and approve your registration. You'll receive an email when confirmed.",
     };
   } catch (error) {
     console.error("Error generating visitor pass:", error);
