@@ -133,7 +133,7 @@ export default function AnalyticsPage() {
     }, []);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line
         void loadStats();
     }, [loadStats]);
 
@@ -492,12 +492,12 @@ interface DailyReportItem {
             });
 
             autoTable(doc, {
-                startY: 25,
+                startY: 40,
                 head: [['Category', 'Event', 'Total Registered', 'New Today', '% Increase']],
                 body: nonKlRows,
                 theme: 'grid',
-                headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-                styles: { fontSize: 8 },
+                headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 10 },
+                styles: { fontSize: 10, cellPadding: 3 },
             });
 
             // Page 2: KL University
@@ -529,12 +529,12 @@ interface DailyReportItem {
             });
 
             autoTable(doc, {
-                startY: 25,
+                startY: 40,
                 head: [['Category', 'Event', 'Total Registered', 'New Today', '% Increase']],
                 body: klRows,
                 theme: 'grid',
-                headStyles: { fillColor: [192, 57, 43], textColor: 255 },
-                styles: { fontSize: 8 },
+                headStyles: { fillColor: [192, 57, 43], textColor: 255, fontSize: 10 },
+                styles: { fontSize: 10, cellPadding: 3 },
             });
 
             doc.save(`Daily_Report_${new Date().toISOString().split('T')[0]}.pdf`);
