@@ -171,7 +171,6 @@ export default function MyEventsPage() {
                             <FiCalendar size={40} className="text-zinc-600" />
                         </div>
                         <h3 className="text-2xl font-bold text-white mb-2">No Competitions Yet</h3>
-                        <h3 className="text-2xl font-bold text-white mb-2">No Competitions Yet</h3>
                         <p className="text-zinc-400 mb-6">You have not registered for any competitions</p>
                         <button
                             onClick={() => router.push("/competitions")}
@@ -286,13 +285,10 @@ export default function MyEventsPage() {
                                         {/* Action Buttons */}
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                             {event.registrationStatus === 'PENDING' && (
-                                                <button
-                                                    onClick={() => toast.info("Please wait for admin to review and approve your registration. You'll receive an email when confirmed.")}
-                                                    className="sm:col-span-2 w-full px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-lg text-sm font-medium flex items-center justify-center gap-2 hover:bg-yellow-500/20 transition-colors cursor-pointer"
-                                                >
+                                                <div className="sm:col-span-2 w-full px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-lg text-sm font-medium flex items-center justify-center gap-2">
                                                     <FiClock size={16} />
                                                     Pending Approval
-                                                </button>
+                                                </div>
                                             )}
 
                                             {event.registrationStatus === 'REJECTED' && (
@@ -301,6 +297,20 @@ export default function MyEventsPage() {
                                                     Registration Rejected
                                                 </div>
                                             )}
+
+                                            {/* Submit Work — available for PENDING and APPROVED (not REJECTED) */}
+                                            {event.registrationStatus !== 'REJECTED' && event.allowSubmissions ? (
+                                                <button
+                                                    onClick={() => handleSubmitClick(event)}
+                                                    className={`sm:col-span-2 w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${hasSubmission
+                                                        ? "bg-zinc-800 text-red-400 border border-red-500/30 hover:bg-zinc-700"
+                                                        : "bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/40"
+                                                        }`}
+                                                >
+                                                    <FiUpload size={16} />
+                                                    {hasSubmission ? "Update Submission" : "Submit Work"}
+                                                </button>
+                                            ) : null}
 
                                             {(event.registrationStatus === 'APPROVED' || !event.registrationStatus) && (
                                                 <>
@@ -353,18 +363,6 @@ export default function MyEventsPage() {
                                                             Download Ticket
                                                         </button>
                                                     )}
-                                                    {event.allowSubmissions ? (
-                                                        <button
-                                                            onClick={() => handleSubmitClick(event)}
-                                                            className={`w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${hasSubmission
-                                                                ? "bg-zinc-800 text-red-400 border border-red-500/30 hover:bg-zinc-700"
-                                                                : "bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/40"
-                                                                }`}
-                                                        >
-                                                            <FiUpload size={16} />
-                                                            {hasSubmission ? "Update Submission" : "Submit Work"}
-                                                        </button>
-                                                    ) : null}
                                                     <button
                                                         onClick={() => {
                                                             if (!event.isResultPublished) {

@@ -174,7 +174,24 @@ export async function getCategories(includeFullData: boolean = true): Promise<{ 
           createdAt: "desc",
         },
       });
-      return { success: true, data: categories };
+      const filtered = categories.map((cat) => ({
+        ...cat,
+        Event: cat.Event.map((event) => {
+          const approvedUserIds = new Set([
+            ...event.individualRegistrations
+              .filter((r) => r.paymentStatus === "APPROVED")
+              .map((r) => r.user.id),
+            ...event.groupRegistrations
+              .filter((r) => r.paymentStatus === "APPROVED")
+              .map((r) => r.user.id),
+          ]);
+          return {
+            ...event,
+            submissions: event.submissions.filter((s) => approvedUserIds.has(s.userId)),
+          };
+        }),
+      }));
+      return { success: true, data: filtered };
     } else {
       // Lightweight data for public pages
       const categories = await prisma.category.findMany({
