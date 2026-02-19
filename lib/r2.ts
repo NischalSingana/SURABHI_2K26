@@ -1,5 +1,6 @@
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import sharp from "sharp";
 
 // Initialize R2 client
 const r2Client = new S3Client({
@@ -97,6 +98,26 @@ export function isValidImageType(contentType: string): boolean {
         "image/gif",
     ];
     return allowedTypes.includes(contentType);
+}
+
+/**
+ * Compress an image buffer to WebP for fast retrieval.
+ * Keeps width capped at 1920px and targets ~80% quality.
+ * Returns the compressed buffer and new content type.
+ */
+export async function compressImage(
+    buffer: Buffer,
+    _contentType: string,
+    maxWidth = 1920,
+    quality = 80
+): Promise<{ buffer: Buffer; contentType: string; extension: string }> {
+    const compressed = await sharp(buffer)
+        .rotate() // auto-rotate based on EXIF
+        .resize({ width: maxWidth, withoutEnlargement: true })
+        .webp({ quality })
+        .toBuffer();
+
+    return { buffer: compressed, contentType: "image/webp", extension: ".webp" };
 }
 
 /**

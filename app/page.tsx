@@ -20,8 +20,8 @@ import CountUp from '@/components/ui/CountUp';
 import { FiAward, FiUsers, FiFeather, FiVolume2, FiVolumeX } from "react-icons/fi";
 
 // Hero video: CDN first; Chrome often needs direct Spaces URL (Range/206), Safari works with CDN
-const HERO_VIDEO_CDN = "https://surabhi-images.sgp1.cdn.digitaloceanspaces.com/SURABHI-PROMO.MP4";
-const HERO_VIDEO_DIRECT = "https://surabhi-images.sgp1.digitaloceanspaces.com/SURABHI-PROMO.MP4";
+const HERO_VIDEO_CDN = "https://surabhi-images.sgp1.cdn.digitaloceanspaces.com/SURABHI.mp4";
+const HERO_VIDEO_DIRECT = "https://surabhi-images.sgp1.digitaloceanspaces.com/SURABHI.mp4";
 
 // Particles for fiery background (stable positions for SSR/hydration)
 const PARTICLES = Array.from({ length: 24 }, (_, i) => ({
@@ -52,7 +52,7 @@ const HomePage = () => {
     // Guard: true while we're doing the initial play attempt (prevents onPause from interfering)
     const initialPlayRef = useRef(false);
 
-    // Register one-time listeners to auto-unmute on first user interaction
+    // Register one-time listeners to auto-unmute on first real user interaction
     const registerAutoUnmute = () => {
         if (autoUnmuteRegisteredRef.current) return;
         autoUnmuteRegisteredRef.current = true;
@@ -63,7 +63,6 @@ const HomePage = () => {
                 v.muted = false;
                 setIsMuted(false);
                 setShowSoundHint(false);
-                v.play().catch(() => {});
             }
             cleanup();
         };
@@ -71,13 +70,9 @@ const HomePage = () => {
             autoUnmuteRegisteredRef.current = false;
             document.removeEventListener("click", autoUnmute, true);
             document.removeEventListener("touchstart", autoUnmute, true);
-            document.removeEventListener("keydown", autoUnmute, true);
-            document.removeEventListener("scroll", autoUnmute, true);
         };
         document.addEventListener("click", autoUnmute, true);
         document.addEventListener("touchstart", autoUnmute, true);
-        document.addEventListener("keydown", autoUnmute, true);
-        document.addEventListener("scroll", autoUnmute, true);
     };
 
     // Drive ALL playback from this effect — no autoPlay attribute on the video element.
@@ -138,18 +133,13 @@ const HomePage = () => {
     };
 
     const handleToggleMute = () => {
-        userToggledRef.current = true; // User explicitly chose — stop auto-unmute
+        userToggledRef.current = true;
         const video = videoRef.current;
         if (video) {
-            const next = !isMuted;
+            const next = !video.muted;
             video.muted = next;
             setIsMuted(next);
-            if (!next) {
-                video.play().catch(() => {});
-            }
             setShowSoundHint(false);
-        } else {
-            setIsMuted((m) => !m);
         }
     };
 
@@ -294,13 +284,15 @@ const HomePage = () => {
                         onCanPlayThrough={handleCanPlay}
                         onPause={() => {
                             const v = videoRef.current;
-                            if (!v) return;
+                            if (!v || v.ended || initialPlayRef.current) return;
                             if (document.visibilityState !== "visible") return;
-                            if (v.ended) return;
-                            // Don't interfere with our initial play attempt
-                            if (initialPlayRef.current) return;
-                            // Resume playback — keep current muted state
-                            window.setTimeout(() => v.play().catch(() => {}), 150);
+                            // Only auto-resume if the video element is still in viewport
+                            // Use a longer delay to avoid fighting with browser media controls
+                            window.setTimeout(() => {
+                                if (v.paused && document.visibilityState === "visible" && !v.ended) {
+                                    v.play().catch(() => {});
+                                }
+                            }, 500);
                         }}
                         onError={handleVideoError}
                         className={[
@@ -336,11 +328,13 @@ const HomePage = () => {
                     )}
 
                     <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 md:pb-10 px-4 z-40 pointer-events-none">
-                        <h1 className="text-white font-bold text-3xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight drop-shadow-lg text-center [text-shadow:0_2px_20px_rgba(0,0,0,0.8)]">
-                            SURABHI<b>-2K26</b>
+                        <h1
+                            className="font-extrabold text-3xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight drop-shadow-lg text-center font-[family-name:var(--font-Lexend)] bg-gradient-to-r from-white via-red-200 to-white bg-clip-text text-transparent [filter:drop-shadow(0_2px_20px_rgba(0,0,0,0.8))]"
+                        >
+                            SURABHI<span className="font-light">-</span>2K26
                         </h1>
-                        <p className="text-white/90 text-xs sm:text-base md:text-lg mt-0 md:mt-2 tracking-[0.2em] md:tracking-[0.4em] uppercase font-medium [text-shadow:0_2px_12px_rgba(0,0,0,0.8)]">
-                            — international cultural fest
+                        <p className="text-xs sm:text-base md:text-lg mt-1 md:mt-2 tracking-[0.2em] md:tracking-[0.4em] uppercase font-medium font-[family-name:var(--font-Martian_Mono)] bg-gradient-to-r from-white/60 via-white to-white/60 bg-clip-text text-transparent [filter:drop-shadow(0_2px_12px_rgba(0,0,0,0.8))]">
+                            — INTERNATIONAL CULTURAL FEST —
                         </p>
                     </div>
                 </motion.div>

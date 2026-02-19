@@ -1,56 +1,62 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { prisma } from '@/lib/prisma';
 
-// Enable caching: 1 hour for CDN, 24 hours stale-while-revalidate
 export const revalidate = 3600; // 1 hour
 
 export async function GET() {
     try {
+        const items: { image: string; text: string }[] = [];
+        const seenNames = new Set<string>();
+
+        // 1. Fetch categories from database — R2-hosted images uploaded via admin
+        try {
+            const categories = await prisma.category.findMany({
+                where: { image: { not: null } },
+                select: { name: true, image: true },
+                orderBy: { name: 'asc' },
+            });
+
+            for (const cat of categories) {
+                if (cat.image) {
+                    const proxied = `/_next/image?url=${encodeURIComponent(cat.image)}&w=1080&q=75`;
+                    items.push({ image: proxied, text: cat.name });
+                    seenNames.add(cat.name.toLowerCase().replace(/[-_]/g, ' ').trim());
+                }
+            }
+        } catch (dbError) {
+            console.error('Error fetching categories from DB for poster gallery:', dbError);
+        }
+
+        // 2. Fallback: read static files from public/poster-gallery (skip duplicates)
         const galleryDir = path.join(process.cwd(), 'public', 'poster-gallery');
 
-        // Check if directory exists
-        if (!fs.existsSync(galleryDir)) {
-            try {
-                fs.mkdirSync(galleryDir, { recursive: true });
-            } catch (err) {
-                console.error("Error creating directory:", err);
-                return NextResponse.json({ items: [] });
-            }
-        }
+        if (fs.existsSync(galleryDir)) {
+            const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+            const files = fs.readdirSync(galleryDir);
 
-        // Read files from directory
-        const files = fs.readdirSync(galleryDir);
-
-        if (files.length === 0) {
-            return NextResponse.json({ items: [] });
-        }
-
-        // Filter for image files
-        const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.JPG', '.JPEG', '.PNG', '.WEBP', '.GIF'];
-
-        const items = files
-            .filter(file => {
+            for (const file of files) {
                 const ext = path.extname(file).toLowerCase();
-                return imageExtensions.includes(ext);
-            })
-            .map(file => {
-                // Extract poster name from filename (remove extension)
+                if (!imageExtensions.includes(ext)) continue;
+
                 const nameWithoutExt = path.parse(file).name
                     .replace(/[-_]/g, ' ')
                     .trim();
 
-                // Use Next.js Image Optimization API
-                // We construct a URL that points to /_next/image with parameters
+                if (seenNames.has(nameWithoutExt.toLowerCase())) continue;
+
                 const rawUrl = `/poster-gallery/${file}`;
                 const optimizedUrl = `/_next/image?url=${encodeURIComponent(rawUrl)}&w=1080&q=75`;
 
-                return {
+                items.push({
                     image: optimizedUrl,
                     text: nameWithoutExt || 'Poster',
-                };
-            })
-            .sort((a, b) => a.text.localeCompare(b.text));
+                });
+            }
+        }
+
+        items.sort((a, b) => a.text.localeCompare(b.text));
 
         return NextResponse.json(
             { items },
@@ -64,9 +70,9 @@ export async function GET() {
             }
         );
     } catch (error) {
-        console.error("Error serving local poster gallery:", error);
+        console.error('Error serving poster gallery:', error);
         return NextResponse.json(
-            { error: "Failed to fetch local poster gallery", items: [], details: error instanceof Error ? error.message : String(error) },
+            { error: 'Failed to fetch poster gallery', items: [], details: error instanceof Error ? error.message : String(error) },
             { status: 500 }
         );
     }

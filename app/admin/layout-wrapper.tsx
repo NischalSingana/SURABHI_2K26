@@ -40,7 +40,7 @@ export default function AdminLayoutWrapper({
   }
 
   const allNavLinks = [
-    { href: "/admin/dashboard", label: "Dashboard", roles: ["ADMIN", "MASTER"] },
+    { href: "/admin/dashboard", label: "Dashboard", roles: ["ADMIN", "MANAGER", "MASTER"] },
     { href: "/admin/competitions", label: "Competitions", roles: ["ADMIN", "MANAGER", "MASTER"] },
     { href: "/admin/users", label: "Users", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/accommodation", label: "Stay", roles: ["ADMIN", "MASTER"] },

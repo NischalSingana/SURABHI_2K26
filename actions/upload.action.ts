@@ -1,6 +1,6 @@
 "use server";
 
-import { uploadToR2, isValidImageType, generateUniqueFilename } from "@/lib/r2";
+import { uploadToR2, isValidImageType, generateUniqueFilename, compressImage } from "@/lib/r2";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { Role } from "@prisma/client";
@@ -20,33 +20,31 @@ export async function uploadEventImage(formData: FormData) {
       return { success: false, error: "No file provided" };
     }
 
-    // Validate file type
     if (!isValidImageType(file.type)) {
       return { success: false, error: "Invalid file type. Only images are allowed." };
     }
 
-    // Validate file size (10MB max)
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
       return { success: false, error: "File size too large. Maximum size is 10MB." };
     }
 
-    // Convert file to buffer
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const rawBuffer = Buffer.from(bytes);
 
-    // Generate unique filename
-    const filename = `events/${generateUniqueFilename(file.name)}`;
+    const { buffer, contentType, extension } = await compressImage(rawBuffer, file.type);
 
-    // Upload to R2
-    const result = await uploadToR2(buffer, filename, file.type);
+    const baseName = file.name.replace(/\.[^.]+$/, "") + extension;
+    const filename = `events/${generateUniqueFilename(baseName)}`;
+
+    const result = await uploadToR2(buffer, filename, contentType);
 
     if (result.success) {
       await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
         action: "UPLOAD_EVENT_IMAGE",
         entityType: "EVENT_IMAGE",
         entityName: file.name,
-        details: { url: result.url },
+        details: { url: result.url, originalSize: file.size, compressedSize: buffer.length },
       });
     }
 
@@ -71,33 +69,31 @@ export async function uploadCategoryImage(formData: FormData) {
       return { success: false, error: "No file provided" };
     }
 
-    // Validate file type
     if (!isValidImageType(file.type)) {
       return { success: false, error: "Invalid file type. Only images are allowed." };
     }
 
-    // Validate file size (10MB max)
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
       return { success: false, error: "File size too large. Maximum size is 10MB." };
     }
 
-    // Convert file to buffer
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const rawBuffer = Buffer.from(bytes);
 
-    // Generate unique filename
-    const filename = `categories/${generateUniqueFilename(file.name)}`;
+    const { buffer, contentType, extension } = await compressImage(rawBuffer, file.type);
 
-    // Upload to R2
-    const result = await uploadToR2(buffer, filename, file.type);
+    const baseName = file.name.replace(/\.[^.]+$/, "") + extension;
+    const filename = `categories/${generateUniqueFilename(baseName)}`;
+
+    const result = await uploadToR2(buffer, filename, contentType);
 
     if (result.success) {
       await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
         action: "UPLOAD_CATEGORY_IMAGE",
         entityType: "CATEGORY_IMAGE",
         entityName: file.name,
-        details: { url: result.url },
+        details: { url: result.url, originalSize: file.size, compressedSize: buffer.length },
       });
     }
 
@@ -122,26 +118,24 @@ export async function uploadGalleryImage(formData: FormData) {
       return { success: false, error: "No file provided" };
     }
 
-    // Validate file type
     if (!isValidImageType(file.type)) {
       return { success: false, error: "Invalid file type. Only images are allowed." };
     }
 
-    // Validate file size (10MB max for gallery)
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
       return { success: false, error: "File size too large. Maximum size is 10MB." };
     }
 
-    // Convert file to buffer
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const rawBuffer = Buffer.from(bytes);
 
-    // Generate unique filename
-    const filename = `gallery/${generateUniqueFilename(file.name)}`;
+    const { buffer, contentType, extension } = await compressImage(rawBuffer, file.type);
 
-    // Upload to R2
-    const result = await uploadToR2(buffer, filename, file.type);
+    const baseName = file.name.replace(/\.[^.]+$/, "") + extension;
+    const filename = `gallery/${generateUniqueFilename(baseName)}`;
+
+    const result = await uploadToR2(buffer, filename, contentType);
 
     return result;
   } catch (error) {
