@@ -124,9 +124,9 @@ export const LIBERAL_ARTS_CLUBS = [
 
 export const ACCOMMODATION_KNOWLEDGE = `
 Accommodation for Surabhi 2026:
-- Only competition participants can book accommodation. Visitor pass holders are NOT eligible.
-- Free accommodation for out-station participants registered for Surabhi competitions (not visitor pass). 100% free stay, zero cost.
-- KL University students: Free special lunch and accommodation provided (same as other college participants).
+- Only competition participants can book accommodation. 100% free stay, zero cost.
+- KL University dayscholar students will be provided accommodation if required.
+- Complimentary special lunch provided for all participants.
 - Complimentary food: lunch is provided for all physical participants.
 - Key guidelines: Separate hostels for Boys and Girls; strictly no mixed-gender groups; carry valid college ID card.
 - Book at: ${WEBSITE_URL}/accommodation

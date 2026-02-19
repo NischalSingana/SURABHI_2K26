@@ -461,11 +461,7 @@ const MultiStepAccommodation = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-1.5 w-1.5 h-1.5 bg-amber-400 rounded-full shrink-0" />
-                  <span><strong>Visitor pass holders are not eligible</strong> for accommodation.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1.5 w-1.5 h-1.5 bg-amber-400 rounded-full shrink-0" />
-                  <span><strong>KL University Vaddeswaram campus students</strong> are not eligible for accommodation booking.</span>
+                  <span><strong>KL University dayscholar students</strong> will also be provided accommodation if required.</span>
                 </li>
               </ul>
             </motion.div>
@@ -479,7 +475,7 @@ const MultiStepAccommodation = () => {
             >
               <h3 className="font-semibold text-white text-lg mb-2">100% Free Stay</h3>
               <p className="text-zinc-400 text-sm leading-relaxed mb-4">
-                We provide free accommodation for out-station participants <strong className="text-zinc-300">registered for Surabhi competitions</strong> (not visitor pass).
+                We provide free accommodation for participants <strong className="text-zinc-300">registered for Surabhi competitions</strong>. KL University dayscholar students will also be accommodated if required.
               </p>
               <span className="inline-block px-3 py-1 bg-green-500/10 text-green-400 text-xs font-bold rounded-full border border-green-500/20">
                 ZERO COST
@@ -537,7 +533,7 @@ const MultiStepAccommodation = () => {
         {/* Eligibility banner – visible above form */}
         <div className="max-w-2xl mx-auto w-full mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40">
           <p className="text-amber-200/90 text-sm font-medium">
-            <strong>Eligibility:</strong> Only competition participants can book. Visitor pass holders and KL University Vaddeswaram campus students are not eligible.
+            <strong>Eligibility:</strong> Only competition participants can book. KL University dayscholar students will also be provided accommodation if required.
           </p>
         </div>
 
