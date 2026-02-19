@@ -291,31 +291,6 @@ export default function ProfileClient({
     }
   };
 
-  const getStatusBadge = () => {
-    if (user.isApproved) {
-      return (
-        <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/30 rounded-lg">
-          <FiCheckCircle className="text-green-400" />
-          <span className="text-green-300 font-medium">Approved</span>
-        </div>
-      );
-    } else if (user.paymentStatus === "PENDING") {
-      return (
-        <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-          <FiClock className="text-yellow-400" />
-          <span className="text-yellow-300 font-medium">Pending Approval</span>
-        </div>
-      );
-    } else if (user.paymentStatus === "REJECTED") {
-      return (
-        <div className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg">
-          <FiXCircle className="text-red-400" />
-          <span className="text-red-300 font-medium">Rejected</span>
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <div className="max-w-6xl mx-auto w-full min-w-0">
@@ -323,7 +298,6 @@ export default function ProfileClient({
       <div className="mb-6 sm:mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 md:gap-0">
         <div className="min-w-0">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">My Profile</h1>
-          <div className="flex items-center gap-4">{getStatusBadge()}</div>
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 w-full md:w-auto">

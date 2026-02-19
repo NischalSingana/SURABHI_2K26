@@ -1,62 +1,49 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { prisma } from '@/lib/prisma';
 
 export const revalidate = 3600; // 1 hour
 
 export async function GET() {
     try {
-        const items: { image: string; text: string }[] = [];
-        const seenNames = new Set<string>();
-
-        // 1. Fetch categories from database — R2-hosted images uploaded via admin
-        try {
-            const categories = await prisma.category.findMany({
-                where: { image: { not: null } },
-                select: { name: true, image: true },
-                orderBy: { name: 'asc' },
-            });
-
-            for (const cat of categories) {
-                if (cat.image) {
-                    const proxied = `/_next/image?url=${encodeURIComponent(cat.image)}&w=1080&q=75`;
-                    items.push({ image: proxied, text: cat.name });
-                    seenNames.add(cat.name.toLowerCase().replace(/[-_]/g, ' ').trim());
-                }
-            }
-        } catch (dbError) {
-            console.error('Error fetching categories from DB for poster gallery:', dbError);
-        }
-
-        // 2. Fallback: read static files from public/poster-gallery (skip duplicates)
         const galleryDir = path.join(process.cwd(), 'public', 'poster-gallery');
 
-        if (fs.existsSync(galleryDir)) {
-            const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
-            const files = fs.readdirSync(galleryDir);
+        if (!fs.existsSync(galleryDir)) {
+            try {
+                fs.mkdirSync(galleryDir, { recursive: true });
+            } catch (err) {
+                console.error("Error creating directory:", err);
+                return NextResponse.json({ items: [] });
+            }
+        }
 
-            for (const file of files) {
+        const files = fs.readdirSync(galleryDir);
+
+        if (files.length === 0) {
+            return NextResponse.json({ items: [] });
+        }
+
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.JPG', '.JPEG', '.PNG', '.WEBP', '.GIF'];
+
+        const items = files
+            .filter(file => {
                 const ext = path.extname(file).toLowerCase();
-                if (!imageExtensions.includes(ext)) continue;
-
+                return imageExtensions.includes(ext);
+            })
+            .map(file => {
                 const nameWithoutExt = path.parse(file).name
                     .replace(/[-_]/g, ' ')
                     .trim();
 
-                if (seenNames.has(nameWithoutExt.toLowerCase())) continue;
-
                 const rawUrl = `/poster-gallery/${file}`;
                 const optimizedUrl = `/_next/image?url=${encodeURIComponent(rawUrl)}&w=1080&q=75`;
 
-                items.push({
+                return {
                     image: optimizedUrl,
                     text: nameWithoutExt || 'Poster',
-                });
-            }
-        }
-
-        items.sort((a, b) => a.text.localeCompare(b.text));
+                };
+            })
+            .sort((a, b) => a.text.localeCompare(b.text));
 
         return NextResponse.json(
             { items },
@@ -70,9 +57,9 @@ export async function GET() {
             }
         );
     } catch (error) {
-        console.error('Error serving poster gallery:', error);
+        console.error("Error serving poster gallery:", error);
         return NextResponse.json(
-            { error: 'Failed to fetch poster gallery', items: [], details: error instanceof Error ? error.message : String(error) },
+            { error: "Failed to fetch poster gallery", items: [], details: error instanceof Error ? error.message : String(error) },
             { status: 500 }
         );
     }
