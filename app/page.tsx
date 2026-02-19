@@ -20,8 +20,8 @@ import CountUp from '@/components/ui/CountUp';
 import { FiAward, FiUsers, FiFeather, FiVolume2, FiVolumeX } from "react-icons/fi";
 
 // Hero video: CDN first; Chrome often needs direct Spaces URL (Range/206), Safari works with CDN
-const HERO_VIDEO_CDN = "https://surabhi-images.sgp1.cdn.digitaloceanspaces.com/SURABHI.mp4";
-const HERO_VIDEO_DIRECT = "https://surabhi-images.sgp1.digitaloceanspaces.com/SURABHI.mp4";
+const HERO_VIDEO_CDN = "https://surabhi-images.sgp1.cdn.digitaloceanspaces.com/SURABHI2k26.mp4";
+const HERO_VIDEO_DIRECT = "https://surabhi-images.sgp1.digitaloceanspaces.com/SURABHI2k26.mp4";
 
 // Particles for fiery background (stable positions for SSR/hydration)
 const PARTICLES = Array.from({ length: 24 }, (_, i) => ({
