@@ -350,10 +350,9 @@ export default function EventRegistrationPage() {
             }
 
             if (result.success) {
-                const freeUser = isInternational;
-                toast.success(freeUser ? "Registration Confirmed!" : "Registration Submitted! Pending Approval.");
+                toast.success("Registration Submitted! Redirecting to My Competitions...");
                 setShowPaymentModal(false);
-                router.push(`/competitions/${categorySlug}/${slug}`); // Redirect
+                router.push("/profile/competitions");
             } else {
                 toast.error(result.error || "Registration failed");
             }

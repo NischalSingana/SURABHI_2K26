@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { getPublicEvents, registerForEvent, getUserRegistrations, getCategories } from "@/actions/events.action";
 import { FiArrowLeft, FiCalendar, FiMapPin, FiClock, FiFileText } from "react-icons/fi";
-import SubmissionModal from "@/components/ui/SubmissionModal";
+
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
 import { formatTime } from "@/lib/utils";
@@ -78,8 +78,7 @@ function CategoryPageContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
   const [showRegisterPopup, setShowRegisterPopup] = useState(false);
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
-  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
+  
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [registrationStatus, setRegistrationStatus] = useState({
@@ -255,17 +254,13 @@ function CategoryPageContent() {
       if (result.success) {
         setRegistrationStatus({ loading: false, error: null, success: true });
         setShowRegisterPopup(false);
-        setShowSuccessPopup(true);
-        // Keep selectedEvent for submission modal
         setAcceptedTerms(false);
-        setShowPaymentStep(false); // Reset
-        setPaymentDetails({ screenshot: null, utrId: "", payeeName: "" }); // Reset
-
-        // Update registered events
+        setShowPaymentStep(false);
+        setPaymentDetails({ screenshot: null, utrId: "", payeeName: "" });
         setRegisteredEvents(prev => new Set(prev).add(selectedEvent.id));
 
-        // Refresh events to get updated counts
-        fetchEvents();
+        toast.success("Registration submitted! Redirecting to My Competitions...");
+        router.push("/profile/competitions");
       } else {
         setRegistrationStatus({
           loading: false,
@@ -861,69 +856,7 @@ function CategoryPageContent() {
         )}
       </AnimatePresence>
 
-      {/* Success Popup */}
-      <AnimatePresence>
-        {showSuccessPopup && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[1000000] p-4"
-            onClick={() => {
-              setShowSuccessPopup(false);
-              setSelectedEvent(null);
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: "spring", duration: 0.5 }}
-              className="bg-zinc-900 p-8 rounded-xl max-w-md w-full border border-green-500/50"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold text-green-500 mb-2">Success!</h3>
-                <p className="text-zinc-300 mb-6">
-                  Your registration is submitted! Please wait for admin approval (2-3 business days). You will receive an email with your ticket once approved.
-                </p>
-
-                <div className="space-y-3">
-                  <button
-                    onClick={() => {
-                      setShowSuccessPopup(false);
-                      setShowSubmissionModal(true);
-                    }}
-                    className="w-full bg-red-600 text-white px-6 py-2.5 rounded-md hover:bg-red-700 transition-all duration-300 font-semibold"
-                  >
-                    Submit Your Work
-                  </button>
-                  <button
-                    onClick={() => router.push("/profile/competitions")}
-                    className="w-full bg-zinc-800 text-white px-6 py-2.5 rounded-md hover:bg-zinc-700 transition-all duration-300 border border-zinc-700"
-                  >
-                    View My Events
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowSuccessPopup(false);
-                      setSelectedEvent(null);
-                    }}
-                    className="w-full text-zinc-400 px-6 py-2 rounded-md hover:text-white transition-all duration-300"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Success → redirects to /profile/competitions */}
 
       {/* Hidden Image Preloader to speed up open interaction */}
       <div className="hidden" aria-hidden="true">
@@ -941,22 +874,7 @@ function CategoryPageContent() {
         ))}
       </div>
 
-      {/* Submission Modal */}
-      {
-        selectedEvent && (
-          <SubmissionModal
-            event={selectedEvent}
-            isOpen={showSubmissionModal}
-            onClose={() => {
-              setShowSubmissionModal(false);
-              setSelectedEvent(null);
-            }}
-            onSuccess={() => {
-              fetchEvents();
-            }}
-          />
-        )
-      }
+      {/* Submission is handled on /profile/competitions page */}
     </div >
   );
 }
