@@ -124,8 +124,7 @@ export const LIBERAL_ARTS_CLUBS = [
 
 export const ACCOMMODATION_KNOWLEDGE = `
 Accommodation for Surabhi 2026:
-- Only competition participants can book accommodation. 100% free stay, zero cost.
-- KL University dayscholar students will be provided accommodation if required.
+- All competition participants (including KL University dayscholar students) can book accommodation. 100% free stay, zero cost.
 - Complimentary special lunch provided for all participants.
 - Complimentary food: lunch is provided for all physical participants.
 - Key guidelines: Separate hostels for Boys and Girls; strictly no mixed-gender groups; carry valid college ID card.

@@ -457,11 +457,7 @@ const MultiStepAccommodation = () => {
               <ul className="space-y-2 text-amber-200/90 text-sm">
                 <li className="flex items-start gap-2">
                   <span className="mt-1.5 w-1.5 h-1.5 bg-amber-400 rounded-full shrink-0" />
-                  <span><strong>Only competition participants</strong> can book accommodation.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1.5 w-1.5 h-1.5 bg-amber-400 rounded-full shrink-0" />
-                  <span><strong>KL University dayscholar students</strong> will also be provided accommodation if required.</span>
+                  <span><strong>Competition participants</strong> (including KL University dayscholar students) can book accommodation.</span>
                 </li>
               </ul>
             </motion.div>
@@ -475,7 +471,7 @@ const MultiStepAccommodation = () => {
             >
               <h3 className="font-semibold text-white text-lg mb-2">100% Free Stay</h3>
               <p className="text-zinc-400 text-sm leading-relaxed mb-4">
-                We provide free accommodation for participants <strong className="text-zinc-300">registered for Surabhi competitions</strong>. KL University dayscholar students will also be accommodated if required.
+                We provide free accommodation for all competition participants, <strong className="text-zinc-300">including KL University dayscholar students</strong>.
               </p>
               <span className="inline-block px-3 py-1 bg-green-500/10 text-green-400 text-xs font-bold rounded-full border border-green-500/20">
                 ZERO COST
@@ -533,7 +529,7 @@ const MultiStepAccommodation = () => {
         {/* Eligibility banner – visible above form */}
         <div className="max-w-2xl mx-auto w-full mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40">
           <p className="text-amber-200/90 text-sm font-medium">
-            <strong>Eligibility:</strong> Only competition participants can book. KL University dayscholar students will also be provided accommodation if required.
+            <strong>Eligibility:</strong> All competition participants (including KL University dayscholar students) can book accommodation.
           </p>
         </div>
 
