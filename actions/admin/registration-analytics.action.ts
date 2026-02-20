@@ -106,11 +106,13 @@ export async function getRegistrationStatsByCollege() {
             const members = reg.members as Record<string, any> | null;
             const memberCount = members ? Object.keys(members).length : 0;
             const isKL = isKLUniversity(reg.user);
+            const leaderGender = reg.user.gender?.toUpperCase();
 
             if (isKL) {
                 klTeams++;
-                klTeamMembers += memberCount;
-                // Count genders in team members
+                klTeamMembers += memberCount + 1;
+                if (leaderGender === "MALE") klTeamMale++;
+                else if (leaderGender === "FEMALE") klTeamFemale++;
                 if (members) {
                     Object.values(members).forEach((member: any) => {
                         const memberGender = member.gender?.toUpperCase();
@@ -120,8 +122,9 @@ export async function getRegistrationStatsByCollege() {
                 }
             } else {
                 otherTeams++;
-                otherTeamMembers += memberCount;
-                // Count genders in team members
+                otherTeamMembers += memberCount + 1;
+                if (leaderGender === "MALE") otherTeamMale++;
+                else if (leaderGender === "FEMALE") otherTeamFemale++;
                 if (members) {
                     Object.values(members).forEach((member: any) => {
                         const memberGender = member.gender?.toUpperCase();
@@ -405,12 +408,21 @@ export async function getCategoryWiseAnalytics() {
                     const members = reg.members as Record<string, any> | null;
                     const memberCount = members ? Object.keys(members).length : 0;
                     const isKL = isKLUniversity(reg.user);
+                    const leaderGender = reg.user.gender?.toUpperCase();
+                    const participantCount = memberCount + 1;
 
                     if (isKL) {
                         klTeams++;
                         categoryKlTeams++;
-                        klTeamMembers += memberCount;
-                        categoryKlTeamMembers += memberCount;
+                        klTeamMembers += participantCount;
+                        categoryKlTeamMembers += participantCount;
+                        if (leaderGender === "MALE") {
+                            klTeamMale++;
+                            categoryKlTeamMale++;
+                        } else if (leaderGender === "FEMALE") {
+                            klTeamFemale++;
+                            categoryKlTeamFemale++;
+                        }
                         if (members) {
                             Object.values(members).forEach((member: any) => {
                                 const memberGender = member.gender?.toUpperCase();
@@ -426,8 +438,15 @@ export async function getCategoryWiseAnalytics() {
                     } else {
                         otherTeams++;
                         categoryOtherTeams++;
-                        otherTeamMembers += memberCount;
-                        categoryOtherTeamMembers += memberCount;
+                        otherTeamMembers += participantCount;
+                        categoryOtherTeamMembers += participantCount;
+                        if (leaderGender === "MALE") {
+                            otherTeamMale++;
+                            categoryOtherTeamMale++;
+                        } else if (leaderGender === "FEMALE") {
+                            otherTeamFemale++;
+                            categoryOtherTeamFemale++;
+                        }
                         if (members) {
                             Object.values(members).forEach((member: any) => {
                                 const memberGender = member.gender?.toUpperCase();
