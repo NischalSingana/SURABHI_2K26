@@ -1333,10 +1333,6 @@ export default function EventRegistrationPage() {
                                                                 <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
                                                                 <span>Complimentary Special Lunch</span>
                                                             </li>
-                                                            <li className="flex items-start gap-2">
-                                                                <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
-                                                                <span>Access to all Events & Pro Shows</span>
-                                                            </li>
                                                         </>
                                                     )}
                                                 </ul>

@@ -268,6 +268,20 @@ export async function sendEventConfirmationEmail(
 
                 ${additionalInfo}
 
+                ${(!useVirtualTemplate && !isInternational && registrationType !== "VISITOR") ? `
+                <div style="background-color: #18181b; border: 1px solid #333; border-radius: 8px; padding: 25px; margin: 25px 0; text-align: center;">
+                    <p style="color: #ffffff; font-size: 18px; font-weight: 700; margin: 0 0 10px 0;">🏨 Free Accommodation & Lunch</p>
+                    <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; margin: 0 0 18px 0;">
+                        As a competition participant, you are eligible for <strong style="color: #ffffff;">1 day free accommodation and lunch</strong>. 
+                        Kindly book your accommodation in advance to secure your spot.
+                    </p>
+                    <a href="https://klusurabhi.in/accommodation" target="_blank" style="display: inline-block; background-color: #dc2626; color: #ffffff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 15px;">
+                        Book Accommodation
+                    </a>
+                    <p style="color: #a1a1aa; font-size: 12px; margin-top: 10px; margin-bottom: 0;">Visit: <a href="https://klusurabhi.in/accommodation" style="color: #dc2626; text-decoration: none;">klusurabhi.in/accommodation</a></p>
+                </div>
+                ` : ''}
+
                 ${(useVirtualTemplate || isInternational) ? `
                 <div style="background-color: #18181b; padding: 20px; border-left: 4px solid #dc2626; margin: 25px 0; border-radius: 0 8px 8px 0;">
                     <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 12px;">🌐 Virtual Participation</p>
