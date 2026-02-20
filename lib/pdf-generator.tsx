@@ -89,11 +89,9 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     surabhiTextLogo: {
-        width: 280,
-        height: 100,
-        objectFit: 'contain',
-        marginTop: 10, // Push a bit down
-        marginRight: -130, // Move more right side
+        width: 120,
+        height: 120,
+        marginTop: 5,
     },
     title: {
         color: '#dc2626', // Red-600
@@ -280,13 +278,15 @@ function getBase64FromPath(p: string) {
 }
 
 function loadAssets() {
-    // If we have data, logic assumes all are loaded or attempted.
-    // Checking one key is enough for this simple case.
-    if (logoCache.klWhite) return;
-
-    logoCache.surabhiWhite = getBase64FromPath(path.join(process.cwd(), 'public', 'images', 'surabhi_white_logo.png'));
-    logoCache.klWhite = getBase64FromPath(path.join(process.cwd(), 'public', 'images', 'kl_logo_white_text.png'));
-    logoCache.surabhiText = getBase64FromPath(path.join(process.cwd(), 'public', 'images', 'surabhi.png'));
+    if (!logoCache.surabhiWhite) {
+        logoCache.surabhiWhite = getBase64FromPath(path.join(process.cwd(), 'public', 'images', 'surabhi_white_logo.png'));
+    }
+    if (!logoCache.klWhite) {
+        logoCache.klWhite = getBase64FromPath(path.join(process.cwd(), 'public', 'images', 'kl_logo_white_text.png'));
+    }
+    if (!logoCache.surabhiText) {
+        logoCache.surabhiText = getBase64FromPath(path.join(process.cwd(), 'public', 'images', 'surabhi1.png'));
+    }
 }
 
 export async function generateTicketPDF(ticketData: EventTicketData): Promise<Buffer> {
@@ -536,9 +536,9 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 1, gap: 5 }}>
                             {sacLogoBase64 && <Image src={sacLogoBase64} style={{ width: 100, height: 35 }} />}
                             {/* Add Surabhi Logo to Footer */}
-                            {surabhiTextLogoBase64 && <Image src={surabhiTextLogoBase64} style={{ width: 150, height: 170, objectFit: 'contain' }} />}
+                            {surabhiTextLogoBase64 && <Image src={surabhiTextLogoBase64} style={{ width: 80, height: 80 }} />}
                         </View>
-                        <Text style={{ color: '#71717a', fontSize: 14, fontWeight: 'bold', marginTop: -30 }}>Surabhi 2026 • KL University</Text>
+                        <Text style={{ color: '#71717a', fontSize: 14, fontWeight: 'bold', marginTop: 5 }}>Surabhi 2026 • KL University</Text>
                     </View>
                 </View>
                 <View style={styles.bottomLine} />

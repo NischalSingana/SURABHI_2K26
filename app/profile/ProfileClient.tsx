@@ -825,10 +825,15 @@ export default function ProfileClient({
                     }`}
                 >
                   {hasPass && passPaymentStatus === "PENDING" ? (
-                    <>
-                      <FiClock className="text-lg" />
-                      Pending Approval
-                    </>
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-center gap-2">
+                        <FiClock className="text-lg" />
+                        Pending Approval
+                      </div>
+                      <span className="text-xs text-amber-400/70 font-normal text-center">
+                        It may take up to 24 hours to verify your payment. You will receive an email once approved.
+                      </span>
+                    </div>
                   ) : registeredEvents.length > 0 || (hasPass && passPaymentStatus === "APPROVED") ? (
                     <>
                       <FiBook className="text-lg" />

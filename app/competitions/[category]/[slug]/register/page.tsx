@@ -881,7 +881,15 @@ export default function EventRegistrationPage() {
                                             )}
                                         </div>
 
-                                        <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-5 mb-4 shadow-lg">
+                                        {teamSize <= 1 && (
+                                            <div className="bg-zinc-800/30 rounded-lg p-4 border border-zinc-700 mb-4">
+                                                <p className="text-zinc-300 text-sm">
+                                                    You are registering as the only participant. You can increase the team size above to add more members.
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {teamSize > 1 && (<><div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-5 mb-4 shadow-lg">
                                             <div className="flex items-center gap-2 mb-4">
                                                 <div className="w-8 h-8 rounded-lg bg-red-600/20 border border-red-500/40 flex items-center justify-center">
                                                     <FiUsers className="text-red-400" size={16} />
@@ -1012,6 +1020,7 @@ export default function EventRegistrationPage() {
                                                 </div>
                                             ))}
                                         </div>
+                                    </>)}
                                     </div>
                                 </div>
                             ) : (

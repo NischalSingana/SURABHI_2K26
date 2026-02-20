@@ -285,9 +285,14 @@ export default function MyEventsPage() {
                                         {/* Action Buttons */}
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                             {event.registrationStatus === 'PENDING' && (
-                                                <div className="sm:col-span-2 w-full px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-lg text-sm font-medium flex items-center justify-center gap-2">
-                                                    <FiClock size={16} />
-                                                    Pending Approval
+                                                <div className="sm:col-span-2 w-full px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-lg text-sm flex flex-col items-center gap-1.5">
+                                                    <div className="flex items-center gap-2 font-medium">
+                                                        <FiClock size={16} />
+                                                        Pending Approval
+                                                    </div>
+                                                    <p className="text-yellow-400/70 text-xs text-center">
+                                                        It may take up to 24 hours to verify your payment and approve your registration. Once approved, you will receive a confirmation email.
+                                                    </p>
                                                 </div>
                                             )}
 
