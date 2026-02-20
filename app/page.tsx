@@ -20,8 +20,8 @@ import CountUp from '@/components/ui/CountUp';
 import { FiAward, FiUsers, FiFeather, FiVolume2, FiVolumeX } from "react-icons/fi";
 
 // Hero video: CDN first; Chrome often needs direct Spaces URL (Range/206), Safari works with CDN
-const HERO_VIDEO_CDN = "https://surabhi-images.sgp1.cdn.digitaloceanspaces.com/SURABHI2k26.mp4";
-const HERO_VIDEO_DIRECT = "https://surabhi-images.sgp1.digitaloceanspaces.com/SURABHI2k26.mp4";
+const HERO_VIDEO_CDN = "https://surabhi-images.sgp1.cdn.digitaloceanspaces.com/SURABHI-VID.mp4";
+const HERO_VIDEO_DIRECT = "https://surabhi-images.sgp1.digitaloceanspaces.com/SURABHI-VID.mp4";
 
 // Particles for fiery background (stable positions for SSR/hydration)
 const PARTICLES = Array.from({ length: 24 }, (_, i) => ({
@@ -102,8 +102,28 @@ const HomePage = () => {
                     setShowSoundHint(true);
                     registerAutoUnmute();
                 } catch {
-                    // Even muted play failed (very rare) — wait for canplay
-                    console.error("Both unmuted and muted autoplay failed");
+                    // Both failed — browser blocks all autoplay until user gesture.
+                    // Keep muted so the first tap/click can start playback.
+                    v.muted = true;
+                    setIsMuted(true);
+                    setShowSoundHint(true);
+
+                    if (v.readyState >= 3) setIsVideoReady(true);
+
+                    const playOnGesture = () => {
+                        const el = videoRef.current;
+                        if (!el) return;
+                        el.play()
+                            .then(() => {
+                                setIsVideoReady(true);
+                                registerAutoUnmute();
+                            })
+                            .catch(() => {});
+                        document.removeEventListener("click", playOnGesture, true);
+                        document.removeEventListener("touchstart", playOnGesture, true);
+                    };
+                    document.addEventListener("click", playOnGesture, true);
+                    document.addEventListener("touchstart", playOnGesture, true);
                 }
             }
             initialPlayRef.current = false;
