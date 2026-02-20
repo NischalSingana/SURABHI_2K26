@@ -24,6 +24,17 @@ html {
   animation: float-up linear infinite;
 }
 
+/* Marquee: seamless infinite scroll */
+@keyframes marquee-scroll {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+.marquee-track {
+  display: inline-flex;
+  animation: marquee-scroll 25s linear infinite;
+  will-change: transform;
+}
+
 /* Schedule timeline line flow shimmer */
 @keyframes schedule-shimmer {
   0%, 100% { transform: translateY(-100%); opacity: 0.6; }

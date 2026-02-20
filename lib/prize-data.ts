@@ -1,9 +1,10 @@
 
 export interface PrizeDistribution {
   first: string;
-  second: string;
+  second?: string;
   third?: string;
   runnerUp?: string;
+  special?: { label: string; amount: string };
 }
 
 export const PRIZE_DATA: Record<string, PrizeDistribution> = {
@@ -97,8 +98,8 @@ export const PRIZE_DATA: Record<string, PrizeDistribution> = {
   },
   "National Mock Parliament": {
     first: "₹8,000",
-    second: "",
-    runnerUp: "₹8,000",
+    runnerUp: "₹5,000",
+    special: { label: "Best Speaker Award", amount: "₹3,000" },
   },
 
   // KURUKSHETRA

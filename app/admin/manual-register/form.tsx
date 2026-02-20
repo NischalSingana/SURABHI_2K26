@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { registerUserByAdmin, searchUsers } from "@/actions/events.action";
+import { registerVisitorPassByAdmin } from "@/actions/pass.action";
 import { uploadPaymentScreenshot } from "@/actions/upload.action";
 import { Category, Event } from "@prisma/client";
 
@@ -16,7 +17,10 @@ interface SearchedUser {
     collageId: string | null;
 }
 
+type RegType = "EVENT" | "VISITOR_PASS";
+
 export default function ManualRegisterForm({ categories }: { categories: CategoryWithEvents[] }) {
+    const [regType, setRegType] = useState<RegType>("EVENT");
     const [email, setEmail] = useState("");
     const [searchResults, setSearchResults] = useState<SearchedUser[]>([]);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -40,9 +44,6 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
         setIsSearching(true);
         setShowDropdown(true);
         
-        // Simple distinct search without debounce package to keep it lightweight, 
-        // relying on the fact that server action is fast enough or user types reasonably.
-        // For production with high load, a debounce is recommended.
         try {
             const res = await searchUsers(query);
             if (res.success && res.data) {
@@ -60,18 +61,53 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
         setShowDropdown(false);
     };
 
-    // Filter events based on category
     const events = categories.find(c => c.id === selectedCategory)?.Event || [];
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!email || !selectedEvent || !file || !utr || !payee) {
-            toast.error("Please fill all fields");
+
+        if (!email) {
+            toast.error("Please enter a user email");
+            return;
+        }
+        if (!file || !utr || !payee) {
+            toast.error("Please fill all payment fields (screenshot, UTR, payee)");
+            return;
+        }
+
+        if (regType === "VISITOR_PASS") {
+            startTransition(async () => {
+                const formData = new FormData();
+                formData.append("file", file);
+                const uploadRes = await uploadPaymentScreenshot(formData);
+                if (!uploadRes.success || !uploadRes.url) {
+                    toast.error(uploadRes.error || "Failed to upload screenshot");
+                    return;
+                }
+                const res = await registerVisitorPassByAdmin(email, {
+                    paymentScreenshot: uploadRes.url,
+                    utrId: utr,
+                    payeeName: payee,
+                });
+                if (res.success) {
+                    toast.success(res.message);
+                    setEmail("");
+                    setFile(null);
+                    setUtr("");
+                    setPayee("");
+                } else {
+                    toast.error(res.error);
+                }
+            });
+            return;
+        }
+
+        if (!selectedEvent) {
+            toast.error("Please select a category and event");
             return;
         }
 
         startTransition(async () => {
-             // 1. Upload Screenshot
              const formData = new FormData();
              formData.append("file", file);
              
@@ -81,7 +117,6 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                 return;
              }
              
-             // 2. Register User
              const res = await registerUserByAdmin(email, selectedEvent, {
                 paymentScreenshot: uploadRes.url,
                 utrId: utr,
@@ -94,7 +129,6 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                 setFile(null);
                 setUtr("");
                 setPayee("");
-                // reset file input manually if needed via ref, but this is fine for now
              } else {
                 toast.error(res.error);
              }
@@ -103,7 +137,44 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
 
     return (
         <form onSubmit={handleRegister} className="space-y-4 max-w-md bg-zinc-900 p-6 rounded-lg border border-zinc-800">
+            {/* Registration Type Toggle */}
             <div>
+                <label className="block text-sm mb-2 text-zinc-400">Registration Type</label>
+                <div className="grid grid-cols-2 gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setRegType("EVENT")}
+                        className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+                            regType === "EVENT"
+                                ? "bg-red-600 border-red-500 text-white"
+                                : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700"
+                        }`}
+                    >
+                        Event Registration
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setRegType("VISITOR_PASS")}
+                        className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+                            regType === "VISITOR_PASS"
+                                ? "bg-emerald-600 border-emerald-500 text-white"
+                                : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700"
+                        }`}
+                    >
+                        Visitor Pass
+                    </button>
+                </div>
+            </div>
+
+            {regType === "VISITOR_PASS" && (
+                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3">
+                    <p className="text-emerald-300 text-xs">
+                        Auto-approved. Confirmation email with PDF ticket will be sent immediately. Dated 25 Jan 2026.
+                    </p>
+                </div>
+            )}
+
+            <div className="relative">
                 <label className="block text-sm mb-1 text-zinc-400">User Email</label>
                 <input 
                     type="email" 
@@ -139,34 +210,38 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                 )}
             </div>
 
-            <div>
-                 <label className="block text-sm mb-1 text-zinc-400">Category</label>
-                 <select 
-                    value={selectedCategory} 
-                    onChange={e => { setSelectedCategory(e.target.value); setSelectedEvent(""); }}
-                    className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
-                 >
-                    <option value="">Select Category</option>
-                    {categories.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                 </select>
-            </div>
+            {regType === "EVENT" && (
+                <>
+                    <div>
+                        <label className="block text-sm mb-1 text-zinc-400">Category</label>
+                        <select 
+                            value={selectedCategory} 
+                            onChange={e => { setSelectedCategory(e.target.value); setSelectedEvent(""); }}
+                            className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                        >
+                            <option value="">Select Category</option>
+                            {categories.map((c) => (
+                                <option key={c.id} value={c.id}>{c.name}</option>
+                            ))}
+                        </select>
+                    </div>
 
-            <div>
-                 <label className="block text-sm mb-1 text-zinc-400">Event</label>
-                 <select 
-                    value={selectedEvent} 
-                    onChange={e => setSelectedEvent(e.target.value)}
-                    className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
-                    disabled={!selectedCategory}
-                 >
-                    <option value="">Select Event</option>
-                    {events.map((ev) => (
-                        <option key={ev.id} value={ev.id}>{ev.name}</option>
-                    ))}
-                 </select>
-            </div>
+                    <div>
+                        <label className="block text-sm mb-1 text-zinc-400">Event</label>
+                        <select 
+                            value={selectedEvent} 
+                            onChange={e => setSelectedEvent(e.target.value)}
+                            className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                            disabled={!selectedCategory}
+                        >
+                            <option value="">Select Event</option>
+                            {events.map((ev) => (
+                                <option key={ev.id} value={ev.id}>{ev.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                </>
+            )}
 
             <div>
                 <label className="block text-sm mb-1 text-zinc-400">Payment Screenshot</label>
@@ -177,7 +252,7 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                 />
             </div>
             
-             <div>
+            <div>
                 <label className="block text-sm mb-1 text-zinc-400">UTR ID</label>
                 <input 
                     type="text" 
@@ -187,7 +262,7 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                 />
             </div>
 
-             <div>
+            <div>
                 <label className="block text-sm mb-1 text-zinc-400">Payee Name</label>
                 <input 
                     type="text" 
@@ -200,9 +275,18 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
             <button 
                 type="submit" 
                 disabled={pending}
-                className="w-full bg-red-600 hover:bg-red-700 text-white p-2.5 rounded font-bold disabled:opacity-50 transition-colors"
+                className={`w-full text-white p-2.5 rounded font-bold disabled:opacity-50 transition-colors ${
+                    regType === "VISITOR_PASS"
+                        ? "bg-emerald-600 hover:bg-emerald-700"
+                        : "bg-red-600 hover:bg-red-700"
+                }`}
             >
-                {pending ? "Registering..." : "Manual Register"}
+                {pending
+                    ? "Processing..."
+                    : regType === "VISITOR_PASS"
+                        ? "Register Visitor Pass (Auto-Approve)"
+                        : "Manual Register"
+                }
             </button>
         </form>
     );

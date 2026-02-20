@@ -595,7 +595,14 @@ function EventDetailPageContent() {
                       </div>
                     </>
                   )}
-                  
+
+                  {/* Special Award */}
+                  {PRIZE_DATA[event.name].special && (
+                    <div className="sm:col-span-2 bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-emerald-500/50 hover:bg-zinc-800/80 transition-all group/card">
+                      <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-emerald-400 transition-colors">{PRIZE_DATA[event.name].special!.label}</span>
+                      <span className="text-2xl font-bold text-emerald-400 drop-shadow-sm">{PRIZE_DATA[event.name].special!.amount}</span>
+                    </div>
+                  )}
 
                 </div>
               </div>

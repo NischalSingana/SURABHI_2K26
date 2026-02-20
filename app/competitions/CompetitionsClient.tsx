@@ -25,7 +25,8 @@ export default function CompetitionsClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [imagesLoaded, setImagesLoaded] = useState(0);
-  const minLoadTime = 1200; // 1.2 seconds minimum
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const minLoadTime = 1200;
   const startTimeRef = useRef<number>(Date.now());
 
   // Preload images and manage loading state
@@ -63,6 +64,22 @@ export default function CompetitionsClient({
     checkComplete();
   }, [imagesLoaded, initialCategories.length]);
 
+  useEffect(() => {
+    const deadline = new Date("2026-02-25T23:59:00+05:30").getTime();
+    const tick = () => {
+      const diff = Math.max(0, deadline - Date.now());
+      setTimeLeft({
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((diff / (1000 * 60)) % 60),
+        seconds: Math.floor((diff / 1000) % 60),
+      });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
   const handleImageLoad = () => {
     setImagesLoaded((prev) => prev + 1);
   };
@@ -97,8 +114,37 @@ export default function CompetitionsClient({
         transition={{ duration: 0.3 }}
         className="min-h-screen bg-black py-8 sm:py-10 md:py-12 px-4 sm:px-6 lg:px-8"
       >
+      {/* Registration Deadline Marquee + Timer on right */}
+      <div className="fixed top-[72px] left-0 right-0 z-40 bg-gradient-to-r from-red-950 via-red-900 to-red-950 border-b border-red-800/60 shadow-lg shadow-black/40 flex items-center">
+        <div className="flex-1 overflow-hidden">
+          <div className="marquee-track whitespace-nowrap py-2">
+            {[...Array(6)].map((_, i) => (
+              <span key={i} className="mx-10 text-sm md:text-base font-medium text-red-100/90 inline-flex items-center gap-3 font-[family-name:var(--font-Lexend)]">
+                <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Registration Deadline: <span className="text-white font-semibold">25th February 2026</span>
+                <span className="text-red-700">|</span>
+                Please kindly register before the deadline.
+                <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="shrink-0 flex items-center gap-1.5 px-3 md:px-4 py-2 bg-black/50 border-l border-red-800/50 font-[family-name:var(--font-Lexend)]">
+          <svg className="w-3.5 h-3.5 text-red-400 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <div className="flex items-center gap-1 text-xs md:text-sm font-semibold tabular-nums">
+            <span className="bg-red-950 text-white px-1.5 py-0.5 rounded border border-red-900/60">{String(timeLeft.days).padStart(2, "0")}d</span>
+            <span className="text-red-600">:</span>
+            <span className="bg-red-950 text-white px-1.5 py-0.5 rounded border border-red-900/60">{String(timeLeft.hours).padStart(2, "0")}h</span>
+            <span className="text-red-600">:</span>
+            <span className="bg-red-950 text-white px-1.5 py-0.5 rounded border border-red-900/60">{String(timeLeft.minutes).padStart(2, "0")}m</span>
+            <span className="text-red-600">:</span>
+            <span className="bg-red-950 text-white px-1.5 py-0.5 rounded border border-red-900/60">{String(timeLeft.seconds).padStart(2, "0")}s</span>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-8 sm:mb-10 md:mb-12 mt-20 sm:mt-14 md:mt-16">
+        <div className="text-center mb-6 sm:mb-8 md:mb-10 mt-32 sm:mt-28 md:mt-28">
           <div className="flex justify-center items-center gap-4 mb-6">
             <motion.h1
               initial={{ opacity: 0, y: -20 }}
