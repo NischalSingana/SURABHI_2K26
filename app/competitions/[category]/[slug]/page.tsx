@@ -593,6 +593,13 @@ function EventDetailPageContent() {
                         <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-orange-400 transition-colors">3rd Prize</span>
                         <span className="text-2xl font-bold text-orange-400 drop-shadow-sm">{PRIZE_DATA[event.name].third}</span>
                       </div>
+
+                      {PRIZE_DATA[event.name].fourth && (
+                        <div className="bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-zinc-600/50 hover:bg-zinc-800/80 transition-all group/card">
+                          <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-zinc-300 transition-colors">4th Prize</span>
+                          <span className="text-2xl font-bold text-zinc-400 drop-shadow-sm">{PRIZE_DATA[event.name].fourth}</span>
+                        </div>
+                      )}
                     </>
                   )}
 

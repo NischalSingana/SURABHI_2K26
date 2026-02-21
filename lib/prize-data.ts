@@ -3,6 +3,7 @@ export interface PrizeDistribution {
   first: string;
   second?: string;
   third?: string;
+  fourth?: string;
   runnerUp?: string;
   special?: { label: string; amount: string };
 }
@@ -104,18 +105,19 @@ export const PRIZE_DATA: Record<string, PrizeDistribution> = {
 
   // KURUKSHETRA
   "BGMI Tournament": {
-    first: "₹8,000",
-    second: "₹5,000",
-    third: "₹3,000",
+    first: "₹15,000",
+    second: "₹10,000",
+    third: "₹5,000",
   },
   "Free Fire Tournament": {
-    first: "₹8,000",
-    second: "₹5,000",
-    third: "₹3,000",
+    first: "₹20,000",
+    second: "₹15,000",
+    third: "₹10,000",
+    fourth: "₹5,000",
   },
   "Valorant Tournament": {
-    first: "₹8,000",
-    second: "₹5,000",
-    third: "₹3,000",
+    first: "₹5,000",
+    second: "₹3,000",
+    third: "₹2,000",
   },
 };
