@@ -717,7 +717,7 @@ export default function EventRegistrationPage() {
                             {(isVirtual || isInternational) && (
                             <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
                                 <p className="text-green-300 text-sm font-medium">
-                                    Virtual participation — no physical ID required. Evaluations will be conducted virtually by judges.
+                                    Virtual participation — evaluations will be conducted virtually by judges.
                                 </p>
                             </div>
                             )}
@@ -1428,7 +1428,7 @@ export default function EventRegistrationPage() {
                                                         {/* Inputs */}
                                                         <div className="flex-1 space-y-4">
                                                             <div>
-                                                                <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Proof (Max 5MB) *</label>
+                                                                <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Payment Screenshot (Max 4MB) *</label>
                                                                 <input
                                                                     type="file"
                                                                     accept="image/*"

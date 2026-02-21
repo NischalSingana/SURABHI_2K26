@@ -912,15 +912,15 @@ export default function ProfileClient({
                     {/* Input Fields */}
                     <div className="flex-1 space-y-4 w-full">
                       <div>
-                        <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Proof (Max 5MB) *</label>
+                        <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Payment Screenshot (Max 4MB) *</label>
                         <input
                           type="file"
                           accept="image/*"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              if (file.size > 5 * 1024 * 1024) {
-                                toast.error("File size exceeds 5MB limit");
+                              if (file.size > 4 * 1024 * 1024) {
+                                toast.error("File size exceeds 4MB limit");
                                 e.target.value = "";
                                 return;
                               }
