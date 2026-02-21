@@ -120,6 +120,7 @@ export const LIBERAL_ARTS_CLUBS = [
   "Esports (Gaming)",
   "Vastraa (Fashion)",
   "Abhinaya (Dramatics)",
+  "Chitrakala (Painting)",
 ];
 
 export const ACCOMMODATION_KNOWLEDGE = `

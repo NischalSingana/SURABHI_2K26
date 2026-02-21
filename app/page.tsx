@@ -472,6 +472,7 @@ const HomePage = () => {
                                     { name: "Esports", type: "Gaming", color: "bg-blue-500" },
                                     { name: "Vastraa", type: "Fashion", color: "bg-purple-500" },
                                     { name: "Abhinaya", type: "Dramatics", color: "bg-pink-500" },
+                                    { name: "Chitrakala", type: "Painting", color: "bg-amber-500" },
                                 ].map((club, idx) => (
                                     <div key={idx} className="flex items-center gap-2 md:gap-3 group/item">
                                         <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${club.color} group-hover/item:scale-125 transition-transform`} />
