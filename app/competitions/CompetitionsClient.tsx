@@ -172,6 +172,7 @@ export default function CompetitionsClient({
             <FiCalendar size={20} />
             My Competitions
           </motion.button>
+          {/* Schedule button - hidden until schedule images are uploaded
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -182,6 +183,7 @@ export default function CompetitionsClient({
             <FiClock size={20} />
             Schedule
           </motion.button>
+          */}
         </div>
 
         <motion.div
