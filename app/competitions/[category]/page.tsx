@@ -791,7 +791,7 @@ function CategoryPageContent() {
                     </div>
 
                     <div>
-                      <label className="block text-xs text-zinc-400 mb-1">UTR / Transaction ID</label>
+                      <label className="block text-xs text-zinc-400 mb-1">UTR ID</label>
                       <input
                         type="text"
                         value={paymentDetails.utrId}

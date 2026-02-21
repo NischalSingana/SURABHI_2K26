@@ -1447,7 +1447,7 @@ export default function EventRegistrationPage() {
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Transaction ID *</label>
+                                                                <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">UTR ID *</label>
                                                                 <input
                                                                     type="tel"
                                                                     placeholder="12-digit UTR / UPI Ref ID"

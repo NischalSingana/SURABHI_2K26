@@ -931,7 +931,7 @@ export default function ProfileClient({
                         />
                       </div>
                       <div>
-                        <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Transaction ID</label>
+                        <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">UTR ID</label>
                         <input
                           type="text"
                           placeholder="UTR / UPI Ref ID"
