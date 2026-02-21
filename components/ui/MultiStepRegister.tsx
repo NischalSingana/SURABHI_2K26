@@ -836,9 +836,14 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
                           </p>
                         )}
                         {college.value === "International Student" && (
-                          <p className="text-base text-zinc-400 mt-3">
-                            Free registration · Google sign-in · Virtual participation
-                          </p>
+                          <>
+                            <p className="text-base text-zinc-400 mt-3">
+                              Free registration · Google sign-in · Virtual participation
+                            </p>
+                            <p className="text-xs text-amber-400 mt-2">
+                              Only for students currently residing outside India. If you are in India, please register under &quot;KL University&quot; or &quot;Other College (India)&quot;.
+                            </p>
+                          </>
                         )}
                       </motion.button>
                     ))}
@@ -892,6 +897,11 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
                           <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
                             <p className="text-green-300 text-base font-medium">
                               Free registration for international students. Sign in with Google to continue. All competitions are virtual with virtual evaluation by judges.
+                            </p>
+                          </div>
+                          <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                            <p className="text-amber-300 text-sm font-medium">
+                              ⚠️ This registration is only for international students who are currently residing outside India. If you are currently in India (at any college), please go back and register under &quot;KL University&quot; (if you are from KL University) or &quot;Other College (India)&quot;.
                             </p>
                           </div>
                           <SignInOAuthButton provider="google" signup={true} collegeType="INTERNATIONAL" />
@@ -992,11 +1002,18 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
                 <div className="space-y-8 pr-2">
                   {/* International Student: Free registration, virtual participation */}
                   {formData.college === "INTERNATIONAL" && (
-                    <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
-                      <p className="text-green-300 text-sm font-medium">
-                        ✓ Free registration. All competitions are virtual for international students; evaluations will be conducted virtually by judges.
-                      </p>
-                    </div>
+                    <>
+                      <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+                        <p className="text-green-300 text-sm font-medium">
+                          ✓ Free registration. All competitions are virtual for international students; evaluations will be conducted virtually by judges.
+                        </p>
+                      </div>
+                      <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                        <p className="text-amber-300 text-sm font-medium">
+                          ⚠️ Only international students who are currently residing outside India should register here. If you are currently in India, please register under &quot;KL University&quot; or &quot;Other College (India)&quot; instead.
+                        </p>
+                      </div>
+                    </>
                   )}
 
                   {/* College Name - Only for Other College */}
@@ -1257,11 +1274,11 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
                     </div>
                   )}
 
-                  {/* Institution / University - International: mandatory, manual text input */}
+                  {/* Institution / University / College Name - International: mandatory, manual text input */}
                   {formData.college === "INTERNATIONAL" && (
                     <div>
                       <label className="block text-sm font-medium text-zinc-300 mb-2">
-                        Institution / University *
+                        College / Institution / University Name *
                       </label>
                       <div className="relative">
                         <FiBook className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />

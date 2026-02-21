@@ -6,9 +6,9 @@
 export function isRegistrationComplete(user: any): boolean {
     if (!user) return false;
 
-    // International students: only need phone and country
+    // International students: need phone, country, and college/institution name
     if (user.isInternational) {
-        return !!(user.phone && user.country);
+        return !!(user.phone && user.country && user.collage);
     }
 
     // Indian students (KL University and Other College): need all fields including state and city
@@ -36,6 +36,7 @@ export function getMissingFields(user: any): string[] {
     if (user.isInternational) {
         if (!user.phone) missingFields.push("Phone Number");
         if (!user.country) missingFields.push("Country");
+        if (!user.collage) missingFields.push("College/Institution Name");
     } else {
         if (!user.collage) missingFields.push("College");
         if (!user.collageId) missingFields.push("College ID");
