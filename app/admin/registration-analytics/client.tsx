@@ -383,7 +383,7 @@ export default function RegistrationAnalyticsClient() {
                                         <p className="text-3xl sm:text-4xl font-extrabold text-purple-400 mb-1 leading-tight bg-gradient-to-r from-purple-400 to-purple-300 bg-clip-text text-transparent">
                                             {collegeStats.team.total.teams.toLocaleString()}
                                         </p>
-                                        <p className="text-xs text-zinc-500 mt-1">{collegeStats.team.total.members.toLocaleString()} total members</p>
+                                        <p className="text-xs text-zinc-500 mt-1">{collegeStats.team.total.members.toLocaleString()} total participants</p>
                                     </div>
                                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/30 flex items-center justify-center shadow-lg shadow-purple-500/10 group-hover:scale-110 transition-transform duration-300">
                                         <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -413,22 +413,29 @@ export default function RegistrationAnalyticsClient() {
                                             {collegeStats.team.kl.teams.toLocaleString()}
                                         </span>
                                     </div>
-                                    {/* Other Members - HIGHLIGHTED */}
                                     <div className="pt-3 mt-3 border-t border-purple-500/30">
                                         <div className="relative flex justify-between items-center py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600/20 via-purple-500/15 to-purple-600/20 border-2 border-purple-500/50 backdrop-blur-sm shadow-lg shadow-purple-500/20">
                                             <div className="flex items-center gap-2">
                                                 <div className="w-2 h-2 rounded-full bg-purple-400 shadow-lg shadow-purple-400/50" />
-                                                <span className="text-white font-bold text-sm">Other Members</span>
+                                                <span className="text-white font-bold text-sm">Participants (Other College)</span>
                                             </div>
                                             <span className="text-purple-200 font-extrabold text-xl">
                                                 {collegeStats.team.other.members.toLocaleString()}
                                             </span>
                                         </div>
                                     </div>
-                                    {/* Total Members - Secondary */}
+                                    <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-gradient-to-r from-zinc-900/50 to-zinc-800/30 border border-zinc-800/50 backdrop-blur-sm hover:border-red-500/30 transition-all duration-200">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                            <span className="text-zinc-400 font-medium text-sm">Participants (KL University)</span>
+                                        </div>
+                                        <span className="text-zinc-300 font-semibold text-sm">
+                                            {collegeStats.team.kl.members.toLocaleString()}
+                                        </span>
+                                    </div>
                                     <div className="pt-2 mt-2 border-t border-zinc-800/50">
                                         <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-zinc-800/30 border border-zinc-700/50">
-                                            <span className="text-zinc-400 text-xs font-medium">Total Members</span>
+                                            <span className="text-zinc-400 text-xs font-medium">Total Participants</span>
                                             <span className="text-zinc-300 font-semibold text-sm">
                                                 {collegeStats.team.total.members.toLocaleString()}
                                             </span>
