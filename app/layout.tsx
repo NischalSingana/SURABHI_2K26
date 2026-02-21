@@ -113,6 +113,14 @@ export default function RootLayout({
             __html: "document.documentElement.style.backgroundColor='#030303';document.body.style.backgroundColor='#030303';",
           }}
         />
+        {/* Auto-reload on chunk load failures (happens after new deployments) */}
+        <Script
+          id="chunk-error-handler"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var r=false;window.addEventListener("error",function(e){if(r)return;var m=(e.message||"")+(e.filename||"");if(m.indexOf("Loading chunk")!==-1||m.indexOf("Failed to fetch")!==-1||m.indexOf("ChunkLoadError")!==-1||m.indexOf("/_next/static/chunks/")!==-1){r=true;window.location.reload()}},true)})();`,
+          }}
+        />
         <style
           dangerouslySetInnerHTML={{
             __html: "html,body,main{background-color:#030303!important}html{color-scheme:dark}",
