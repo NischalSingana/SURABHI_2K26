@@ -20,6 +20,7 @@ import {
     registerGroupEvent
 } from "@/actions/events.action";
 import { useSession } from "@/lib/auth-client";
+import { withRetry } from "@/lib/retry";
 import { checkVirtualEligibility, getRegistrationFee } from "@/lib/virtual-eligibility";
 import { REGISTRATION_FEES } from "@/lib/constants";
 
@@ -303,16 +304,17 @@ export default function EventRegistrationPage() {
             let uploadedScreenshotUrl = "";
 
             if (!isInternational && paymentDetails.screenshot) {
-                const formData = new FormData();
-                formData.append("file", paymentDetails.screenshot);
-
-                const { uploadPaymentScreenshot } = await import("@/actions/upload.action");
-                const uploadResult = await uploadPaymentScreenshot(formData);
-
-                if (!uploadResult.success || !uploadResult.url) {
-                    throw new Error("Failed to upload payment screenshot");
-                }
-                uploadedScreenshotUrl = uploadResult.url;
+                const screenshotFile = paymentDetails.screenshot;
+                uploadedScreenshotUrl = await withRetry(async () => {
+                    const formData = new FormData();
+                    formData.append("file", screenshotFile);
+                    const { uploadPaymentScreenshot } = await import("@/actions/upload.action");
+                    const uploadResult = await uploadPaymentScreenshot(formData);
+                    if (!uploadResult.success || !uploadResult.url) {
+                        throw new Error(uploadResult.error || "Failed to upload payment screenshot");
+                    }
+                    return uploadResult.url;
+                }, { retries: 2, delayMs: 2000 });
             }
 
             const paymentData = !isInternational ? {
@@ -330,7 +332,7 @@ export default function EventRegistrationPage() {
                     if (isFreeFireOrBGMI) regDetails.teamLeadInGameId = teamLeadInGameId?.trim();
                     if (isValorant) regDetails.teamLeadRiotId = teamLeadRiotId?.trim();
                 }
-                result = await registerGroupEvent(
+                result = await withRetry(() => registerGroupEvent(
                     event.id,
                     groupName,
                     teamMembers,
@@ -339,14 +341,14 @@ export default function EventRegistrationPage() {
                     Object.keys(regDetails).length ? regDetails : undefined,
                     paymentData,
                     isVirtual
-                );
+                ), { retries: 2, delayMs: 2000 });
             } else {
-                result = await registerForEvent(
+                result = await withRetry(() => registerForEvent(
                     event.id,
                     isVastranaut ? { styleDNA } : undefined,
                     paymentData,
                     isVirtual
-                );
+                ), { retries: 2, delayMs: 2000 });
             }
 
             if (result.success) {
@@ -358,7 +360,12 @@ export default function EventRegistrationPage() {
             }
         } catch (err: unknown) {
             console.error("Registration error:", err);
-            toast.error((err as Error).message || "An unexpected error occurred");
+            const msg = (err as Error).message || "";
+            if (msg.includes("Failed to fetch") || msg.includes("Load failed") || msg.includes("fetch failed") || msg.includes("Loading chunk") || msg.includes("ChunkLoadError")) {
+                toast.error("Please logout and login again to use the latest version of the website. Upload the same payment screenshot and details and register again if your past registration failed.", { duration: 10000 });
+            } else {
+                toast.error(msg || "An unexpected error occurred");
+            }
         } finally {
             setPaymentProcessing(false);
         }

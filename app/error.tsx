@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Error({
   error,
@@ -9,17 +9,18 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const [isChunkError, setIsChunkError] = useState(false);
+
   useEffect(() => {
-    const isChunkError =
+    const chunkError =
       error.message?.includes("Loading chunk") ||
       error.message?.includes("Failed to fetch") ||
       error.message?.includes("ChunkLoadError") ||
       error.message?.includes("Loading CSS chunk") ||
+      error.message?.includes("Load failed") ||
       error.name === "ChunkLoadError";
 
-    if (isChunkError) {
-      window.location.reload();
-    }
+    setIsChunkError(chunkError);
   }, [error]);
 
   return (
@@ -29,10 +30,17 @@ export default function Error({
         <h2 className="text-xl font-semibold text-white">
           Something went wrong
         </h2>
-        <p className="text-zinc-400 text-sm">
-          This usually happens after a site update. Please try refreshing the
-          page.
-        </p>
+        {isChunkError ? (
+          <p className="text-zinc-400 text-sm leading-relaxed">
+            Please logout and login again to use the latest version of the
+            website. Upload the same payment screenshot and details and register
+            again if your past registration failed.
+          </p>
+        ) : (
+          <p className="text-zinc-400 text-sm">
+            An unexpected error occurred. Please try refreshing the page.
+          </p>
+        )}
         <div className="flex flex-col gap-3">
           <button
             onClick={() => window.location.reload()}

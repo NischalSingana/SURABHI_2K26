@@ -19,6 +19,7 @@ import SignInOAuthButton from "./signInOAuthButton";
 import { BRANCHES, INDIAN_STATES } from "@/lib/constants";
 import SearchableSelect from "./SearchableSelect";
 import { COUNTRIES_WITH_DIAL, PROGRAMS_OF_STUDY, getCountryFlag } from "@/lib/registration-data";
+import { withRetry } from "@/lib/retry";
 
 type College = "KL_UNIVERSITY" | "OTHER" | "INTERNATIONAL" | "";
 
@@ -618,18 +619,17 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
         }
       });
 
-      // TODO: Replace with your actual API endpoint
-      const response = await fetch("/api/register", {
-        method: "POST",
-        body: submitData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Registration failed");
-      }
-
-      const result = await response.json();
+      const result = await withRetry(async () => {
+        const response = await fetch("/api/register", {
+          method: "POST",
+          body: submitData,
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Registration failed");
+        }
+        return response.json();
+      }, { retries: 2, delayMs: 2000 });
 
       // Clear localStorage after successful registration
       localStorage.removeItem("selectedCollege");
@@ -647,8 +647,12 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
         window.location.href = "/"; // Use window.location to force a full page reload
       }, 1000); // Increased delay to show success message
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Registration failed. Please try again.";
-      toast.error(errorMessage);
+      const msg = error instanceof Error ? error.message : "";
+      if (msg.includes("Failed to fetch") || msg.includes("Load failed") || msg.includes("fetch failed") || msg.includes("Loading chunk") || msg.includes("ChunkLoadError")) {
+        toast.error("Please logout and login again to use the latest version of the website. Upload the same payment screenshot and details and register again if your past registration failed.", { duration: 10000 });
+      } else {
+        toast.error(msg || "Registration failed. Please try again.");
+      }
       setIsSubmitting(false);
     }
   };
