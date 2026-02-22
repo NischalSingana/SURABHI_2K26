@@ -22,6 +22,7 @@ import {
     FiChevronUp,
     FiUser,
     FiMail,
+    FiPhone,
 } from "react-icons/fi";
 
 interface Coordinator {
@@ -69,6 +70,7 @@ export default function ContactManagementClient({
     const [coordinatorFormData, setCoordinatorFormData] = useState({
         name: "",
         email: "",
+        phone: "",
         order: 0,
     });
 
@@ -156,6 +158,7 @@ export default function ContactManagementClient({
             setCoordinatorFormData({
                 name: coordinator.name,
                 email: coordinator.email,
+                phone: coordinator.phone || "",
                 order: coordinator.order,
             });
         } else {
@@ -163,6 +166,7 @@ export default function ContactManagementClient({
             setCoordinatorFormData({
                 name: "",
                 email: "",
+                phone: "",
                 order: 0,
             });
         }
@@ -174,10 +178,14 @@ export default function ContactManagementClient({
         if (!selectedCategoryId && !editingCoordinator) return;
 
         try {
+            const phoneValue = coordinatorFormData.phone.trim()
+                ? (coordinatorFormData.phone.trim().startsWith("+") ? coordinatorFormData.phone.trim() : `+91${coordinatorFormData.phone.trim()}`)
+                : "";
+
             if (editingCoordinator) {
                 const result = await updateCoordinator(editingCoordinator.id, {
                     ...coordinatorFormData,
-                    phone: editingCoordinator.phone,
+                    phone: phoneValue,
                     order: isNaN(coordinatorFormData.order) ? 0 : coordinatorFormData.order,
                 });
                 if (result.success) {
@@ -189,7 +197,7 @@ export default function ContactManagementClient({
             } else {
                 const result = await createCoordinator(selectedCategoryId!, {
                     ...coordinatorFormData,
-                    phone: "",
+                    phone: phoneValue,
                     order: isNaN(coordinatorFormData.order) ? 0 : coordinatorFormData.order,
                 });
                 if (result.success) {
@@ -329,13 +337,18 @@ export default function ContactManagementClient({
                                                         </div>
                                                         <div>
                                                             <p className="font-bold text-white">{coordinator.name}</p>
-                                                            <div className="mt-2">
+                                                            <div className="mt-2 space-y-1">
                                                                 <a
                                                                     href={`mailto:${coordinator.email}`}
                                                                     className="flex items-center gap-2 text-xs text-zinc-400 hover:text-red-400 transition-colors"
                                                                 >
                                                                     <FiMail size={12} /> {coordinator.email}
                                                                 </a>
+                                                                {coordinator.phone && (
+                                                                    <span className="flex items-center gap-2 text-xs text-zinc-400">
+                                                                        <FiPhone size={12} /> {coordinator.phone}
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -464,6 +477,31 @@ export default function ContactManagementClient({
                                         }
                                         className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white"
                                     />
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-zinc-400 mb-1">
+                                        Phone Number <span className="text-zinc-600">(optional)</span>
+                                    </label>
+                                    <div className="flex">
+                                        <span className="inline-flex items-center px-3 bg-zinc-800 border border-r-0 border-zinc-700 rounded-l-lg text-zinc-400 text-sm">
+                                            +91
+                                        </span>
+                                        <input
+                                            type="tel"
+                                            value={coordinatorFormData.phone.replace(/^\+91/, "")}
+                                            onChange={(e) => {
+                                                const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                                                setCoordinatorFormData({
+                                                    ...coordinatorFormData,
+                                                    phone: digits,
+                                                });
+                                            }}
+                                            maxLength={10}
+                                            placeholder="10-digit number"
+                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-r-lg p-2 text-white placeholder:text-zinc-600"
+                                        />
+                                    </div>
+                                    <p className="text-xs text-zinc-600 mt-1">If provided, a WhatsApp link will appear on the contact page.</p>
                                 </div>
                                 <div>
                                     <label className="block text-sm text-zinc-400 mb-1">Order</label>
