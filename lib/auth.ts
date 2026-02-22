@@ -25,6 +25,7 @@ export const auth = betterAuth({
     },
     trustedOrigins: [
         "https://klusurabhi.in",
+        "https://www.klusurabhi.in",
         "http://localhost:3000"
     ],
     baseURL,
