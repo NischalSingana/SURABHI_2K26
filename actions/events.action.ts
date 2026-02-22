@@ -719,16 +719,17 @@ export async function registerGroupEvent(
       return { success: false, error: "Payment details are required for non-international students." };
     }
 
-    // Validate virtual eligibility for AP/Telangana - must be physical
+    // Validate virtual eligibility for AP/Telangana and KL students - must be physical
     if (isVirtual && !isInternational) {
       const userWithState = await prisma.user.findUnique({
         where: { id: session.user.id },
-        select: { state: true, email: true, isInternational: true },
+        select: { state: true, email: true, isInternational: true, collage: true },
       });
       const eligibility = checkVirtualEligibility({
         email: userWithState?.email,
         state: userWithState?.state ?? undefined,
         isInternational: userWithState?.isInternational ?? false,
+        collage: userWithState?.collage ?? undefined,
       });
       if (!eligibility.isEligible) {
         return { success: false, error: eligibility.reason ?? "You are not eligible for virtual participation." };
@@ -946,16 +947,17 @@ export async function registerForEvent(
       return { success: false, error: "Please wait till admin approves your registration." };
     }
 
-    // Validate virtual eligibility for AP/Telangana - must be physical
+    // Validate virtual eligibility for AP/Telangana and KL students - must be physical
     if (isVirtual && !isInternational) {
       const userWithState = await prisma.user.findUnique({
         where: { id: session.user.id },
-        select: { state: true, email: true, isInternational: true },
+        select: { state: true, email: true, isInternational: true, collage: true },
       });
       const eligibility = checkVirtualEligibility({
         email: userWithState?.email,
         state: userWithState?.state ?? undefined,
         isInternational: userWithState?.isInternational ?? false,
+        collage: userWithState?.collage ?? undefined,
       });
       if (!eligibility.isEligible) {
         return { success: false, error: eligibility.reason ?? "You are not eligible for virtual participation." };

@@ -54,7 +54,7 @@ const MultiStepAccommodation = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [existingBooking, setExistingBooking] = useState<any>(null);
+  const [existingBookings, setExistingBookings] = useState<any[]>([]);
   const [pendingRegistrations, setPendingRegistrations] = useState<PendingRegistration[] | null>(null);
   const [isAutoFilling, setIsAutoFilling] = useState(false);
   const [eligibilityError, setEligibilityError] = useState<string | null>(null);
@@ -77,7 +77,7 @@ const MultiStepAccommodation = () => {
         if (result.success && result.data && result.data.length > 0) {
           const activeBookings = result.data.filter((b: any) => b.status !== "CANCELLED" && b.status !== "REJECTED");
           if (activeBookings.length > 0) {
-            setExistingBooking(activeBookings[0]);
+            setExistingBookings(activeBookings);
           }
         }
       } catch (error) {
@@ -300,120 +300,130 @@ const MultiStepAccommodation = () => {
     );
   }
 
-  if (existingBooking) {
+  if (existingBookings.length > 0) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center relative overflow-hidden p-6 pt-24">
         <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-red-900/10 rounded-full blur-[120px]" />
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-w-3xl w-full bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 rounded-2xl p-8 relative z-10"
-        >
-          <div className="flex flex-col md:flex-row items-center gap-4 mb-8">
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-lg shrink-0 ${existingBooking.status === 'APPROVED' || existingBooking.status === 'CONFIRMED'
-              ? 'bg-green-500/10 text-green-500 shadow-green-500/20'
-              : existingBooking.status === 'REJECTED'
-                ? 'bg-red-500/10 text-red-500 shadow-red-500/20'
-                : 'bg-yellow-500/10 text-yellow-500 shadow-yellow-500/20'
-              }`}>
-              {existingBooking.status === 'APPROVED' || existingBooking.status === 'CONFIRMED' ? <FiCheck /> : existingBooking.status === 'REJECTED' ? <FiXCircle /> : <FiClock />}
-            </div>
-            <div className="text-center md:text-left">
-              <h1 className="text-2xl font-bold text-white">Booking Status</h1>
-              <p className="text-zinc-400 text-sm">Application ID: <span className="font-mono text-zinc-300">{existingBooking.id.slice(-8).toUpperCase()}</span></p>
-            </div>
-            <div className="md:ml-auto">
-              <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold border ${existingBooking.status === 'APPROVED' || existingBooking.status === 'CONFIRMED'
-                ? 'bg-green-500/10 border-green-500/20 text-green-500'
-                : existingBooking.status === 'REJECTED'
-                  ? 'bg-red-500/10 border-red-500/20 text-red-500'
-                  : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500'
+        <div className="max-w-3xl w-full relative z-10 space-y-8">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-white mb-2">Your Bookings</h1>
+            <p className="text-zinc-400 text-sm">{existingBookings.length} active booking{existingBookings.length > 1 ? 's' : ''}</p>
+          </div>
+
+          {existingBookings.map((booking: any) => (
+          <motion.div
+            key={booking.id}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 rounded-2xl p-8"
+          >
+            <div className="flex flex-col md:flex-row items-center gap-4 mb-8">
+              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-lg shrink-0 ${booking.status === 'APPROVED' || booking.status === 'CONFIRMED'
+                ? 'bg-green-500/10 text-green-500 shadow-green-500/20'
+                : booking.status === 'REJECTED'
+                  ? 'bg-red-500/10 text-red-500 shadow-red-500/20'
+                  : 'bg-yellow-500/10 text-yellow-500 shadow-yellow-500/20'
                 }`}>
-                {existingBooking.status === 'APPROVED' || existingBooking.status === 'CONFIRMED' ? 'CONFIRMED' : existingBooking.status === 'REJECTED' ? 'REJECTED' : 'PENDING APPROVAL'}
+                {booking.status === 'APPROVED' || booking.status === 'CONFIRMED' ? <FiCheck /> : booking.status === 'REJECTED' ? <FiXCircle /> : <FiClock />}
               </div>
-              {existingBooking.status === 'REJECTED' && (
-                <button
-                  onClick={() => setExistingBooking(null)}
-                  className="ml-4 text-xs text-red-400 hover:text-red-300 underline underline-offset-4"
-                >
-                  Submit New Request
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="space-y-4">
-              <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800">
-                <p className="text-zinc-500 text-xs uppercase tracking-wider font-semibold mb-2">Primary Guest</p>
-                <p className="text-lg font-bold text-white">{existingBooking.primaryName}</p>
-                <p className="text-zinc-400 text-sm">{existingBooking.primaryEmail}</p>
-                <p className="text-zinc-400 text-sm">{existingBooking.primaryPhone}</p>
+              <div className="text-center md:text-left">
+                <h2 className="text-2xl font-bold text-white">{booking.gender === 'MALE' ? 'Male' : 'Female'} Hostel Booking</h2>
+                <p className="text-zinc-400 text-sm">Application ID: <span className="font-mono text-zinc-300">{booking.id.slice(-8).toUpperCase()}</span></p>
               </div>
-              <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800">
-                <p className="text-zinc-500 text-xs uppercase tracking-wider font-semibold mb-2">Accommodation Type</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-white font-medium">{existingBooking.gender === 'MALE' ? 'Male Hostel' : 'Female Hostel'}</span>
-                  <span className="text-zinc-600">•</span>
-                  <span className="text-white font-medium">{existingBooking.bookingType === 'INDIVIDUAL' ? 'Individual' : 'Group'} Booking</span>
+              <div className="md:ml-auto">
+                <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold border ${booking.status === 'APPROVED' || booking.status === 'CONFIRMED'
+                  ? 'bg-green-500/10 border-green-500/20 text-green-500'
+                  : booking.status === 'REJECTED'
+                    ? 'bg-red-500/10 border-red-500/20 text-red-500'
+                    : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500'
+                  }`}>
+                  {booking.status === 'APPROVED' || booking.status === 'CONFIRMED' ? 'CONFIRMED' : booking.status === 'REJECTED' ? 'REJECTED' : 'PENDING APPROVAL'}
                 </div>
+                {booking.status === 'REJECTED' && (
+                  <button
+                    onClick={() => setExistingBookings((prev) => prev.filter((b: any) => b.id !== booking.id))}
+                    className="ml-4 text-xs text-red-400 hover:text-red-300 underline underline-offset-4"
+                  >
+                    Submit New Request
+                  </button>
+                )}
               </div>
             </div>
-            <div className="space-y-4">
-              <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800 h-full flex flex-col">
-                <p className="text-zinc-500 text-xs uppercase tracking-wider font-semibold mb-2">Booking Summary</p>
-                <div className="text-3xl font-bold text-white mb-1">{existingBooking.totalMembers} <span className="text-lg text-zinc-500 font-normal">Guests</span></div>
-                <p className="text-sm text-zinc-400 mb-4">Total payable: <span className="text-green-500 font-bold">Free</span></p>
 
-                <div className="mt-auto">
-                  {existingBooking.status === 'PENDING' && (
-                    <div className="p-3 bg-yellow-500/5 rounded-lg border border-yellow-500/10">
-                      <p className="text-xs text-yellow-500/80 leading-relaxed">
-                        Your request is under review. You will receive an email once approved.
-                      </p>
-                    </div>
-                  )}
-                  {(existingBooking.status === 'APPROVED' || existingBooking.status === 'CONFIRMED') && (
-                    <div className="p-3 bg-green-500/5 rounded-lg border border-green-500/10 space-y-2">
-                      <p className="text-xs text-green-500/80 leading-relaxed">
-                        Accommodation confirmed! Check your email for details and your accommodation pass (PDF).
-                      </p>
-                      <a
-                        href={`/api/accommodation/download?bookingId=${existingBooking.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-3 py-2 bg-green-600/20 hover:bg-green-600/30 text-green-400 text-xs font-medium rounded-lg border border-green-500/30 transition-colors"
-                      >
-                        <FiDownload size={14} />
-                        Download Accommodation Pass
-                      </a>
-                    </div>
-                  )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="space-y-4">
+                <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800">
+                  <p className="text-zinc-500 text-xs uppercase tracking-wider font-semibold mb-2">Primary Guest</p>
+                  <p className="text-lg font-bold text-white">{booking.primaryName}</p>
+                  <p className="text-zinc-400 text-sm">{booking.primaryEmail}</p>
+                  <p className="text-zinc-400 text-sm">{booking.primaryPhone}</p>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {Array.isArray(existingBooking.groupMembers) && existingBooking.groupMembers.length > 0 && (
-            <div className="border-t border-zinc-800 pt-6">
-              <h3 className="text-white font-bold mb-4">Additional Guests</h3>
-              <div className="p-4 rounded-xl bg-zinc-800/60 border-2 border-zinc-700 ring-1 ring-white/5 space-y-3">
-                {existingBooking.groupMembers.map((member: any, idx: number) => (
-                  <div key={idx} className="p-3 rounded-lg bg-zinc-900/80 border-2 border-zinc-600/80 flex justify-between items-center">
-                    <div>
-                      <p className="text-zinc-200 font-medium text-sm">{member.name}</p>
-                      <p className="text-zinc-400 text-xs">{member.phone}</p>
-                    </div>
-                    <div className="w-7 h-7 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 text-xs font-bold">
-                      {idx + 2}
-                    </div>
+                <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800">
+                  <p className="text-zinc-500 text-xs uppercase tracking-wider font-semibold mb-2">Accommodation Type</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white font-medium">{booking.gender === 'MALE' ? 'Male Hostel' : 'Female Hostel'}</span>
+                    <span className="text-zinc-600">•</span>
+                    <span className="text-white font-medium">{booking.bookingType === 'INDIVIDUAL' ? 'Individual' : 'Group'} Booking</span>
                   </div>
-                ))}
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800 h-full flex flex-col">
+                  <p className="text-zinc-500 text-xs uppercase tracking-wider font-semibold mb-2">Booking Summary</p>
+                  <div className="text-3xl font-bold text-white mb-1">{booking.totalMembers} <span className="text-lg text-zinc-500 font-normal">Guests</span></div>
+                  <p className="text-sm text-zinc-400 mb-4">Total payable: <span className="text-green-500 font-bold">Free</span></p>
+
+                  <div className="mt-auto">
+                    {booking.status === 'PENDING' && (
+                      <div className="p-3 bg-yellow-500/5 rounded-lg border border-yellow-500/10">
+                        <p className="text-xs text-yellow-500/80 leading-relaxed">
+                          Your request is under review. You will receive an email once approved.
+                        </p>
+                      </div>
+                    )}
+                    {(booking.status === 'APPROVED' || booking.status === 'CONFIRMED') && (
+                      <div className="p-3 bg-green-500/5 rounded-lg border border-green-500/10 space-y-2">
+                        <p className="text-xs text-green-500/80 leading-relaxed">
+                          Accommodation confirmed! Check your email for details and your accommodation pass (PDF).
+                        </p>
+                        <a
+                          href={`/api/accommodation/download?bookingId=${booking.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-3 py-2 bg-green-600/20 hover:bg-green-600/30 text-green-400 text-xs font-medium rounded-lg border border-green-500/30 transition-colors"
+                        >
+                          <FiDownload size={14} />
+                          Download Accommodation Pass
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-          )}
-        </motion.div>
+
+            {Array.isArray(booking.groupMembers) && booking.groupMembers.length > 0 && (
+              <div className="border-t border-zinc-800 pt-6">
+                <h3 className="text-white font-bold mb-4">Additional Guests</h3>
+                <div className="p-4 rounded-xl bg-zinc-800/60 border-2 border-zinc-700 ring-1 ring-white/5 space-y-3">
+                  {booking.groupMembers.map((member: any, idx: number) => (
+                    <div key={idx} className="p-3 rounded-lg bg-zinc-900/80 border-2 border-zinc-600/80 flex justify-between items-center">
+                      <div>
+                        <p className="text-zinc-200 font-medium text-sm">{member.name}</p>
+                        <p className="text-zinc-400 text-xs">{member.phone}</p>
+                      </div>
+                      <div className="w-7 h-7 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 text-xs font-bold">
+                        {idx + 2}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </motion.div>
+          ))}
+        </div>
       </div>
     );
   }

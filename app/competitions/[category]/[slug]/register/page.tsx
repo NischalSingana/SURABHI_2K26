@@ -529,7 +529,8 @@ export default function EventRegistrationPage() {
     const virtualEligibility = session?.user ? checkVirtualEligibility({
         email: session.user.email,
         state: (session.user as { state?: string }).state,
-        isInternational: isInternational
+        isInternational: isInternational,
+        collage: (session.user as { collage?: string }).collage,
     }) : { isEligible: false };
     
     const memberCount = event.isGroupEvent ? teamSize : 1;

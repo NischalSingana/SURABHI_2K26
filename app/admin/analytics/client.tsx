@@ -660,18 +660,18 @@ interface DailyReportItem {
                     </div>
                 </div>
 
-                {/* Payment Statistics */}
+                {/* Registration Status */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                        <p className="text-gray-400 text-sm">Payment Approved</p>
+                        <p className="text-gray-400 text-sm">Fully Registered</p>
                         <p className="text-2xl font-bold text-green-400 mt-2">{userStats?.paymentApproved || 0}</p>
                     </div>
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                        <p className="text-gray-400 text-sm">Payment Pending</p>
+                        <p className="text-gray-400 text-sm">Incomplete Registration</p>
                         <p className="text-2xl font-bold text-orange-400 mt-2">{userStats?.paymentPending || 0}</p>
                     </div>
                     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                        <p className="text-gray-400 text-sm">Payment Rejected</p>
+                        <p className="text-gray-400 text-sm">Registration Rejected</p>
                         <p className="text-2xl font-bold text-red-400 mt-2">{userStats?.paymentRejected || 0}</p>
                     </div>
                 </div>
