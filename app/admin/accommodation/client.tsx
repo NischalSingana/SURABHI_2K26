@@ -9,6 +9,7 @@ export default function AccommodationPage() {
     const [bookings, setBookings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
+    const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
     const [filter, setFilter] = useState<{
         bookingType?: BookingType;
         gender?: Gender;
@@ -32,22 +33,52 @@ export default function AccommodationPage() {
     }, [filter]);
 
     const handleApprove = async (bookingId: string) => {
-        const result = await approveBooking(bookingId);
-        if (result.success) {
-            toast.success(result.message);
-            loadBookings();
-        } else {
-            toast.error(result.error);
+        setProcessingIds((prev) => new Set(prev).add(bookingId));
+        setBookings((prev) =>
+            prev.map((b) => (b.id === bookingId ? { ...b, status: "CONFIRMED", paymentStatus: "APPROVED" } : b))
+        );
+        try {
+            const result = await approveBooking(bookingId);
+            if (result.success) {
+                toast.success(result.message);
+            } else {
+                setBookings((prev) =>
+                    prev.map((b) => (b.id === bookingId ? { ...b, status: "PENDING", paymentStatus: "PENDING" } : b))
+                );
+                toast.error(result.error);
+            }
+        } catch {
+            setBookings((prev) =>
+                prev.map((b) => (b.id === bookingId ? { ...b, status: "PENDING", paymentStatus: "PENDING" } : b))
+            );
+            toast.error("Failed to approve booking");
+        } finally {
+            setProcessingIds((prev) => { const s = new Set(prev); s.delete(bookingId); return s; });
         }
     };
 
     const handleReject = async (bookingId: string) => {
-        const result = await rejectBooking(bookingId);
-        if (result.success) {
-            toast.success(result.message);
-            loadBookings();
-        } else {
-            toast.error(result.error);
+        setProcessingIds((prev) => new Set(prev).add(bookingId));
+        setBookings((prev) =>
+            prev.map((b) => (b.id === bookingId ? { ...b, status: "CANCELLED", paymentStatus: "REJECTED" } : b))
+        );
+        try {
+            const result = await rejectBooking(bookingId);
+            if (result.success) {
+                toast.success(result.message);
+            } else {
+                setBookings((prev) =>
+                    prev.map((b) => (b.id === bookingId ? { ...b, status: "PENDING", paymentStatus: "PENDING" } : b))
+                );
+                toast.error(result.error);
+            }
+        } catch {
+            setBookings((prev) =>
+                prev.map((b) => (b.id === bookingId ? { ...b, status: "PENDING", paymentStatus: "PENDING" } : b))
+            );
+            toast.error("Failed to reject booking");
+        } finally {
+            setProcessingIds((prev) => { const s = new Set(prev); s.delete(bookingId); return s; });
         }
     };
 
@@ -257,13 +288,15 @@ export default function AccommodationPage() {
                                                     <>
                                                         <button
                                                             onClick={() => handleApprove(booking.id)}
-                                                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition-colors"
+                                                            disabled={processingIds.has(booking.id)}
+                                                            className="bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-wait text-white px-3 py-1 rounded text-xs transition-colors"
                                                         >
-                                                            Approve
+                                                            {processingIds.has(booking.id) ? "Approving..." : "Approve"}
                                                         </button>
                                                         <button
                                                             onClick={() => handleReject(booking.id)}
-                                                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors"
+                                                            disabled={processingIds.has(booking.id)}
+                                                            className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-wait text-white px-3 py-1 rounded text-xs transition-colors"
                                                         >
                                                             Reject
                                                         </button>
