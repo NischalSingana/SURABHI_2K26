@@ -91,7 +91,7 @@ const page = async () => {
                     </Link>
                 )}
 
-                {(isAdmin || isManager) && (
+                {isAdmin && (
                     <Link
                         href="/admin/registrations/approvals"
                         className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
@@ -197,7 +197,7 @@ const page = async () => {
                     </Link>
                 )}
 
-                {isAdmin && (
+                {(isAdmin || isManager) && (
                     <Link
                         href="/admin/judges"
                         className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
