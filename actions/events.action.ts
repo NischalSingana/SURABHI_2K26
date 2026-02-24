@@ -1307,6 +1307,12 @@ export async function registerUserByAdmin(
     paymentScreenshot: string;
     utrId: string;
     payeeName: string;
+  },
+  groupDetails?: {
+    groupName: string;
+    members: GroupMember[];
+    mentorName?: string;
+    mentorPhone?: string;
   }
 ) {
   try {
@@ -1355,7 +1361,7 @@ export async function registerUserByAdmin(
             throw new Error("Event is full");
         }
 
-        // Check if user already has an Individual Registration
+        // Check existing registrations for this user+event
         const existingIndividualReg = await tx.individualRegistration.findUnique({
             where: {
             userId_eventId: {
@@ -1364,32 +1370,105 @@ export async function registerUserByAdmin(
             }
             }
         });
-
-        if (existingIndividualReg) {
-            if (existingIndividualReg.paymentStatus === "REJECTED") {
-                await tx.individualRegistration.delete({
-                where: { id: existingIndividualReg.id }
-                });
-            } else {
-                throw new Error("User is already registered for this event.");
-            }
-        }
-
-        // Create Individual Registration Record
-        // Set paymentStatus = PENDING initially, then auto-approve to trigger email
-        const newReg = await tx.individualRegistration.create({
-            data: {
-            userId: targetUser.id,
-            eventId: eventId,
-            paymentScreenshot: paymentDetails.paymentScreenshot,
-            utrId: paymentDetails.utrId,
-            payeeName: paymentDetails.payeeName,
-            paymentStatus: "PENDING", 
-            isVirtual: false
+        const existingGroupReg = await tx.groupRegistration.findUnique({
+            where: {
+              userId_eventId: {
+                userId: targetUser.id,
+                eventId: eventId,
+              },
             },
         });
-        
-        return { success: true, eventName: event.name, userName: targetUser.name, regId: newReg.id };
+
+        if (event.isGroupEvent) {
+            if (!groupDetails?.groupName?.trim()) {
+              throw new Error("Group name is required for group events.");
+            }
+            const members = groupDetails.members ?? [];
+            const totalTeamSize = members.length + 1; // Team leader + additional members
+            if (totalTeamSize < event.minTeamSize || totalTeamSize > event.maxTeamSize) {
+              throw new Error(`Team size must be between ${event.minTeamSize} and ${event.maxTeamSize} (including leader).`);
+            }
+            for (const member of members) {
+              if (!member.name?.trim() || !member.phone?.trim() || !member.gender?.trim()) {
+                throw new Error("Each team member must include name, phone, and gender.");
+              }
+            }
+
+            if (existingGroupReg) {
+              if (existingGroupReg.paymentStatus === "REJECTED") {
+                await tx.groupRegistration.delete({
+                  where: { id: existingGroupReg.id },
+                });
+              } else {
+                throw new Error("User is already registered for this event.");
+              }
+            }
+            if (existingIndividualReg && existingIndividualReg.paymentStatus !== "REJECTED") {
+              throw new Error("User is already registered for this event.");
+            }
+            if (existingIndividualReg && existingIndividualReg.paymentStatus === "REJECTED") {
+              await tx.individualRegistration.delete({
+                where: { id: existingIndividualReg.id },
+              });
+            }
+
+            const newGroupReg = await tx.groupRegistration.create({
+              data: {
+                eventId,
+                userId: targetUser.id,
+                groupName: groupDetails.groupName.trim(),
+                members: members as unknown as Prisma.InputJsonValue,
+                mentorName: groupDetails.mentorName?.trim() || null,
+                mentorPhone: groupDetails.mentorPhone?.trim() || null,
+                paymentScreenshot: paymentDetails.paymentScreenshot,
+                utrId: paymentDetails.utrId,
+                payeeName: paymentDetails.payeeName,
+                paymentStatus: "PENDING",
+                isVirtual: false,
+              },
+            });
+
+            return {
+              success: true,
+              eventName: event.name,
+              userName: targetUser.name,
+              regId: newGroupReg.id,
+              regType: "GROUP" as const,
+            };
+        } else {
+            if (existingIndividualReg) {
+              if (existingIndividualReg.paymentStatus === "REJECTED") {
+                await tx.individualRegistration.delete({
+                  where: { id: existingIndividualReg.id },
+                });
+              } else {
+                throw new Error("User is already registered for this event.");
+              }
+            }
+            if (existingGroupReg && existingGroupReg.paymentStatus !== "REJECTED") {
+              throw new Error("User is already registered for this event.");
+            }
+            if (existingGroupReg && existingGroupReg.paymentStatus === "REJECTED") {
+              await tx.groupRegistration.delete({
+                where: { id: existingGroupReg.id },
+              });
+            }
+
+            // Create Individual Registration Record
+            const newReg = await tx.individualRegistration.create({
+                data: {
+                userId: targetUser.id,
+                eventId: eventId,
+                paymentScreenshot: paymentDetails.paymentScreenshot,
+                utrId: paymentDetails.utrId,
+                payeeName: paymentDetails.payeeName,
+                paymentStatus: "PENDING", 
+                isVirtual: false
+                },
+            });
+            
+            return { success: true, eventName: event.name, userName: targetUser.name, regId: newReg.id, regType: "INDIVIDUAL" as const };
+        }
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
     );
@@ -1400,7 +1479,8 @@ export async function registerUserByAdmin(
     revalidatePath("/admin/events");
     revalidatePath("/admin/registrations");
     
-    return { success: true, message: `Successfully registered ${registrationResult.userName} for ${registrationResult.eventName}. Status set to PENDING.` };
+    const registrationLabel = registrationResult.regType === "GROUP" ? "group" : "individual";
+    return { success: true, message: `Successfully registered ${registrationResult.userName} for ${registrationResult.eventName} (${registrationLabel}). Status set to PENDING.` };
 
   } catch (error) {
     console.error("Error in registerUserByAdmin:", error);

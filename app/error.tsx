@@ -12,12 +12,15 @@ export default function Error({
   const [isChunkError, setIsChunkError] = useState(false);
 
   useEffect(() => {
+    const msg = (error.message || "").toLowerCase();
     const chunkError =
-      error.message?.includes("Loading chunk") ||
-      error.message?.includes("Failed to fetch") ||
-      error.message?.includes("ChunkLoadError") ||
-      error.message?.includes("Loading CSS chunk") ||
-      error.message?.includes("Load failed") ||
+      msg.includes("loading chunk") ||
+      msg.includes("failed to fetch") ||
+      msg.includes("chunkloaderror") ||
+      msg.includes("loading css chunk") ||
+      msg.includes("load failed") ||
+      msg.includes("unexpected response was received from the server") ||
+      msg.includes("failed to execute 'json' on 'response'") ||
       error.name === "ChunkLoadError";
 
     setIsChunkError(chunkError);

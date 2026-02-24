@@ -13,17 +13,21 @@ export async function withRetry<T>(
       return await fn();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
+      const messageLower = message.toLowerCase();
       const isRetryable =
-        message.includes("Failed to fetch") ||
-        message.includes("fetch failed") ||
-        message.includes("Load failed") ||
-        message.includes("Loading chunk") ||
-        message.includes("ChunkLoadError") ||
-        message.includes("NetworkError") ||
-        message.includes("network") ||
-        message.includes("ECONNREFUSED") ||
-        message.includes("ECONNRESET") ||
-        message.includes("socket hang up");
+        messageLower.includes("failed to fetch") ||
+        messageLower.includes("fetch failed") ||
+        messageLower.includes("load failed") ||
+        messageLower.includes("loading chunk") ||
+        messageLower.includes("chunkloaderror") ||
+        messageLower.includes("networkerror") ||
+        messageLower.includes("network") ||
+        messageLower.includes("econnrefused") ||
+        messageLower.includes("econnreset") ||
+        messageLower.includes("socket hang up") ||
+        // Next.js server action transport parse failures (often transient during deploys/restarts)
+        messageLower.includes("unexpected response was received from the server") ||
+        messageLower.includes("failed to execute 'json' on 'response'");
 
       if (!isRetryable || attempt === retries) {
         throw error;

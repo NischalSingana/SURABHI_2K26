@@ -9,6 +9,7 @@ import LenisProvider from "@/components/providers/LenisProvider";
 import ConditionalNavbar from "./ConditionalNavbar";
 import ClickSpark from "@/components/ui/ClickSpark";
 import ChatWidget from "@/components/chat/ChatWidget";
+import { getAppVersion } from "@/lib/app-version";
 
 const schibstedGrotesk = Schibsted_Grotesk({
   variable: "--font-Schibsted_Grotesk",
@@ -85,6 +86,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const appVersion = getAppVersion();
   return (
     <html lang="en" className="bg-[#030303]" suppressHydrationWarning>
       <head>
@@ -111,6 +113,13 @@ export default function RootLayout({
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: "document.documentElement.style.backgroundColor='#030303';document.body.style.backgroundColor='#030303';",
+          }}
+        />
+        <Script
+          id="app-version-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `window.__APP_VERSION__=${JSON.stringify(appVersion)};`,
           }}
         />
         {/* Auto-reload on chunk load failures (happens after new deployments) */}

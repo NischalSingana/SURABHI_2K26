@@ -17,6 +17,12 @@ interface SearchedUser {
     collageId: string | null;
 }
 
+interface GroupMember {
+    name: string;
+    phone: string;
+    gender: string;
+}
+
 type RegType = "EVENT" | "VISITOR_PASS";
 
 export default function ManualRegisterForm({ categories }: { categories: CategoryWithEvents[] }) {
@@ -31,6 +37,14 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
     const [file, setFile] = useState<File | null>(null);
     const [utr, setUtr] = useState("");
     const [payee, setPayee] = useState("");
+    const [groupName, setGroupName] = useState("");
+    const [teamSize, setTeamSize] = useState(1);
+    const [teamMembers, setTeamMembers] = useState<GroupMember[]>([]);
+    const [mentorName, setMentorName] = useState("");
+    const [mentorPhone, setMentorPhone] = useState("");
+    const [memberName, setMemberName] = useState("");
+    const [memberPhone, setMemberPhone] = useState("");
+    const [memberGender, setMemberGender] = useState("");
     const [pending, startTransition] = useTransition();
 
     const handleSearch = async (query: string) => {
@@ -62,6 +76,55 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
     };
 
     const events = categories.find(c => c.id === selectedCategory)?.Event || [];
+    const selectedEventDetails = events.find((ev) => ev.id === selectedEvent);
+    const isSelectedGroupEvent = regType === "EVENT" && !!selectedEventDetails?.isGroupEvent;
+    const minTeamSize = selectedEventDetails?.minTeamSize ?? 1;
+    const maxTeamSize = selectedEventDetails?.maxTeamSize ?? 1;
+
+    const clearGroupForm = () => {
+        setGroupName("");
+        setTeamMembers([]);
+        setMentorName("");
+        setMentorPhone("");
+        setMemberName("");
+        setMemberPhone("");
+        setMemberGender("");
+    };
+
+    const addTeamMember = () => {
+        if (!memberName.trim()) {
+            toast.error("Please enter member name");
+            return;
+        }
+        if (!memberPhone.trim()) {
+            toast.error("Please enter member phone number");
+            return;
+        }
+        if (!memberGender) {
+            toast.error("Please select member gender");
+            return;
+        }
+        if (teamMembers.length >= Math.max(0, teamSize - 1)) {
+            toast.error(`Only ${Math.max(0, teamSize - 1)} additional members are allowed`);
+            return;
+        }
+
+        setTeamMembers((prev) => [
+            ...prev,
+            {
+                name: memberName.trim(),
+                phone: memberPhone.trim(),
+                gender: memberGender,
+            },
+        ]);
+        setMemberName("");
+        setMemberPhone("");
+        setMemberGender("");
+    };
+
+    const removeTeamMember = (index: number) => {
+        setTeamMembers((prev) => prev.filter((_, i) => i !== index));
+    };
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -106,6 +169,21 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
             toast.error("Please select a category and event");
             return;
         }
+        if (isSelectedGroupEvent) {
+            if (!groupName.trim()) {
+                toast.error("Please enter group name");
+                return;
+            }
+            if (teamSize < minTeamSize || teamSize > maxTeamSize) {
+                toast.error(`Team size must be between ${minTeamSize} and ${maxTeamSize}`);
+                return;
+            }
+            const requiredAdditionalMembers = Math.max(0, teamSize - 1);
+            if (teamMembers.length !== requiredAdditionalMembers) {
+                toast.error(`Please add exactly ${requiredAdditionalMembers} additional members`);
+                return;
+            }
+        }
 
         startTransition(async () => {
              const formData = new FormData();
@@ -121,7 +199,12 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                 paymentScreenshot: uploadRes.url,
                 utrId: utr,
                 payeeName: payee
-             });
+             }, isSelectedGroupEvent ? {
+                groupName: groupName.trim(),
+                members: teamMembers,
+                mentorName: mentorName.trim() || undefined,
+                mentorPhone: mentorPhone.trim() || undefined,
+             } : undefined);
 
              if (res.success) {
                 toast.success(res.message);
@@ -129,6 +212,7 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                 setFile(null);
                 setUtr("");
                 setPayee("");
+                clearGroupForm();
              } else {
                 toast.error(res.error);
              }
@@ -230,7 +314,17 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                         <label className="block text-sm mb-1 text-zinc-400">Event</label>
                         <select 
                             value={selectedEvent} 
-                            onChange={e => setSelectedEvent(e.target.value)}
+                            onChange={e => {
+                                const nextEventId = e.target.value;
+                                setSelectedEvent(nextEventId);
+                                const nextEvent = events.find((ev) => ev.id === nextEventId);
+                                if (nextEvent?.isGroupEvent) {
+                                    setTeamSize(nextEvent.minTeamSize || 1);
+                                } else {
+                                    setTeamSize(1);
+                                    clearGroupForm();
+                                }
+                            }}
                             className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
                             disabled={!selectedCategory}
                         >
@@ -240,6 +334,128 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                             ))}
                         </select>
                     </div>
+
+                    {isSelectedGroupEvent && (
+                        <div className="space-y-3 rounded-lg border border-zinc-700 bg-zinc-800/40 p-3">
+                            <p className="text-xs text-zinc-400">
+                                Group Event: add team details (same flow as competition registration). Team leader is the selected user email above.
+                            </p>
+
+                            <div>
+                                <label className="block text-sm mb-1 text-zinc-400">Group Name</label>
+                                <input
+                                    type="text"
+                                    value={groupName}
+                                    onChange={(e) => setGroupName(e.target.value)}
+                                    className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                    placeholder="Enter team/group name"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm mb-1 text-zinc-400">
+                                    Team Size (including leader)
+                                </label>
+                                <input
+                                    type="number"
+                                    min={minTeamSize}
+                                    max={maxTeamSize}
+                                    value={teamSize}
+                                    onChange={(e) => {
+                                        const parsed = Number(e.target.value);
+                                        if (Number.isNaN(parsed)) return;
+                                        const clamped = Math.max(minTeamSize, Math.min(maxTeamSize, parsed));
+                                        setTeamSize(clamped);
+                                        setTeamMembers((prev) => prev.slice(0, Math.max(0, clamped - 1)));
+                                    }}
+                                    className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                />
+                                <p className="text-xs text-zinc-500 mt-1">
+                                    Allowed: {minTeamSize} to {maxTeamSize}
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div>
+                                    <label className="block text-sm mb-1 text-zinc-400">Mentor Name (Optional)</label>
+                                    <input
+                                        type="text"
+                                        value={mentorName}
+                                        onChange={(e) => setMentorName(e.target.value)}
+                                        className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm mb-1 text-zinc-400">Mentor Phone (Optional)</label>
+                                    <input
+                                        type="text"
+                                        value={mentorPhone}
+                                        onChange={(e) => setMentorPhone(e.target.value)}
+                                        className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2 border-t border-zinc-700 pt-3">
+                                <p className="text-sm text-zinc-300">
+                                    Additional Members ({teamMembers.length} / {Math.max(0, teamSize - 1)})
+                                </p>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    <input
+                                        type="text"
+                                        value={memberName}
+                                        onChange={(e) => setMemberName(e.target.value)}
+                                        placeholder="Member name"
+                                        className="bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={memberPhone}
+                                        onChange={(e) => setMemberPhone(e.target.value)}
+                                        placeholder="Member phone"
+                                        className="bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                    />
+                                    <select
+                                        value={memberGender}
+                                        onChange={(e) => setMemberGender(e.target.value)}
+                                        className="bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                    >
+                                        <option value="">Select gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={addTeamMember}
+                                    className="px-3 py-2 rounded bg-zinc-700 hover:bg-zinc-600 text-white text-sm"
+                                >
+                                    Add Team Member
+                                </button>
+
+                                {teamMembers.length > 0 && (
+                                    <div className="space-y-2">
+                                        {teamMembers.map((member, idx) => (
+                                            <div key={`${member.name}-${idx}`} className="flex items-center justify-between rounded border border-zinc-700 bg-zinc-900 px-3 py-2">
+                                                <div className="text-sm">
+                                                    <p className="text-white">{member.name}</p>
+                                                    <p className="text-zinc-400 text-xs">{member.phone} • {member.gender}</p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeTeamMember(idx)}
+                                                    className="text-xs px-2 py-1 rounded bg-red-700/70 hover:bg-red-700 text-white"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </>
             )}
 
