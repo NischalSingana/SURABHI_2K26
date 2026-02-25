@@ -321,7 +321,6 @@ export default function EventRegistrationPage() {
             const clientVersion = (typeof window !== "undefined" ? window.__APP_VERSION__ : "") || "";
             if (currentVersion && clientVersion && currentVersion !== clientVersion) {
                 toast.error("Please logout and login again to use the latest version of the website. Upload the same payment screenshot and details and register again if your past registration failed.", { duration: 10000 });
-                window.location.reload();
                 return;
             }
         } catch {

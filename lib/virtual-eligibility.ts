@@ -51,7 +51,7 @@ export function checkVirtualEligibility(user: {
   if (isExcludedState) {
     return {
       isEligible: false,
-      reason: `Students from Andhra Pradesh and Telangana must participate physically at KL University`,
+      reason: `Students from Andhra Pradesh and Telangana must participate physically at KL University, Vaddeswaram Campus`,
     };
   }
 

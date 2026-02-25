@@ -122,6 +122,16 @@ export default function RegistrationApprovalsClient() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [viewMode]);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (viewMode === "PENDING") {
+                fetchRegistrations();
+            }
+        }, 20000);
+        return () => clearInterval(interval);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [viewMode]);
+
     const handleStatusUpdate = async (
         id: string,
         type: "INDIVIDUAL" | "GROUP" | "VISITOR",
@@ -241,12 +251,20 @@ export default function RegistrationApprovalsClient() {
         <div className="px-4 py-6">
             <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
                 <h1 className="text-3xl font-bold text-white">Registration Approvals</h1>
-                <button
-                    onClick={exportToXlsx}
-                    className="px-4 py-2 bg-green-600/20 text-green-500 hover:bg-green-600/30 rounded-lg text-sm font-medium transition-colors border border-green-500/30"
-                >
-                    Export XLSX
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={fetchRegistrations}
+                        className="px-4 py-2 bg-zinc-700/50 text-zinc-200 hover:bg-zinc-700 rounded-lg text-sm font-medium transition-colors border border-zinc-600"
+                    >
+                        Refresh
+                    </button>
+                    <button
+                        onClick={exportToXlsx}
+                        className="px-4 py-2 bg-green-600/20 text-green-500 hover:bg-green-600/30 rounded-lg text-sm font-medium transition-colors border border-green-500/30"
+                    >
+                        Export XLSX
+                    </button>
+                </div>
             </div>
 
             {/* View Mode Toggle */}
@@ -267,6 +285,11 @@ export default function RegistrationApprovalsClient() {
                         History
                     </button>
                 </div>
+                {viewMode === "PENDING" && (
+                    <p className="text-xs text-zinc-500">
+                        Auto-refresh every 20s
+                    </p>
+                )}
             </div>
 
             {/* Tabs: horizontal scroll on mobile so International + Visitor Passes always visible */}
@@ -407,6 +430,11 @@ export default function RegistrationApprovalsClient() {
                                             : showCollegeSubTabs && collegeFilter !== "ALL"
                                             ? `No ${collegeFilter === "KL_UNIVERSITY" ? "KL University" : "other college"} ${viewMode === "PENDING" ? "pending " : ""}${activeTab.toLowerCase()} registrations found.`
                                             : `No ${viewMode === "PENDING" ? "pending " : ""}${activeTab.toLowerCase().replace("_", " ")} registrations found.`}
+                                        {viewMode === "PENDING" && (
+                                            <div className="text-xs text-zinc-600 mt-2">
+                                                Switch to All Statuses or History to view already approved/rejected registrations.
+                                            </div>
+                                        )}
                                     </td>
                                 </tr>
                             ) : (

@@ -21,6 +21,9 @@ interface GroupMember {
     name: string;
     phone: string;
     gender: string;
+    inGameName?: string;
+    inGameId?: string;
+    riotId?: string;
 }
 
 type RegType = "EVENT" | "VISITOR_PASS";
@@ -45,6 +48,15 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
     const [memberName, setMemberName] = useState("");
     const [memberPhone, setMemberPhone] = useState("");
     const [memberGender, setMemberGender] = useState("");
+    const [teamLeadInGameName, setTeamLeadInGameName] = useState("");
+    const [teamLeadInGameId, setTeamLeadInGameId] = useState("");
+    const [teamLeadRiotId, setTeamLeadRiotId] = useState("");
+    const [memberInGameName, setMemberInGameName] = useState("");
+    const [memberInGameId, setMemberInGameId] = useState("");
+    const [memberRiotId, setMemberRiotId] = useState("");
+    const [isVirtual, setIsVirtual] = useState(false);
+    const [createIfMissing, setCreateIfMissing] = useState(false);
+    const [newUserGender, setNewUserGender] = useState<"" | "MALE" | "FEMALE">("");
     const [pending, startTransition] = useTransition();
 
     const handleSearch = async (query: string) => {
@@ -80,6 +92,9 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
     const isSelectedGroupEvent = regType === "EVENT" && !!selectedEventDetails?.isGroupEvent;
     const minTeamSize = selectedEventDetails?.minTeamSize ?? 1;
     const maxTeamSize = selectedEventDetails?.maxTeamSize ?? 1;
+    const isFreeFireOrBGMI = !!selectedEventDetails?.name?.toLowerCase().match(/free fire|bgmi/);
+    const isValorant = !!selectedEventDetails?.name?.toLowerCase().includes("valorant");
+    const needsInGameFields = isSelectedGroupEvent && (isFreeFireOrBGMI || isValorant);
 
     const clearGroupForm = () => {
         setGroupName("");
@@ -89,6 +104,12 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
         setMemberName("");
         setMemberPhone("");
         setMemberGender("");
+        setTeamLeadInGameName("");
+        setTeamLeadInGameId("");
+        setTeamLeadRiotId("");
+        setMemberInGameName("");
+        setMemberInGameId("");
+        setMemberRiotId("");
     };
 
     const addTeamMember = () => {
@@ -104,22 +125,46 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
             toast.error("Please select member gender");
             return;
         }
+        if (needsInGameFields) {
+            if (!memberInGameName.trim()) {
+                toast.error("Please enter member in-game name");
+                return;
+            }
+            if (isFreeFireOrBGMI && !memberInGameId.trim()) {
+                toast.error("Please enter member in-game ID");
+                return;
+            }
+            if (isValorant && !memberRiotId.trim()) {
+                toast.error("Please enter member Riot ID");
+                return;
+            }
+        }
         if (teamMembers.length >= Math.max(0, teamSize - 1)) {
             toast.error(`Only ${Math.max(0, teamSize - 1)} additional members are allowed`);
             return;
         }
 
+        const memberObj: GroupMember = {
+            name: memberName.trim(),
+            phone: memberPhone.trim(),
+            gender: memberGender,
+        };
+        if (needsInGameFields) {
+            memberObj.inGameName = memberInGameName.trim();
+            if (isFreeFireOrBGMI) memberObj.inGameId = memberInGameId.trim();
+            if (isValorant) memberObj.riotId = memberRiotId.trim();
+        }
+
         setTeamMembers((prev) => [
             ...prev,
-            {
-                name: memberName.trim(),
-                phone: memberPhone.trim(),
-                gender: memberGender,
-            },
+            memberObj,
         ]);
         setMemberName("");
         setMemberPhone("");
         setMemberGender("");
+        setMemberInGameName("");
+        setMemberInGameId("");
+        setMemberRiotId("");
     };
 
     const removeTeamMember = (index: number) => {
@@ -131,6 +176,10 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
 
         if (!email) {
             toast.error("Please enter a user email");
+            return;
+        }
+        if (createIfMissing && !newUserGender) {
+            toast.error("Please select gender for auto-created users");
             return;
         }
         if (!file || !utr || !payee) {
@@ -183,6 +232,20 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                 toast.error(`Please add exactly ${requiredAdditionalMembers} additional members`);
                 return;
             }
+            if (needsInGameFields) {
+                if (!teamLeadInGameName.trim()) {
+                    toast.error("Please enter team lead in-game name");
+                    return;
+                }
+                if (isFreeFireOrBGMI && !teamLeadInGameId.trim()) {
+                    toast.error("Please enter team lead in-game ID");
+                    return;
+                }
+                if (isValorant && !teamLeadRiotId.trim()) {
+                    toast.error("Please enter team lead Riot ID");
+                    return;
+                }
+            }
         }
 
         startTransition(async () => {
@@ -204,7 +267,14 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                 members: teamMembers,
                 mentorName: mentorName.trim() || undefined,
                 mentorPhone: mentorPhone.trim() || undefined,
-             } : undefined);
+                teamLeadInGameName: needsInGameFields ? teamLeadInGameName.trim() : undefined,
+                teamLeadInGameId: needsInGameFields && isFreeFireOrBGMI ? teamLeadInGameId.trim() : undefined,
+                teamLeadRiotId: needsInGameFields && isValorant ? teamLeadRiotId.trim() : undefined,
+             } : undefined, {
+                isVirtual,
+                createUserIfNotFound: createIfMissing,
+                newUserGender: createIfMissing ? newUserGender || undefined : undefined,
+             });
 
              if (res.success) {
                 toast.success(res.message);
@@ -212,6 +282,7 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                 setFile(null);
                 setUtr("");
                 setPayee("");
+                setIsVirtual(false);
                 clearGroupForm();
              } else {
                 toast.error(res.error);
@@ -295,6 +366,40 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
             </div>
 
             {regType === "EVENT" && (
+                <div className="space-y-2 rounded-lg border border-zinc-700 bg-zinc-800/30 p-3">
+                    <label className="flex items-start gap-2 text-sm text-zinc-300">
+                        <input
+                            type="checkbox"
+                            checked={createIfMissing}
+                            onChange={(e) => {
+                                setCreateIfMissing(e.target.checked);
+                                if (!e.target.checked) setNewUserGender("");
+                            }}
+                            className="mt-0.5"
+                        />
+                        Create user if email not found
+                    </label>
+                    {createIfMissing && (
+                        <div>
+                            <label className="block text-xs mb-1 text-zinc-400">Gender for new user *</label>
+                            <select
+                                value={newUserGender}
+                                onChange={(e) => setNewUserGender(e.target.value as "" | "MALE" | "FEMALE")}
+                                className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                            >
+                                <option value="">Select gender</option>
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
+                            </select>
+                            <p className="text-[11px] text-zinc-500 mt-1">
+                                New user defaults: random name/phone/college, city Bangalore, state Karnataka.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {regType === "EVENT" && (
                 <>
                     <div>
                         <label className="block text-sm mb-1 text-zinc-400">Category</label>
@@ -324,6 +429,9 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                                     setTeamSize(1);
                                     clearGroupForm();
                                 }
+                                if (!nextEvent?.virtualEnabled) {
+                                    setIsVirtual(false);
+                                }
                             }}
                             className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
                             disabled={!selectedCategory}
@@ -333,6 +441,34 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                                 <option key={ev.id} value={ev.id}>{ev.name}</option>
                             ))}
                         </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm mb-1 text-zinc-400">Participation Mode</label>
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setIsVirtual(false)}
+                                className={`px-3 py-2 rounded-lg text-sm border ${
+                                    !isVirtual ? "bg-red-600 border-red-500 text-white" : "bg-zinc-800 border-zinc-700 text-zinc-300"
+                                }`}
+                            >
+                                Physical
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setIsVirtual(true)}
+                                disabled={!selectedEventDetails?.virtualEnabled}
+                                className={`px-3 py-2 rounded-lg text-sm border ${
+                                    isVirtual ? "bg-emerald-600 border-emerald-500 text-white" : "bg-zinc-800 border-zinc-700 text-zinc-300"
+                                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                                Virtual
+                            </button>
+                        </div>
+                        {!selectedEventDetails?.virtualEnabled && (
+                            <p className="text-xs text-zinc-500 mt-1">Virtual mode is disabled for this event.</p>
+                        )}
                     </div>
 
                     {isSelectedGroupEvent && (
@@ -396,6 +532,39 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                                 </div>
                             </div>
 
+                            {needsInGameFields && (
+                                <div className="space-y-2 rounded-lg border border-zinc-700/70 bg-zinc-900/40 p-3">
+                                    <p className="text-xs text-zinc-400">Team lead in-game details (for Kurukshetra)</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <input
+                                            type="text"
+                                            value={teamLeadInGameName}
+                                            onChange={(e) => setTeamLeadInGameName(e.target.value)}
+                                            placeholder="Team lead in-game name *"
+                                            className="bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                        />
+                                        {isFreeFireOrBGMI && (
+                                            <input
+                                                type="text"
+                                                value={teamLeadInGameId}
+                                                onChange={(e) => setTeamLeadInGameId(e.target.value)}
+                                                placeholder="Team lead in-game ID *"
+                                                className="bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                            />
+                                        )}
+                                        {isValorant && (
+                                            <input
+                                                type="text"
+                                                value={teamLeadRiotId}
+                                                onChange={(e) => setTeamLeadRiotId(e.target.value)}
+                                                placeholder="Team lead Riot ID *"
+                                                className="bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="space-y-2 border-t border-zinc-700 pt-3">
                                 <p className="text-sm text-zinc-300">
                                     Additional Members ({teamMembers.length} / {Math.max(0, teamSize - 1)})
@@ -426,6 +595,35 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                                         <option value="Other">Other</option>
                                     </select>
                                 </div>
+                                {needsInGameFields && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <input
+                                            type="text"
+                                            value={memberInGameName}
+                                            onChange={(e) => setMemberInGameName(e.target.value)}
+                                            placeholder="Member in-game name *"
+                                            className="bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                        />
+                                        {isFreeFireOrBGMI && (
+                                            <input
+                                                type="text"
+                                                value={memberInGameId}
+                                                onChange={(e) => setMemberInGameId(e.target.value)}
+                                                placeholder="Member in-game ID *"
+                                                className="bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                            />
+                                        )}
+                                        {isValorant && (
+                                            <input
+                                                type="text"
+                                                value={memberRiotId}
+                                                onChange={(e) => setMemberRiotId(e.target.value)}
+                                                placeholder="Member Riot ID *"
+                                                className="bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                            />
+                                        )}
+                                    </div>
+                                )}
                                 <button
                                     type="button"
                                     onClick={addTeamMember}
@@ -441,6 +639,12 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                                                 <div className="text-sm">
                                                     <p className="text-white">{member.name}</p>
                                                     <p className="text-zinc-400 text-xs">{member.phone} • {member.gender}</p>
+                                                    {needsInGameFields && member.inGameName && (
+                                                        <p className="text-amber-400/90 text-xs mt-1">
+                                                            {isFreeFireOrBGMI && `IGN: ${member.inGameName} • ID: ${member.inGameId || "-"}`}
+                                                            {isValorant && `IGN: ${member.inGameName} • Riot: ${member.riotId || "-"}`}
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 <button
                                                     type="button"

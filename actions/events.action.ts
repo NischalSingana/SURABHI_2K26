@@ -663,6 +663,23 @@ interface GroupMember {
   riotId?: string;    // Valorant
 }
 
+async function withTransactionRetry<T>(operation: () => Promise<T>, retries = 2): Promise<T> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await operation();
+    } catch (error: unknown) {
+      const isRetryable =
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        (error.code === "P2034" || error.code === "P1001");
+      if (!isRetryable || attempt === retries) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 150 * (attempt + 1)));
+    }
+  }
+  throw new Error("Unexpected transaction retry exhaustion");
+}
+
 export async function getUserByEmail(email: string) {
   try {
     const headersList = await headers();
@@ -738,7 +755,7 @@ export async function registerGroupEvent(
 
     const paymentStatus = isInternational ? "APPROVED" : "PENDING";
 
-    const registrationResult = await prisma.$transaction(
+    const registrationResult = await withTransactionRetry(() => prisma.$transaction(
       async (tx) => {
         const event = await tx.event.findUnique({
           where: { id: eventId },
@@ -805,7 +822,7 @@ export async function registerGroupEvent(
         return { success: true, teamLead: null, event, groupName, members, paymentStatus }; // teamLead null here to fetch outside tx if needed, but we used tx above.
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
-    );
+    ));
 
 
     revalidatePath("/events");
@@ -937,16 +954,6 @@ export async function registerForEvent(
 
     const paymentStatus = isInternational ? "APPROVED" : "PENDING";
 
-    // Check approval status
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { isApproved: true }
-    });
-
-    if (!user?.isApproved) {
-      return { success: false, error: "Please wait till admin approves your registration." };
-    }
-
     // Validate virtual eligibility for AP/Telangana and KL students - must be physical
     if (isVirtual && !isInternational) {
       const userWithState = await prisma.user.findUnique({
@@ -965,7 +972,7 @@ export async function registerForEvent(
     }
 
     // Use transaction with serializable isolation to prevent race conditions
-    const registrationResult = await prisma.$transaction(
+    const registrationResult = await withTransactionRetry(() => prisma.$transaction(
       async (tx) => {
         const event = await tx.event.findUnique({
           where: { id: eventId },
@@ -1070,7 +1077,7 @@ export async function registerForEvent(
         return { success: true, user: session.user, event, paymentStatus };
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
-    );
+    ));
 
     if (!registrationResult.success) {
       return registrationResult;
@@ -1313,6 +1320,14 @@ export async function registerUserByAdmin(
     members: GroupMember[];
     mentorName?: string;
     mentorPhone?: string;
+    teamLeadInGameName?: string;
+    teamLeadInGameId?: string;
+    teamLeadRiotId?: string;
+  },
+  adminOptions?: {
+    isVirtual?: boolean;
+    createUserIfNotFound?: boolean;
+    newUserGender?: "MALE" | "FEMALE";
   }
 ) {
   try {
@@ -1325,14 +1340,60 @@ export async function registerUserByAdmin(
       return { success: false, error: "Unauthorized: Only admins and masters can manually register users." };
     }
 
-    // 1. Find Target User
-    const targetUser = await prisma.user.findUnique({
-      where: { email: targetEmail },
-      select: { id: true, email: true, name: true, isApproved: true }
+    const normalizedEmail = targetEmail.trim().toLowerCase();
+    if (!normalizedEmail) {
+      return { success: false, error: "Email is required." };
+    }
+
+    // 1. Find target user (or create placeholder when enabled by admin)
+    let targetUser = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        isApproved: true,
+        state: true,
+        collage: true,
+        isInternational: true,
+      }
     });
 
+    if (!targetUser && adminOptions?.createUserIfNotFound) {
+      if (!adminOptions.newUserGender) {
+        return { success: false, error: "Please choose gender for new user creation." };
+      }
+      const seed = Math.floor(100000 + Math.random() * 900000).toString();
+      const phone = `9${Math.floor(100000000 + Math.random() * 900000000)}`;
+      const created = await prisma.user.create({
+        data: {
+          id: crypto.randomUUID(),
+          email: normalizedEmail,
+          name: `Manual User ${seed}`,
+          collage: `Other College ${seed.slice(-3)}`,
+          collageId: `MANUAL-${seed}`,
+          phone,
+          gender: adminOptions.newUserGender === "FEMALE" ? "Female" : "Male",
+          city: "Bangalore",
+          state: "Karnataka",
+          country: "India",
+          isApproved: true,
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          isApproved: true,
+          state: true,
+          collage: true,
+          isInternational: true,
+        },
+      });
+      targetUser = created;
+    }
+
     if (!targetUser) {
-      return { success: false, error: `User with email ${targetEmail} not found.` };
+      return { success: false, error: `User with email ${normalizedEmail} not found.` };
     }
 
     // 2. Transaction for Registration
@@ -1353,6 +1414,22 @@ export async function registerUserByAdmin(
 
         if (!event) {
             throw new Error("Event not found");
+        }
+
+        const isVirtual = !!adminOptions?.isVirtual;
+        if (isVirtual && !event.virtualEnabled) {
+            throw new Error("Virtual mode is not enabled for this event.");
+        }
+        if (isVirtual) {
+          const eligibility = checkVirtualEligibility({
+            email: targetUser.email,
+            state: targetUser.state ?? undefined,
+            isInternational: targetUser.isInternational ?? false,
+            collage: targetUser.collage ?? undefined,
+          });
+          if (!eligibility.isEligible) {
+            throw new Error(eligibility.reason ?? "This user is not eligible for virtual participation.");
+          }
         }
 
         const currentParticipants = event._count.individualRegistrations + event._count.groupRegistrations;
@@ -1420,11 +1497,26 @@ export async function registerUserByAdmin(
                 members: members as unknown as Prisma.InputJsonValue,
                 mentorName: groupDetails.mentorName?.trim() || null,
                 mentorPhone: groupDetails.mentorPhone?.trim() || null,
+                registrationDetails: (() => {
+                  const details: Record<string, string> = {};
+                  if (groupDetails.teamLeadInGameName?.trim()) {
+                    details.teamLeadInGameName = groupDetails.teamLeadInGameName.trim();
+                  }
+                  if (groupDetails.teamLeadInGameId?.trim()) {
+                    details.teamLeadInGameId = groupDetails.teamLeadInGameId.trim();
+                  }
+                  if (groupDetails.teamLeadRiotId?.trim()) {
+                    details.teamLeadRiotId = groupDetails.teamLeadRiotId.trim();
+                  }
+                  return Object.keys(details).length
+                    ? (details as unknown as Prisma.InputJsonValue)
+                    : undefined;
+                })(),
                 paymentScreenshot: paymentDetails.paymentScreenshot,
                 utrId: paymentDetails.utrId,
                 payeeName: paymentDetails.payeeName,
                 paymentStatus: "PENDING",
-                isVirtual: false,
+                isVirtual: isVirtual,
               },
             });
 
@@ -1463,7 +1555,7 @@ export async function registerUserByAdmin(
                 utrId: paymentDetails.utrId,
                 payeeName: paymentDetails.payeeName,
                 paymentStatus: "PENDING", 
-                isVirtual: false
+                isVirtual: isVirtual
                 },
             });
             
@@ -1480,7 +1572,8 @@ export async function registerUserByAdmin(
     revalidatePath("/admin/registrations");
     
     const registrationLabel = registrationResult.regType === "GROUP" ? "group" : "individual";
-    return { success: true, message: `Successfully registered ${registrationResult.userName} for ${registrationResult.eventName} (${registrationLabel}). Status set to PENDING.` };
+    const modeLabel = adminOptions?.isVirtual ? "virtual" : "physical";
+    return { success: true, message: `Successfully registered ${registrationResult.userName} for ${registrationResult.eventName} (${registrationLabel}, ${modeLabel}). Status set to PENDING.` };
 
   } catch (error) {
     console.error("Error in registerUserByAdmin:", error);

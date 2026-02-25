@@ -456,9 +456,17 @@ export default function AnalyticsPage() {
             }).toUpperCase();
             const reportData = result.data;
 
-            // Page 1: Other Colleges (Non-KL)
+            interface DailyReportItem {
+                eventId: string;
+                eventName: string;
+                categoryName: string;
+                klStats: { total: number; newToday: number; previousTotal: number };
+                nonKlStats: { total: number; newToday: number; previousTotal: number };
+            }
+
+            // Single report grouped by Category -> Competition (no separate KL/Other pages)
             doc.setFontSize(16);
-            doc.text(`Daily Registration Report - Other Colleges`, 14, 15);
+            doc.text("Daily Registration Report - Category Wise", 14, 15);
             doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(41, 128, 185); // Highlight color
@@ -467,74 +475,57 @@ export default function AnalyticsPage() {
             doc.setTextColor(0, 0, 0); // Reset color
             doc.setFontSize(8);
             doc.text(`Note: Counts represent total participants (including group members).`, 14, 26);
+            const groupedByCategory = reportData.reduce<Record<string, DailyReportItem[]>>((acc, item) => {
+                if (!acc[item.categoryName]) acc[item.categoryName] = [];
+                acc[item.categoryName].push(item);
+                return acc;
+            }, {});
 
-interface DailyReportItem {
-    eventId: string;
-    eventName: string;
-    categoryName: string;
-    klStats: { total: number; newToday: number; previousTotal: number };
-    nonKlStats: { total: number; newToday: number; previousTotal: number };
-}
+            let currentY = 34;
+            const categoryNames = Object.keys(groupedByCategory).sort((a, b) => a.localeCompare(b));
 
-            const nonKlRows = reportData.map((item: DailyReportItem) => {
-                const stats = item.nonKlStats;
-                const increase = stats.previousTotal > 0 
-                    ? ((stats.newToday / stats.previousTotal) * 100).toFixed(1) + "%" 
-                    : stats.newToday > 0 ? "100%" : "0%";
-                
-                return [
-                    item.categoryName,
-                    item.eventName,
-                    stats.total,
-                    stats.newToday,
-                    increase
-                ];
-            });
+            categoryNames.forEach((categoryName, index) => {
+                const items = groupedByCategory[categoryName].sort((a, b) => a.eventName.localeCompare(b.eventName));
 
-            autoTable(doc, {
-                startY: 40,
-                head: [['Category', 'Event', 'Total Registered', 'New Today', '% Increase']],
-                body: nonKlRows,
-                theme: 'grid',
-                headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 10 },
-                styles: { fontSize: 10, cellPadding: 3 },
-            });
+                if (currentY > 250 || (index > 0 && currentY > 230)) {
+                    doc.addPage();
+                    currentY = 20;
+                }
 
-            // Page 2: KL University
-            doc.addPage();
-            doc.setFontSize(16);
-            doc.text(`Daily Registration Report - KL University`, 14, 15);
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(41, 128, 185); // Highlight color
-            doc.text(`Generated on: ${timestamp}`, 14, 22);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(0, 0, 0); // Reset color
-            doc.setFontSize(8);
-            doc.text(`Note: Counts represent total participants (including group members).`, 14, 26);
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(33, 33, 33);
+                doc.text(`Category: ${categoryName}`, 14, currentY);
+                currentY += 4;
 
-            const klRows = reportData.map((item: DailyReportItem) => {
-                const stats = item.klStats;
-                const increase = stats.previousTotal > 0 
-                    ? ((stats.newToday / stats.previousTotal) * 100).toFixed(1) + "%" 
-                    : stats.newToday > 0 ? "100%" : "0%";
-                
-                return [
-                    item.categoryName,
-                    item.eventName,
-                    stats.total,
-                    stats.newToday,
-                    increase
-                ];
-            });
+                const rows = items.map((item) => {
+                    const totalRegistered = item.klStats.total + item.nonKlStats.total;
+                    const newToday = item.klStats.newToday + item.nonKlStats.newToday;
+                    const previousTotal = Math.max(0, totalRegistered - newToday);
+                    const increase = previousTotal > 0
+                        ? ((newToday / previousTotal) * 100).toFixed(1) + "%"
+                        : newToday > 0 ? "100%" : "0%";
 
-            autoTable(doc, {
-                startY: 40,
-                head: [['Category', 'Event', 'Total Registered', 'New Today', '% Increase']],
-                body: klRows,
-                theme: 'grid',
-                headStyles: { fillColor: [192, 57, 43], textColor: 255, fontSize: 10 },
-                styles: { fontSize: 10, cellPadding: 3 },
+                    return [
+                        item.eventName,
+                        totalRegistered,
+                        newToday,
+                        increase,
+                    ];
+                });
+
+                autoTable(doc, {
+                    startY: currentY,
+                    head: [["Competition", "Total Registered", "New Today", "% Increase"]],
+                    body: rows,
+                    theme: "grid",
+                    headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 9 },
+                    styles: { fontSize: 9, cellPadding: 2.5 },
+                    margin: { left: 14, right: 14 },
+                });
+
+                const finalY = (doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY;
+                currentY = (finalY ?? currentY) + 8;
             });
 
             doc.save(`Daily_Report_${new Date().toISOString().split('T')[0]}.pdf`);

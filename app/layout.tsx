@@ -127,7 +127,7 @@ export default function RootLayout({
           id="chunk-error-handler"
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
-            __html: `(function(){var r=false;window.addEventListener("error",function(e){if(r)return;var m=(e.message||"")+(e.filename||"");if(m.indexOf("Loading chunk")!==-1||m.indexOf("Failed to fetch")!==-1||m.indexOf("ChunkLoadError")!==-1||m.indexOf("/_next/static/chunks/")!==-1){r=true;window.location.reload()}},true)})();`,
+            __html: `(function(){var onceKey="surabhi_chunk_reload_once";window.addEventListener("error",function(e){var m=(e&&e.message||"")+(e&&e.filename||"");var isChunk=m.indexOf("Loading chunk")!==-1||m.indexOf("ChunkLoadError")!==-1||m.indexOf("/_next/static/chunks/")!==-1;if(!isChunk)return;try{if(sessionStorage.getItem(onceKey)==="1"){return;}sessionStorage.setItem(onceKey,"1");}catch(_e){}window.location.reload();},true)})();`,
           }}
         />
         <style

@@ -64,25 +64,28 @@ Print, electronic, and social media coverage is fully arranged.
 /** Category descriptions with dates and prize money (RAAGA, NRITHYA, CINE CARNIVAL, etc.) */
 export const CATEGORY_PRIZES_KNOWLEDGE = `
 RAAGA (Music) – March 4th
-Raaga is the music category of SURABHI, celebrating melody, rhythm, and harmony. It includes Voice of Raaga, Instrumental solo and Battle of bands. Voice of Raaga: 1st Prize ₹8,000, 2nd ₹5,000, 3rd ₹3,000 (Total ₹16,000). Instrumental Solo: 1st ₹10,000, 2nd ₹6,000, 3rd ₹4,000 (Total ₹20,000). Battle of Bands: 1st ₹10,000, 2nd ₹6,000, 3rd ₹4,000 (Total ₹20,000).
+Raaga celebrates melody, rhythm, and harmony. Voice of Raaga: 1st ₹6,000, 2nd ₹4,000, 3rd ₹3,000. Solo Instrumental: 1st ₹6,000, 2nd ₹4,000, 3rd ₹3,000. Battle of Bands: 1st ₹15,000, 2nd ₹10,000, 3rd ₹8,000.
 
 NRITHYA (Dance) – March 5th
-Nrithya is the dance category, celebrating rhythm, expression, and movement. Solo (Classical, Western, Folk): 1st ₹8,000, 2nd ₹6,000, 3rd ₹4,000 (Total ₹18,000). Group (Classical, Western, Folk): 1st ₹10,000, 2nd ₹8,000, 3rd ₹5,000 (Total ₹23,000).
+Nrithya celebrates rhythm, expression, and movement. Solo (Classical, Western, Folk): 1st ₹8,000, 2nd ₹6,000, 3rd ₹4,000. Group (Classical, Western, Folk): 1st ₹10,000, 2nd ₹8,000, 3rd ₹5,000.
 
 CINE CARNIVAL (Media & Visual Arts) – March 3rd
-Chitramela / Cine Carnival celebrates storytelling through visuals and sound. Short Film: 1st ₹10,000, 2nd ₹6,000, 3rd ₹4,000 (Total ₹20,000). Cover Songs: 1st ₹8,000, 2nd ₹5,000, 3rd ₹3,000 (Total ₹16,000). Photography: 1st ₹5,000, 2nd ₹3,000, 3rd ₹2,000 (Total ₹10,000).
+Cine Carnival celebrates storytelling through visuals and sound. Short Film: 1st ₹15,000, 2nd ₹10,000, 3rd ₹5,000. Cover Songs: 1st ₹6,000, 2nd ₹4,000, 3rd ₹3,000. Photography: 1st ₹4,000, 2nd ₹3,000, 3rd ₹2,000.
 
 VASTRANAUT (Fashion) – March 6th
-Vastranaut is the fashion segment, celebrating creativity, style, and cultural expression through attire and presentation. Rampwalk: 1st ₹10,000, 2nd ₹8,000, 3rd ₹5,000 (Total ₹23,000).
+Vastranaut celebrates creativity, style, and cultural expression through attire and presentation. Fashion Runaway/Rampwalk: 1st ₹12,000, 2nd ₹10,000, 3rd ₹8,000.
 
 CHITRAKALA (Art) – March 2nd
-Chitrakala is the art category, showcasing creativity and visual expression. Arts Marathon: 1st ₹10,000, 2nd ₹8,000, 3rd ₹5,000 (Total ₹23,000). Bhavishya Bharath: 1st ₹10,000, 2nd ₹8,000, 3rd ₹5,000 (Total ₹23,000).
+Chitrakala showcases creativity and visual expression. LandScape: 1st ₹6,000, 2nd ₹4,000, 3rd ₹3,000. Bhavishya Bharat: 1st ₹6,000, 2nd ₹4,000, 3rd ₹3,000.
 
 NATYAKA (Drama) – March 3rd
-Natyaka is the drama category, featuring Drama and Mono Action. Mono Action: 1st ₹8,000, 2nd ₹5,000, 3rd ₹3,000 (Total ₹16,000). Skit: 1st ₹10,000, 2nd ₹6,000, 3rd ₹4,000 (Total ₹20,000).
+Natyaka features drama and mono action. Skit: 1st ₹10,000, 2nd ₹8,000, 3rd ₹5,000. Mono Action: 1st ₹5,000, 2nd ₹3,000, 3rd ₹2,000.
 
 SAHITHYA (Literature) – March 2nd
-Sahithya is the literature category, celebrating the power of words and ideas. Short story writing: 1st ₹10,000, 2nd ₹8,000, 3rd ₹5,000 (Total ₹23,000). Elocution: 1st ₹8,000, 2nd ₹5,000, 3rd ₹3,000 (Total ₹16,000).
+Sahithya celebrates the power of words and ideas. Short Story Writing: 1st ₹5,000, 2nd ₹3,000, 3rd ₹2,000. Elocution: 1st ₹5,000, 2nd ₹3,000, 3rd ₹2,000. National Mock Parliament: 1st ₹8,000, Runner-up ₹5,000, Best Speaker Award ₹3,000.
+
+KURUKSHETRA (eSports)
+Kurukshetra is the eSports category. BGMI Tournament: 1st ₹15,000, 2nd ₹10,000, 3rd ₹5,000. Free Fire Tournament: 1st ₹20,000, 2nd ₹15,000, 3rd ₹10,000, 4th ₹5,000. Valorant Tournament: 1st ₹5,000, 2nd ₹3,000, 3rd ₹2,000.
 `.trim();
 
 /** Major benefits for sponsors (for sponsorship inquiries) */
@@ -159,7 +162,7 @@ export const VIRTUAL_EXCLUDED_STATES = ["Andhra Pradesh", "Telangana"];
 
 export const VIRTUAL_PARTICIPATION_KNOWLEDGE = `
 Virtual participation at Surabhi 2026:
-- Available for participants from states OTHER than Andhra Pradesh (AP) and Telangana. Students from AP and Telangana must participate physically at KL University.
+- Available for participants from states OTHER than Andhra Pradesh (AP) and Telangana. Students from AP and Telangana must participate physically at KL University, Vaddeswaram Campus.
 - KL University students: NO virtual participation option. Must participate physically. Same fees as other colleges (₹350 per member). Free special lunch and accommodation provided.
 - Registration fee for virtual participation (eligible Indian students from other states): ₹150 only.
 - All virtual events are conducted in an online meeting. Student coordinators are present during the session, and judges evaluate your performance online.

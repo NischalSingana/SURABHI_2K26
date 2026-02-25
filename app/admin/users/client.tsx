@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAllUsers, approveUser, rejectUser, updatePaymentStatus, updateUserRole } from "@/actions/admin/users.action";
+import { getAllUsers, approveUser, rejectUser, updatePaymentStatus, updateUserRole, updateUserDetailsByMaster } from "@/actions/admin/users.action";
 import { PaymentStatus, Role } from "@prisma/client";
 import { toast } from "sonner";
 import { FiSearch, FiUsers, FiGlobe, FiMapPin } from "react-icons/fi";
@@ -13,6 +13,13 @@ type User = {
     name: string | null;
     email: string;
     collage: string | null;
+    collageId?: string | null;
+    branch?: string | null;
+    year?: number | null;
+    phone?: string | null;
+    gender?: string | null;
+    city?: string | null;
+    state?: string | null;
     paymentStatus: PaymentStatus;
     isApproved: boolean;
     role: Role;
@@ -38,6 +45,21 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
         paymentStatus?: PaymentStatus;
         isApproved?: boolean;
     }>({});
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [editForm, setEditForm] = useState({
+        name: "",
+        email: "",
+        phone: "",
+        collage: "",
+        collageId: "",
+        branch: "",
+        year: "",
+        gender: "",
+        city: "",
+        state: "",
+        country: "",
+        isInternational: false,
+    });
 
     useEffect(() => {
         loadUsers();
@@ -125,6 +147,56 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
         }
     };
 
+    const openEditModal = (user: User) => {
+        setEditingUser(user);
+        setEditForm({
+            name: user.name || "",
+            email: user.email || "",
+            phone: user.phone || "",
+            collage: user.collage || "",
+            collageId: user.collageId || "",
+            branch: user.branch || "",
+            year: user.year ? String(user.year) : "",
+            gender: user.gender || "",
+            city: user.city || "",
+            state: user.state || "",
+            country: user.country || "",
+            isInternational: !!user.isInternational,
+        });
+    };
+
+    const handleSaveUserDetails = async () => {
+        if (!editingUser) return;
+        const yearInput = editForm.year.trim();
+        const parsedYear = yearInput ? Number(yearInput) : null;
+        if (yearInput && (Number.isNaN(parsedYear ?? NaN) || (parsedYear ?? 0) < 1 || (parsedYear ?? 0) > 10)) {
+            toast.error("Year must be a valid number between 1 and 10");
+            return;
+        }
+        const result = await updateUserDetailsByMaster(editingUser.id, {
+            name: editForm.name || null,
+            email: editForm.email,
+            phone: editForm.phone || null,
+            collage: editForm.collage || null,
+            collageId: editForm.collageId || null,
+            branch: editForm.branch || null,
+            year: parsedYear,
+            gender: editForm.gender || null,
+            city: editForm.city || null,
+            state: editForm.state || null,
+            country: editForm.country || null,
+            isInternational: editForm.isInternational,
+        });
+
+        if (result.success) {
+            toast.success(result.message);
+            setEditingUser(null);
+            loadUsers();
+        } else {
+            toast.error(result.error);
+        }
+    };
+
     const UserTable = ({ users, isKL, isInternationalTab }: { users: User[], isKL: boolean; isInternationalTab?: boolean }) => (
         <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
             <div className="overflow-x-auto">
@@ -139,6 +211,9 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                                 {isInternationalTab ? "Country" : "College"}
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                Full Details
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                                 Competitions
@@ -174,6 +249,14 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
                                     {isInternationalTab ? (user.country || "N/A") : (user.collage || "N/A")}
+                                </td>
+                                <td className="px-4 py-4 text-xs text-gray-300 min-w-[220px]">
+                                    <div>Phone: {user.phone || "N/A"}</div>
+                                    <div>College ID: {user.collageId || "N/A"}</div>
+                                    <div>Branch: {user.branch || "N/A"} {user.year ? `• Year ${user.year}` : ""}</div>
+                                    <div>Gender: {user.gender || "N/A"}</div>
+                                    <div>Location: {[user.city, user.state].filter(Boolean).join(", ") || "N/A"}</div>
+                                    <div>Country: {user.country || "India"}</div>
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
                                     {(user._count?.individualRegistrations || 0) + (user._count?.groupRegistrations || 0)}
@@ -242,6 +325,14 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
                                                 className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors"
                                             >
                                                 Reject
+                                            </button>
+                                        )}
+                                        {isMaster && (
+                                            <button
+                                                onClick={() => openEditModal(user)}
+                                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs transition-colors"
+                                            >
+                                                Edit Details
                                             </button>
                                         )}
                                     </div>
@@ -418,6 +509,35 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
                         </div>
                     </>
                 )
+            )}
+
+            {isMaster && editingUser && (
+                <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+                    <div className="w-full max-w-2xl bg-gray-900 border border-gray-700 rounded-xl p-5">
+                        <h3 className="text-white text-lg font-semibold mb-4">Edit User Details</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <input className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white" placeholder="Name" value={editForm.name} onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))} />
+                            <input className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white" placeholder="Email *" value={editForm.email} onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))} />
+                            <input className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white" placeholder="Phone" value={editForm.phone} onChange={(e) => setEditForm((f) => ({ ...f, phone: e.target.value }))} />
+                            <input className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white" placeholder="Gender" value={editForm.gender} onChange={(e) => setEditForm((f) => ({ ...f, gender: e.target.value }))} />
+                            <input className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white" placeholder="College" value={editForm.collage} onChange={(e) => setEditForm((f) => ({ ...f, collage: e.target.value }))} />
+                            <input className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white" placeholder="College ID" value={editForm.collageId} onChange={(e) => setEditForm((f) => ({ ...f, collageId: e.target.value }))} />
+                            <input className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white" placeholder="Branch" value={editForm.branch} onChange={(e) => setEditForm((f) => ({ ...f, branch: e.target.value }))} />
+                            <input className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white" placeholder="Year" value={editForm.year} onChange={(e) => setEditForm((f) => ({ ...f, year: e.target.value }))} />
+                            <input className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white" placeholder="City" value={editForm.city} onChange={(e) => setEditForm((f) => ({ ...f, city: e.target.value }))} />
+                            <input className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white" placeholder="State" value={editForm.state} onChange={(e) => setEditForm((f) => ({ ...f, state: e.target.value }))} />
+                            <input className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white md:col-span-2" placeholder="Country" value={editForm.country} onChange={(e) => setEditForm((f) => ({ ...f, country: e.target.value }))} />
+                            <label className="md:col-span-2 text-sm text-gray-300 flex items-center gap-2">
+                                <input type="checkbox" checked={editForm.isInternational} onChange={(e) => setEditForm((f) => ({ ...f, isInternational: e.target.checked }))} />
+                                International Student
+                            </label>
+                        </div>
+                        <div className="mt-5 flex justify-end gap-2">
+                            <button onClick={() => setEditingUser(null)} className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 text-white text-sm">Cancel</button>
+                            <button onClick={handleSaveUserDetails} className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white text-sm">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

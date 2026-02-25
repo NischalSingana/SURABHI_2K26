@@ -65,7 +65,7 @@ export default function CompetitionsClient({
   }, [imagesLoaded, initialCategories.length]);
 
   useEffect(() => {
-    const deadline = new Date("2026-02-25T23:59:00+05:30").getTime();
+    const deadline = new Date("2026-02-28T23:59:00+05:30").getTime();
     const tick = () => {
       const diff = Math.max(0, deadline - Date.now());
       setTimeLeft({
@@ -121,7 +121,7 @@ export default function CompetitionsClient({
             {[...Array(6)].map((_, i) => (
               <span key={i} className="mx-10 text-sm md:text-base font-medium text-red-100/90 inline-flex items-center gap-3 font-[family-name:var(--font-Lexend)]">
                 <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                Registration Deadline: <span className="text-white font-semibold">25th February 2026</span>
+                Registration Deadline: <span className="text-white font-semibold">28th February 2026, 11:59 PM</span>
                 <span className="text-red-700">|</span>
                 Please kindly register before the deadline.
                 <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
