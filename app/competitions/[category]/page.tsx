@@ -75,6 +75,19 @@ function getEffectiveParticipantLimit(event: Pick<Event, "name" | "participantLi
   return event.participantLimit;
 }
 
+function isLikelyStaleClientError(message: string): boolean {
+  const msg = message.toLowerCase();
+  return (
+    msg.includes("failed to fetch") ||
+    msg.includes("load failed") ||
+    msg.includes("fetch failed") ||
+    msg.includes("loading chunk") ||
+    msg.includes("chunkloaderror") ||
+    msg.includes("unexpected response was received from the server") ||
+    msg.includes("failed to execute 'json' on 'response'")
+  );
+}
+
 async function uploadPaymentScreenshotWithFallback(file: File): Promise<{ success: boolean; url?: string; error?: string }> {
   const makeFormData = () => {
     const fd = new FormData();
@@ -117,6 +130,48 @@ function redirectToMyCompetitions(router: ReturnType<typeof useRouter>) {
     return;
   }
   router.replace(target);
+}
+
+async function submitSingleRegistrationWithFallback(payload: {
+  eventId: string;
+  paymentDetails?: {
+    paymentScreenshot: string;
+    utrId: string;
+    payeeName: string;
+  };
+}): Promise<{ success: boolean; error?: string; message?: string }> {
+  try {
+    const actionResult = await registerForEvent(payload.eventId, undefined, payload.paymentDetails);
+    if (actionResult.success) return actionResult;
+    if (!isLikelyStaleClientError(actionResult.error || "")) return actionResult;
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (!isLikelyStaleClientError(msg)) {
+      return { success: false, error: msg || "Failed to register for event" };
+    }
+  }
+
+  try {
+    const response = await fetch("/api/registrations/competition", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "cache-control": "no-cache" },
+      cache: "no-store",
+      body: JSON.stringify({
+        eventId: payload.eventId,
+        isGroupEvent: false,
+        paymentDetails: payload.paymentDetails,
+      }),
+    });
+    const data = await response.json().catch(() => ({ success: false, error: "Registration response parsing failed" }));
+    return {
+      success: !!data?.success,
+      error: data?.error as string | undefined,
+      message: data?.message as string | undefined,
+    };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return { success: false, error: msg || "Failed to register for event" };
+  }
 }
 
 function CategoryPageContent() {
@@ -289,13 +344,16 @@ function CategoryPageContent() {
         setUploadingPayment(false);
       }
 
-      const result = await registerForEvent(selectedEvent.id, undefined,
-        showPaymentStep ? {
-          paymentScreenshot: uploadedScreenshotUrl,
-          utrId: paymentDetails.utrId,
-          payeeName: paymentDetails.payeeName
-        } : undefined
-      );
+      const result = await submitSingleRegistrationWithFallback({
+        eventId: selectedEvent.id,
+        paymentDetails: showPaymentStep
+          ? {
+              paymentScreenshot: uploadedScreenshotUrl,
+              utrId: paymentDetails.utrId,
+              payeeName: paymentDetails.payeeName,
+            }
+          : undefined,
+      });
 
       if (result.success) {
         setRegistrationStatus({ loading: false, error: null, success: true });

@@ -333,7 +333,7 @@ export default function JudgeDashboard() {
                         <button
                             onClick={() => {
                                 signOut();
-                                router.push("/judge/login");
+                                router.push("/");
                             }}
                             className="p-1.5 sm:p-2 hover:bg-white/5 rounded-full text-gray-400 hover:text-white transition-colors"
                         >

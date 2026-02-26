@@ -26,7 +26,7 @@ export default function AdminLayoutWrapper({
 
   const handleLogout = async () => {
     await signOut();
-    router.push(session?.user?.role === "GOD" ? "/" : "/auth/login");
+    router.push("/");
     toast.success("Logged out successfully");
   };
 

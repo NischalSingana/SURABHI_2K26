@@ -149,6 +149,74 @@ interface GroupMember {
     riotId?: string;
 }
 
+type RegistrationResult = { success: boolean; error?: string; message?: string };
+
+type CompetitionRegistrationPayload = {
+    eventId: string;
+    isGroupEvent: boolean;
+    groupName?: string;
+    members?: GroupMember[];
+    mentorName?: string;
+    mentorPhone?: string;
+    registrationDetails?: Record<string, unknown>;
+    paymentDetails?: {
+        paymentScreenshot: string;
+        utrId: string;
+        payeeName: string;
+    };
+    isVirtual?: boolean;
+};
+
+async function submitCompetitionRegistrationWithFallback(payload: CompetitionRegistrationPayload): Promise<RegistrationResult> {
+    const submitViaApi = async () => {
+        const response = await fetch("/api/registrations/competition", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "cache-control": "no-cache" },
+            cache: "no-store",
+            body: JSON.stringify(payload),
+        });
+        const data = await response.json().catch(() => ({ success: false, error: "Registration response parsing failed" }));
+        return {
+            success: !!data?.success,
+            error: data?.error as string | undefined,
+            message: data?.message as string | undefined,
+        };
+    };
+
+    try {
+        if (payload.isGroupEvent) {
+            const actionResult = await registerGroupEvent(
+                payload.eventId,
+                payload.groupName || "Team",
+                payload.members || [],
+                payload.mentorName,
+                payload.mentorPhone,
+                payload.registrationDetails,
+                payload.paymentDetails,
+                payload.isVirtual
+            );
+            if (actionResult.success) return actionResult;
+            if (!isLikelyStaleClientError(actionResult.error || "")) return actionResult;
+        } else {
+            const actionResult = await registerForEvent(
+                payload.eventId,
+                payload.registrationDetails,
+                payload.paymentDetails,
+                payload.isVirtual
+            );
+            if (actionResult.success) return actionResult;
+            if (!isLikelyStaleClientError(actionResult.error || "")) return actionResult;
+        }
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        if (!isLikelyStaleClientError(msg)) {
+            return { success: false, error: msg || "Registration failed" };
+        }
+    }
+
+    return submitViaApi();
+}
+
 // Add custom scrollbar styles for the modal
 const scrollbarStyles = `
   .custom-scrollbar::-webkit-scrollbar {
@@ -424,10 +492,8 @@ export default function EventRegistrationPage() {
             const currentVersion = preflight.appVersion || "";
             const clientVersion = (typeof window !== "undefined" ? window.__APP_VERSION__ : "") || "";
             if (currentVersion && clientVersion && currentVersion !== clientVersion) {
-                setIsRefreshingForUpdate(true);
-                toast.error("Website was just updated. Reloading to latest version... Please re-upload the same payment screenshot after refresh.", { duration: 6000 });
-                setTimeout(() => reloadToLatestBuild(), 500);
-                return;
+                // Do not force reload here; continue and rely on resilient API fallbacks.
+                toast.info("A new version is available. Continuing with a safe submit path to avoid re-entering details.");
             }
         } catch {
             // If preflight itself fails, continue with normal submit flow and retry handling below.
@@ -462,33 +528,29 @@ export default function EventRegistrationPage() {
             const isKurukshetraEvent = categorySlug.toLowerCase().includes("kurukshetra") || eventCategoryName.includes("kurukshetra");
             const selectedVirtualMode = isKurukshetraEvent && !isInternational ? !isKLStudent : isVirtual;
 
-            let result;
-            if (event.isGroupEvent) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const regDetails: Record<string, any> = isVastranaut ? { styleDNA } : {};
-                if (needsInGameFields) {
-                    regDetails.teamLeadInGameName = teamLeadInGameName?.trim();
-                    if (isFreeFireOrBGMI) regDetails.teamLeadInGameId = teamLeadInGameId?.trim();
-                    if (isValorant) regDetails.teamLeadRiotId = teamLeadRiotId?.trim();
-                }
-                result = await withRetry(() => registerGroupEvent(
-                    event.id,
-                    groupName,
-                    teamMembers,
-                    mentorName,
-                    mentorPhone,
-                    Object.keys(regDetails).length ? regDetails : undefined,
-                    paymentData,
-                    selectedVirtualMode
-                ), { retries: 2, delayMs: 2000 });
-            } else {
-                result = await withRetry(() => registerForEvent(
-                    event.id,
-                    isVastranaut ? { styleDNA } : undefined,
-                    paymentData,
-                    selectedVirtualMode
-                ), { retries: 2, delayMs: 2000 });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const regDetails: Record<string, any> = isVastranaut ? { styleDNA } : {};
+            if (event.isGroupEvent && needsInGameFields) {
+                regDetails.teamLeadInGameName = teamLeadInGameName?.trim();
+                if (isFreeFireOrBGMI) regDetails.teamLeadInGameId = teamLeadInGameId?.trim();
+                if (isValorant) regDetails.teamLeadRiotId = teamLeadRiotId?.trim();
             }
+
+            const result = await withRetry(
+                () =>
+                    submitCompetitionRegistrationWithFallback({
+                        eventId: event.id,
+                        isGroupEvent: event.isGroupEvent,
+                        groupName,
+                        members: event.isGroupEvent ? teamMembers : undefined,
+                        mentorName: event.isGroupEvent ? mentorName : undefined,
+                        mentorPhone: event.isGroupEvent ? mentorPhone : undefined,
+                        registrationDetails: Object.keys(regDetails).length ? regDetails : undefined,
+                        paymentDetails: paymentData,
+                        isVirtual: selectedVirtualMode,
+                    }),
+                { retries: 1, delayMs: 1200 }
+            );
 
             if (result.success) {
                 toast.success("Registration Submitted! Redirecting to My Competitions...");
