@@ -19,7 +19,7 @@ interface SearchedUser {
 
 interface GroupMember {
     name: string;
-    phone: string;
+    phone?: string;
     gender: string;
     inGameName?: string;
     inGameId?: string;
@@ -55,8 +55,11 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
     const [memberInGameId, setMemberInGameId] = useState("");
     const [memberRiotId, setMemberRiotId] = useState("");
     const [isVirtual, setIsVirtual] = useState(false);
-    const [createIfMissing, setCreateIfMissing] = useState(false);
-    const [newUserGender, setNewUserGender] = useState<"" | "MALE" | "FEMALE">("");
+    const [allowSameEmailMultiple, setAllowSameEmailMultiple] = useState(true);
+    const [manualLeadName, setManualLeadName] = useState("");
+    const [manualLeadPhone, setManualLeadPhone] = useState("");
+    const [manualLeadGender, setManualLeadGender] = useState<"" | "MALE" | "FEMALE" | "OTHER">("");
+    const [manualCollegeName, setManualCollegeName] = useState("Manual Registration");
     const [pending, startTransition] = useTransition();
 
     const handleSearch = async (query: string) => {
@@ -117,10 +120,6 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
             toast.error("Please enter member name");
             return;
         }
-        if (!memberPhone.trim()) {
-            toast.error("Please enter member phone number");
-            return;
-        }
         if (!memberGender) {
             toast.error("Please select member gender");
             return;
@@ -146,7 +145,7 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
 
         const memberObj: GroupMember = {
             name: memberName.trim(),
-            phone: memberPhone.trim(),
+            phone: memberPhone.trim() || undefined,
             gender: memberGender,
         };
         if (needsInGameFields) {
@@ -178,8 +177,8 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
             toast.error("Please enter a user email");
             return;
         }
-        if (createIfMissing && !newUserGender) {
-            toast.error("Please select gender for auto-created users");
+        if (regType === "EVENT" && (!manualLeadName.trim() || !manualLeadPhone.trim() || !manualLeadGender)) {
+            toast.error("Please enter team lead name, phone and gender");
             return;
         }
         if (!file || !utr || !payee) {
@@ -272,8 +271,12 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                 teamLeadRiotId: needsInGameFields && isValorant ? teamLeadRiotId.trim() : undefined,
              } : undefined, {
                 isVirtual,
-                createUserIfNotFound: createIfMissing,
-                newUserGender: createIfMissing ? newUserGender || undefined : undefined,
+                createUserIfNotFound: true,
+                allowSameEmailMultipleRegistrations: allowSameEmailMultiple,
+                manualLeadName: manualLeadName.trim(),
+                manualLeadPhone: manualLeadPhone.trim(),
+                manualLeadGender: manualLeadGender || undefined,
+                manualCollegeName: manualCollegeName.trim() || "Manual Registration",
              });
 
              if (res.success) {
@@ -283,6 +286,9 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                 setUtr("");
                 setPayee("");
                 setIsVirtual(false);
+                setManualLeadName("");
+                setManualLeadPhone("");
+                setManualLeadGender("");
                 clearGroupForm();
              } else {
                 toast.error(res.error);
@@ -366,36 +372,64 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
             </div>
 
             {regType === "EVENT" && (
-                <div className="space-y-2 rounded-lg border border-zinc-700 bg-zinc-800/30 p-3">
-                    <label className="flex items-start gap-2 text-sm text-zinc-300">
+                <div className="space-y-3 rounded-lg border border-zinc-700 bg-zinc-800/30 p-3">
+                    <p className="text-xs text-zinc-400">
+                        Special case mode: register by email even if user never signed in on website.
+                    </p>
+                    <div>
+                        <label className="block text-xs mb-1 text-zinc-400">Team Lead Name *</label>
                         <input
-                            type="checkbox"
-                            checked={createIfMissing}
-                            onChange={(e) => {
-                                setCreateIfMissing(e.target.checked);
-                                if (!e.target.checked) setNewUserGender("");
-                            }}
-                            className="mt-0.5"
+                            type="text"
+                            value={manualLeadName}
+                            onChange={(e) => setManualLeadName(e.target.value)}
+                            className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                            placeholder="Enter team lead name"
                         />
-                        Create user if email not found
-                    </label>
-                    {createIfMissing && (
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <div>
-                            <label className="block text-xs mb-1 text-zinc-400">Gender for new user *</label>
+                            <label className="block text-xs mb-1 text-zinc-400">Team Lead Phone *</label>
+                            <input
+                                type="text"
+                                value={manualLeadPhone}
+                                onChange={(e) => setManualLeadPhone(e.target.value)}
+                                className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                placeholder="Enter team lead phone"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs mb-1 text-zinc-400">Team Lead Gender *</label>
                             <select
-                                value={newUserGender}
-                                onChange={(e) => setNewUserGender(e.target.value as "" | "MALE" | "FEMALE")}
+                                value={manualLeadGender}
+                                onChange={(e) => setManualLeadGender(e.target.value as "" | "MALE" | "FEMALE" | "OTHER")}
                                 className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
                             >
                                 <option value="">Select gender</option>
                                 <option value="MALE">Male</option>
                                 <option value="FEMALE">Female</option>
+                                <option value="OTHER">Other</option>
                             </select>
-                            <p className="text-[11px] text-zinc-500 mt-1">
-                                New user defaults: random name/phone/college, city Bangalore, state Karnataka.
-                            </p>
                         </div>
-                    )}
+                    </div>
+                    <div>
+                        <label className="block text-xs mb-1 text-zinc-400">College Name</label>
+                        <input
+                            type="text"
+                            value={manualCollegeName}
+                            onChange={(e) => setManualCollegeName(e.target.value)}
+                            className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                            placeholder="Manual Registration"
+                        />
+                    </div>
+                    <label className="flex items-start gap-2 text-sm text-zinc-300">
+                        <input
+                            type="checkbox"
+                            checked={allowSameEmailMultiple}
+                            onChange={(e) => setAllowSameEmailMultiple(e.target.checked)}
+                            className="mt-0.5"
+                        />
+                        Allow same email to register for same event multiple times
+                    </label>
                 </div>
             )}
 
@@ -474,7 +508,7 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                     {isSelectedGroupEvent && (
                         <div className="space-y-3 rounded-lg border border-zinc-700 bg-zinc-800/40 p-3">
                             <p className="text-xs text-zinc-400">
-                                Group Event: add team details (same flow as competition registration). Team leader is the selected user email above.
+                                Group Event: add team details (same flow as competition registration). Team leader details come from the Special case section above.
                             </p>
 
                             <div>
@@ -581,7 +615,7 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                                         type="text"
                                         value={memberPhone}
                                         onChange={(e) => setMemberPhone(e.target.value)}
-                                        placeholder="Member phone"
+                                        placeholder="Member phone (optional)"
                                         className="bg-zinc-800 p-2 rounded text-white border border-zinc-700"
                                     />
                                     <select

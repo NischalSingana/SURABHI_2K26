@@ -417,7 +417,8 @@ export default function EventRegistrationPage() {
             if (result.success) {
                 toast.success("Registration Submitted! Redirecting to My Competitions...");
                 setShowPaymentModal(false);
-                router.push("/profile/competitions");
+                router.replace(`/profile/competitions?registered=1&t=${Date.now()}`);
+                router.refresh();
             } else {
                 toast.error(result.error || "Registration failed");
             }

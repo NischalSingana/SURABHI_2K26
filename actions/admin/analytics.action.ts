@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { Role } from "@prisma/client";
+import { isRegistrationComplete } from "@/lib/registration-check";
 
 export async function getUserStats() {
     try {
@@ -19,18 +20,43 @@ export async function getUserStats() {
         const [
             totalUsers,
             approvedUsers,
-            pendingUsers,
             paymentApproved,
-            paymentPending,
-            paymentRejected
+            paymentRejected,
+            usersForRegistrationCheck,
         ] = await Promise.all([
             prisma.user.count(),
             prisma.user.count({ where: { isApproved: true } }),
-            prisma.user.count({ where: { isApproved: false } }),
             prisma.user.count({ where: { paymentStatus: "APPROVED" } }),
-            prisma.user.count({ where: { paymentStatus: "PENDING" } }),
             prisma.user.count({ where: { paymentStatus: "REJECTED" } }),
+            prisma.user.findMany({
+                select: {
+                    isApproved: true,
+                    isInternational: true,
+                    collage: true,
+                    collageId: true,
+                    branch: true,
+                    year: true,
+                    phone: true,
+                    state: true,
+                    city: true,
+                    country: true,
+                },
+            }),
         ]);
+
+        let pendingUsers = 0;
+        let incompleteUsers = 0;
+
+        for (const user of usersForRegistrationCheck) {
+            const complete = isRegistrationComplete(user);
+            if (!complete) {
+                incompleteUsers += 1;
+                continue;
+            }
+            if (!user.isApproved) {
+                pendingUsers += 1;
+            }
+        }
 
         return {
             success: true,
@@ -39,7 +65,7 @@ export async function getUserStats() {
                 approved: approvedUsers,
                 pending: pendingUsers,
                 paymentApproved,
-                paymentPending,
+                paymentPending: incompleteUsers,
                 paymentRejected,
             },
         };

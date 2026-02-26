@@ -9,11 +9,17 @@ import { logAdminActivity } from "@/lib/admin-logs";
 
 interface GroupMember {
     name: string;
-    phone: string;
+  phone?: string;
     gender: string;
     inGameName?: string;
     inGameId?: string;
     riotId?: string;
+}
+
+function getManualContactEmail(registrationDetails: Prisma.JsonValue | null | undefined): string | null {
+    if (!registrationDetails || typeof registrationDetails !== "object" || Array.isArray(registrationDetails)) return null;
+    const value = (registrationDetails as Record<string, unknown>).manualContactEmail;
+    return typeof value === "string" && value.trim() ? value.trim().toLowerCase() : null;
 }
 
 export async function getPendingRegistrations() {
@@ -351,6 +357,8 @@ export async function updateRegistrationStatus(
                     select: { id: true, name: true, email: true, phone: true, collage: true, collageId: true, gender: true, state: true, city: true, isInternational: true },
                 });
                 if (!userFull) return;
+                const manualContactEmail = getManualContactEmail(registration.registrationDetails);
+                const destinationEmail = manualContactEmail || userFull.email;
 
                 const isInternational = !!userFull.isInternational;
                 const isVirtual = !!registration.isVirtual;
@@ -366,7 +374,7 @@ export async function updateRegistrationStatus(
                             pdfBuffer = await generateTicketPDF({
                                 userId: userFull.id,
                                 name: userFull.name || "Participant",
-                                email: userFull.email,
+                                email: destinationEmail,
                                 phone: userFull.phone,
                                 collage: userFull.collage,
                                 collageId: userFull.collageId,
@@ -382,7 +390,7 @@ export async function updateRegistrationStatus(
                         }
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
                         await sendEventConfirmationEmail(
-                            { name: userFull.name || "User", email: userFull.email },
+                            { name: userFull.name || "User", email: destinationEmail },
                             {
                                 name: registration.event.name,
                                 date: registration.event.date,
@@ -484,6 +492,8 @@ export async function updateRegistrationStatus(
                     select: { id: true, name: true, email: true, phone: true, collage: true, collageId: true, gender: true, state: true, city: true, isInternational: true },
                 });
                 if (!lead) return;
+                const manualContactEmail = getManualContactEmail(registration.registrationDetails);
+                const destinationEmail = manualContactEmail || lead.email;
 
                 const members = (registration.members as unknown as GroupMember[]) || [];
                 const groupName = registration.groupName || "Team";
@@ -501,7 +511,7 @@ export async function updateRegistrationStatus(
                             pdfBuffer = await generateTicketPDF({
                                 userId: lead.id,
                                 name: lead.name || "Team Lead",
-                                email: lead.email,
+                                email: destinationEmail,
                                 phone: lead.phone,
                                 collage: lead.collage,
                                 collageId: lead.collageId,
@@ -519,7 +529,7 @@ export async function updateRegistrationStatus(
                         }
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
                         await sendEventConfirmationEmail(
-                            { name: lead.name || "User", email: lead.email },
+                            { name: lead.name || "User", email: destinationEmail },
                             {
                                 name: registration.event.name,
                                 date: registration.event.date,

@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
 import { useSession } from "@/lib/auth-client";
+import { withRetry } from "@/lib/retry";
 
 interface Event {
     id: string;
@@ -77,27 +78,45 @@ export default function MyEventsPage() {
     const [showSubmissionModal, setShowSubmissionModal] = useState(false);
     const [unregistering, setUnregistering] = useState<string | null>(null);
     const [showUnregisterConfirm, setShowUnregisterConfirm] = useState<string | null>(null);
+    const [fetchError, setFetchError] = useState<string | null>(null);
     // const [hasGoogleAccount, setHasGoogleAccount] = useState(false); // Unused
     // const isKL = !!session?.user?.email?.endsWith("@kluniversity.in"); // Unused
     const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
 
     const fetchMyEvents = useCallback(async () => {
-        const result = await getUserRegisteredEvents();
-        if (result.success && result.data) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const eventsData = result.data.map((e: any) => ({
-                ...e,
-                slug: e.slug || "", // Ensure slug exists
-            }));
-            setEvents(eventsData);
-            setSubmissions(result.submissions || []);
-             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            setGroupRegistrations((result.groupRegistrations || []).map((g: any) => ({
-                ...g,
-                members: g.members as Member[]
-            })));
+        setFetchError(null);
+        try {
+            const result = await withRetry(async () => {
+                const res = await getUserRegisteredEvents();
+                if (!res.success) {
+                    throw new Error(res.error || "Unable to load your competition registrations right now.");
+                }
+                return res;
+            }, { retries: 2, delayMs: 1200 });
+
+            if (result.data) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const eventsData = result.data.map((e: any) => ({
+                    ...e,
+                    slug: e.slug || "", // Ensure slug exists
+                }));
+                setEvents(eventsData);
+                setSubmissions(result.submissions || []);
+                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setGroupRegistrations((result.groupRegistrations || []).map((g: any) => ({
+                    ...g,
+                    members: g.members as Member[]
+                })));
+            }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Unable to load your competition registrations right now.";
+            setFetchError(message);
+            setEvents([]);
+            setSubmissions([]);
+            setGroupRegistrations([]);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }, []);
 
     useEffect(() => {
@@ -161,7 +180,28 @@ export default function MyEventsPage() {
                 </div>
 
                 {/* Events List */}
-                {events.length === 0 ? (
+                {fetchError ? (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-center py-16"
+                    >
+                        <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <FiX size={40} className="text-zinc-500" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-white mb-2">Could not load registrations</h3>
+                        <p className="text-zinc-400 mb-6">{fetchError}</p>
+                        <button
+                            onClick={() => {
+                                setLoading(true);
+                                fetchMyEvents();
+                            }}
+                            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
+                        >
+                            Retry
+                        </button>
+                    </motion.div>
+                ) : events.length === 0 ? (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}

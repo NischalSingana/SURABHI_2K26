@@ -1134,8 +1134,8 @@ export default function RegistrationAnalyticsClient() {
                                                                                         })()}
                                                                                     </div>
 
-                                                                                    {/* Show table only when a college is selected */}
-                                                                                    {expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college && (
+                                                                                    {/* Show table for current competition; when no toggle is selected, show all colleges */}
+                                                                                    {expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && (
                                                         <div className="overflow-x-auto rounded-lg border border-zinc-800/50 bg-zinc-900/30">
                                                             <table className="w-full text-sm">
                                                                 <thead className="bg-zinc-800/50 border-b border-zinc-800/50">
@@ -1154,6 +1154,7 @@ export default function RegistrationAnalyticsClient() {
                                                                     {competition.individual.registrations
                                                                         .filter((reg: any) => {
                                                                             const isKL = isKLUniversity(reg.user);
+                                                                            if (!expandedCollege.college) return true;
                                                                             return expandedCollege.college === "kl" ? isKL : !isKL;
                                                                         })
                                                                         .map((reg: any) => (
@@ -1295,12 +1296,13 @@ export default function RegistrationAnalyticsClient() {
                                                                                         })()}
                                                                                     </div>
 
-                                                                                    {/* Enhanced Team List */}
-                                                                                    {expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college && (
+                                                                                    {/* Enhanced Team List (defaults to all colleges if no toggle selected) */}
+                                                                                    {expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && (
                                                                                         <div className="space-y-5">
                                                                                             {competition.team.registrations
                                                                                                 .filter((reg: any) => {
                                                                                                     const isKL = isKLUniversity(reg.user);
+                                                                                                    if (!expandedCollege.college) return true;
                                                                                                     return expandedCollege.college === "kl" ? isKL : !isKL;
                                                                                                 })
                                                                                                                                 .map((reg: any, teamIdx: number) => {

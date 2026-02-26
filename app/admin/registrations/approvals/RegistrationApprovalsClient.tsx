@@ -27,8 +27,14 @@ function isKLUniversity(reg: { user?: { email?: string | null; collage?: string 
     );
 }
 
+function isVirtualParticipation(reg: { isVirtual?: boolean | null; user?: { isInternational?: boolean } | null }): boolean {
+    // Legacy-safe: treat international registrations as virtual even if old rows missed isVirtual.
+    return !!reg.isVirtual || !!reg.user?.isInternational;
+}
+
 type Registration = {
     id: string;
+    isVirtual?: boolean | null;
     user: {
         name: string | null;
         email: string;
@@ -443,6 +449,11 @@ export default function RegistrationApprovalsClient() {
                                         <td className="px-6 py-4">
                                             <div className="font-medium text-white flex items-center gap-2">
                                                 {reg.user.name || "Unknown"}
+                                                {isVirtualParticipation(reg) && (
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-sky-900/30 text-sky-400 border border-sky-700/50">
+                                                        Virtual Participation
+                                                    </span>
+                                                )}
                                                 {reg.user.isInternational && (
                                                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-900/30 text-amber-400 border border-amber-700/50">
                                                         International

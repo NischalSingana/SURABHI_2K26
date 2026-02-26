@@ -656,7 +656,7 @@ export async function deleteEvent(id: string) {
 
 interface GroupMember {
   name: string;
-  phone: string;
+  phone?: string;
   gender: string;
   inGameName?: string;
   inGameId?: string;  // Free Fire, BGMI
@@ -1328,6 +1328,11 @@ export async function registerUserByAdmin(
     isVirtual?: boolean;
     createUserIfNotFound?: boolean;
     newUserGender?: "MALE" | "FEMALE";
+    allowSameEmailMultipleRegistrations?: boolean;
+    manualLeadName?: string;
+    manualLeadPhone?: string;
+    manualLeadGender?: "MALE" | "FEMALE" | "OTHER";
+    manualCollegeName?: string;
   }
 ) {
   try {
@@ -1345,6 +1350,11 @@ export async function registerUserByAdmin(
       return { success: false, error: "Email is required." };
     }
 
+    const leadNameInput = adminOptions?.manualLeadName?.trim();
+    const leadPhoneInput = adminOptions?.manualLeadPhone?.trim();
+    const leadGenderInput = adminOptions?.manualLeadGender;
+    const manualCollegeName = adminOptions?.manualCollegeName?.trim() || "Manual Registration";
+
     // 1. Find target user (or create placeholder when enabled by admin)
     let targetUser = await prisma.user.findUnique({
       where: { email: normalizedEmail },
@@ -1359,21 +1369,28 @@ export async function registerUserByAdmin(
       }
     });
 
-    if (!targetUser && adminOptions?.createUserIfNotFound) {
-      if (!adminOptions.newUserGender) {
-        return { success: false, error: "Please choose gender for new user creation." };
+    const shouldCreateIfMissing = adminOptions?.createUserIfNotFound ?? true;
+    if (!targetUser && shouldCreateIfMissing) {
+      if (!leadGenderInput && !adminOptions?.newUserGender) {
+        return { success: false, error: "Please choose lead gender for new user creation." };
       }
       const seed = Math.floor(100000 + Math.random() * 900000).toString();
-      const phone = `9${Math.floor(100000000 + Math.random() * 900000000)}`;
+      const phone = leadPhoneInput || `9${Math.floor(100000000 + Math.random() * 900000000)}`;
+      const mappedGender =
+        leadGenderInput === "FEMALE" || adminOptions?.newUserGender === "FEMALE"
+          ? "Female"
+          : leadGenderInput === "OTHER"
+            ? "Other"
+            : "Male";
       const created = await prisma.user.create({
         data: {
           id: crypto.randomUUID(),
           email: normalizedEmail,
-          name: `Manual User ${seed}`,
-          collage: `Other College ${seed.slice(-3)}`,
+          name: leadNameInput || `Manual User ${seed}`,
+          collage: manualCollegeName,
           collageId: `MANUAL-${seed}`,
           phone,
-          gender: adminOptions.newUserGender === "FEMALE" ? "Female" : "Male",
+          gender: mappedGender,
           city: "Bangalore",
           state: "Karnataka",
           country: "India",
@@ -1400,6 +1417,14 @@ export async function registerUserByAdmin(
     // Use transaction with serializable isolation to prevent race conditions
     const registrationResult = await prisma.$transaction(
       async (tx) => {
+        const makeShadowEmail = (email: string) => {
+          const [local, domain] = email.split("@");
+          const safeLocal = (local || "manual").replace(/[^a-zA-Z0-9._+-]/g, "");
+          const safeDomain = (domain || "manual.local").replace(/[^a-zA-Z0-9.-]/g, "");
+          const stamp = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
+          return `${safeLocal}+manual-${stamp}@${safeDomain}`;
+        };
+
         const event = await tx.event.findUnique({
             where: { id: eventId },
             include: {
@@ -1439,7 +1464,7 @@ export async function registerUserByAdmin(
         }
 
         // Check existing registrations for this user+event
-        const existingIndividualReg = await tx.individualRegistration.findUnique({
+        let existingIndividualReg = await tx.individualRegistration.findUnique({
             where: {
             userId_eventId: {
                 userId: targetUser.id,
@@ -1447,7 +1472,7 @@ export async function registerUserByAdmin(
             }
             }
         });
-        const existingGroupReg = await tx.groupRegistration.findUnique({
+        let existingGroupReg = await tx.groupRegistration.findUnique({
             where: {
               userId_eventId: {
                 userId: targetUser.id,
@@ -1455,6 +1480,49 @@ export async function registerUserByAdmin(
               },
             },
         });
+        let effectiveUser = targetUser;
+
+        const hasActiveExistingReg =
+          (existingIndividualReg && existingIndividualReg.paymentStatus !== "REJECTED") ||
+          (existingGroupReg && existingGroupReg.paymentStatus !== "REJECTED");
+        const allowSameEmailMultiple = !!adminOptions?.allowSameEmailMultipleRegistrations;
+
+        if (hasActiveExistingReg && allowSameEmailMultiple) {
+          const seed = Math.floor(100000 + Math.random() * 900000).toString();
+          const mappedGender =
+            leadGenderInput === "FEMALE"
+              ? "Female"
+              : leadGenderInput === "OTHER"
+                ? "Other"
+                : "Male";
+          const shadow = await tx.user.create({
+            data: {
+              id: crypto.randomUUID(),
+              email: makeShadowEmail(normalizedEmail),
+              name: leadNameInput || targetUser.name || `Manual User ${seed}`,
+              collage: manualCollegeName,
+              collageId: `MANUAL-${seed}`,
+              phone: leadPhoneInput || `9${Math.floor(100000000 + Math.random() * 900000000)}`,
+              gender: mappedGender,
+              city: "Bangalore",
+              state: "Karnataka",
+              country: "India",
+              isApproved: true,
+            },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              isApproved: true,
+              state: true,
+              collage: true,
+              isInternational: true,
+            },
+          });
+          effectiveUser = shadow;
+          existingIndividualReg = null;
+          existingGroupReg = null;
+        }
 
         if (event.isGroupEvent) {
             if (!groupDetails?.groupName?.trim()) {
@@ -1466,8 +1534,8 @@ export async function registerUserByAdmin(
               throw new Error(`Team size must be between ${event.minTeamSize} and ${event.maxTeamSize} (including leader).`);
             }
             for (const member of members) {
-              if (!member.name?.trim() || !member.phone?.trim() || !member.gender?.trim()) {
-                throw new Error("Each team member must include name, phone, and gender.");
+              if (!member.name?.trim() || !member.gender?.trim()) {
+                throw new Error("Each team member must include name and gender.");
               }
             }
 
@@ -1492,13 +1560,18 @@ export async function registerUserByAdmin(
             const newGroupReg = await tx.groupRegistration.create({
               data: {
                 eventId,
-                userId: targetUser.id,
+                userId: effectiveUser.id,
                 groupName: groupDetails.groupName.trim(),
                 members: members as unknown as Prisma.InputJsonValue,
                 mentorName: groupDetails.mentorName?.trim() || null,
                 mentorPhone: groupDetails.mentorPhone?.trim() || null,
                 registrationDetails: (() => {
                   const details: Record<string, string> = {};
+                  details.manualContactEmail = normalizedEmail;
+                  if (leadNameInput) details.manualLeadName = leadNameInput;
+                  if (leadPhoneInput) details.manualLeadPhone = leadPhoneInput;
+                  if (leadGenderInput) details.manualLeadGender = leadGenderInput;
+                  details.manualCollegeName = manualCollegeName;
                   if (groupDetails.teamLeadInGameName?.trim()) {
                     details.teamLeadInGameName = groupDetails.teamLeadInGameName.trim();
                   }
@@ -1523,7 +1596,7 @@ export async function registerUserByAdmin(
             return {
               success: true,
               eventName: event.name,
-              userName: targetUser.name,
+              userName: effectiveUser.name,
               regId: newGroupReg.id,
               regType: "GROUP" as const,
             };
@@ -1549,8 +1622,15 @@ export async function registerUserByAdmin(
             // Create Individual Registration Record
             const newReg = await tx.individualRegistration.create({
                 data: {
-                userId: targetUser.id,
+                userId: effectiveUser.id,
                 eventId: eventId,
+                registrationDetails: {
+                  manualContactEmail: normalizedEmail,
+                  ...(leadNameInput ? { manualLeadName: leadNameInput } : {}),
+                  ...(leadPhoneInput ? { manualLeadPhone: leadPhoneInput } : {}),
+                  ...(leadGenderInput ? { manualLeadGender: leadGenderInput } : {}),
+                  manualCollegeName,
+                } as Prisma.InputJsonValue,
                 paymentScreenshot: paymentDetails.paymentScreenshot,
                 utrId: paymentDetails.utrId,
                 payeeName: paymentDetails.payeeName,
@@ -1559,7 +1639,7 @@ export async function registerUserByAdmin(
                 },
             });
             
-            return { success: true, eventName: event.name, userName: targetUser.name, regId: newReg.id, regType: "INDIVIDUAL" as const };
+            return { success: true, eventName: event.name, userName: effectiveUser.name, regId: newReg.id, regType: "INDIVIDUAL" as const };
         }
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }

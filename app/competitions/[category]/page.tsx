@@ -260,7 +260,8 @@ function CategoryPageContent() {
         setRegisteredEvents(prev => new Set(prev).add(selectedEvent.id));
 
         toast.success("Registration submitted! Redirecting to My Competitions...");
-        router.push("/profile/competitions");
+        router.replace(`/profile/competitions?registered=1&t=${Date.now()}`);
+        router.refresh();
       } else {
         setRegistrationStatus({
           loading: false,
