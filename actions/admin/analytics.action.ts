@@ -312,6 +312,7 @@ export async function getDailyReportStats() {
                         user: {
                             select: {
                                 email: true,
+                                collage: true,
                             },
                         },
                     },
@@ -324,6 +325,7 @@ export async function getDailyReportStats() {
                         user: {
                             select: {
                                 email: true,
+                                collage: true,
                             },
                         },
                     },
@@ -340,8 +342,26 @@ export async function getDailyReportStats() {
         const reportData = events.map(event => {
             const individualRegs = event.individualRegistrations;
             const groupRegs = event.groupRegistrations;
+            const isTekken8 = event.name.toLowerCase().includes("tekken 8");
 
-            const isKL = (email: string) => email.endsWith("@kluniversity.in");
+            const isKL = (user: { email?: string | null; collage?: string | null }) => {
+                const email = (user.email || "").toLowerCase();
+                const collage = (user.collage || "").toLowerCase();
+                return (
+                    email.endsWith("@kluniversity.in") ||
+                    collage.includes("kl university") ||
+                    collage.includes("koneru") ||
+                    collage.includes("klef")
+                );
+            };
+
+            // Business rule: Tekken 8 is KL-only in reporting.
+            const effectiveIndividualRegs = isTekken8
+                ? individualRegs.filter((r) => isKL(r.user))
+                : individualRegs;
+            const effectiveGroupRegs = isTekken8
+                ? groupRegs.filter((r) => isKL(r.user))
+                : groupRegs;
             const getTeamParticipants = (members: unknown) => {
                 const memberCount = Array.isArray(members)
                     ? members.length
@@ -351,11 +371,11 @@ export async function getDailyReportStats() {
                 return 1 + memberCount; // team lead + members
             };
 
-            const klIndividualParticipants = individualRegs.filter(r => isKL(r.user.email)).length;
-            const otherIndividualParticipants = individualRegs.filter(r => !isKL(r.user.email)).length;
+            const klIndividualParticipants = effectiveIndividualRegs.filter(r => isKL(r.user)).length;
+            const otherIndividualParticipants = effectiveIndividualRegs.filter(r => !isKL(r.user)).length;
 
-            const klTeamRegs = groupRegs.filter(r => isKL(r.user.email));
-            const otherTeamRegs = groupRegs.filter(r => !isKL(r.user.email));
+            const klTeamRegs = effectiveGroupRegs.filter(r => isKL(r.user));
+            const otherTeamRegs = effectiveGroupRegs.filter(r => !isKL(r.user));
             const klTeamParticipants = klTeamRegs.reduce((acc, reg) => acc + getTeamParticipants(reg.members), 0);
             const otherTeamParticipants = otherTeamRegs.reduce((acc, reg) => acc + getTeamParticipants(reg.members), 0);
 
@@ -363,11 +383,11 @@ export async function getDailyReportStats() {
             const otherTeams = otherTeamRegs.length;
 
             const eventVirtualParticipants =
-                individualRegs.reduce((acc, reg) => acc + (reg.isVirtual ? 1 : 0), 0) +
-                groupRegs.reduce((acc, reg) => acc + (reg.isVirtual ? getTeamParticipants(reg.members) : 0), 0);
+                effectiveIndividualRegs.reduce((acc, reg) => acc + (reg.isVirtual ? 1 : 0), 0) +
+                effectiveGroupRegs.reduce((acc, reg) => acc + (reg.isVirtual ? getTeamParticipants(reg.members) : 0), 0);
             const eventPhysicalParticipants =
-                individualRegs.reduce((acc, reg) => acc + (!reg.isVirtual ? 1 : 0), 0) +
-                groupRegs.reduce((acc, reg) => acc + (!reg.isVirtual ? getTeamParticipants(reg.members) : 0), 0);
+                effectiveIndividualRegs.reduce((acc, reg) => acc + (!reg.isVirtual ? 1 : 0), 0) +
+                effectiveGroupRegs.reduce((acc, reg) => acc + (!reg.isVirtual ? getTeamParticipants(reg.members) : 0), 0);
             const eventTotalParticipants = eventVirtualParticipants + eventPhysicalParticipants;
 
             const totalParticipantsByCollege = klIndividualParticipants + otherIndividualParticipants + klTeamParticipants + otherTeamParticipants;
