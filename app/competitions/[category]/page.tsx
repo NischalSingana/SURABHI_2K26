@@ -109,8 +109,6 @@ function CategoryPageContent() {
 
   const { data: session } = useSession();
   const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
-  const userCollege = (session?.user as { collage?: string | null } | undefined)?.collage?.toLowerCase();
-  const isKLStudent = !!session?.user?.email?.toLowerCase().endsWith("@kluniversity.in") || userCollege === "kl university";
 
   const getEmbedUrl = (url: string) => {
     if (!url) return null;
@@ -301,12 +299,8 @@ function CategoryPageContent() {
     return <Loader />;
   }
 
-  const isKurukshetraCategory = categorySlug.toLowerCase().includes("kurukshetra") || categoryDisplayName.toLowerCase().includes("kurukshetra");
-  const shouldHideTekkenForUser = !!session?.user && !isInternational && !isKLStudent && isKurukshetraCategory;
-  const policyFilteredEvents = events.filter((event) => !(shouldHideTekkenForUser && event.name.toLowerCase().includes("tekken 8")));
-
   // Filter events based on search query
-  const filteredEvents = policyFilteredEvents.filter((event) =>
+  const filteredEvents = events.filter((event) =>
     event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.venue.toLowerCase().includes(searchQuery.toLowerCase())
@@ -382,7 +376,7 @@ function CategoryPageContent() {
             transition={{ delay: 0.1 }}
             className="text-zinc-400 text-base md:text-xl"
           >
-            {policyFilteredEvents.length} {policyFilteredEvents.length === 1 ? "event" : "events"} available
+            {events.length} {events.length === 1 ? "event" : "events"} available
           </motion.p>
         </div>
 

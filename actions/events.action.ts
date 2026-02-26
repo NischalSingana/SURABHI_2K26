@@ -33,10 +33,6 @@ function isKurukshetraEvent(categoryName?: string | null): boolean {
   return (categoryName ?? "").toLowerCase().includes("kurukshetra");
 }
 
-function isTekken8EventName(eventName?: string | null): boolean {
-  return (eventName ?? "").toLowerCase().includes("tekken 8");
-}
-
 function isNationalMockParliamentEventName(eventName?: string | null): boolean {
   return (eventName ?? "").toLowerCase().includes("national mock parliament");
 }
@@ -768,20 +764,10 @@ export async function registerGroupEvent(
       select: { name: true, Category: { select: { name: true } } },
     });
     const kurukshetraEvent = isKurukshetraEvent(eventMeta?.Category?.name);
-    const tekken8Event = isTekken8EventName(eventMeta?.name);
     const isKLStudent = isKLStudentProfile({
       email: userWithState?.email ?? session.user.email,
       collage: userWithState?.collage ?? null,
     });
-
-    if (!isInternational && tekken8Event) {
-      if (!isKLStudent) {
-        return { success: false, error: "Tekken 8 is only for KL students." };
-      }
-      if (isVirtual) {
-        return { success: false, error: "Tekken 8 is physical-only for KL students." };
-      }
-    }
 
     if (!isInternational && kurukshetraEvent) {
       if (isKLStudent && isVirtual) {
@@ -1014,20 +1000,10 @@ export async function registerForEvent(
       select: { name: true, Category: { select: { name: true } } },
     });
     const kurukshetraEvent = isKurukshetraEvent(eventMeta?.Category?.name);
-    const tekken8Event = isTekken8EventName(eventMeta?.name);
     const isKLStudent = isKLStudentProfile({
       email: userWithState?.email ?? session.user.email,
       collage: userWithState?.collage ?? null,
     });
-
-    if (!isInternational && tekken8Event) {
-      if (!isKLStudent) {
-        return { success: false, error: "Tekken 8 is only for KL students." };
-      }
-      if (isVirtual) {
-        return { success: false, error: "Tekken 8 is physical-only for KL students." };
-      }
-    }
 
     if (!isInternational && kurukshetraEvent) {
       if (isKLStudent && isVirtual) {
@@ -1537,20 +1513,10 @@ export async function registerUserByAdmin(
 
         const isVirtual = !!adminOptions?.isVirtual;
         const kurukshetraEvent = isKurukshetraEvent(event.Category?.name);
-        const tekken8Event = isTekken8EventName(event.name);
         const isKLStudent = isKLStudentProfile({
           email: targetUser.email,
           collage: targetUser.collage ?? null,
         });
-
-        if (tekken8Event) {
-          if (!isKLStudent) {
-            throw new Error("Tekken 8 is only for KL students.");
-          }
-          if (isVirtual) {
-            throw new Error("Tekken 8 is physical-only for KL students.");
-          }
-        }
 
         if (kurukshetraEvent) {
           if (isKLStudent && isVirtual) {

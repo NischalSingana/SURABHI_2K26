@@ -262,12 +262,6 @@ export default function EventRegistrationPage() {
         const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
         const userCollege = (session?.user as { collage?: string | null } | undefined)?.collage?.toLowerCase();
         const isKLStudent = !!session?.user?.email?.toLowerCase().endsWith("@kluniversity.in") || userCollege === "kl university";
-        const isTekken8Event = !!event?.name?.toLowerCase().includes("tekken 8");
-
-        if (isTekken8Event && !isInternational && !isKLStudent) {
-            toast.error("Tekken 8 is only for KL students.");
-            return;
-        }
 
         // Validate Group Registration Fields
         if (event?.isGroupEvent) {
@@ -629,10 +623,8 @@ export default function EventRegistrationPage() {
     const isKLStudent = !!session?.user?.email?.toLowerCase().endsWith("@kluniversity.in") || userCollege === "kl university";
     const eventCategoryName = event.Category?.name?.toLowerCase() ?? "";
     const isKurukshetraEvent = categorySlug.toLowerCase().includes("kurukshetra") || eventCategoryName.includes("kurukshetra");
-    const isTekken8Event = event.name.toLowerCase().includes("tekken 8");
     const isKurukshetraOtherCollegeVirtualOnly = isKurukshetraEvent && !isInternational && !isKLStudent;
     const isKurukshetraKLPhysicalOnly = isKurukshetraEvent && !isInternational && isKLStudent;
-    const isTekkenRestrictedForUser = isTekken8Event && !isInternational && !isKLStudent;
     const effectiveIsVirtual = isKurukshetraOtherCollegeVirtualOnly ? true : (isKurukshetraKLPhysicalOnly ? false : isVirtual);
     const virtualEligibility = session?.user ? checkVirtualEligibility({
         email: session.user.email,
@@ -644,28 +636,6 @@ export default function EventRegistrationPage() {
     const memberCount = event.isGroupEvent ? teamSize : 1;
     const feePerPerson = isInternational ? 0 : getRegistrationFee(effectiveIsVirtual);
     const totalFee = memberCount * feePerPerson;
-
-    if (isTekkenRestrictedForUser) {
-        return (
-            <div className="min-h-screen bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-3xl mx-auto">
-                    <button
-                        onClick={() => router.push(`/competitions/${categorySlug}`)}
-                        className="flex items-center text-zinc-400 hover:text-white mb-8 transition-colors"
-                    >
-                        <FiChevronLeft className="mr-2" />
-                        Back to Kurukshetra
-                    </button>
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8">
-                        <h1 className="text-2xl md:text-3xl font-bold text-white mb-3">Registration Restricted</h1>
-                        <p className="text-zinc-300">
-                            Tekken 8 is available only for KL students, and only in physical mode.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="min-h-screen bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8 relative">
