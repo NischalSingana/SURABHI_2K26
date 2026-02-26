@@ -936,14 +936,34 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
 
                       {formData.college === "INTERNATIONAL" && (
                         <>
-                          <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
-                            <p className="text-green-300 text-base font-medium">
-                              Free registration for international students. Sign in with Google to continue. All competitions are virtual with virtual evaluation by judges.
+                          <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/30 space-y-3">
+                            <h3 className="text-amber-200 text-base font-semibold">
+                              International Student Registration Notice
+                            </h3>
+                            <p className="text-amber-100 text-sm">
+                              Before creating an account, please read the following instructions carefully:
+                            </p>
+                            <ul className="list-disc pl-5 space-y-2 text-amber-100 text-sm">
+                              <li>
+                                The International Student category is strictly for students who are currently residing and studying outside India.
+                              </li>
+                              <li>
+                                Students who are international by origin (for example, NRI/Foreign nationals) but are currently studying in India must register under:
+                              </li>
+                              <li>
+                                Other College Student (Non-KL University Student) - if studying at any Indian institution other than KL University.
+                              </li>
+                              <li>
+                                KL University Student - if currently enrolled at KL University (must register using your official KL University email ID).
+                              </li>
+                            </ul>
+                            <p className="text-amber-100 text-sm">
+                              Please ensure you select the correct category during registration to avoid disqualification or account issues.
                             </p>
                           </div>
-                          <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
-                            <p className="text-amber-300 text-sm font-medium">
-                              ⚠️ This registration is only for international students who are currently residing outside India. If you are currently in India (at any college), please go back and register under &quot;KL University&quot; (if you are from KL University) or &quot;Other College (India)&quot;.
+                          <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+                            <p className="text-green-300 text-sm font-medium">
+                              Free registration for international students. Sign in with Google to continue. All competitions are virtual with virtual evaluation by judges.
                             </p>
                           </div>
                           <SignInOAuthButton provider="google" signup={true} collegeType="INTERNATIONAL" />

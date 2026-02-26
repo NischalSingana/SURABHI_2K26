@@ -5,7 +5,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { FiExternalLink } from "react-icons/fi";
-import { useSession } from "@/lib/auth-client";
 
 import ScheduleFlowLine from "./ScheduleFlowLine";
 
@@ -125,11 +124,6 @@ function ScheduleTimeline() {
   const [categorySlugMap, setCategorySlugMap] = useState<Record<string, string>>({});
   const [apiCategories, setApiCategories] = useState<ApiCategory[]>([]);
   const reducedMotion = useReducedMotion();
-  const { data: session } = useSession();
-  const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
-  const userCollege = (session?.user as { collage?: string | null } | undefined)?.collage?.toLowerCase();
-  const isKLStudent = !!session?.user?.email?.toLowerCase().endsWith("@kluniversity.in") || userCollege === "kl university";
-  const hideTekkenForUser = !!session?.user && !isInternational && !isKLStudent;
 
   useEffect(() => {
     fetch("/api/categories")
@@ -242,11 +236,7 @@ function ScheduleTimeline() {
                               )}
                             </div>
                             <div className="flex flex-wrap gap-2">
-                              {category.events.filter((eventName) => {
-                                if (!hideTekkenForUser) return true;
-                                if (!category.name.toLowerCase().includes("kurukshetra")) return true;
-                                return !eventName.toLowerCase().includes("tekken 8");
-                              }).map((event, eventIndex) => {
+                              {category.events.map((event, eventIndex) => {
                                 const eventMatch = findEventSlug(event, category.name, apiCategories);
                                 const href = eventMatch
                                   ? `/competitions/${eventMatch.categorySlug}/${eventMatch.eventSlug}`
@@ -334,11 +324,7 @@ function ScheduleTimeline() {
                               )}
                             </div>
                             <div className="flex flex-wrap gap-2">
-                              {category.events.filter((eventName) => {
-                                if (!hideTekkenForUser) return true;
-                                if (!category.name.toLowerCase().includes("kurukshetra")) return true;
-                                return !eventName.toLowerCase().includes("tekken 8");
-                              }).map((event) => {
+                              {category.events.map((event) => {
                                   const eventMatch = findEventSlug(event, category.name, apiCategories);
                                   const href = eventMatch
                                     ? `/competitions/${eventMatch.categorySlug}/${eventMatch.eventSlug}`

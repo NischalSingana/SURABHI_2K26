@@ -423,30 +423,6 @@ function EventDetailPageContent() {
     );
   }
 
-  const userCollege = (session?.user as { collage?: string | null } | undefined)?.collage?.toLowerCase();
-  const isKLStudent = !!session?.user?.email?.toLowerCase().endsWith("@kluniversity.in") || userCollege === "kl university";
-  const isTekken8Event = event.name.toLowerCase().includes("tekken 8");
-  const isTekkenRestrictedForUser = !!session?.user && isTekken8Event && !isInternational && !isKLStudent;
-
-  if (isTekkenRestrictedForUser) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center px-4">
-        <div className="text-center max-w-xl">
-          <p className="text-white text-2xl font-semibold mb-3">Access Restricted</p>
-          <p className="text-zinc-300 mb-6">
-            Tekken 8 is available only for KL students, and only in physical mode.
-          </p>
-          <button
-            onClick={() => router.push(`/competitions/${categorySlug}`)}
-            className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
-          >
-            Back to Kurukshetra
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-black pt-16">
       <ShareModal
