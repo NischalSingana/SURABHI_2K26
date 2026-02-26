@@ -496,6 +496,10 @@ export async function updateRegistrationStatus(
                 const destinationEmail = manualContactEmail || lead.email;
 
                 const members = (registration.members as unknown as GroupMember[]) || [];
+                const membersForTicket = members.map((member) => ({
+                    ...member,
+                    phone: member.phone || "-",
+                }));
                 const groupName = registration.groupName || "Team";
                 const isInternational = !!lead.isInternational;
                 const isVirtual = !!registration.isVirtual;
@@ -520,7 +524,7 @@ export async function updateRegistrationStatus(
                                 eventName: registration.event.name,
                                 isGroupEvent: true,
                                 groupName: groupName,
-                                teamMembers: members,
+                                teamMembers: membersForTicket,
                                 eventId: registration.event.id,
                                 gender: lead.gender,
                                 state: lead.state,
