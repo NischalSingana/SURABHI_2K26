@@ -43,6 +43,36 @@ interface RegistrationData {
   phoneNumber?: string;
 }
 
+const STALE_CLIENT_RELOAD_KEY = "surabhi_profile_registration_reload_once";
+
+function isLikelyStaleClientError(message: string): boolean {
+  const msg = message.toLowerCase();
+  return (
+    msg.includes("failed to fetch") ||
+    msg.includes("load failed") ||
+    msg.includes("fetch failed") ||
+    msg.includes("loading chunk") ||
+    msg.includes("chunkloaderror") ||
+    msg.includes("unexpected response was received from the server") ||
+    msg.includes("failed to execute 'json' on 'response'")
+  );
+}
+
+function reloadToLatestBuild() {
+  if (typeof window === "undefined") return;
+
+  try {
+    if (sessionStorage.getItem(STALE_CLIENT_RELOAD_KEY) === "1") return;
+    sessionStorage.setItem(STALE_CLIENT_RELOAD_KEY, "1");
+  } catch {
+    // Ignore storage failures; continue with reload fallback.
+  }
+
+  const url = new URL(window.location.href);
+  url.searchParams.set("refresh", Date.now().toString());
+  window.location.replace(url.toString());
+}
+
 const COLLEGES = [
   { label: "KL University", value: "KL University" },
   { label: "Other College (India)", value: "Other College" },
@@ -83,6 +113,7 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasAutoAdvanced, setHasAutoAdvanced] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [isRefreshingForUpdate, setIsRefreshingForUpdate] = useState(false);
   const stateCitySectionRef = useRef<HTMLDivElement>(null);
 
   // If user has existing data and is authenticated, start on step 3 so they can complete missing fields
@@ -648,8 +679,10 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
       }, 1000); // Increased delay to show success message
     } catch (error) {
       const msg = error instanceof Error ? error.message : "";
-      if (msg.includes("Failed to fetch") || msg.includes("Load failed") || msg.includes("fetch failed") || msg.includes("Loading chunk") || msg.includes("ChunkLoadError")) {
-        toast.error("Please logout and login again to use the latest version of the website. Upload the same payment screenshot and details and register again if your past registration failed.", { duration: 10000 });
+      if (isLikelyStaleClientError(msg)) {
+        setIsRefreshingForUpdate(true);
+        toast.error("Website was just updated. Reloading to latest version... Please submit the same details again after refresh.", { duration: 6000 });
+        setTimeout(() => reloadToLatestBuild(), 500);
       } else {
         toast.error(msg || "Registration failed. Please try again.");
       }
@@ -705,6 +738,11 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
 
   return (
     <div className="w-full min-h-screen py-12 bg-linear-to-br from-zinc-950 via-zinc-900 to-black flex flex-col">
+      {isRefreshingForUpdate && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-md bg-amber-500/15 border border-amber-500/40 text-amber-200 text-sm shadow-lg">
+          We updated the site, reloading...
+        </div>
+      )}
       {/* Header */}
       <div className="w-full px-6 py-10">
         <div className="max-w-4xl mx-auto">

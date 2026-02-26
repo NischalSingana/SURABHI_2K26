@@ -30,6 +30,36 @@ declare global {
     }
 }
 
+const STALE_CLIENT_RELOAD_KEY = "surabhi_registration_reload_once";
+
+function isLikelyStaleClientError(message: string): boolean {
+    const msg = message.toLowerCase();
+    return (
+        msg.includes("failed to fetch") ||
+        msg.includes("load failed") ||
+        msg.includes("fetch failed") ||
+        msg.includes("loading chunk") ||
+        msg.includes("chunkloaderror") ||
+        msg.includes("unexpected response was received from the server") ||
+        msg.includes("failed to execute 'json' on 'response'")
+    );
+}
+
+function reloadToLatestBuild() {
+    if (typeof window === "undefined") return;
+
+    try {
+        if (sessionStorage.getItem(STALE_CLIENT_RELOAD_KEY) === "1") return;
+        sessionStorage.setItem(STALE_CLIENT_RELOAD_KEY, "1");
+    } catch {
+        // Ignore storage failures; continue with reload fallback.
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("refresh", Date.now().toString());
+    window.location.replace(url.toString());
+}
+
 interface Event {
     id: string;
     name: string;
@@ -133,6 +163,7 @@ export default function EventRegistrationPage() {
     const [paymentStep, setPaymentStep] = useState(0); // 0: Summary, 1: Payment Input
     const [paymentProcessing, setPaymentProcessing] = useState(false);
     const [isReviewing, setIsReviewing] = useState(false);
+    const [isRefreshingForUpdate, setIsRefreshingForUpdate] = useState(false);
 
     // Payment Details State
     const [paymentDetails, setPaymentDetails] = useState({
@@ -320,7 +351,9 @@ export default function EventRegistrationPage() {
             const currentVersion = preflight.appVersion || "";
             const clientVersion = (typeof window !== "undefined" ? window.__APP_VERSION__ : "") || "";
             if (currentVersion && clientVersion && currentVersion !== clientVersion) {
-                toast.error("Please logout and login again to use the latest version of the website. Upload the same payment screenshot and details and register again if your past registration failed.", { duration: 10000 });
+                setIsRefreshingForUpdate(true);
+                toast.error("Website was just updated. Reloading to latest version... Please re-upload the same payment screenshot after refresh.", { duration: 6000 });
+                setTimeout(() => reloadToLatestBuild(), 500);
                 return;
             }
         } catch {
@@ -391,17 +424,10 @@ export default function EventRegistrationPage() {
         } catch (err: unknown) {
             console.error("Registration error:", err);
             const msg = (err as Error).message || "";
-            const msgLower = msg.toLowerCase();
-            if (
-                msgLower.includes("failed to fetch") ||
-                msgLower.includes("load failed") ||
-                msgLower.includes("fetch failed") ||
-                msgLower.includes("loading chunk") ||
-                msgLower.includes("chunkloaderror") ||
-                msgLower.includes("unexpected response was received from the server") ||
-                msgLower.includes("failed to execute 'json' on 'response'")
-            ) {
-                toast.error("Please logout and login again to use the latest version of the website. Upload the same payment screenshot and details and register again if your past registration failed.", { duration: 10000 });
+            if (isLikelyStaleClientError(msg)) {
+                setIsRefreshingForUpdate(true);
+                toast.error("Looks like an outdated page cache. Reloading to latest version... Please re-upload the same payment screenshot after refresh.", { duration: 6000 });
+                setTimeout(() => reloadToLatestBuild(), 500);
             } else {
                 toast.error(msg || "An unexpected error occurred");
             }
@@ -578,6 +604,11 @@ export default function EventRegistrationPage() {
 
     return (
         <div className="min-h-screen bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8 relative">
+            {isRefreshingForUpdate && (
+                <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-md bg-amber-500/15 border border-amber-500/40 text-amber-200 text-sm shadow-lg">
+                    We updated the site, reloading...
+                </div>
+            )}
             <style jsx global>{scrollbarStyles}</style>
             <div className="max-w-3xl mx-auto">
                 <button

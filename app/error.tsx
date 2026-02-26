@@ -35,9 +35,9 @@ export default function Error({
         </h2>
         {isChunkError ? (
           <p className="text-zinc-400 text-sm leading-relaxed">
-            Please logout and login again to use the latest version of the
-            website. Upload the same payment screenshot and details and register
-            again if your past registration failed.
+            A new deployment is available and this page is out of date. Please
+            refresh to load the latest version, then retry registration with the
+            same details.
           </p>
         ) : (
           <p className="text-zinc-400 text-sm">
