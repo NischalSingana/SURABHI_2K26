@@ -88,6 +88,17 @@ interface DetailedEvent {
     groupRegistrations: GroupRegistration[];
 }
 
+function isKLUser(user: RegistrationUser): boolean {
+    const email = user.email?.toLowerCase() || "";
+    const collage = (user.collage || "").toLowerCase();
+    return (
+        email.endsWith("@kluniversity.in") ||
+        collage.includes("kl university") ||
+        collage.includes("koneru") ||
+        collage.includes("klef")
+    );
+}
+
 export default function AnalyticsPage() {
     const [userStats, setUserStats] = useState<UserStats | null>(null);
     const [eventStats, setEventStats] = useState<EventStats | null>(null);
@@ -444,7 +455,7 @@ export default function AnalyticsPage() {
                 return;
             }
 
-            const doc = new jsPDF();
+            const doc = new jsPDF("l", "mm", "a4");
             const timestamp = new Date().toLocaleString("en-GB", {
                 day: "2-digit",
                 month: "2-digit",
@@ -460,9 +471,111 @@ export default function AnalyticsPage() {
                 eventId: string;
                 eventName: string;
                 categoryName: string;
-                klStats: { total: number; newToday: number; previousTotal: number };
-                nonKlStats: { total: number; newToday: number; previousTotal: number };
+                isGroupEvent: boolean;
+                participants: { kl: number; other: number; total: number };
+                teams: { kl: number; other: number; total: number };
+                virtualParticipants: number;
+                physicalParticipants: number;
+                totalParticipants: number;
             }
+            const typedReportData = reportData as DailyReportItem[];
+            const overallVirtualParticipants = typedReportData.reduce((acc, item) => acc + item.virtualParticipants, 0);
+            const overallPhysicalParticipants = typedReportData.reduce((acc, item) => acc + item.physicalParticipants, 0);
+
+            const summary = {
+                totalParticipants: 0,
+                overallOther: 0,
+                overallKl: 0,
+                overallMale: 0,
+                overallFemale: 0,
+                individualTotal: 0,
+                individualOther: 0,
+                individualKl: 0,
+                individualMale: 0,
+                individualFemale: 0,
+                teamTotalTeams: 0,
+                teamOtherTeams: 0,
+                teamKlTeams: 0,
+                teamOtherParticipants: 0,
+                teamKlParticipants: 0,
+                teamTotalParticipants: 0,
+                teamMale: 0,
+                teamFemale: 0,
+            };
+
+            detailedEvents.forEach((event) => {
+                event.individualRegistrations.forEach((reg) => {
+                    const isKL = isKLUser(reg.user);
+                    const gender = (reg.user.gender || "").toUpperCase();
+                    summary.individualTotal += 1;
+                    summary.totalParticipants += 1;
+                    if (isKL) summary.individualKl += 1;
+                    else summary.individualOther += 1;
+                    if (isKL) summary.overallKl += 1;
+                    else summary.overallOther += 1;
+                    if (gender === "MALE") {
+                        summary.individualMale += 1;
+                        summary.overallMale += 1;
+                    } else if (gender === "FEMALE") {
+                        summary.individualFemale += 1;
+                        summary.overallFemale += 1;
+                    }
+                });
+
+                event.groupRegistrations.forEach((reg) => {
+                    const isKL = isKLUser(reg.user);
+                    const leadGender = (reg.user.gender || "").toUpperCase();
+                    summary.teamTotalTeams += 1;
+                    if (isKL) summary.teamKlTeams += 1;
+                    else summary.teamOtherTeams += 1;
+
+                    // Team lead is one participant
+                    summary.teamTotalParticipants += 1;
+                    summary.totalParticipants += 1;
+                    if (isKL) {
+                        summary.teamKlParticipants += 1;
+                        summary.overallKl += 1;
+                    } else {
+                        summary.teamOtherParticipants += 1;
+                        summary.overallOther += 1;
+                    }
+                    if (leadGender === "MALE") {
+                        summary.teamMale += 1;
+                        summary.overallMale += 1;
+                    } else if (leadGender === "FEMALE") {
+                        summary.teamFemale += 1;
+                        summary.overallFemale += 1;
+                    }
+
+                    const membersValue = reg.members;
+                    let membersList: Array<{ gender?: string }> = [];
+                    if (Array.isArray(membersValue)) {
+                        membersList = membersValue as Array<{ gender?: string }>;
+                    } else if (membersValue && typeof membersValue === "object") {
+                        membersList = Object.values(membersValue as Record<string, { gender?: string }>);
+                    }
+
+                    membersList.forEach((member) => {
+                        const memberGender = (member?.gender || "").toUpperCase();
+                        summary.teamTotalParticipants += 1;
+                        summary.totalParticipants += 1;
+                        if (isKL) {
+                            summary.teamKlParticipants += 1;
+                            summary.overallKl += 1;
+                        } else {
+                            summary.teamOtherParticipants += 1;
+                            summary.overallOther += 1;
+                        }
+                        if (memberGender === "MALE") {
+                            summary.teamMale += 1;
+                            summary.overallMale += 1;
+                        } else if (memberGender === "FEMALE") {
+                            summary.teamFemale += 1;
+                            summary.overallFemale += 1;
+                        }
+                    });
+                });
+            });
 
             // Single report grouped by Category -> Competition (no separate KL/Other pages)
             doc.setFontSize(16);
@@ -475,17 +588,85 @@ export default function AnalyticsPage() {
             doc.setTextColor(0, 0, 0); // Reset color
             doc.setFontSize(8);
             doc.text(`Note: Counts represent total participants (including group members).`, 14, 26);
-            const groupedByCategory = reportData.reduce<Record<string, DailyReportItem[]>>((acc, item) => {
+            let currentY = 32;
+
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text("Summary at a Glance", 14, currentY);
+            currentY += 3;
+
+            autoTable(doc, {
+                startY: currentY,
+                head: [["TOTAL PARTICIPANTS", String(summary.totalParticipants)]],
+                body: [
+                    ["Other Colleges", String(summary.overallOther)],
+                    ["KL University", String(summary.overallKl)],
+                    ["Male", String(summary.overallMale)],
+                    ["Female", String(summary.overallFemale)],
+                    ["Virtual Participants", String(overallVirtualParticipants)],
+                    ["Physical Participants", String(overallPhysicalParticipants)],
+                ],
+                theme: "grid",
+                headStyles: { fillColor: [52, 73, 94], textColor: 255, fontStyle: "bold" },
+                styles: { fontSize: 9, cellPadding: 2.5, fontStyle: "bold" },
+                margin: { left: 14, right: 14 },
+                columnStyles: { 1: { halign: "right" } },
+            });
+            currentY = ((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? currentY) + 4;
+
+            autoTable(doc, {
+                startY: currentY,
+                head: [["INDIVIDUAL REGISTRATIONS", String(summary.individualTotal)]],
+                body: [
+                    ["Other Colleges", String(summary.individualOther)],
+                    ["KL University", String(summary.individualKl)],
+                    ["Male", String(summary.individualMale)],
+                    ["Female", String(summary.individualFemale)],
+                ],
+                theme: "grid",
+                headStyles: { fillColor: [39, 174, 96], textColor: 255, fontStyle: "bold" },
+                styles: { fontSize: 9, cellPadding: 2.5, fontStyle: "bold" },
+                margin: { left: 14, right: 14 },
+                columnStyles: { 1: { halign: "right" } },
+            });
+            currentY = ((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? currentY) + 4;
+
+            autoTable(doc, {
+                startY: currentY,
+                head: [["TEAM REGISTRATIONS", String(summary.teamTotalTeams)]],
+                body: [
+                    ["Total Participants", String(summary.teamTotalParticipants)],
+                    ["Other College Teams", String(summary.teamOtherTeams)],
+                    ["KL Teams", String(summary.teamKlTeams)],
+                    ["Participants (Other College)", String(summary.teamOtherParticipants)],
+                    ["Participants (KL University)", String(summary.teamKlParticipants)],
+                    ["Male", String(summary.teamMale)],
+                    ["Female", String(summary.teamFemale)],
+                ],
+                theme: "grid",
+                headStyles: { fillColor: [142, 68, 173], textColor: 255, fontStyle: "bold" },
+                styles: { fontSize: 9, cellPadding: 2.5, fontStyle: "bold" },
+                margin: { left: 14, right: 14 },
+                columnStyles: { 1: { halign: "right" } },
+            });
+            currentY = ((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? currentY) + 8;
+
+            if (currentY > 250) {
+                doc.addPage();
+                currentY = 20;
+            }
+
+            const groupedByCategory = typedReportData.reduce<Record<string, DailyReportItem[]>>((acc, item: DailyReportItem) => {
                 if (!acc[item.categoryName]) acc[item.categoryName] = [];
                 acc[item.categoryName].push(item);
                 return acc;
             }, {});
-
-            let currentY = 34;
             const categoryNames = Object.keys(groupedByCategory).sort((a, b) => a.localeCompare(b));
 
             categoryNames.forEach((categoryName, index) => {
                 const items = groupedByCategory[categoryName].sort((a, b) => a.eventName.localeCompare(b.eventName));
+                const soloItems = items.filter((item) => !item.isGroupEvent);
+                const groupItems = items.filter((item) => item.isGroupEvent);
 
                 if (currentY > 250 || (index > 0 && currentY > 230)) {
                     doc.addPage();
@@ -496,36 +677,91 @@ export default function AnalyticsPage() {
                 doc.setFont("helvetica", "bold");
                 doc.setTextColor(33, 33, 33);
                 doc.text(`Category: ${categoryName}`, 14, currentY);
-                currentY += 4;
+                currentY += 5;
 
-                const rows = items.map((item) => {
-                    const totalRegistered = item.klStats.total + item.nonKlStats.total;
-                    const newToday = item.klStats.newToday + item.nonKlStats.newToday;
-                    const previousTotal = Math.max(0, totalRegistered - newToday);
-                    const increase = previousTotal > 0
-                        ? ((newToday / previousTotal) * 100).toFixed(1) + "%"
-                        : newToday > 0 ? "100%" : "0%";
+                if (soloItems.length > 0) {
+                    if (currentY > 245) {
+                        doc.addPage();
+                        currentY = 20;
+                    }
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "bold");
+                    doc.text("Solo Competitions (Total Members)", 14, currentY);
+                    currentY += 2;
 
-                    return [
+                    const soloRows = soloItems.map((item: DailyReportItem) => [
                         item.eventName,
-                        totalRegistered,
-                        newToday,
-                        increase,
-                    ];
-                });
+                        String(item.participants.total),
+                        String(item.participants.kl),
+                        String(item.participants.other),
+                        String(item.virtualParticipants),
+                        String(item.physicalParticipants),
+                    ]);
 
-                autoTable(doc, {
-                    startY: currentY,
-                    head: [["Competition", "Total Registered", "New Today", "% Increase"]],
-                    body: rows,
-                    theme: "grid",
-                    headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 9 },
-                    styles: { fontSize: 9, cellPadding: 2.5 },
-                    margin: { left: 14, right: 14 },
-                });
+                    autoTable(doc, {
+                        startY: currentY,
+                        head: [[
+                            "Competition",
+                            "Total Members",
+                            "KL Participants",
+                            "Other Participants",
+                            "Virtual Participants",
+                            "Physical Participants",
+                        ]],
+                        body: soloRows,
+                        theme: "grid",
+                        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 9, fontStyle: "bold" },
+                        styles: { fontSize: 8, cellPadding: 2.2, fontStyle: "bold" },
+                        margin: { left: 14, right: 14 },
+                    });
 
-                const finalY = (doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY;
-                currentY = (finalY ?? currentY) + 8;
+                    currentY = ((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? currentY) + 6;
+                }
+
+                if (groupItems.length > 0) {
+                    if (currentY > 245) {
+                        doc.addPage();
+                        currentY = 20;
+                    }
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "bold");
+                    doc.text("Group Competitions (Teams + Participants)", 14, currentY);
+                    currentY += 2;
+
+                    const groupRows = groupItems.map((item: DailyReportItem) => [
+                        item.eventName,
+                        String(item.teams.total),
+                        String(item.teams.kl),
+                        String(item.teams.other),
+                        String(item.participants.kl),
+                        String(item.participants.other),
+                        String(item.virtualParticipants),
+                        String(item.physicalParticipants),
+                        `${item.teams.total} groups = ${item.totalParticipants} members`,
+                    ]);
+
+                    autoTable(doc, {
+                        startY: currentY,
+                        head: [[
+                            "Competition",
+                            "Total Teams",
+                            "KL Teams",
+                            "Other Teams",
+                            "KL Participants",
+                            "Other Participants",
+                            "Virtual Participants",
+                            "Physical Participants",
+                            "Total Participants (Groups = Members)",
+                        ]],
+                        body: groupRows,
+                        theme: "grid",
+                        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 9, fontStyle: "bold" },
+                        styles: { fontSize: 8, cellPadding: 2.2, fontStyle: "bold" },
+                        margin: { left: 14, right: 14 },
+                    });
+
+                    currentY = ((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? currentY) + 8;
+                }
             });
 
             doc.save(`Daily_Report_${new Date().toISOString().split('T')[0]}.pdf`);

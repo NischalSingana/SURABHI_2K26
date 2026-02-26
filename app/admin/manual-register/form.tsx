@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { registerUserByAdmin, searchUsers } from "@/actions/events.action";
+import { getUserByEmail, registerUserByAdmin, searchUsers } from "@/actions/events.action";
 import { registerVisitorPassByAdmin } from "@/actions/pass.action";
 import { uploadPaymentScreenshot } from "@/actions/upload.action";
 import { Category, Event } from "@prisma/client";
@@ -60,7 +60,51 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
     const [manualLeadPhone, setManualLeadPhone] = useState("");
     const [manualLeadGender, setManualLeadGender] = useState<"" | "MALE" | "FEMALE" | "OTHER">("");
     const [manualCollegeName, setManualCollegeName] = useState("Manual Registration");
+    const [isSpecialCaseMode, setIsSpecialCaseMode] = useState(false);
+    const [isCheckingEmailUser, setIsCheckingEmailUser] = useState(false);
     const [pending, startTransition] = useTransition();
+
+    useEffect(() => {
+        let cancelled = false;
+        const normalizedEmail = email.trim().toLowerCase();
+
+        // Special-case is only for event registrations.
+        if (regType !== "EVENT") {
+            setIsSpecialCaseMode(false);
+            setIsCheckingEmailUser(false);
+            return;
+        }
+
+        // Wait until a valid email is entered before checking.
+        const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+        if (!isValidEmail) {
+            setIsSpecialCaseMode(false);
+            setIsCheckingEmailUser(false);
+            return;
+        }
+
+        setIsCheckingEmailUser(true);
+        const timer = setTimeout(async () => {
+            try {
+                const res = await getUserByEmail(normalizedEmail);
+                if (cancelled) return;
+                const exists = !!res.success && !!res.user;
+                // Turn special-case ON only when user is not found.
+                setIsSpecialCaseMode(!exists);
+            } catch {
+                if (cancelled) return;
+                // Be safe: keep special-case off if lookup fails.
+                setIsSpecialCaseMode(false);
+            } finally {
+                if (!cancelled) setIsCheckingEmailUser(false);
+            }
+        }, 350);
+
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
+    }, [email, regType]);
 
     const handleSearch = async (query: string) => {
         setEmail(query);
@@ -177,7 +221,7 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
             toast.error("Please enter a user email");
             return;
         }
-        if (regType === "EVENT" && (!manualLeadName.trim() || !manualLeadPhone.trim() || !manualLeadGender)) {
+        if (regType === "EVENT" && isSpecialCaseMode && (!manualLeadName.trim() || !manualLeadPhone.trim() || !manualLeadGender)) {
             toast.error("Please enter team lead name, phone and gender");
             return;
         }
@@ -271,12 +315,12 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                 teamLeadRiotId: needsInGameFields && isValorant ? teamLeadRiotId.trim() : undefined,
              } : undefined, {
                 isVirtual,
-                createUserIfNotFound: true,
-                allowSameEmailMultipleRegistrations: allowSameEmailMultiple,
-                manualLeadName: manualLeadName.trim(),
-                manualLeadPhone: manualLeadPhone.trim(),
-                manualLeadGender: manualLeadGender || undefined,
-                manualCollegeName: manualCollegeName.trim() || "Manual Registration",
+                createUserIfNotFound: isSpecialCaseMode,
+                allowSameEmailMultipleRegistrations: isSpecialCaseMode ? allowSameEmailMultiple : false,
+                manualLeadName: isSpecialCaseMode ? manualLeadName.trim() : undefined,
+                manualLeadPhone: isSpecialCaseMode ? manualLeadPhone.trim() : undefined,
+                manualLeadGender: isSpecialCaseMode ? (manualLeadGender || undefined) : undefined,
+                manualCollegeName: isSpecialCaseMode ? (manualCollegeName.trim() || "Manual Registration") : undefined,
              });
 
              if (res.success) {
@@ -373,63 +417,77 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
 
             {regType === "EVENT" && (
                 <div className="space-y-3 rounded-lg border border-zinc-700 bg-zinc-800/30 p-3">
-                    <p className="text-xs text-zinc-400">
-                        Special case mode: register by email even if user never signed in on website.
-                    </p>
-                    <div>
-                        <label className="block text-xs mb-1 text-zinc-400">Team Lead Name *</label>
-                        <input
-                            type="text"
-                            value={manualLeadName}
-                            onChange={(e) => setManualLeadName(e.target.value)}
-                            className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
-                            placeholder="Enter team lead name"
-                        />
+                    <div className="flex items-center justify-between text-xs">
+                        <p className="text-zinc-400">
+                            Special case mode (auto): ON only when entered email is not found on website.
+                        </p>
+                        <span className={`px-2 py-1 rounded border ${
+                            isSpecialCaseMode
+                                ? "text-amber-200 border-amber-500/40 bg-amber-500/10"
+                                : "text-zinc-300 border-zinc-600 bg-zinc-700/30"
+                        }`}>
+                            {isCheckingEmailUser ? "Checking..." : isSpecialCaseMode ? "ON" : "OFF"}
+                        </span>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <div>
-                            <label className="block text-xs mb-1 text-zinc-400">Team Lead Phone *</label>
-                            <input
-                                type="text"
-                                value={manualLeadPhone}
-                                onChange={(e) => setManualLeadPhone(e.target.value)}
-                                className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
-                                placeholder="Enter team lead phone"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs mb-1 text-zinc-400">Team Lead Gender *</label>
-                            <select
-                                value={manualLeadGender}
-                                onChange={(e) => setManualLeadGender(e.target.value as "" | "MALE" | "FEMALE" | "OTHER")}
-                                className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
-                            >
-                                <option value="">Select gender</option>
-                                <option value="MALE">Male</option>
-                                <option value="FEMALE">Female</option>
-                                <option value="OTHER">Other</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-xs mb-1 text-zinc-400">College Name</label>
-                        <input
-                            type="text"
-                            value={manualCollegeName}
-                            onChange={(e) => setManualCollegeName(e.target.value)}
-                            className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
-                            placeholder="Manual Registration"
-                        />
-                    </div>
-                    <label className="flex items-start gap-2 text-sm text-zinc-300">
-                        <input
-                            type="checkbox"
-                            checked={allowSameEmailMultiple}
-                            onChange={(e) => setAllowSameEmailMultiple(e.target.checked)}
-                            className="mt-0.5"
-                        />
-                        Allow same email to register for same event multiple times
-                    </label>
+
+                    {isSpecialCaseMode && (
+                        <>
+                            <div>
+                                <label className="block text-xs mb-1 text-zinc-400">Team Lead Name *</label>
+                                <input
+                                    type="text"
+                                    value={manualLeadName}
+                                    onChange={(e) => setManualLeadName(e.target.value)}
+                                    className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                    placeholder="Enter team lead name"
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div>
+                                    <label className="block text-xs mb-1 text-zinc-400">Team Lead Phone *</label>
+                                    <input
+                                        type="text"
+                                        value={manualLeadPhone}
+                                        onChange={(e) => setManualLeadPhone(e.target.value)}
+                                        className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                        placeholder="Enter team lead phone"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs mb-1 text-zinc-400">Team Lead Gender *</label>
+                                    <select
+                                        value={manualLeadGender}
+                                        onChange={(e) => setManualLeadGender(e.target.value as "" | "MALE" | "FEMALE" | "OTHER")}
+                                        className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                    >
+                                        <option value="">Select gender</option>
+                                        <option value="MALE">Male</option>
+                                        <option value="FEMALE">Female</option>
+                                        <option value="OTHER">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs mb-1 text-zinc-400">College Name</label>
+                                <input
+                                    type="text"
+                                    value={manualCollegeName}
+                                    onChange={(e) => setManualCollegeName(e.target.value)}
+                                    className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                                    placeholder="Manual Registration"
+                                />
+                            </div>
+                            <label className="flex items-start gap-2 text-sm text-zinc-300">
+                                <input
+                                    type="checkbox"
+                                    checked={allowSameEmailMultiple}
+                                    onChange={(e) => setAllowSameEmailMultiple(e.target.checked)}
+                                    className="mt-0.5"
+                                />
+                                Allow same email to register for same event multiple times
+                            </label>
+                        </>
+                    )}
                 </div>
             )}
 

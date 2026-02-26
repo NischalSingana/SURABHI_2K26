@@ -260,6 +260,13 @@ interface Event {
   brochureLink?: string | null;
 }
 
+function getEffectiveParticipantLimit(event: Pick<Event, "name" | "participantLimit">): number {
+  if (event.name.toLowerCase().includes("national mock parliament")) {
+    return 50;
+  }
+  return event.participantLimit;
+}
+
 function EventDetailPageContent() {
   const params = useParams();
   const router = useRouter();
@@ -410,6 +417,30 @@ function EventDetailPageContent() {
             className="text-red-500 hover:text-red-400"
           >
             Back to Competitions
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const userCollege = (session?.user as { collage?: string | null } | undefined)?.collage?.toLowerCase();
+  const isKLStudent = !!session?.user?.email?.toLowerCase().endsWith("@kluniversity.in") || userCollege === "kl university";
+  const isTekken8Event = event.name.toLowerCase().includes("tekken 8");
+  const isTekkenRestrictedForUser = !!session?.user && isTekken8Event && !isInternational && !isKLStudent;
+
+  if (isTekkenRestrictedForUser) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+        <div className="text-center max-w-xl">
+          <p className="text-white text-2xl font-semibold mb-3">Access Restricted</p>
+          <p className="text-zinc-300 mb-6">
+            Tekken 8 is available only for KL students, and only in physical mode.
+          </p>
+          <button
+            onClick={() => router.push(`/competitions/${categorySlug}`)}
+            className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+          >
+            Back to Kurukshetra
           </button>
         </div>
       </div>
@@ -583,16 +614,20 @@ function EventDetailPageContent() {
                   ) : (
                     <>
                       {/* 2nd Prize - Silver */}
-                      <div className="bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-zinc-400/50 hover:bg-zinc-800/80 transition-all group/card">
-                        <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-zinc-300 transition-colors">2nd Prize</span>
-                        <span className="text-2xl font-bold text-zinc-300 drop-shadow-sm">{PRIZE_DATA[event.name].second}</span>
-                      </div>
+                      {PRIZE_DATA[event.name].second && (
+                        <div className="bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-zinc-400/50 hover:bg-zinc-800/80 transition-all group/card">
+                          <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-zinc-300 transition-colors">2nd Prize</span>
+                          <span className="text-2xl font-bold text-zinc-300 drop-shadow-sm">{PRIZE_DATA[event.name].second}</span>
+                        </div>
+                      )}
                       
                       {/* 3rd Prize - Bronze */}
-                      <div className="bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-orange-700/50 hover:bg-zinc-800/80 transition-all group/card">
-                        <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-orange-400 transition-colors">3rd Prize</span>
-                        <span className="text-2xl font-bold text-orange-400 drop-shadow-sm">{PRIZE_DATA[event.name].third}</span>
-                      </div>
+                      {PRIZE_DATA[event.name].third && (
+                        <div className="bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-orange-700/50 hover:bg-zinc-800/80 transition-all group/card">
+                          <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-orange-400 transition-colors">3rd Prize</span>
+                          <span className="text-2xl font-bold text-orange-400 drop-shadow-sm">{PRIZE_DATA[event.name].third}</span>
+                        </div>
+                      )}
 
                       {PRIZE_DATA[event.name].fourth && (
                         <div className="bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-zinc-600/50 hover:bg-zinc-800/80 transition-all group/card">
@@ -858,14 +893,14 @@ function EventDetailPageContent() {
                     router.push(`/competitions/${categorySlug}/${slug}/register`);
                   }}
                   disabled={
-                    (event._count.individualRegistrations + event._count.groupRegistrations) >= event.participantLimit ||
+                    (event._count.individualRegistrations + event._count.groupRegistrations) >= getEffectiveParticipantLimit(event) ||
                     checkingRegistration
                   }
                   className="w-full mt-6 px-6 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-red-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {checkingRegistration
                     ? "Loading..."
-                    : (event._count.individualRegistrations + event._count.groupRegistrations) >= event.participantLimit
+                    : (event._count.individualRegistrations + event._count.groupRegistrations) >= getEffectiveParticipantLimit(event)
                       ? "Event Full"
                       : "Register Now"}
                 </motion.button>

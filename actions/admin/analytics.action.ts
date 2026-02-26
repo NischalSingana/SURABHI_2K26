@@ -295,14 +295,11 @@ export async function getDailyReportStats() {
             throw new Error("Unauthorized");
         }
 
-        // Get start of today (local time consideration might be needed, using server time for now)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
         const events = await prisma.event.findMany({
             select: {
                 id: true,
                 name: true,
+                isGroupEvent: true,
                 Category: {
                     select: {
                         name: true,
@@ -311,7 +308,7 @@ export async function getDailyReportStats() {
                 individualRegistrations: {
                     where: { paymentStatus: { not: "REJECTED" } },
                     select: {
-                        createdAt: true,
+                        isVirtual: true,
                         user: {
                             select: {
                                 email: true,
@@ -322,7 +319,7 @@ export async function getDailyReportStats() {
                 groupRegistrations: {
                     where: { paymentStatus: { not: "REJECTED" } },
                     select: {
-                        createdAt: true,
+                        isVirtual: true,
                         members: true,
                         user: {
                             select: {
@@ -345,53 +342,55 @@ export async function getDailyReportStats() {
             const groupRegs = event.groupRegistrations;
 
             const isKL = (email: string) => email.endsWith("@kluniversity.in");
-            const isToday = (date: Date) => new Date(date) >= today;
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const getParticipantCount = (groupRegs: any[]) => {
-                return groupRegs.reduce((acc, reg) => {
-                    const members = reg.members;
-                    const memberCount = Array.isArray(members) ? members.length : (members ? Object.keys(members).length : 0);
-                    return acc + 1 + memberCount;
-                }, 0);
+            const getTeamParticipants = (members: unknown) => {
+                const memberCount = Array.isArray(members)
+                    ? members.length
+                    : members && typeof members === "object"
+                        ? Object.keys(members as Record<string, unknown>).length
+                        : 0;
+                return 1 + memberCount; // team lead + members
             };
 
-            // KL Stats
-            const klIndividualTotal = individualRegs.filter(r => isKL(r.user.email)).length;
-            const klGroupRegs = groupRegs.filter(r => isKL(r.user.email));
-            const klGroupParticipants = getParticipantCount(klGroupRegs);
-            const klTotal = klIndividualTotal + klGroupParticipants;
+            const klIndividualParticipants = individualRegs.filter(r => isKL(r.user.email)).length;
+            const otherIndividualParticipants = individualRegs.filter(r => !isKL(r.user.email)).length;
 
-            const klIndividualNew = individualRegs.filter(r => isKL(r.user.email) && isToday(r.createdAt)).length;
-            const klGroupRegsNew = groupRegs.filter(r => isKL(r.user.email) && isToday(r.createdAt));
-            const klGroupParticipantsNew = getParticipantCount(klGroupRegsNew);
-            const klNewToday = klIndividualNew + klGroupParticipantsNew;
+            const klTeamRegs = groupRegs.filter(r => isKL(r.user.email));
+            const otherTeamRegs = groupRegs.filter(r => !isKL(r.user.email));
+            const klTeamParticipants = klTeamRegs.reduce((acc, reg) => acc + getTeamParticipants(reg.members), 0);
+            const otherTeamParticipants = otherTeamRegs.reduce((acc, reg) => acc + getTeamParticipants(reg.members), 0);
 
-            // Non-KL Stats
-            const nonKlIndividualTotal = individualRegs.filter(r => !isKL(r.user.email)).length;
-            const nonKlGroupRegs = groupRegs.filter(r => !isKL(r.user.email));
-            const nonKlGroupParticipants = getParticipantCount(nonKlGroupRegs);
-            const nonKlTotal = nonKlIndividualTotal + nonKlGroupParticipants;
+            const klTeams = klTeamRegs.length;
+            const otherTeams = otherTeamRegs.length;
 
-            const nonKlIndividualNew = individualRegs.filter(r => !isKL(r.user.email) && isToday(r.createdAt)).length;
-            const nonKlGroupRegsNew = groupRegs.filter(r => !isKL(r.user.email) && isToday(r.createdAt));
-            const nonKlGroupParticipantsNew = getParticipantCount(nonKlGroupRegsNew);
-            const nonKlNewToday = nonKlIndividualNew + nonKlGroupParticipantsNew;
+            const eventVirtualParticipants =
+                individualRegs.reduce((acc, reg) => acc + (reg.isVirtual ? 1 : 0), 0) +
+                groupRegs.reduce((acc, reg) => acc + (reg.isVirtual ? getTeamParticipants(reg.members) : 0), 0);
+            const eventPhysicalParticipants =
+                individualRegs.reduce((acc, reg) => acc + (!reg.isVirtual ? 1 : 0), 0) +
+                groupRegs.reduce((acc, reg) => acc + (!reg.isVirtual ? getTeamParticipants(reg.members) : 0), 0);
+            const eventTotalParticipants = eventVirtualParticipants + eventPhysicalParticipants;
+
+            const totalParticipantsByCollege = klIndividualParticipants + otherIndividualParticipants + klTeamParticipants + otherTeamParticipants;
+            const totalTeams = klTeams + otherTeams;
 
             return {
                 eventId: event.id,
                 eventName: event.name,
                 categoryName: event.Category.name,
-                klStats: {
-                    total: klTotal,
-                    newToday: klNewToday,
-                    previousTotal: klTotal - klNewToday
+                isGroupEvent: event.isGroupEvent,
+                participants: {
+                    kl: klIndividualParticipants + klTeamParticipants,
+                    other: otherIndividualParticipants + otherTeamParticipants,
+                    total: totalParticipantsByCollege,
                 },
-                nonKlStats: {
-                    total: nonKlTotal,
-                    newToday: nonKlNewToday,
-                    previousTotal: nonKlTotal - nonKlNewToday
-                }
+                teams: {
+                    kl: klTeams,
+                    other: otherTeams,
+                    total: totalTeams,
+                },
+                virtualParticipants: eventVirtualParticipants,
+                physicalParticipants: eventPhysicalParticipants,
+                totalParticipants: eventTotalParticipants,
             };
         });
 

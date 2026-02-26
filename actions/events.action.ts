@@ -25,6 +25,29 @@ function generateSlug(text: string) {
     .replace(/-+$/, "");
 }
 
+function isKLStudentProfile(user: { email?: string | null; collage?: string | null }): boolean {
+  return !!user.email?.toLowerCase().endsWith("@kluniversity.in") || user.collage?.toLowerCase() === "kl university";
+}
+
+function isKurukshetraEvent(categoryName?: string | null): boolean {
+  return (categoryName ?? "").toLowerCase().includes("kurukshetra");
+}
+
+function isTekken8EventName(eventName?: string | null): boolean {
+  return (eventName ?? "").toLowerCase().includes("tekken 8");
+}
+
+function isNationalMockParliamentEventName(eventName?: string | null): boolean {
+  return (eventName ?? "").toLowerCase().includes("national mock parliament");
+}
+
+function getEffectiveParticipantLimit(event: { name?: string | null; participantLimit: number }): number {
+  if (isNationalMockParliamentEventName(event.name)) {
+    return 50;
+  }
+  return event.participantLimit;
+}
+
 
 
 export async function deleteRegistration(id: string, type: 'INDIVIDUAL' | 'GROUP') {
@@ -736,12 +759,41 @@ export async function registerGroupEvent(
       return { success: false, error: "Payment details are required for non-international students." };
     }
 
-    // Validate virtual eligibility for AP/Telangana and KL students - must be physical
-    if (isVirtual && !isInternational) {
-      const userWithState = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: { state: true, email: true, isInternational: true, collage: true },
-      });
+    const userWithState = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { state: true, email: true, isInternational: true, collage: true },
+    });
+    const eventMeta = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { name: true, Category: { select: { name: true } } },
+    });
+    const kurukshetraEvent = isKurukshetraEvent(eventMeta?.Category?.name);
+    const tekken8Event = isTekken8EventName(eventMeta?.name);
+    const isKLStudent = isKLStudentProfile({
+      email: userWithState?.email ?? session.user.email,
+      collage: userWithState?.collage ?? null,
+    });
+
+    if (!isInternational && tekken8Event) {
+      if (!isKLStudent) {
+        return { success: false, error: "Tekken 8 is only for KL students." };
+      }
+      if (isVirtual) {
+        return { success: false, error: "Tekken 8 is physical-only for KL students." };
+      }
+    }
+
+    if (!isInternational && kurukshetraEvent) {
+      if (isKLStudent && isVirtual) {
+        return { success: false, error: "Kurukshetra: KL students must register in physical mode only." };
+      }
+      if (!isKLStudent && !isVirtual) {
+        return { success: false, error: "Kurukshetra: Other college students must register in virtual mode only." };
+      }
+    }
+
+    // Generic virtual-eligibility validation for non-Kurukshetra events.
+    if (isVirtual && !isInternational && !(kurukshetraEvent && !isKLStudent)) {
       const eligibility = checkVirtualEligibility({
         email: userWithState?.email,
         state: userWithState?.state ?? undefined,
@@ -774,8 +826,9 @@ export async function registerGroupEvent(
         }
 
         const currentParticipants = event._count.individualRegistrations + event._count.groupRegistrations;
+        const participantLimit = getEffectiveParticipantLimit(event);
 
-        if (currentParticipants >= event.participantLimit) {
+        if (currentParticipants >= participantLimit) {
           throw new Error(EVENT_FULL_ERROR);
         }
 
@@ -952,14 +1005,43 @@ export async function registerForEvent(
       return { success: false, error: "Payment details are required for non-international students." };
     }
 
+    const userWithState = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { state: true, email: true, isInternational: true, collage: true },
+    });
+    const eventMeta = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { name: true, Category: { select: { name: true } } },
+    });
+    const kurukshetraEvent = isKurukshetraEvent(eventMeta?.Category?.name);
+    const tekken8Event = isTekken8EventName(eventMeta?.name);
+    const isKLStudent = isKLStudentProfile({
+      email: userWithState?.email ?? session.user.email,
+      collage: userWithState?.collage ?? null,
+    });
+
+    if (!isInternational && tekken8Event) {
+      if (!isKLStudent) {
+        return { success: false, error: "Tekken 8 is only for KL students." };
+      }
+      if (isVirtual) {
+        return { success: false, error: "Tekken 8 is physical-only for KL students." };
+      }
+    }
+
+    if (!isInternational && kurukshetraEvent) {
+      if (isKLStudent && isVirtual) {
+        return { success: false, error: "Kurukshetra: KL students must register in physical mode only." };
+      }
+      if (!isKLStudent && !isVirtual) {
+        return { success: false, error: "Kurukshetra: Other college students must register in virtual mode only." };
+      }
+    }
+
     const paymentStatus = isInternational ? "APPROVED" : "PENDING";
 
-    // Validate virtual eligibility for AP/Telangana and KL students - must be physical
-    if (isVirtual && !isInternational) {
-      const userWithState = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: { state: true, email: true, isInternational: true, collage: true },
-      });
+    // Generic virtual-eligibility validation for non-Kurukshetra events.
+    if (isVirtual && !isInternational && !(kurukshetraEvent && !isKLStudent)) {
       const eligibility = checkVirtualEligibility({
         email: userWithState?.email,
         state: userWithState?.state ?? undefined,
@@ -991,8 +1073,9 @@ export async function registerForEvent(
         }
 
         const currentParticipants = event._count.individualRegistrations + event._count.groupRegistrations;
+        const participantLimit = getEffectiveParticipantLimit(event);
 
-        if (currentParticipants >= event.participantLimit) {
+        if (currentParticipants >= participantLimit) {
           return { success: false, error: "Event is full" };
         }
 
@@ -1037,6 +1120,7 @@ export async function registerForEvent(
         const updated = await tx.event.findUnique({
           where: { id: eventId },
           select: {
+            name: true,
             participantLimit: true,
             _count: {
               select: {
@@ -1047,7 +1131,12 @@ export async function registerForEvent(
           },
         });
 
-        if (!updated || (updated._count.individualRegistrations + updated._count.groupRegistrations) > updated.participantLimit) {
+        if (!updated) {
+          throw new Error(EVENT_FULL_ERROR);
+        }
+
+        const updatedParticipantLimit = getEffectiveParticipantLimit(updated);
+        if ((updated._count.individualRegistrations + updated._count.groupRegistrations) > updatedParticipantLimit) {
           throw new Error(EVENT_FULL_ERROR);
         }
 
@@ -1428,6 +1517,11 @@ export async function registerUserByAdmin(
         const event = await tx.event.findUnique({
             where: { id: eventId },
             include: {
+            Category: {
+              select: {
+                name: true,
+              },
+            },
             _count: {
                 select: {
                 individualRegistrations: true,
@@ -1442,10 +1536,35 @@ export async function registerUserByAdmin(
         }
 
         const isVirtual = !!adminOptions?.isVirtual;
+        const kurukshetraEvent = isKurukshetraEvent(event.Category?.name);
+        const tekken8Event = isTekken8EventName(event.name);
+        const isKLStudent = isKLStudentProfile({
+          email: targetUser.email,
+          collage: targetUser.collage ?? null,
+        });
+
+        if (tekken8Event) {
+          if (!isKLStudent) {
+            throw new Error("Tekken 8 is only for KL students.");
+          }
+          if (isVirtual) {
+            throw new Error("Tekken 8 is physical-only for KL students.");
+          }
+        }
+
+        if (kurukshetraEvent) {
+          if (isKLStudent && isVirtual) {
+            throw new Error("Kurukshetra: KL students must register in physical mode only.");
+          }
+          if (!isKLStudent && !isVirtual) {
+            throw new Error("Kurukshetra: Other college students must register in virtual mode only.");
+          }
+        }
+
         if (isVirtual && !event.virtualEnabled) {
             throw new Error("Virtual mode is not enabled for this event.");
         }
-        if (isVirtual) {
+        if (isVirtual && !(kurukshetraEvent && !isKLStudent)) {
           const eligibility = checkVirtualEligibility({
             email: targetUser.email,
             state: targetUser.state ?? undefined,
@@ -1458,8 +1577,9 @@ export async function registerUserByAdmin(
         }
 
         const currentParticipants = event._count.individualRegistrations + event._count.groupRegistrations;
+        const participantLimit = getEffectiveParticipantLimit(event);
 
-        if (currentParticipants >= event.participantLimit) {
+        if (currentParticipants >= participantLimit) {
             throw new Error("Event is full");
         }
 

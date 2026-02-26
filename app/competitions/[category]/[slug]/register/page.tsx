@@ -78,6 +78,9 @@ interface Event {
     maxTeamSize: number;
     whatsappLink?: string | null;
     brochureLink?: string | null;
+    Category?: {
+        name?: string | null;
+    } | null;
     _count: {
         registeredStudents: number;
     };
@@ -238,9 +241,33 @@ export default function EventRegistrationPage() {
         }
     }, [slug, fetchEvent]);
 
+    useEffect(() => {
+        if (!event || !session?.user) return;
+        const international = !!(session.user as { isInternational?: boolean } | undefined)?.isInternational;
+        if (international) return;
+
+        const eventCategoryName = event.Category?.name?.toLowerCase() ?? "";
+        const kurukshetraEvent = categorySlug.toLowerCase().includes("kurukshetra") || eventCategoryName.includes("kurukshetra");
+        if (!kurukshetraEvent) return;
+
+        const collage = (session.user as { collage?: string | null } | undefined)?.collage?.toLowerCase();
+        const isKL = !!session.user.email?.toLowerCase().endsWith("@kluniversity.in") || collage === "kl university";
+
+        // Kurukshetra policy: KL is physical-only, other colleges are virtual-only.
+        setIsVirtual(!isKL);
+    }, [event, session, categorySlug]);
+
     const processPaymentAndRegister = async () => {
 
         const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
+        const userCollege = (session?.user as { collage?: string | null } | undefined)?.collage?.toLowerCase();
+        const isKLStudent = !!session?.user?.email?.toLowerCase().endsWith("@kluniversity.in") || userCollege === "kl university";
+        const isTekken8Event = !!event?.name?.toLowerCase().includes("tekken 8");
+
+        if (isTekken8Event && !isInternational && !isKLStudent) {
+            toast.error("Tekken 8 is only for KL students.");
+            return;
+        }
 
         // Validate Group Registration Fields
         if (event?.isGroupEvent) {
@@ -386,6 +413,12 @@ export default function EventRegistrationPage() {
                 payeeName: paymentDetails.payeeName
             } : undefined;
 
+            const userCollege = (session?.user as { collage?: string | null } | undefined)?.collage?.toLowerCase();
+            const isKLStudent = !!session?.user?.email?.toLowerCase().endsWith("@kluniversity.in") || userCollege === "kl university";
+            const eventCategoryName = event.Category?.name?.toLowerCase() ?? "";
+            const isKurukshetraEvent = categorySlug.toLowerCase().includes("kurukshetra") || eventCategoryName.includes("kurukshetra");
+            const selectedVirtualMode = isKurukshetraEvent && !isInternational ? !isKLStudent : isVirtual;
+
             let result;
             if (event.isGroupEvent) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -403,14 +436,14 @@ export default function EventRegistrationPage() {
                     mentorPhone,
                     Object.keys(regDetails).length ? regDetails : undefined,
                     paymentData,
-                    isVirtual
+                    selectedVirtualMode
                 ), { retries: 2, delayMs: 2000 });
             } else {
                 result = await withRetry(() => registerForEvent(
                     event.id,
                     isVastranaut ? { styleDNA } : undefined,
                     paymentData,
-                    isVirtual
+                    selectedVirtualMode
                 ), { retries: 2, delayMs: 2000 });
             }
 
@@ -592,6 +625,15 @@ export default function EventRegistrationPage() {
     if (!event) return null;
 
     const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
+    const userCollege = (session?.user as { collage?: string | null } | undefined)?.collage?.toLowerCase();
+    const isKLStudent = !!session?.user?.email?.toLowerCase().endsWith("@kluniversity.in") || userCollege === "kl university";
+    const eventCategoryName = event.Category?.name?.toLowerCase() ?? "";
+    const isKurukshetraEvent = categorySlug.toLowerCase().includes("kurukshetra") || eventCategoryName.includes("kurukshetra");
+    const isTekken8Event = event.name.toLowerCase().includes("tekken 8");
+    const isKurukshetraOtherCollegeVirtualOnly = isKurukshetraEvent && !isInternational && !isKLStudent;
+    const isKurukshetraKLPhysicalOnly = isKurukshetraEvent && !isInternational && isKLStudent;
+    const isTekkenRestrictedForUser = isTekken8Event && !isInternational && !isKLStudent;
+    const effectiveIsVirtual = isKurukshetraOtherCollegeVirtualOnly ? true : (isKurukshetraKLPhysicalOnly ? false : isVirtual);
     const virtualEligibility = session?.user ? checkVirtualEligibility({
         email: session.user.email,
         state: (session.user as { state?: string }).state,
@@ -600,8 +642,30 @@ export default function EventRegistrationPage() {
     }) : { isEligible: false };
     
     const memberCount = event.isGroupEvent ? teamSize : 1;
-    const feePerPerson = isInternational ? 0 : getRegistrationFee(isVirtual);
+    const feePerPerson = isInternational ? 0 : getRegistrationFee(effectiveIsVirtual);
     const totalFee = memberCount * feePerPerson;
+
+    if (isTekkenRestrictedForUser) {
+        return (
+            <div className="min-h-screen bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-3xl mx-auto">
+                    <button
+                        onClick={() => router.push(`/competitions/${categorySlug}`)}
+                        className="flex items-center text-zinc-400 hover:text-white mb-8 transition-colors"
+                    >
+                        <FiChevronLeft className="mr-2" />
+                        Back to Kurukshetra
+                    </button>
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8">
+                        <h1 className="text-2xl md:text-3xl font-bold text-white mb-3">Registration Restricted</h1>
+                        <p className="text-zinc-300">
+                            Tekken 8 is available only for KL students, and only in physical mode.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8 relative">
@@ -626,10 +690,17 @@ export default function EventRegistrationPage() {
                         <p className="text-zinc-400">
                             {event.isGroupEvent ? "Team Registration" : "Individual Registration"}
                         </p>
-                        {session?.user?.email?.endsWith("@kluniversity.in") && (
+                        {isKurukshetraKLPhysicalOnly && (
                             <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg inline-block">
                                 <p className="text-blue-300 text-sm font-medium">
-                                    ℹ️ KL University students must participate physically. Fee: ₹350 per member. Free special lunch and accommodation provided.
+                                    ℹ️ Kurukshetra: KL students are physical-only. Fee: ₹350 per member.
+                                </p>
+                            </div>
+                        )}
+                        {isKurukshetraOtherCollegeVirtualOnly && (
+                            <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg inline-block">
+                                <p className="text-emerald-300 text-sm font-medium">
+                                    ℹ️ Kurukshetra: Other college students from all states (including AP and Telangana) must join virtual mode only. Fee: ₹150 per member.
                                 </p>
                             </div>
                         )}
@@ -778,7 +849,7 @@ export default function EventRegistrationPage() {
                     ) : (
                         <div className="space-y-8">
                             {/* ID Card Mandatory Warning - not for virtual, international, or KL users */}
-                            {!isVirtual && !isInternational && (
+                            {!effectiveIsVirtual && !isInternational && (
                             <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-4">
                                 <div className="flex items-start gap-3">
                                     <div className="text-red-500 text-xl font-bold shrink-0">⚠️</div>
@@ -793,7 +864,7 @@ export default function EventRegistrationPage() {
                                 </div>
                             </div>
                             )}
-                            {(isVirtual || isInternational) && (
+                            {(effectiveIsVirtual || isInternational) && (
                             <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
                                 <p className="text-green-300 text-sm font-medium">
                                     Virtual participation — evaluations will be conducted virtually by judges.
@@ -1143,7 +1214,22 @@ export default function EventRegistrationPage() {
                             )}
 
                             {/* Virtual Participation Selection */}
-                            {event.virtualEnabled && virtualEligibility.isEligible && !isInternational && (
+                            {isKurukshetraOtherCollegeVirtualOnly && (
+                                <div className="border-t border-zinc-800 pt-6">
+                                    <h3 className="text-lg font-semibold text-white mb-4">Participation Mode</h3>
+                                    <div className="p-4 rounded-lg border-2 border-emerald-600 bg-emerald-600/10">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-white font-semibold">Virtual Participation (Mandatory)</span>
+                                            <span className="text-red-500 font-bold">₹{REGISTRATION_FEES.VIRTUAL}</span>
+                                        </div>
+                                        <p className="text-zinc-300 text-sm mt-1">
+                                            Other college students must participate online for Kurukshetra (all states including AP and Telangana).
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {event.virtualEnabled && virtualEligibility.isEligible && !isInternational && !isKurukshetraEvent && (
                                 <div className="border-t border-zinc-800 pt-6">
                                     <h3 className="text-lg font-semibold text-white mb-4">Participation Mode</h3>
                                     <div className="space-y-3">
@@ -1209,7 +1295,7 @@ export default function EventRegistrationPage() {
                             )}
 
                             {/* Show ineligibility message if virtual is enabled but user is not eligible */}
-                            {event.virtualEnabled && !virtualEligibility.isEligible && !isInternational && (
+                            {event.virtualEnabled && !virtualEligibility.isEligible && !isInternational && !isKurukshetraOtherCollegeVirtualOnly && (
                                 <div className="border-t border-zinc-800 pt-6">
                                     <div className="bg-zinc-800/50 border border-zinc-700 rounded-lg p-4">
                                         <p className="text-zinc-400 text-sm">
@@ -1223,7 +1309,7 @@ export default function EventRegistrationPage() {
                             <div className="border-t border-zinc-800 pt-6">
                                 <h3 className="text-lg font-semibold text-white mb-3">
                                     Terms and Conditions
-                                    {isVirtual && event.virtualTermsAndConditions && (
+                                    {effectiveIsVirtual && event.virtualTermsAndConditions && (
                                         <span className="ml-2 text-xs font-normal text-emerald-400">(Virtual Participation)</span>
                                     )}
                                 </h3>
@@ -1247,7 +1333,7 @@ export default function EventRegistrationPage() {
                                     <div className="space-y-2 text-sm text-zinc-300">
                                         {(() => {
                                             // Show virtual terms if virtual and they exist, otherwise show regular terms
-                                            const termsText = (isVirtual && event.virtualTermsAndConditions) 
+                                            const termsText = (effectiveIsVirtual && event.virtualTermsAndConditions) 
                                                 ? event.virtualTermsAndConditions 
                                                 : event.termsandconditions;
                                             
@@ -1258,7 +1344,7 @@ export default function EventRegistrationPage() {
                                                     points = sentences.map(s => s.trim().endsWith('.') ? s : s + '.');
                                                 }
                                             }
-                                            const dotColor = (isVirtual && event.virtualTermsAndConditions) ? "bg-emerald-500" : "bg-red-500";
+                                            const dotColor = (effectiveIsVirtual && event.virtualTermsAndConditions) ? "bg-emerald-500" : "bg-red-500";
                                             return points.length > 0 ? points.map((point, index) => (
                                                 <div key={index} className="flex gap-2 text-start">
                                                     <span className={`${dotColor} mt-1.5 min-w-[5px] h-1.5 rounded-full block shrink-0`} />
@@ -1384,10 +1470,10 @@ export default function EventRegistrationPage() {
 
                                             <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800/50">
                                                 <h3 className="text-[10px] md:text-xs font-semibold text-zinc-500 mb-2 uppercase tracking-wider">
-                                                    {isVirtual || isInternational ? "Virtual Participation Includes:" : "Also Includes Complimentary:"}
+                                                    {effectiveIsVirtual || isInternational ? "Virtual Participation Includes:" : "Also Includes Complimentary:"}
                                                 </h3>
                                                 <ul className="space-y-1.5 md:space-y-2 text-xs md:text-base text-zinc-300">
-                                                    {isVirtual || isInternational ? (
+                                                    {effectiveIsVirtual || isInternational ? (
                                                         <>
                                                             <li className="flex items-start gap-2">
                                                                 <span className="text-green-500 text-[10px] md:text-sm mt-0.5">✓</span>
@@ -1418,7 +1504,7 @@ export default function EventRegistrationPage() {
                                             </div>
 
                                             {/* ID Card Mandatory Warning – not shown for virtual, international, or KL users */}
-                                            {!isVirtual && !isInternational && (
+                                            {!effectiveIsVirtual && !isInternational && (
                                                 <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-3 md:p-4">
                                                     <div className="flex items-start gap-2 md:gap-3">
                                                         <div className="text-red-500 text-lg md:text-xl font-bold shrink-0">⚠️</div>
@@ -1470,7 +1556,7 @@ export default function EventRegistrationPage() {
                                                 </div>
 
                                                 {/* ID Card Mandatory Warning - only for physical participation */}
-                                                {!isVirtual && (
+                                                {!effectiveIsVirtual && (
                                                     <div className="bg-red-600/20 border-2 border-red-500/50 rounded-lg p-3 md:p-4">
                                                         <div className="flex items-start gap-2 md:gap-3">
                                                             <div className="text-red-500 text-lg md:text-xl font-bold shrink-0">⚠️</div>

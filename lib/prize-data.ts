@@ -97,27 +97,15 @@ export const PRIZE_DATA: Record<string, PrizeDistribution> = {
     second: "₹3,000",
     third: "₹2,000",
   },
-  "National Mock Parliament": {
-    first: "₹8,000",
-    runnerUp: "₹5,000",
-    special: { label: "Best Speaker Award", amount: "₹3,000" },
-  },
-
   // KURUKSHETRA
-  "BGMI Tournament": {
-    first: "₹15,000",
-    second: "₹10,000",
+
+  "Free Fire Tournament": {
+    first: "₹12,000",
+    second: "₹8,000",
     third: "₹5,000",
   },
-  "Free Fire Tournament": {
-    first: "₹20,000",
-    second: "₹15,000",
-    third: "₹10,000",
-    fourth: "₹5,000",
-  },
-  "Valorant Tournament": {
-    first: "₹5,000",
-    second: "₹3,000",
-    third: "₹2,000",
+  "Tekken 8 Tournament": {
+    first: "₹10,000",
+    second: "₹5,000",
   },
 };
