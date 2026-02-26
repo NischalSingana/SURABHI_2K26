@@ -158,7 +158,7 @@ type CompetitionRegistrationPayload = {
     members?: GroupMember[];
     mentorName?: string;
     mentorPhone?: string;
-    registrationDetails?: Record<string, unknown>;
+    registrationDetails?: any;
     paymentDetails?: {
         paymentScreenshot: string;
         utrId: string;

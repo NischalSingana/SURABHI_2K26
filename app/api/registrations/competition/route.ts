@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { registerForEvent, registerGroupEvent } from "@/actions/events.action";
+import { Prisma } from "@prisma/client";
 
 type GroupMember = {
   name: string;
@@ -25,7 +26,7 @@ type RegisterRequestBody = {
   members?: GroupMember[];
   mentorName?: string;
   mentorPhone?: string;
-  registrationDetails?: Record<string, unknown>;
+  registrationDetails?: Prisma.InputJsonValue;
   paymentDetails?: PaymentDetails;
   isVirtual?: boolean;
 };
