@@ -75,6 +75,50 @@ function getEffectiveParticipantLimit(event: Pick<Event, "name" | "participantLi
   return event.participantLimit;
 }
 
+async function uploadPaymentScreenshotWithFallback(file: File): Promise<{ success: boolean; url?: string; error?: string }> {
+  const makeFormData = () => {
+    const fd = new FormData();
+    fd.append("file", file);
+    return fd;
+  };
+
+  try {
+    const { uploadPaymentScreenshot } = await import("@/actions/upload.action");
+    const actionResult = await uploadPaymentScreenshot(makeFormData());
+    if (actionResult.success && actionResult.url) {
+      return { success: true, url: actionResult.url };
+    }
+  } catch {
+    // Continue to API fallback.
+  }
+
+  try {
+    const response = await fetch("/api/upload/payment-screenshot", {
+      method: "POST",
+      body: makeFormData(),
+      cache: "no-store",
+      headers: { "cache-control": "no-cache" },
+    });
+    const data = await response.json().catch(() => ({ success: false, error: "Upload response parsing failed" }));
+    if (response.ok && data?.success && data?.url) {
+      return { success: true, url: data.url as string };
+    }
+    return { success: false, error: (data?.error as string) || "Failed to upload payment screenshot" };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return { success: false, error: msg || "Failed to upload payment screenshot" };
+  }
+}
+
+function redirectToMyCompetitions(router: ReturnType<typeof useRouter>) {
+  const target = `/profile/competitions?registered=1&t=${Date.now()}`;
+  if (typeof window !== "undefined") {
+    window.location.assign(target);
+    return;
+  }
+  router.replace(target);
+}
+
 function CategoryPageContent() {
   const params = useParams();
   const router = useRouter();
@@ -230,12 +274,7 @@ function CategoryPageContent() {
 
       if (showPaymentStep && paymentDetails.screenshot) {
         setUploadingPayment(true);
-        const formData = new FormData();
-        formData.append("file", paymentDetails.screenshot);
-
-        // Dynamically import upload action to avoid server-client issues if any
-        const { uploadPaymentScreenshot } = await import("@/actions/upload.action");
-        const uploadResult = await uploadPaymentScreenshot(formData);
+        const uploadResult = await uploadPaymentScreenshotWithFallback(paymentDetails.screenshot);
 
         if (!uploadResult.success || !uploadResult.url) {
           setRegistrationStatus({
@@ -267,12 +306,17 @@ function CategoryPageContent() {
         setRegisteredEvents(prev => new Set(prev).add(selectedEvent.id));
 
         toast.success("Registration submitted! Redirecting to My Competitions...");
-        router.replace(`/profile/competitions?registered=1&t=${Date.now()}`);
-        router.refresh();
+        redirectToMyCompetitions(router);
       } else {
+        const errorText = result.error || "Failed to register for event";
+        if (errorText.toLowerCase().includes("already registered")) {
+          toast.success("You are already registered. Opening My Competitions...");
+          redirectToMyCompetitions(router);
+          return;
+        }
         setRegistrationStatus({
           loading: false,
-          error: result.error || "Failed to register for event",
+          error: errorText,
           success: false,
         });
       }
