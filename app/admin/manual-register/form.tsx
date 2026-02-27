@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { getUserByEmail, registerUserByAdmin, searchUsers } from "@/actions/events.action";
 import { registerVisitorPassByAdmin } from "@/actions/pass.action";
 import { uploadPaymentScreenshot } from "@/actions/upload.action";
 import { Category, Event } from "@prisma/client";
+import { useRouter } from "next/navigation";
 
 type CategoryWithEvents = Category & { Event: Event[] };
 
@@ -29,6 +30,7 @@ interface GroupMember {
 type RegType = "EVENT" | "VISITOR_PASS";
 
 export default function ManualRegisterForm({ categories }: { categories: CategoryWithEvents[] }) {
+    const router = useRouter();
     const [regType, setRegType] = useState<RegType>("EVENT");
     const [email, setEmail] = useState("");
     const [searchResults, setSearchResults] = useState<SearchedUser[]>([]);
@@ -42,11 +44,11 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
     const [payee, setPayee] = useState("");
     const [groupName, setGroupName] = useState("");
     const [teamSize, setTeamSize] = useState(1);
+    const [teamSizeInput, setTeamSizeInput] = useState("1");
     const [teamMembers, setTeamMembers] = useState<GroupMember[]>([]);
     const [mentorName, setMentorName] = useState("");
     const [mentorPhone, setMentorPhone] = useState("");
     const [memberName, setMemberName] = useState("");
-    const [memberPhone, setMemberPhone] = useState("");
     const [memberGender, setMemberGender] = useState("");
     const [teamLeadInGameName, setTeamLeadInGameName] = useState("");
     const [teamLeadInGameId, setTeamLeadInGameId] = useState("");
@@ -62,6 +64,8 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
     const [manualCollegeName, setManualCollegeName] = useState("Manual Registration");
     const [isSpecialCaseMode, setIsSpecialCaseMode] = useState(false);
     const [isCheckingEmailUser, setIsCheckingEmailUser] = useState(false);
+    const [isDraggingFile, setIsDraggingFile] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [pending, startTransition] = useTransition();
 
     useEffect(() => {
@@ -149,7 +153,6 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
         setMentorName("");
         setMentorPhone("");
         setMemberName("");
-        setMemberPhone("");
         setMemberGender("");
         setTeamLeadInGameName("");
         setTeamLeadInGameId("");
@@ -189,7 +192,8 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
 
         const memberObj: GroupMember = {
             name: memberName.trim(),
-            phone: memberPhone.trim() || undefined,
+            // Keep member phone same as team lead phone by default.
+            phone: manualLeadPhone.trim() || undefined,
             gender: memberGender,
         };
         if (needsInGameFields) {
@@ -203,7 +207,6 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
             memberObj,
         ]);
         setMemberName("");
-        setMemberPhone("");
         setMemberGender("");
         setMemberInGameName("");
         setMemberInGameId("");
@@ -212,6 +215,33 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
 
     const removeTeamMember = (index: number) => {
         setTeamMembers((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const clampTeamSize = (next: number) => Math.max(minTeamSize, Math.min(maxTeamSize, next));
+
+    const resetManualRegisterForm = () => {
+        setEmail("");
+        setSearchResults([]);
+        setShowDropdown(false);
+        setSelectedCategory("");
+        setSelectedEvent("");
+        setFile(null);
+        setUtr("");
+        setPayee("");
+        setIsVirtual(false);
+        setManualLeadName("");
+        setManualLeadPhone("");
+        setManualLeadGender("");
+        setTeamSize(1);
+        setTeamSizeInput("1");
+        clearGroupForm();
+    };
+
+    const refreshForNextRegistration = () => {
+        resetManualRegisterForm();
+        router.refresh();
+        // Ensure fully fresh form/session data for consecutive manual entries.
+        setTimeout(() => window.location.reload(), 300);
     };
 
     const handleRegister = async (e: React.FormEvent) => {
@@ -246,10 +276,7 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                 });
                 if (res.success) {
                     toast.success(res.message);
-                    setEmail("");
-                    setFile(null);
-                    setUtr("");
-                    setPayee("");
+                    refreshForNextRegistration();
                 } else {
                     toast.error(res.error);
                 }
@@ -325,15 +352,7 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
 
              if (res.success) {
                 toast.success(res.message);
-                setEmail("");
-                setFile(null);
-                setUtr("");
-                setPayee("");
-                setIsVirtual(false);
-                setManualLeadName("");
-                setManualLeadPhone("");
-                setManualLeadGender("");
-                clearGroupForm();
+                refreshForNextRegistration();
              } else {
                 toast.error(res.error);
              }
@@ -516,9 +535,12 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                                 setSelectedEvent(nextEventId);
                                 const nextEvent = events.find((ev) => ev.id === nextEventId);
                                 if (nextEvent?.isGroupEvent) {
-                                    setTeamSize(nextEvent.minTeamSize || 1);
+                                    const initialSize = nextEvent.minTeamSize || 1;
+                                    setTeamSize(initialSize);
+                                    setTeamSizeInput(String(initialSize));
                                 } else {
                                     setTeamSize(1);
+                                    setTeamSizeInput("1");
                                     clearGroupForm();
                                 }
                                 if (!nextEvent?.virtualEnabled) {
@@ -585,15 +607,33 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                                     Team Size (including leader)
                                 </label>
                                 <input
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
                                     min={minTeamSize}
                                     max={maxTeamSize}
-                                    value={teamSize}
+                                    value={teamSizeInput}
                                     onChange={(e) => {
-                                        const parsed = Number(e.target.value);
+                                        const value = e.target.value.replace(/[^\d]/g, "");
+                                        setTeamSizeInput(value);
+                                        if (value === "") return;
+                                        const parsed = Number(value);
                                         if (Number.isNaN(parsed)) return;
-                                        const clamped = Math.max(minTeamSize, Math.min(maxTeamSize, parsed));
+                                        const clamped = clampTeamSize(parsed);
                                         setTeamSize(clamped);
+                                        setTeamMembers((prev) => prev.slice(0, Math.max(0, clamped - 1)));
+                                    }}
+                                    onBlur={() => {
+                                        const parsed = Number(teamSizeInput);
+                                        if (Number.isNaN(parsed)) {
+                                            const fallback = minTeamSize;
+                                            setTeamSize(fallback);
+                                            setTeamSizeInput(String(fallback));
+                                            setTeamMembers((prev) => prev.slice(0, Math.max(0, fallback - 1)));
+                                            return;
+                                        }
+                                        const clamped = clampTeamSize(parsed);
+                                        setTeamSize(clamped);
+                                        setTeamSizeInput(String(clamped));
                                         setTeamMembers((prev) => prev.slice(0, Math.max(0, clamped - 1)));
                                     }}
                                     className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
@@ -661,19 +701,12 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                                 <p className="text-sm text-zinc-300">
                                     Additional Members ({teamMembers.length} / {Math.max(0, teamSize - 1)})
                                 </p>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     <input
                                         type="text"
                                         value={memberName}
                                         onChange={(e) => setMemberName(e.target.value)}
                                         placeholder="Member name"
-                                        className="bg-zinc-800 p-2 rounded text-white border border-zinc-700"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={memberPhone}
-                                        onChange={(e) => setMemberPhone(e.target.value)}
-                                        placeholder="Member phone (optional)"
                                         className="bg-zinc-800 p-2 rounded text-white border border-zinc-700"
                                     />
                                     <select
@@ -757,11 +790,36 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
 
             <div>
                 <label className="block text-sm mb-1 text-zinc-400">Payment Screenshot</label>
-                <input 
-                    type="file" 
-                    onChange={e => setFile(e.target.files?.[0] || null)}
-                    className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-zinc-700 file:text-white hover:file:bg-zinc-600"
-                />
+                <div
+                    onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDraggingFile(true);
+                    }}
+                    onDragLeave={(e) => {
+                        e.preventDefault();
+                        setIsDraggingFile(false);
+                    }}
+                    onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDraggingFile(false);
+                        const dropped = e.dataTransfer.files?.[0] || null;
+                        setFile(dropped);
+                    }}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`w-full rounded border p-4 text-sm cursor-pointer transition-colors ${
+                        isDraggingFile
+                            ? "border-red-500 bg-red-500/10 text-red-200"
+                            : "border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                    }`}
+                >
+                    <p>{file ? `Selected: ${file.name}` : "Drag & drop screenshot here, or click to choose file"}</p>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        onChange={e => setFile(e.target.files?.[0] || null)}
+                        className="hidden"
+                    />
+                </div>
             </div>
             
             <div>
