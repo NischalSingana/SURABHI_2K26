@@ -58,6 +58,7 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
     const [memberRiotId, setMemberRiotId] = useState("");
     const [isVirtual, setIsVirtual] = useState(false);
     const [allowSameEmailMultiple, setAllowSameEmailMultiple] = useState(true);
+    const [useEmailForCommunicationOnly, setUseEmailForCommunicationOnly] = useState(false);
     const [manualLeadName, setManualLeadName] = useState("");
     const [manualLeadPhone, setManualLeadPhone] = useState("");
     const [manualLeadGender, setManualLeadGender] = useState<"" | "MALE" | "FEMALE" | "OTHER">("");
@@ -232,6 +233,7 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
         setManualLeadName("");
         setManualLeadPhone("");
         setManualLeadGender("");
+        setUseEmailForCommunicationOnly(false);
         setTeamSize(1);
         setTeamSizeInput("1");
         clearGroupForm();
@@ -251,7 +253,8 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
             toast.error("Please enter a user email");
             return;
         }
-        if (regType === "EVENT" && isSpecialCaseMode && (!manualLeadName.trim() || !manualLeadPhone.trim() || !manualLeadGender)) {
+        const requiresManualLeadDetails = isSpecialCaseMode || useEmailForCommunicationOnly;
+        if (regType === "EVENT" && requiresManualLeadDetails && (!manualLeadName.trim() || !manualLeadPhone.trim() || !manualLeadGender)) {
             toast.error("Please enter team lead name, phone and gender");
             return;
         }
@@ -342,12 +345,13 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                 teamLeadRiotId: needsInGameFields && isValorant ? teamLeadRiotId.trim() : undefined,
              } : undefined, {
                 isVirtual,
-                createUserIfNotFound: isSpecialCaseMode,
-                allowSameEmailMultipleRegistrations: isSpecialCaseMode ? allowSameEmailMultiple : false,
-                manualLeadName: isSpecialCaseMode ? manualLeadName.trim() : undefined,
-                manualLeadPhone: isSpecialCaseMode ? manualLeadPhone.trim() : undefined,
-                manualLeadGender: isSpecialCaseMode ? (manualLeadGender || undefined) : undefined,
-                manualCollegeName: isSpecialCaseMode ? (manualCollegeName.trim() || "Manual Registration") : undefined,
+                createUserIfNotFound: isSpecialCaseMode || useEmailForCommunicationOnly,
+                communicationOnlyEmail: useEmailForCommunicationOnly,
+                allowSameEmailMultipleRegistrations: useEmailForCommunicationOnly ? true : (isSpecialCaseMode ? allowSameEmailMultiple : false),
+                manualLeadName: (isSpecialCaseMode || useEmailForCommunicationOnly) ? manualLeadName.trim() : undefined,
+                manualLeadPhone: (isSpecialCaseMode || useEmailForCommunicationOnly) ? manualLeadPhone.trim() : undefined,
+                manualLeadGender: (isSpecialCaseMode || useEmailForCommunicationOnly) ? (manualLeadGender || undefined) : undefined,
+                manualCollegeName: (isSpecialCaseMode || useEmailForCommunicationOnly) ? (manualCollegeName.trim() || "Manual Registration") : undefined,
              });
 
              if (res.success) {
@@ -449,7 +453,20 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                         </span>
                     </div>
 
-                    {isSpecialCaseMode && (
+                    <label className="flex items-start gap-2 text-sm text-zinc-300">
+                        <input
+                            type="checkbox"
+                            checked={useEmailForCommunicationOnly}
+                            onChange={(e) => {
+                                setUseEmailForCommunicationOnly(e.target.checked);
+                                if (e.target.checked) setAllowSameEmailMultiple(true);
+                            }}
+                            className="mt-0.5"
+                        />
+                        Use this email for communication only (allow multiple users and same competition registrations with this email)
+                    </label>
+
+                    {(isSpecialCaseMode || useEmailForCommunicationOnly) && (
                         <>
                             <div>
                                 <label className="block text-xs mb-1 text-zinc-400">Team Lead Name *</label>
@@ -501,6 +518,7 @@ export default function ManualRegisterForm({ categories }: { categories: Categor
                                     type="checkbox"
                                     checked={allowSameEmailMultiple}
                                     onChange={(e) => setAllowSameEmailMultiple(e.target.checked)}
+                                    disabled={useEmailForCommunicationOnly}
                                     className="mt-0.5"
                                 />
                                 Allow same email to register for same event multiple times

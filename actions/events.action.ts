@@ -1394,6 +1394,7 @@ export async function registerUserByAdmin(
     createUserIfNotFound?: boolean;
     newUserGender?: "MALE" | "FEMALE";
     allowSameEmailMultipleRegistrations?: boolean;
+    communicationOnlyEmail?: boolean;
     manualLeadName?: string;
     manualLeadPhone?: string;
     manualLeadGender?: "MALE" | "FEMALE" | "OTHER";
@@ -1434,8 +1435,9 @@ export async function registerUserByAdmin(
       }
     });
 
+    const communicationOnlyEmail = !!adminOptions?.communicationOnlyEmail;
     const shouldCreateIfMissing = adminOptions?.createUserIfNotFound ?? true;
-    if (!targetUser && shouldCreateIfMissing) {
+    if (!targetUser && shouldCreateIfMissing && !communicationOnlyEmail) {
       if (!leadGenderInput && !adminOptions?.newUserGender) {
         return { success: false, error: "Please choose lead gender for new user creation." };
       }
@@ -1474,7 +1476,7 @@ export async function registerUserByAdmin(
       targetUser = created;
     }
 
-    if (!targetUser) {
+    if (!targetUser && !communicationOnlyEmail) {
       return { success: false, error: `User with email ${normalizedEmail} not found.` };
     }
 
@@ -1512,10 +1514,16 @@ export async function registerUserByAdmin(
         }
 
         const isVirtual = !!adminOptions?.isVirtual;
+        const profileForPolicy = {
+          email: targetUser?.email ?? normalizedEmail,
+          collage: targetUser?.collage ?? manualCollegeName,
+          state: targetUser?.state ?? "Karnataka",
+          isInternational: targetUser?.isInternational ?? false,
+        };
         const kurukshetraEvent = isKurukshetraEvent(event.Category?.name);
         const isKLStudent = isKLStudentProfile({
-          email: targetUser.email,
-          collage: targetUser.collage ?? null,
+          email: profileForPolicy.email,
+          collage: profileForPolicy.collage ?? null,
         });
 
         if (kurukshetraEvent) {
@@ -1532,10 +1540,10 @@ export async function registerUserByAdmin(
         }
         if (isVirtual && !(kurukshetraEvent && !isKLStudent)) {
           const eligibility = checkVirtualEligibility({
-            email: targetUser.email,
-            state: targetUser.state ?? undefined,
-            isInternational: targetUser.isInternational ?? false,
-            collage: targetUser.collage ?? undefined,
+            email: profileForPolicy.email,
+            state: profileForPolicy.state ?? undefined,
+            isInternational: profileForPolicy.isInternational ?? false,
+            collage: profileForPolicy.collage ?? undefined,
           });
           if (!eligibility.isEligible) {
             throw new Error(eligibility.reason ?? "This user is not eligible for virtual participation.");
@@ -1550,30 +1558,34 @@ export async function registerUserByAdmin(
         }
 
         // Check existing registrations for this user+event
-        let existingIndividualReg = await tx.individualRegistration.findUnique({
-            where: {
-            userId_eventId: {
-                userId: targetUser.id,
-                eventId: eventId
-            }
-            }
-        });
-        let existingGroupReg = await tx.groupRegistration.findUnique({
-            where: {
-              userId_eventId: {
-                userId: targetUser.id,
-                eventId: eventId,
+        let existingIndividualReg = targetUser
+          ? await tx.individualRegistration.findUnique({
+              where: {
+                userId_eventId: {
+                  userId: targetUser.id,
+                  eventId: eventId,
+                },
               },
-            },
-        });
+            })
+          : null;
+        let existingGroupReg = targetUser
+          ? await tx.groupRegistration.findUnique({
+              where: {
+                userId_eventId: {
+                  userId: targetUser.id,
+                  eventId: eventId,
+                },
+              },
+            })
+          : null;
         let effectiveUser = targetUser;
 
         const hasActiveExistingReg =
           (existingIndividualReg && existingIndividualReg.paymentStatus !== "REJECTED") ||
           (existingGroupReg && existingGroupReg.paymentStatus !== "REJECTED");
-        const allowSameEmailMultiple = !!adminOptions?.allowSameEmailMultipleRegistrations;
+        const allowSameEmailMultiple = communicationOnlyEmail || !!adminOptions?.allowSameEmailMultipleRegistrations;
 
-        if (hasActiveExistingReg && allowSameEmailMultiple) {
+        if (communicationOnlyEmail || (hasActiveExistingReg && allowSameEmailMultiple)) {
           const seed = Math.floor(100000 + Math.random() * 900000).toString();
           const mappedGender =
             leadGenderInput === "FEMALE"
@@ -1585,7 +1597,7 @@ export async function registerUserByAdmin(
             data: {
               id: crypto.randomUUID(),
               email: makeShadowEmail(normalizedEmail),
-              name: leadNameInput || targetUser.name || `Manual User ${seed}`,
+              name: leadNameInput || targetUser?.name || `Manual User ${seed}`,
               collage: manualCollegeName,
               collageId: `MANUAL-${seed}`,
               phone: leadPhoneInput || `9${Math.floor(100000000 + Math.random() * 900000000)}`,
@@ -1608,6 +1620,10 @@ export async function registerUserByAdmin(
           effectiveUser = shadow;
           existingIndividualReg = null;
           existingGroupReg = null;
+        }
+
+        if (!effectiveUser) {
+          throw new Error("Failed to resolve a user for manual registration.");
         }
 
         if (event.isGroupEvent) {
