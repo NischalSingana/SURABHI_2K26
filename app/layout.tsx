@@ -12,17 +12,17 @@ import ChatWidget from "@/components/chat/ChatWidget";
 import { getAppVersion } from "@/lib/app-version";
 
 const schibstedGrotesk = Schibsted_Grotesk({
-  variable: "--font-Schibsted_Grotesk",
+  variable: "--font-schibsted-grotesk",
   subsets: ["latin"],
 });
 
 const martianMono = Martian_Mono({
-  variable: "--font-Martian_Mono",
+  variable: "--font-martian-mono",
   subsets: ["latin"],
 });
 
 const lexend = Lexend({
-  variable: "--font-Lexend",
+  variable: "--font-lexend",
   subsets: ["latin"],
 });
 

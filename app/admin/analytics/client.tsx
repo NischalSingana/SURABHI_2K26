@@ -8,6 +8,7 @@ import {
     getDetailedEventRegistrations,
     getDailyReportStats,
 } from "@/actions/admin/analytics.action";
+import { getAccommodationAnalytics } from "@/actions/admin/accommodation-analytics.action";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -88,6 +89,25 @@ interface DetailedEvent {
     groupRegistrations: GroupRegistration[];
 }
 
+interface AccommodationCollegeStat {
+    name: string;
+    bookings: number;
+    male: number;
+    female: number;
+    guests: number;
+}
+
+interface AccommodationBookingItem {
+    primaryName: string;
+    totalMembers: number;
+    gender: string;
+    status: string;
+    competitions?: string[];
+    user?: {
+        collage?: string | null;
+    } | null;
+}
+
 function isKLUser(user: RegistrationUser): boolean {
     const email = user.email?.toLowerCase() || "";
     const collage = (user.collage || "").toLowerCase();
@@ -106,6 +126,8 @@ export default function AnalyticsPage() {
     const [detailedEvents, setDetailedEvents] = useState<DetailedEvent[]>([]);
     const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [reportLoading, setReportLoading] = useState(false);
+    const [activeReport, setActiveReport] = useState<"dailyPdf" | "dailyExcel" | "accommodationPdf" | null>(null);
 
     const loadStats = useCallback(async () => {
 
@@ -449,6 +471,8 @@ export default function AnalyticsPage() {
 
     const generateDailyReport = async () => {
         try {
+            setReportLoading(true);
+            setActiveReport("dailyPdf");
             const result = await getDailyReportStats();
             if (!result.success || !result.data) {
                 toast.error("Failed to fetch daily report data");
@@ -470,6 +494,7 @@ export default function AnalyticsPage() {
             interface DailyReportItem {
                 eventId: string;
                 eventName: string;
+                eventDate: string;
                 categoryName: string;
                 isGroupEvent: boolean;
                 participants: { kl: number; other: number; total: number };
@@ -479,6 +504,18 @@ export default function AnalyticsPage() {
                 totalParticipants: number;
             }
             const typedReportData = reportData as DailyReportItem[];
+            const formatEventDate = (dateInput: string) => {
+                const d = new Date(dateInput);
+                if (Number.isNaN(d.getTime())) return "-";
+                return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+            };
+            const sortByDateThenTop = (a: DailyReportItem, b: DailyReportItem) => {
+                const ta = new Date(a.eventDate).getTime();
+                const tb = new Date(b.eventDate).getTime();
+                if (ta !== tb) return ta - tb;
+                if (b.totalParticipants !== a.totalParticipants) return b.totalParticipants - a.totalParticipants;
+                return a.eventName.localeCompare(b.eventName);
+            };
             const overallVirtualParticipants = typedReportData.reduce((acc, item) => acc + item.virtualParticipants, 0);
             const overallPhysicalParticipants = typedReportData.reduce((acc, item) => acc + item.physicalParticipants, 0);
 
@@ -664,7 +701,7 @@ export default function AnalyticsPage() {
             const categoryNames = Object.keys(groupedByCategory).sort((a, b) => a.localeCompare(b));
 
             categoryNames.forEach((categoryName, index) => {
-                const items = groupedByCategory[categoryName].sort((a, b) => a.eventName.localeCompare(b.eventName));
+                const items = groupedByCategory[categoryName].sort(sortByDateThenTop);
                 const soloItems = items.filter((item) => !item.isGroupEvent);
                 const groupItems = items.filter((item) => item.isGroupEvent);
 
@@ -691,6 +728,7 @@ export default function AnalyticsPage() {
 
                     const soloRows = soloItems.map((item: DailyReportItem) => [
                         item.eventName,
+                        formatEventDate(item.eventDate),
                         String(item.participants.total),
                         String(item.participants.kl),
                         String(item.participants.other),
@@ -702,6 +740,7 @@ export default function AnalyticsPage() {
                         startY: currentY,
                         head: [[
                             "Competition",
+                            "Event Date",
                             "Total Members",
                             "KL Participants",
                             "Other Participants",
@@ -730,28 +769,24 @@ export default function AnalyticsPage() {
 
                     const groupRows = groupItems.map((item: DailyReportItem) => [
                         item.eventName,
+                        formatEventDate(item.eventDate),
                         String(item.teams.total),
-                        String(item.teams.kl),
-                        String(item.teams.other),
-                        String(item.participants.kl),
-                        String(item.participants.other),
                         String(item.virtualParticipants),
                         String(item.physicalParticipants),
-                        `${item.teams.total} groups = ${item.totalParticipants} members`,
+                        String(item.totalParticipants),
+                        `${item.teams.total} teams = ${item.totalParticipants} participants`,
                     ]);
 
                     autoTable(doc, {
                         startY: currentY,
                         head: [[
                             "Competition",
+                            "Event Date",
                             "Total Teams",
-                            "KL Teams",
-                            "Other Teams",
-                            "KL Participants",
-                            "Other Participants",
                             "Virtual Participants",
                             "Physical Participants",
-                            "Total Participants (Groups = Members)",
+                            "Total Participants",
+                            "Total Teams = Total Participants",
                         ]],
                         body: groupRows,
                         theme: "grid",
@@ -770,6 +805,394 @@ export default function AnalyticsPage() {
         } catch (error) {
             console.error("Error generating daily report:", error);
             toast.error("Failed to generate report");
+        } finally {
+            setReportLoading(false);
+            setActiveReport(null);
+        }
+    };
+
+    const downloadDailyReportExcel = async () => {
+        try {
+            setReportLoading(true);
+            setActiveReport("dailyExcel");
+            const result = await getDailyReportStats();
+            if (!result.success || !result.data) {
+                toast.error("Failed to fetch daily report data");
+                return;
+            }
+
+            interface DailyReportItem {
+                eventId: string;
+                eventName: string;
+                eventDate: string;
+                categoryName: string;
+                isGroupEvent: boolean;
+                participants: { kl: number; other: number; total: number };
+                teams: { kl: number; other: number; total: number };
+                virtualParticipants: number;
+                physicalParticipants: number;
+                totalParticipants: number;
+            }
+
+            const typedReportData = result.data as DailyReportItem[];
+            const formatEventDate = (dateInput: string) => {
+                const d = new Date(dateInput);
+                if (Number.isNaN(d.getTime())) return "-";
+                return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+            };
+            const sortByDateThenTop = (a: DailyReportItem, b: DailyReportItem) => {
+                const ta = new Date(a.eventDate).getTime();
+                const tb = new Date(b.eventDate).getTime();
+                if (ta !== tb) return ta - tb;
+                if (b.totalParticipants !== a.totalParticipants) return b.totalParticipants - a.totalParticipants;
+                return a.eventName.localeCompare(b.eventName);
+            };
+            const overallVirtualParticipants = typedReportData.reduce((acc, item) => acc + item.virtualParticipants, 0);
+            const overallPhysicalParticipants = typedReportData.reduce((acc, item) => acc + item.physicalParticipants, 0);
+
+            const summary = {
+                totalParticipants: 0,
+                overallOther: 0,
+                overallKl: 0,
+                overallMale: 0,
+                overallFemale: 0,
+                individualTotal: 0,
+                individualOther: 0,
+                individualKl: 0,
+                individualMale: 0,
+                individualFemale: 0,
+                teamTotalTeams: 0,
+                teamOtherTeams: 0,
+                teamKlTeams: 0,
+                teamOtherParticipants: 0,
+                teamKlParticipants: 0,
+                teamTotalParticipants: 0,
+                teamMale: 0,
+                teamFemale: 0,
+            };
+
+            detailedEvents.forEach((event) => {
+                event.individualRegistrations.forEach((reg) => {
+                    const isKL = isKLUser(reg.user);
+                    const gender = (reg.user.gender || "").toUpperCase();
+                    summary.individualTotal += 1;
+                    summary.totalParticipants += 1;
+                    if (isKL) summary.individualKl += 1;
+                    else summary.individualOther += 1;
+                    if (isKL) summary.overallKl += 1;
+                    else summary.overallOther += 1;
+                    if (gender === "MALE") {
+                        summary.individualMale += 1;
+                        summary.overallMale += 1;
+                    } else if (gender === "FEMALE") {
+                        summary.individualFemale += 1;
+                        summary.overallFemale += 1;
+                    }
+                });
+
+                event.groupRegistrations.forEach((reg) => {
+                    const isKL = isKLUser(reg.user);
+                    const leadGender = (reg.user.gender || "").toUpperCase();
+                    summary.teamTotalTeams += 1;
+                    if (isKL) summary.teamKlTeams += 1;
+                    else summary.teamOtherTeams += 1;
+
+                    summary.teamTotalParticipants += 1;
+                    summary.totalParticipants += 1;
+                    if (isKL) {
+                        summary.teamKlParticipants += 1;
+                        summary.overallKl += 1;
+                    } else {
+                        summary.teamOtherParticipants += 1;
+                        summary.overallOther += 1;
+                    }
+                    if (leadGender === "MALE") {
+                        summary.teamMale += 1;
+                        summary.overallMale += 1;
+                    } else if (leadGender === "FEMALE") {
+                        summary.teamFemale += 1;
+                        summary.overallFemale += 1;
+                    }
+
+                    const membersValue = reg.members;
+                    let membersList: Array<{ gender?: string }> = [];
+                    if (Array.isArray(membersValue)) {
+                        membersList = membersValue as Array<{ gender?: string }>;
+                    } else if (membersValue && typeof membersValue === "object") {
+                        membersList = Object.values(membersValue as Record<string, { gender?: string }>);
+                    }
+
+                    membersList.forEach((member) => {
+                        const memberGender = (member?.gender || "").toUpperCase();
+                        summary.teamTotalParticipants += 1;
+                        summary.totalParticipants += 1;
+                        if (isKL) {
+                            summary.teamKlParticipants += 1;
+                            summary.overallKl += 1;
+                        } else {
+                            summary.teamOtherParticipants += 1;
+                            summary.overallOther += 1;
+                        }
+                        if (memberGender === "MALE") {
+                            summary.teamMale += 1;
+                            summary.overallMale += 1;
+                        } else if (memberGender === "FEMALE") {
+                            summary.teamFemale += 1;
+                            summary.overallFemale += 1;
+                        }
+                    });
+                });
+            });
+
+            const summarySheet = [
+                { Section: "TOTAL PARTICIPANTS", Metric: "Total Participants", Value: summary.totalParticipants },
+                { Section: "TOTAL PARTICIPANTS", Metric: "Other Colleges", Value: summary.overallOther },
+                { Section: "TOTAL PARTICIPANTS", Metric: "KL University", Value: summary.overallKl },
+                { Section: "TOTAL PARTICIPANTS", Metric: "Male", Value: summary.overallMale },
+                { Section: "TOTAL PARTICIPANTS", Metric: "Female", Value: summary.overallFemale },
+                { Section: "TOTAL PARTICIPANTS", Metric: "Virtual Participants", Value: overallVirtualParticipants },
+                { Section: "TOTAL PARTICIPANTS", Metric: "Physical Participants", Value: overallPhysicalParticipants },
+                { Section: "INDIVIDUAL REGISTRATIONS", Metric: "Total", Value: summary.individualTotal },
+                { Section: "INDIVIDUAL REGISTRATIONS", Metric: "Other Colleges", Value: summary.individualOther },
+                { Section: "INDIVIDUAL REGISTRATIONS", Metric: "KL University", Value: summary.individualKl },
+                { Section: "INDIVIDUAL REGISTRATIONS", Metric: "Male", Value: summary.individualMale },
+                { Section: "INDIVIDUAL REGISTRATIONS", Metric: "Female", Value: summary.individualFemale },
+                { Section: "TEAM REGISTRATIONS", Metric: "Total Teams", Value: summary.teamTotalTeams },
+                { Section: "TEAM REGISTRATIONS", Metric: "Total Participants", Value: summary.teamTotalParticipants },
+                { Section: "TEAM REGISTRATIONS", Metric: "Other College Teams", Value: summary.teamOtherTeams },
+                { Section: "TEAM REGISTRATIONS", Metric: "KL Teams", Value: summary.teamKlTeams },
+                { Section: "TEAM REGISTRATIONS", Metric: "Participants (Other College)", Value: summary.teamOtherParticipants },
+                { Section: "TEAM REGISTRATIONS", Metric: "Participants (KL University)", Value: summary.teamKlParticipants },
+                { Section: "TEAM REGISTRATIONS", Metric: "Male", Value: summary.teamMale },
+                { Section: "TEAM REGISTRATIONS", Metric: "Female", Value: summary.teamFemale },
+            ];
+
+            const sortedData = typedReportData
+                .slice()
+                .sort(sortByDateThenTop);
+
+            const soloRows = sortedData
+                .filter((item) => !item.isGroupEvent)
+                .map((item) => ({
+                    Category: item.categoryName,
+                    Competition: item.eventName,
+                    "Event Date": formatEventDate(item.eventDate),
+                    "KL Participants": item.participants.kl,
+                    "Other Participants": item.participants.other,
+                    "Virtual Participants": item.virtualParticipants,
+                    "Physical Participants": item.physicalParticipants,
+                    "Total Participants": `${item.totalParticipants} participants`,
+                }));
+
+            const groupRows = sortedData
+                .filter((item) => item.isGroupEvent)
+                .map((item) => ({
+                    Category: item.categoryName,
+                    Competition: item.eventName,
+                    "Event Date": formatEventDate(item.eventDate),
+                    "Total Teams": `${item.teams.total} teams`,
+                    "KL Participants": item.participants.kl,
+                    "Other Participants": item.participants.other,
+                    "Virtual Participants": item.virtualParticipants,
+                    "Physical Participants": item.physicalParticipants,
+                    "Total Participants": `${item.totalParticipants} participants`,
+                }));
+
+            const competitionWiseRows = sortedData.map((item) => ({
+                Category: item.categoryName,
+                Competition: item.eventName,
+                "Event Date": formatEventDate(item.eventDate),
+                "Event Type": item.isGroupEvent ? "Group" : "Solo",
+                "Total Teams": item.isGroupEvent ? `${item.teams.total} teams` : "0 teams",
+                "KL Participants": item.participants.kl,
+                "Other Participants": item.participants.other,
+                "Virtual Participants": item.virtualParticipants,
+                "Physical Participants": item.physicalParticipants,
+                "Total Participants": `${item.totalParticipants} participants`,
+            }));
+
+            const categoryTotals = Object.values(
+                sortedData.reduce<Record<string, {
+                    Category: string;
+                    Competitions: number;
+                    "Solo Competitions": number;
+                    "Group Competitions": number;
+                    "Total Teams": number;
+                    "Total Participants": number;
+                    "Virtual Participants": number;
+                    "Physical Participants": number;
+                }>>((acc, item) => {
+                    if (!acc[item.categoryName]) {
+                        acc[item.categoryName] = {
+                            Category: item.categoryName,
+                            Competitions: 0,
+                            "Solo Competitions": 0,
+                            "Group Competitions": 0,
+                            "Total Teams": 0,
+                            "Total Participants": 0,
+                            "Virtual Participants": 0,
+                            "Physical Participants": 0,
+                        };
+                    }
+                    acc[item.categoryName].Competitions += 1;
+                    if (item.isGroupEvent) {
+                        acc[item.categoryName]["Group Competitions"] += 1;
+                        acc[item.categoryName]["Total Teams"] += item.teams.total;
+                    } else {
+                        acc[item.categoryName]["Solo Competitions"] += 1;
+                    }
+                    acc[item.categoryName]["Total Participants"] += item.totalParticipants;
+                    acc[item.categoryName]["Virtual Participants"] += item.virtualParticipants;
+                    acc[item.categoryName]["Physical Participants"] += item.physicalParticipants;
+                    return acc;
+                }, {})
+            );
+
+            const wb = XLSX.utils.book_new();
+            const wsSummary = XLSX.utils.json_to_sheet(summarySheet);
+            wsSummary["!cols"] = [{ wch: 28 }, { wch: 36 }, { wch: 14 }];
+            const wsCompetitionWise = XLSX.utils.json_to_sheet(competitionWiseRows);
+            wsCompetitionWise["!cols"] = [
+                { wch: 22 }, { wch: 28 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 },
+                { wch: 17 }, { wch: 18 }, { wch: 19 }, { wch: 17 }, { wch: 30 },
+            ];
+            const wsSolo = XLSX.utils.json_to_sheet(soloRows);
+            wsSolo["!cols"] = [
+                { wch: 22 }, { wch: 28 }, { wch: 12 }, { wch: 14 }, { wch: 17 },
+                { wch: 18 }, { wch: 19 }, { wch: 17 },
+            ];
+            const wsGroup = XLSX.utils.json_to_sheet(groupRows);
+            wsGroup["!cols"] = [
+                { wch: 22 }, { wch: 28 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 17 },
+                { wch: 18 }, { wch: 19 }, { wch: 17 }, { wch: 30 },
+            ];
+            const wsCategoryTotals = XLSX.utils.json_to_sheet(categoryTotals);
+            wsCategoryTotals["!cols"] = [
+                { wch: 24 }, { wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 12 },
+                { wch: 18 }, { wch: 18 }, { wch: 18 },
+            ];
+
+            XLSX.utils.book_append_sheet(wb, wsCompetitionWise, "Competition Wise Full");
+            XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
+            XLSX.utils.book_append_sheet(wb, wsSolo, "Solo Competitions");
+            XLSX.utils.book_append_sheet(wb, wsGroup, "Group Competitions");
+            XLSX.utils.book_append_sheet(wb, wsCategoryTotals, "Category Totals");
+            XLSX.writeFile(wb, `Daily_Report_${new Date().toISOString().split("T")[0]}.xlsx`);
+            toast.success("Daily report Excel downloaded");
+        } catch (error) {
+            console.error("Error generating daily report excel:", error);
+            toast.error("Failed to generate daily report excel");
+        } finally {
+            setReportLoading(false);
+            setActiveReport(null);
+        }
+    };
+
+    const downloadAccommodationReportPdf = async () => {
+        try {
+            setReportLoading(true);
+            setActiveReport("accommodationPdf");
+            const result = await getAccommodationAnalytics();
+            if (!result.success || !result.data) {
+                toast.error(result.error || "Failed to fetch accommodation analytics");
+                return;
+            }
+
+            const stats = result.data.stats as {
+                totalBookings: number;
+                totalGuests: number;
+                byGender: { MALE: number; FEMALE: number };
+                byStatus: { PENDING: number; CONFIRMED: number; CANCELLED: number; REJECTED: number };
+                byCollege: AccommodationCollegeStat[];
+            };
+            const bookings = (result.data.bookings || []) as AccommodationBookingItem[];
+
+            const doc = new jsPDF("l", "mm", "a4");
+            const timestamp = new Date().toLocaleString("en-GB", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: true,
+            }).toUpperCase();
+
+            doc.setFontSize(16);
+            doc.text("Accommodation Analytics Report", 14, 15);
+            doc.setFontSize(10);
+            doc.text(`Generated on: ${timestamp}`, 14, 22);
+
+            autoTable(doc, {
+                startY: 28,
+                head: [["Metric", "Count"]],
+                body: [
+                    ["Total Bookings", String(stats.totalBookings)],
+                    ["Total Guests", String(stats.totalGuests)],
+                    ["Male Bookings", String(stats.byGender.MALE)],
+                    ["Female Bookings", String(stats.byGender.FEMALE)],
+                    ["Pending", String(stats.byStatus.PENDING)],
+                    ["Confirmed", String(stats.byStatus.CONFIRMED)],
+                ],
+                theme: "grid",
+                headStyles: { fillColor: [52, 73, 94], textColor: 255, fontStyle: "bold" },
+                styles: { fontSize: 9, cellPadding: 2.5, fontStyle: "bold" },
+                margin: { left: 14, right: 14 },
+                columnStyles: { 1: { halign: "right" } },
+            });
+
+            let currentY = ((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? 28) + 6;
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text("College-wise Summary", 14, currentY);
+            currentY += 2;
+
+            autoTable(doc, {
+                startY: currentY,
+                head: [["College", "Bookings", "Male", "Female", "Total Guests"]],
+                body: stats.byCollege.map((c) => [c.name, String(c.bookings), String(c.male), String(c.female), String(c.guests)]),
+                theme: "grid",
+                headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+                styles: { fontSize: 8.5, cellPadding: 2.2, fontStyle: "bold" },
+                margin: { left: 14, right: 14 },
+            });
+
+            currentY = ((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? currentY) + 6;
+            if (currentY > 235) {
+                doc.addPage();
+                currentY = 20;
+            }
+            doc.setFontSize(12);
+            doc.text("Guest-wise Competition Details", 14, currentY);
+            currentY += 2;
+
+            autoTable(doc, {
+                startY: currentY,
+                head: [["Name", "College", "Gender", "Guests", "Status", "Competitions"]],
+                body: bookings.map((b) => [
+                    b.primaryName || "—",
+                    (b.user?.collage || "Unknown").toString(),
+                    (b.gender || "—").toString(),
+                    String(b.totalMembers || 0),
+                    (b.status || "—").toString(),
+                    Array.isArray(b.competitions) && b.competitions.length > 0
+                        ? b.competitions.join(", ")
+                        : "No active physical competition",
+                ]),
+                theme: "grid",
+                headStyles: { fillColor: [142, 68, 173], textColor: 255, fontStyle: "bold" },
+                styles: { fontSize: 8, cellPadding: 2, fontStyle: "bold" },
+                margin: { left: 14, right: 14 },
+            });
+
+            doc.save(`Accommodation_Report_${new Date().toISOString().split("T")[0]}.pdf`);
+            toast.success("Accommodation analytics PDF downloaded");
+        } catch (error) {
+            console.error("Error generating accommodation report:", error);
+            toast.error("Failed to generate accommodation report");
+        } finally {
+            setReportLoading(false);
+            setActiveReport(null);
         }
     };
 
@@ -911,13 +1334,33 @@ export default function AnalyticsPage() {
                 <div className="flex gap-2">
                     <button
                         onClick={generateDailyReport}
-                        disabled={loading}
+                        disabled={loading || reportLoading}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        Daily Report
+                        {activeReport === "dailyPdf" ? "Preparing..." : "Daily Report"}
+                    </button>
+                    <button
+                        onClick={downloadDailyReportExcel}
+                        disabled={loading || reportLoading}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        {activeReport === "dailyExcel" ? "Preparing..." : "Daily Excel"}
+                    </button>
+                    <button
+                        onClick={downloadAccommodationReportPdf}
+                        disabled={loading || reportLoading}
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        {activeReport === "accommodationPdf" ? "Preparing..." : "Accommodation PDF"}
                     </button>
                     <button
                         onClick={downloadAllRegistrations}

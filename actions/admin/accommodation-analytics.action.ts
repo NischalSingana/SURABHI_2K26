@@ -68,6 +68,52 @@ export async function getAccommodationAnalytics() {
     );
     const physicalUserIds = new Set(physicalRegs.filter((r) => r.hasPhysical).map((r) => r.userId));
 
+    // Build competition list per user (physical + active regs only)
+    const [individualRegs, groupRegs] = await Promise.all([
+      prisma.individualRegistration.findMany({
+        where: {
+          userId: { in: userIds },
+          paymentStatus: { in: ["PENDING", "APPROVED"] },
+          isVirtual: false,
+        },
+        select: {
+          userId: true,
+          event: {
+            select: {
+              name: true,
+              Category: { select: { name: true } },
+            },
+          },
+        },
+      }),
+      prisma.groupRegistration.findMany({
+        where: {
+          userId: { in: userIds },
+          paymentStatus: { in: ["PENDING", "APPROVED"] },
+          isVirtual: false,
+        },
+        select: {
+          userId: true,
+          event: {
+            select: {
+              name: true,
+              Category: { select: { name: true } },
+            },
+          },
+        },
+      }),
+    ]);
+
+    const competitionsByUser = new Map<string, Set<string>>();
+    const addCompetition = (uid: string, category: string, eventName: string) => {
+      const label = `${category} - ${eventName}`;
+      const set = competitionsByUser.get(uid) || new Set<string>();
+      set.add(label);
+      competitionsByUser.set(uid, set);
+    };
+    individualRegs.forEach((reg) => addCompetition(reg.userId, reg.event.Category.name, reg.event.name));
+    groupRegs.forEach((reg) => addCompetition(reg.userId, reg.event.Category.name, reg.event.name));
+
     const analyticsBookings = eligibleBookings.filter(
       (b) =>
         physicalUserIds.has(b.userId) &&
@@ -93,16 +139,24 @@ export async function getAccommodationAnalytics() {
     };
 
     // By college
-    const collegeMap = new Map<string, { count: number; guests: number }>();
+    const collegeMap = new Map<string, { count: number; guests: number; male: number; female: number }>();
     for (const b of analyticsBookings) {
       const college = (b.user?.collage || "Unknown").trim() || "Unknown";
-      const curr = collegeMap.get(college) || { count: 0, guests: 0 };
+      const curr = collegeMap.get(college) || { count: 0, guests: 0, male: 0, female: 0 };
       curr.count += 1;
       curr.guests += b.totalMembers;
+      if (b.gender === "MALE") curr.male += 1;
+      if (b.gender === "FEMALE") curr.female += 1;
       collegeMap.set(college, curr);
     }
     const byCollege = Array.from(collegeMap.entries())
-      .map(([name, data]) => ({ name, bookings: data.count, guests: data.guests }))
+      .map(([name, data]) => ({
+        name,
+        bookings: data.count,
+        male: data.male,
+        female: data.female,
+        guests: data.guests,
+      }))
       .sort((a, b) => b.bookings - a.bookings);
 
     const serialized = analyticsBookings.map((b) => ({
@@ -110,6 +164,7 @@ export async function getAccommodationAnalytics() {
       amount: b.amount ? b.amount.toString() : null,
       createdAt: b.createdAt.toISOString(),
       updatedAt: b.updatedAt.toISOString(),
+      competitions: Array.from(competitionsByUser.get(b.userId) || []),
     }));
 
     return {

@@ -13,7 +13,7 @@ export async function getUserStats() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.GOD)) {
             throw new Error("Unauthorized");
         }
 
@@ -81,7 +81,7 @@ export async function getEventStats() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.GOD)) {
             throw new Error("Unauthorized");
         }
 
@@ -135,7 +135,7 @@ export async function getAccommodationStats() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.GOD)) {
             throw new Error("Unauthorized");
         }
 
@@ -191,7 +191,7 @@ export async function getDetailedEventRegistrations() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.GOD)) {
             throw new Error("Unauthorized");
         }
 
@@ -199,6 +199,7 @@ export async function getDetailedEventRegistrations() {
             select: {
                 id: true,
                 name: true,
+                date: true,
                 isGroupEvent: true,
                 Category: {
                     select: {
@@ -291,7 +292,7 @@ export async function getDailyReportStats() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.GOD)) {
             throw new Error("Unauthorized");
         }
 
@@ -299,6 +300,7 @@ export async function getDailyReportStats() {
             select: {
                 id: true,
                 name: true,
+                date: true,
                 isGroupEvent: true,
                 Category: {
                     select: {
@@ -388,6 +390,7 @@ export async function getDailyReportStats() {
             return {
                 eventId: event.id,
                 eventName: event.name,
+                eventDate: event.date.toISOString(),
                 categoryName: event.Category.name,
                 isGroupEvent: event.isGroupEvent,
                 participants: {

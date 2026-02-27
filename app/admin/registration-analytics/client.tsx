@@ -5,8 +5,12 @@ import {
     getRegistrationStatsByCollege,
     getCategoryWiseAnalytics,
 } from "@/actions/admin/registration-analytics.action";
+import { getDailyReportStats, getDetailedEventRegistrations } from "@/actions/admin/analytics.action";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 /**
  * Helper function to check if a user is from KL University
@@ -120,10 +124,63 @@ interface CategoryAnalytics {
     competitions: CompetitionAnalytics[];
 }
 
+interface ReportRegistrationUser {
+    email: string;
+    collage: string | null;
+    gender: string | null;
+}
+
+interface ReportIndividualRegistration {
+    user: ReportRegistrationUser;
+}
+
+interface ReportGroupRegistration {
+    user: ReportRegistrationUser;
+    members?: unknown;
+}
+
+interface ReportDetailedEvent {
+    id: string;
+    name: string;
+    category: string;
+    isGroupEvent: boolean;
+    individualRegistrations: ReportIndividualRegistration[];
+    groupRegistrations: ReportGroupRegistration[];
+}
+
+interface DailyReportItem {
+    eventId: string;
+    eventName: string;
+    eventDate: string;
+    categoryName: string;
+    isGroupEvent: boolean;
+    participants: { kl: number; other: number; total: number };
+    teams: { kl: number; other: number; total: number };
+    virtualParticipants: number;
+    physicalParticipants: number;
+    totalParticipants: number;
+}
+
+function formatEventDate(dateInput: string): string {
+    const d = new Date(dateInput);
+    if (Number.isNaN(d.getTime())) return "-";
+    return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+}
+
+function sortByDateThenTop(a: DailyReportItem, b: DailyReportItem): number {
+    const ta = new Date(a.eventDate).getTime();
+    const tb = new Date(b.eventDate).getTime();
+    if (ta !== tb) return ta - tb;
+    if (b.totalParticipants !== a.totalParticipants) return b.totalParticipants - a.totalParticipants;
+    return a.eventName.localeCompare(b.eventName);
+}
+
 export default function RegistrationAnalyticsClient() {
     const [collegeStats, setCollegeStats] = useState<any>(null);
     const [categories, setCategories] = useState<CategoryAnalytics[]>([]);
     const [loading, setLoading] = useState(true);
+    const [reportLoading, setReportLoading] = useState(false);
+    const [activeReport, setActiveReport] = useState<"dailyPdf" | "dailyExcel" | null>(null);
     const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
     const [expandedCompetition, setExpandedCompetition] = useState<{ categoryId: string; competitionId: string | null }>({
         categoryId: "",
@@ -161,6 +218,410 @@ export default function RegistrationAnalyticsClient() {
 
         setLoading(false);
     };
+
+    const isKLUser = (user: ReportRegistrationUser): boolean => {
+        const email = user.email?.toLowerCase() || "";
+        const collage = (user.collage || "").toLowerCase();
+        return (
+            email.endsWith("@kluniversity.in") ||
+            collage.includes("kl university") ||
+            collage.includes("koneru") ||
+            collage.includes("klef")
+        );
+    };
+
+    const fetchReportData = async () => {
+        const [dailyResult, detailedResult] = await Promise.all([
+            getDailyReportStats(),
+            getDetailedEventRegistrations(),
+        ]);
+
+        if (!dailyResult.success || !dailyResult.data) {
+            throw new Error("Failed to fetch daily report stats");
+        }
+        if (!detailedResult.success || !detailedResult.events) {
+            throw new Error("Failed to fetch detailed registration stats");
+        }
+
+        return {
+            dailyData: dailyResult.data as DailyReportItem[],
+            detailedEvents: detailedResult.events as ReportDetailedEvent[],
+        };
+    };
+
+    const buildSummary = (detailedEvents: ReportDetailedEvent[], dailyData: DailyReportItem[]) => {
+        const summary = {
+            totalParticipants: 0,
+            overallOther: 0,
+            overallKl: 0,
+            overallMale: 0,
+            overallFemale: 0,
+            individualTotal: 0,
+            individualOther: 0,
+            individualKl: 0,
+            individualMale: 0,
+            individualFemale: 0,
+            teamTotalTeams: 0,
+            teamOtherTeams: 0,
+            teamKlTeams: 0,
+            teamOtherParticipants: 0,
+            teamKlParticipants: 0,
+            teamTotalParticipants: 0,
+            teamMale: 0,
+            teamFemale: 0,
+        };
+
+        detailedEvents.forEach((event) => {
+            event.individualRegistrations.forEach((reg) => {
+                const isKL = isKLUser(reg.user);
+                const gender = (reg.user.gender || "").toUpperCase();
+                summary.individualTotal += 1;
+                summary.totalParticipants += 1;
+                if (isKL) summary.individualKl += 1;
+                else summary.individualOther += 1;
+                if (isKL) summary.overallKl += 1;
+                else summary.overallOther += 1;
+                if (gender === "MALE") {
+                    summary.individualMale += 1;
+                    summary.overallMale += 1;
+                } else if (gender === "FEMALE") {
+                    summary.individualFemale += 1;
+                    summary.overallFemale += 1;
+                }
+            });
+
+            event.groupRegistrations.forEach((reg) => {
+                const isKL = isKLUser(reg.user);
+                const leadGender = (reg.user.gender || "").toUpperCase();
+                summary.teamTotalTeams += 1;
+                if (isKL) summary.teamKlTeams += 1;
+                else summary.teamOtherTeams += 1;
+
+                summary.teamTotalParticipants += 1;
+                summary.totalParticipants += 1;
+                if (isKL) {
+                    summary.teamKlParticipants += 1;
+                    summary.overallKl += 1;
+                } else {
+                    summary.teamOtherParticipants += 1;
+                    summary.overallOther += 1;
+                }
+                if (leadGender === "MALE") {
+                    summary.teamMale += 1;
+                    summary.overallMale += 1;
+                } else if (leadGender === "FEMALE") {
+                    summary.teamFemale += 1;
+                    summary.overallFemale += 1;
+                }
+
+                const membersValue = reg.members;
+                let membersList: Array<{ gender?: string }> = [];
+                if (Array.isArray(membersValue)) {
+                    membersList = membersValue as Array<{ gender?: string }>;
+                } else if (membersValue && typeof membersValue === "object") {
+                    membersList = Object.values(membersValue as Record<string, { gender?: string }>);
+                }
+
+                membersList.forEach((member) => {
+                    const memberGender = (member?.gender || "").toUpperCase();
+                    summary.teamTotalParticipants += 1;
+                    summary.totalParticipants += 1;
+                    if (isKL) {
+                        summary.teamKlParticipants += 1;
+                        summary.overallKl += 1;
+                    } else {
+                        summary.teamOtherParticipants += 1;
+                        summary.overallOther += 1;
+                    }
+                    if (memberGender === "MALE") {
+                        summary.teamMale += 1;
+                        summary.overallMale += 1;
+                    } else if (memberGender === "FEMALE") {
+                        summary.teamFemale += 1;
+                        summary.overallFemale += 1;
+                    }
+                });
+            });
+        });
+
+        const overallVirtualParticipants = dailyData.reduce((acc, item) => acc + item.virtualParticipants, 0);
+        const overallPhysicalParticipants = dailyData.reduce((acc, item) => acc + item.physicalParticipants, 0);
+        return { summary, overallVirtualParticipants, overallPhysicalParticipants };
+    };
+
+    const handleDownloadDailyReportPdf = async () => {
+        try {
+            setActiveReport("dailyPdf");
+            setReportLoading(true);
+            const { dailyData, detailedEvents } = await fetchReportData();
+            const { summary, overallVirtualParticipants, overallPhysicalParticipants } = buildSummary(detailedEvents, dailyData);
+
+            const doc = new jsPDF("l", "mm", "a4");
+            doc.setFontSize(16);
+            doc.text("Daily Registration Report - Category Wise", 14, 15);
+            doc.setFontSize(10);
+            doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 22);
+
+            autoTable(doc, {
+                startY: 28,
+                head: [["TOTAL PARTICIPANTS", String(summary.totalParticipants)]],
+                body: [
+                    ["Other Colleges", String(summary.overallOther)],
+                    ["KL University", String(summary.overallKl)],
+                    ["Male", String(summary.overallMale)],
+                    ["Female", String(summary.overallFemale)],
+                    ["Virtual Participants", String(overallVirtualParticipants)],
+                    ["Physical Participants", String(overallPhysicalParticipants)],
+                ],
+                theme: "grid",
+                headStyles: { fillColor: [52, 73, 94], textColor: 255, fontStyle: "bold" },
+                styles: { fontSize: 9, cellPadding: 2.5, fontStyle: "bold" },
+                margin: { left: 14, right: 14 },
+                columnStyles: { 1: { halign: "right" } },
+            });
+
+            const groupedByCategory = dailyData.reduce<Record<string, DailyReportItem[]>>((acc, item) => {
+                if (!acc[item.categoryName]) acc[item.categoryName] = [];
+                acc[item.categoryName].push(item);
+                return acc;
+            }, {});
+            const categoryNames = Object.keys(groupedByCategory).sort((a, b) => a.localeCompare(b));
+
+            let currentY = ((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? 28) + 8;
+            categoryNames.forEach((categoryName, index) => {
+                const items = groupedByCategory[categoryName].sort(sortByDateThenTop);
+                const soloItems = items.filter((item) => !item.isGroupEvent);
+                const groupItems = items.filter((item) => item.isGroupEvent);
+
+                if (currentY > 250 || (index > 0 && currentY > 230)) {
+                    doc.addPage();
+                    currentY = 20;
+                }
+
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "bold");
+                doc.text(`Category: ${categoryName}`, 14, currentY);
+                currentY += 5;
+
+                if (soloItems.length > 0) {
+                    if (currentY > 245) {
+                        doc.addPage();
+                        currentY = 20;
+                    }
+                    doc.setFontSize(10);
+                    doc.text("Solo Competitions", 14, currentY);
+                    currentY += 2;
+
+                    const soloRows = soloItems.map((item) => [
+                        item.eventName,
+                        formatEventDate(item.eventDate),
+                        String(item.participants.kl),
+                        String(item.participants.other),
+                        String(item.virtualParticipants),
+                        String(item.physicalParticipants),
+                        String(item.totalParticipants),
+                    ]);
+
+                    autoTable(doc, {
+                        startY: currentY,
+                        head: [["Competition", "Event Date", "KL", "Other", "Virtual", "Physical", "Total Participants"]],
+                        body: soloRows,
+                        theme: "grid",
+                        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+                        styles: { fontSize: 8.5, cellPadding: 2.2, fontStyle: "bold" },
+                        margin: { left: 14, right: 14 },
+                    });
+                    currentY = ((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? currentY) + 6;
+                }
+
+                if (groupItems.length > 0) {
+                    if (currentY > 245) {
+                        doc.addPage();
+                        currentY = 20;
+                    }
+                    doc.setFontSize(10);
+                    doc.text("Group Competitions", 14, currentY);
+                    currentY += 2;
+
+                    const groupRows = groupItems.map((item) => [
+                        item.eventName,
+                        formatEventDate(item.eventDate),
+                        String(item.teams.total),
+                        String(item.virtualParticipants),
+                        String(item.physicalParticipants),
+                        String(item.totalParticipants),
+                        `${item.teams.total} teams = ${item.totalParticipants} participants`,
+                    ]);
+
+                    autoTable(doc, {
+                        startY: currentY,
+                        head: [[
+                            "Competition",
+                            "Event Date",
+                            "Total Teams",
+                            "Virtual Participants",
+                            "Physical Participants",
+                            "Total Participants",
+                            "Total Teams = Total Participants",
+                        ]],
+                        body: groupRows,
+                        theme: "grid",
+                        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+                        styles: { fontSize: 8.5, cellPadding: 2.2, fontStyle: "bold" },
+                        margin: { left: 14, right: 14 },
+                    });
+                    currentY = ((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? currentY) + 8;
+                }
+            });
+
+            doc.save(`Daily_Report_${new Date().toISOString().split("T")[0]}.pdf`);
+            toast.success("Daily report PDF downloaded");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to generate report PDF");
+        } finally {
+            setReportLoading(false);
+            setActiveReport(null);
+        }
+    };
+
+    const handleDownloadDailyReportExcel = async () => {
+        try {
+            setActiveReport("dailyExcel");
+            setReportLoading(true);
+            const { dailyData, detailedEvents } = await fetchReportData();
+            const { summary, overallVirtualParticipants, overallPhysicalParticipants } = buildSummary(detailedEvents, dailyData);
+
+            const summarySheet = [
+                { Section: "TOTAL PARTICIPANTS", Metric: "Total Participants", Value: summary.totalParticipants },
+                { Section: "TOTAL PARTICIPANTS", Metric: "Other Colleges", Value: summary.overallOther },
+                { Section: "TOTAL PARTICIPANTS", Metric: "KL University", Value: summary.overallKl },
+                { Section: "TOTAL PARTICIPANTS", Metric: "Male", Value: summary.overallMale },
+                { Section: "TOTAL PARTICIPANTS", Metric: "Female", Value: summary.overallFemale },
+                { Section: "TOTAL PARTICIPANTS", Metric: "Virtual Participants", Value: overallVirtualParticipants },
+                { Section: "TOTAL PARTICIPANTS", Metric: "Physical Participants", Value: overallPhysicalParticipants },
+            ];
+
+            const sortedData = dailyData
+                .slice()
+                .sort(sortByDateThenTop);
+
+            const soloRows = sortedData
+                .filter((item) => !item.isGroupEvent)
+                .map((item) => ({
+                    Category: item.categoryName,
+                    Competition: item.eventName,
+                    "Event Date": formatEventDate(item.eventDate),
+                    "KL Participants": item.participants.kl,
+                    "Other Participants": item.participants.other,
+                    "Virtual Participants": item.virtualParticipants,
+                    "Physical Participants": item.physicalParticipants,
+                    "Total Participants": `${item.totalParticipants} participants`,
+                }));
+
+            const groupRows = sortedData
+                .filter((item) => item.isGroupEvent)
+                .map((item) => ({
+                    Category: item.categoryName,
+                    Competition: item.eventName,
+                    "Event Date": formatEventDate(item.eventDate),
+                    "Total Teams": `${item.teams.total} teams`,
+                    "KL Participants": item.participants.kl,
+                    "Other Participants": item.participants.other,
+                    "Virtual Participants": item.virtualParticipants,
+                    "Physical Participants": item.physicalParticipants,
+                    "Total Participants": `${item.totalParticipants} participants`,
+                }));
+
+            const competitionWiseRows = sortedData.map((item) => ({
+                Category: item.categoryName,
+                Competition: item.eventName,
+                "Event Date": formatEventDate(item.eventDate),
+                "Event Type": item.isGroupEvent ? "Group" : "Solo",
+                "Total Teams": item.isGroupEvent ? `${item.teams.total} teams` : "0 teams",
+                "KL Participants": item.participants.kl,
+                "Other Participants": item.participants.other,
+                "Virtual Participants": item.virtualParticipants,
+                "Physical Participants": item.physicalParticipants,
+                "Total Participants": `${item.totalParticipants} participants`,
+            }));
+
+            const categoryTotals = Object.values(
+                sortedData.reduce<Record<string, {
+                    Category: string;
+                    Competitions: number;
+                    "Solo Competitions": number;
+                    "Group Competitions": number;
+                    "Total Teams": number;
+                    "Total Participants": number;
+                    "Virtual Participants": number;
+                    "Physical Participants": number;
+                }>>((acc, item) => {
+                    if (!acc[item.categoryName]) {
+                        acc[item.categoryName] = {
+                            Category: item.categoryName,
+                            Competitions: 0,
+                            "Solo Competitions": 0,
+                            "Group Competitions": 0,
+                            "Total Teams": 0,
+                            "Total Participants": 0,
+                            "Virtual Participants": 0,
+                            "Physical Participants": 0,
+                        };
+                    }
+                    acc[item.categoryName].Competitions += 1;
+                    if (item.isGroupEvent) {
+                        acc[item.categoryName]["Group Competitions"] += 1;
+                        acc[item.categoryName]["Total Teams"] += item.teams.total;
+                    } else {
+                        acc[item.categoryName]["Solo Competitions"] += 1;
+                    }
+                    acc[item.categoryName]["Total Participants"] += item.totalParticipants;
+                    acc[item.categoryName]["Virtual Participants"] += item.virtualParticipants;
+                    acc[item.categoryName]["Physical Participants"] += item.physicalParticipants;
+                    return acc;
+                }, {})
+            );
+
+            const wb = XLSX.utils.book_new();
+            const wsSummary = XLSX.utils.json_to_sheet(summarySheet);
+            wsSummary["!cols"] = [{ wch: 28 }, { wch: 36 }, { wch: 14 }];
+            const wsCompetitionWise = XLSX.utils.json_to_sheet(competitionWiseRows);
+            wsCompetitionWise["!cols"] = [
+                { wch: 22 }, { wch: 28 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 },
+                { wch: 17 }, { wch: 18 }, { wch: 19 }, { wch: 17 }, { wch: 30 },
+            ];
+            const wsSolo = XLSX.utils.json_to_sheet(soloRows);
+            wsSolo["!cols"] = [
+                { wch: 22 }, { wch: 28 }, { wch: 12 }, { wch: 14 }, { wch: 17 },
+                { wch: 18 }, { wch: 19 }, { wch: 17 },
+            ];
+            const wsGroup = XLSX.utils.json_to_sheet(groupRows);
+            wsGroup["!cols"] = [
+                { wch: 22 }, { wch: 28 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 17 },
+                { wch: 18 }, { wch: 19 }, { wch: 17 }, { wch: 30 },
+            ];
+            const wsCategoryTotals = XLSX.utils.json_to_sheet(categoryTotals);
+            wsCategoryTotals["!cols"] = [
+                { wch: 24 }, { wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 12 },
+                { wch: 18 }, { wch: 18 }, { wch: 18 },
+            ];
+            XLSX.utils.book_append_sheet(wb, wsCompetitionWise, "Competition Wise Full");
+            XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
+            XLSX.utils.book_append_sheet(wb, wsSolo, "Solo Competitions");
+            XLSX.utils.book_append_sheet(wb, wsGroup, "Group Competitions");
+            XLSX.utils.book_append_sheet(wb, wsCategoryTotals, "Category Totals");
+            XLSX.writeFile(wb, `Daily_Report_${new Date().toISOString().split("T")[0]}.xlsx`);
+            toast.success("Daily report Excel downloaded");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to generate report Excel");
+        } finally {
+            setReportLoading(false);
+            setActiveReport(null);
+        }
+    };
+
 
     if (loading) {
         return (
@@ -200,7 +661,22 @@ export default function RegistrationAnalyticsClient() {
                                             Comprehensive registration analysis and insights for higher officials. Track registrations by category, college, and demographics with detailed breakdowns.
                                         </p>
                                     </div>
-                                    
+                                    <div className="flex flex-col sm:flex-row gap-2">
+                                        <button
+                                            onClick={handleDownloadDailyReportPdf}
+                                            disabled={reportLoading}
+                                            className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50"
+                                        >
+                                            {activeReport === "dailyPdf" ? "Preparing..." : "Daily PDF"}
+                                        </button>
+                                        <button
+                                            onClick={handleDownloadDailyReportExcel}
+                                            disabled={reportLoading}
+                                            className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50"
+                                        >
+                                            {activeReport === "dailyExcel" ? "Preparing..." : "Daily Excel"}
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 {/* Info badges */}
