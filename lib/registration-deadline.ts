@@ -22,4 +22,4 @@ export function isOnlineRegistrationClosed(): boolean {
 /** Alias for consistency (server actions use this) */
 export const isOnlineRegistrationClosedServer = isOnlineRegistrationClosed;
 
-export const ONLINE_REG_CLOSED_MESSAGE = `Online registrations are closed for today (deadline: 28th February 2026, 5:00 PM).\n\nSpot Registrations: Visit the campus daily up to 10:15 AM with your physical college ID card to complete spot registration. Registrations close strictly at 10:15 AM each day.`;
+export const ONLINE_REG_CLOSED_MESSAGE = `Online registrations are closed!! (deadline: 28th February 2026, 5:00 PM).\n\nSpot Registrations:\nParticipants who wish to register on the spot must visit the campus on the day of the respective competition before 10:15 AM with their physical college ID card to complete the registration process.\n\nPlease note that registrations will close strictly at 10:15 AM each day. No registrations will be accepted after the deadline.`;

@@ -142,7 +142,7 @@ export default function CompetitionsClient({
                 <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 The deadline for online registrations is today at 5:00 PM.
                 <span className="text-red-700">|</span>
-                <span className="text-amber-300 font-semibold">Spot Registrations: Spot registrations will be available daily up to 10:15 AM. Participants must visit the campus and carry their physical college ID card to complete the spot registration process. Registrations will close strictly at 10:15 AM each day.</span>
+                <span className="text-amber-300 font-semibold">Spot Registrations: Participants who wish to register on the spot must visit the campus on the day of the respective competition before 10:15 AM with their physical college ID card to complete the registration process. Registrations will close strictly at 10:15 AM each day. No registrations will be accepted after the deadline.</span>
                 <span className="text-red-700">|</span>
                 <span className="text-emerald-300 font-semibold">Important Note: On 7th March, only virtual competitions will be conducted. Students from other colleges will not be permitted to enter the campus on that day.</span>
                 <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>

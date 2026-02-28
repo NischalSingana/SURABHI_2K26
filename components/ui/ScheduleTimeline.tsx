@@ -66,7 +66,7 @@ function findEventSlug(
 }
 
 const CATEGORY_IMAGES: Record<string, string> = {
-  "CHITRAKALA - Painting": "/poster-gallery/CHITRAKALA.png",
+  "CHITRAKALA - Painting": "/poster-gallery/CHITRAKALA.jpg",
   "SAHITYA - Literature": "/poster-gallery/SAHITYA.jpg",
   "CINE CARNIVAL - Short Films": "/poster-gallery/CINE CARNIVAL.png",
   "National Parliamentary Simulation": "/poster-gallery/MOCK PARLIAMENT.jpg",

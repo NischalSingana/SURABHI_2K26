@@ -195,7 +195,7 @@ Chief guests / chief guest for Surabhi 2026: Not yet decided. When asked about c
 export const REGISTRATION_NOTICE_KNOWLEDGE = `
 Registration Notice (current during event week):
 - The deadline for online registrations is today at 5:00 PM.
-- Spot Registrations: Spot registrations will be available daily up to 10:15 AM. Participants must visit the campus and carry their physical college ID card to complete the spot registration process. Registrations will close strictly at 10:15 AM each day.
+- Spot Registrations: Participants who wish to register on the spot must visit the campus on the day of the respective competition before 10:15 AM with their physical college ID card to complete the registration process. Please note that registrations will close strictly at 10:15 AM each day. No registrations will be accepted after the deadline.
 - Important Note: On 7th March, only virtual competitions will be conducted. Students from other colleges will not be permitted to enter the campus on that day.
 `.trim();
 

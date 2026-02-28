@@ -51,7 +51,7 @@ interface CategoryData {
 
 // Fallback poster paths when event has no image
 const CATEGORY_POSTER_FALLBACK: Record<string, string> = {
-  "chitrakala": "/poster-gallery/CHITRAKALA.png",
+  "chitrakala": "/poster-gallery/CHITRAKALA.jpg",
   "sahitya": "/poster-gallery/SAHITYA.jpg",
   "cine carnival": "/poster-gallery/CINE CARNIVAL.png",
   "national parliamentary simulation": "/poster-gallery/MOCK PARLIAMENT.jpg",
@@ -292,7 +292,7 @@ function CategoryPageContent() {
   const handleRegisterClick = (event: Event, e: React.MouseEvent) => {
     e.stopPropagation();
     if (regClosed) {
-      toast.error("Online registrations are closed for today. Spot registrations available on campus until 10:15 AM.");
+      toast.error("Online registrations are closed!! Spot registrations: visit campus on the day of the competition before 10:15 AM with your college ID card.");
       return;
     }
     toast.info("Redirecting to registration page...");
