@@ -207,6 +207,7 @@ export async function getDetailedEventRegistrations() {
                     },
                 },
                 individualRegistrations: {
+                    where: { paymentStatus: "APPROVED" },
                     select: {
                         id: true,
                         createdAt: true,
@@ -231,6 +232,7 @@ export async function getDetailedEventRegistrations() {
                     },
                 },
                 groupRegistrations: {
+                    where: { paymentStatus: "APPROVED" },
                     select: {
                         id: true,
                         groupName: true,
@@ -308,7 +310,7 @@ export async function getDailyReportStats() {
                     },
                 },
                 individualRegistrations: {
-                    where: { paymentStatus: { not: "REJECTED" } },
+                    where: { paymentStatus: "APPROVED" },
                     select: {
                         isVirtual: true,
                         user: {
@@ -320,7 +322,7 @@ export async function getDailyReportStats() {
                     },
                 },
                 groupRegistrations: {
-                    where: { paymentStatus: { not: "REJECTED" } },
+                    where: { paymentStatus: "APPROVED" },
                     select: {
                         isVirtual: true,
                         members: true,

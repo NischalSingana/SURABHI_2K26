@@ -37,8 +37,9 @@ export async function getRegistrationStatsByCollege() {
             throw new Error("Unauthorized - GOD role required");
         }
 
-        // Get all individual registrations with user data
+        // Get all approved individual registrations with user data
         const individualRegistrations = await prisma.individualRegistration.findMany({
+            where: { paymentStatus: "APPROVED" },
             select: {
                 id: true,
                 user: {
@@ -53,8 +54,9 @@ export async function getRegistrationStatsByCollege() {
             },
         });
 
-        // Get all group registrations with user data and members
+        // Get all approved group registrations with user data and members
         const groupRegistrations = await prisma.groupRegistration.findMany({
+            where: { paymentStatus: "APPROVED" },
             select: {
                 id: true,
                 members: true,
@@ -239,12 +241,13 @@ export async function getCategoryWiseAnalytics() {
             select: {
                 id: true,
                 name: true,
-                Event: {
+                    Event: {
                     select: {
                         id: true,
                         name: true,
                         isGroupEvent: true,
                         individualRegistrations: {
+                            where: { paymentStatus: "APPROVED" },
                             select: {
                                 id: true,
                                 createdAt: true,
@@ -265,6 +268,7 @@ export async function getCategoryWiseAnalytics() {
                             },
                         },
                         groupRegistrations: {
+                            where: { paymentStatus: "APPROVED" },
                             select: {
                                 id: true,
                                 groupName: true,

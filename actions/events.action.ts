@@ -80,7 +80,227 @@ export async function deleteRegistration(id: string, type: 'INDIVIDUAL' | 'GROUP
     return { success: true, message: "Registration deleted successfully" };
   } catch (error) {
     console.error("Error deleting registration:", error);
-    return { success: false, error: "Failed to delete registration" };
+    return { success: false, error: (error as Error).message };
+  }
+}
+
+/**
+ * Reset an approved registration to PENDING. Only MASTER can do this.
+ * The registration will reappear in /admin/registrations/approvals for re-approval.
+ * When re-approved, the confirmation email will be sent again.
+ */
+export async function resetRegistrationToPending(id: string, type: "INDIVIDUAL" | "GROUP") {
+  try {
+    const headersList = await headers();
+    const session = await auth.api.getSession({
+      headers: headersList,
+    });
+
+    if (!session || session.user.role !== Role.MASTER) {
+      return { success: false, error: "Unauthorized. Only MASTER can reset registrations to pending." };
+    }
+
+    if (type === "INDIVIDUAL") {
+      const existing = await prisma.individualRegistration.findUnique({
+        where: { id },
+        select: { paymentStatus: true },
+      });
+      if (!existing || existing.paymentStatus !== "APPROVED") {
+        return { success: false, error: "Registration not found or not approved." };
+      }
+      await prisma.individualRegistration.update({
+        where: { id },
+        data: {
+          paymentStatus: PaymentStatus.PENDING,
+          approvedBy: null,
+          approvedAt: null,
+        },
+      });
+    } else {
+      const existing = await prisma.groupRegistration.findUnique({
+        where: { id },
+        select: { paymentStatus: true },
+      });
+      if (!existing || existing.paymentStatus !== "APPROVED") {
+        return { success: false, error: "Registration not found or not approved." };
+      }
+      await prisma.groupRegistration.update({
+        where: { id },
+        data: {
+          paymentStatus: PaymentStatus.PENDING,
+          approvedBy: null,
+          approvedAt: null,
+        },
+      });
+    }
+
+    revalidatePath("/admin/competitions");
+    revalidatePath("/admin/registrations/approvals");
+    revalidatePath("/admin/events");
+    revalidatePath("/profile");
+    revalidatePath("/profile/competitions");
+    revalidatePath("/competitions");
+
+    return { success: true, message: "Registration reset to pending. It will appear in Registrations > Approvals for re-approval." };
+  } catch (error) {
+    console.error("Error resetting registration to pending:", error);
+    return { success: false, error: (error as Error).message };
+  }
+}
+
+/** Editable fields for individual participant (stored in User) */
+export type IndividualParticipantEdit = {
+  name?: string;
+  email?: string;
+  phone?: string;
+  collage?: string;
+  collageId?: string;
+  branch?: string;
+  year?: number | null;
+  city?: string;
+  state?: string;
+  gender?: string;
+  country?: string;
+};
+
+/**
+ * Update individual participant details (User record). Admin and Master only.
+ * Use when participant provided wrong info - then reset to pending and re-approve for updated pass.
+ */
+export async function updateIndividualParticipantDetails(userId: string, data: IndividualParticipantEdit) {
+  try {
+    const headersList = await headers();
+    const session = await auth.api.getSession({ headers: headersList });
+
+    if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+      return { success: false, error: "Unauthorized. Admin or Master only." };
+    }
+
+    const updateData: Record<string, unknown> = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.phone !== undefined) updateData.phone = data.phone;
+    if (data.collage !== undefined) updateData.collage = data.collage;
+    if (data.collageId !== undefined) updateData.collageId = data.collageId;
+    if (data.branch !== undefined) updateData.branch = data.branch;
+    if (data.year !== undefined) updateData.year = data.year;
+    if (data.city !== undefined) updateData.city = data.city;
+    if (data.state !== undefined) updateData.state = data.state;
+    if (data.gender !== undefined) updateData.gender = data.gender;
+    if (data.country !== undefined) updateData.country = data.country;
+
+    if (Object.keys(updateData).length === 0) {
+      return { success: false, error: "No fields to update." };
+    }
+
+    if (data.email !== undefined) {
+      const existing = await prisma.user.findFirst({
+        where: { email: data.email, id: { not: userId } },
+      });
+      if (existing) {
+        return { success: false, error: "Email already in use by another user." };
+      }
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: updateData as Prisma.UserUpdateInput,
+    });
+
+    revalidatePath("/admin/competitions");
+    revalidatePath("/admin/registrations/approvals");
+    revalidatePath("/profile");
+    revalidatePath("/profile/competitions");
+    return { success: true, message: "Participant details updated. Reset to pending and re-approve to send updated pass." };
+  } catch (error) {
+    console.error("Error updating individual participant:", error);
+    return { success: false, error: (error as Error).message };
+  }
+}
+
+/** Editable fields for group - team lead (User) and group record */
+export type GroupParticipantEdit = {
+  groupName?: string;
+  mentorName?: string;
+  mentorPhone?: string;
+  teamLead?: IndividualParticipantEdit;
+  members?: Prisma.JsonValue; // Array or object of member records
+};
+
+/**
+ * Update group participant details (team lead User + GroupRegistration). Admin and Master only.
+ */
+export async function updateGroupParticipantDetails(
+  groupRegId: string,
+  data: GroupParticipantEdit
+) {
+  try {
+    const headersList = await headers();
+    const session = await auth.api.getSession({ headers: headersList });
+
+    if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+      return { success: false, error: "Unauthorized. Admin or Master only." };
+    }
+
+    const reg = await prisma.groupRegistration.findUnique({
+      where: { id: groupRegId },
+      select: { userId: true, members: true },
+    });
+    if (!reg) return { success: false, error: "Group registration not found." };
+
+    if (data.teamLead && Object.keys(data.teamLead).length > 0) {
+      const updateData: Record<string, unknown> = {};
+      const t = data.teamLead;
+      if (t.name !== undefined) updateData.name = t.name;
+      if (t.email !== undefined) updateData.email = t.email;
+      if (t.phone !== undefined) updateData.phone = t.phone;
+      if (t.collage !== undefined) updateData.collage = t.collage;
+      if (t.collageId !== undefined) updateData.collageId = t.collageId;
+      if (t.branch !== undefined) updateData.branch = t.branch;
+      if (t.year !== undefined) updateData.year = t.year;
+      if (t.city !== undefined) updateData.city = t.city;
+      if (t.state !== undefined) updateData.state = t.state;
+      if (t.gender !== undefined) updateData.gender = t.gender;
+      if (t.country !== undefined) updateData.country = t.country;
+
+      if (t.email !== undefined) {
+        const existing = await prisma.user.findFirst({
+          where: { email: t.email, id: { not: reg.userId } },
+        });
+        if (existing) {
+          return { success: false, error: "Email already in use by another user." };
+        }
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        await prisma.user.update({
+          where: { id: reg.userId },
+          data: updateData as Prisma.UserUpdateInput,
+        });
+      }
+    }
+
+    const regUpdate: Record<string, unknown> = {};
+    if (data.groupName !== undefined) regUpdate.groupName = data.groupName;
+    if (data.mentorName !== undefined) regUpdate.mentorName = data.mentorName;
+    if (data.mentorPhone !== undefined) regUpdate.mentorPhone = data.mentorPhone;
+    if (data.members !== undefined) regUpdate.members = data.members;
+
+    if (Object.keys(regUpdate).length > 0) {
+      await prisma.groupRegistration.update({
+        where: { id: groupRegId },
+        data: regUpdate as Prisma.GroupRegistrationUpdateInput,
+      });
+    }
+
+    revalidatePath("/admin/competitions");
+    revalidatePath("/admin/registrations/approvals");
+    revalidatePath("/profile");
+    revalidatePath("/profile/competitions");
+    return { success: true, message: "Group details updated. Reset to pending and re-approve to send updated pass." };
+  } catch (error) {
+    console.error("Error updating group participant:", error);
+    return { success: false, error: (error as Error).message };
   }
 }
 

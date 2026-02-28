@@ -11,6 +11,11 @@ import {
   deleteCategory,
   deleteEvent,
   deleteRegistration,
+  resetRegistrationToPending,
+  updateIndividualParticipantDetails,
+  updateGroupParticipantDetails,
+  type IndividualParticipantEdit,
+  type GroupParticipantEdit,
 } from "@/actions/events.action";
 import { uploadCategoryImage } from "@/actions/upload.action";
 import { useSession } from "@/lib/auth-client";
@@ -152,12 +157,19 @@ export default function EventsManagement() {
   );
 
   // Student Details Modal State
-  const [selectedStudent, setSelectedStudent] = useState<any>(null); // Keeping any as structure is dynamic
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [selectedIndividualRegId, setSelectedIndividualRegId] = useState<string | null>(null);
   const [showStudentDetailsModal, setShowStudentDetailsModal] = useState(false);
+  const [isEditingStudent, setIsEditingStudent] = useState(false);
+  const [editStudentForm, setEditStudentForm] = useState<IndividualParticipantEdit>({});
+  const [savingStudent, setSavingStudent] = useState(false);
 
   // Group Details Modal State
-  const [selectedGroup, setSelectedGroup] = useState<any>(null); // Keeping any as structure is dynamic
+  const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const [showGroupDetailsModal, setShowGroupDetailsModal] = useState(false);
+  const [isEditingGroup, setIsEditingGroup] = useState(false);
+  const [editGroupForm, setEditGroupForm] = useState<GroupParticipantEdit>({});
+  const [savingGroup, setSavingGroup] = useState(false);
 
   // Event Registrations modal tab: KL University | Other College | International
   const [registrationsTab, setRegistrationsTab] = useState<"kl" | "other" | "international">("kl");
@@ -226,6 +238,122 @@ export default function EventsManagement() {
     } else {
       toast.error(result.error || "Failed to delete");
     }
+  };
+
+  const handleResetToPending = async (id: string, type: "INDIVIDUAL" | "GROUP") => {
+    if (!confirm("Reset this registration to Pending? It will appear in Registrations > Approvals for re-approval. When approved again, the participant will receive a confirmation email.")) return;
+
+    toast.loading("Resetting to pending...");
+    const result = await resetRegistrationToPending(id, type);
+    toast.dismiss();
+
+    if (result.success) {
+      toast.success(result.message);
+      fetchCategoriesWithEvents();
+    } else {
+      toast.error(result.error || "Failed to reset");
+    }
+  };
+
+  const canEditParticipant = session?.user?.role === "ADMIN" || session?.user?.role === "MASTER";
+
+  const handleSaveIndividual = async (resetAfterSave = false) => {
+    if (!selectedStudent?.id || Object.keys(editStudentForm).length === 0) return;
+    setSavingStudent(true);
+    toast.loading("Saving...");
+    const result = await updateIndividualParticipantDetails(selectedStudent.id, editStudentForm);
+    toast.dismiss();
+    setSavingStudent(false);
+    if (result.success) {
+      toast.success(result.message);
+      setEditStudentForm({});
+      setIsEditingStudent(false);
+      fetchCategoriesWithEvents();
+      if (resetAfterSave && selectedIndividualRegId) {
+        await handleResetToPending(selectedIndividualRegId, "INDIVIDUAL");
+        setShowStudentDetailsModal(false);
+        setSelectedStudent(null);
+        setSelectedIndividualRegId(null);
+      } else {
+        setSelectedStudent((prev: any) => ({ ...prev, ...editStudentForm }));
+      }
+    } else {
+      toast.error(result.error || "Failed to save");
+    }
+  };
+
+  const handleSaveGroup = async (resetAfterSave = false) => {
+    if (!selectedGroup?.id || Object.keys(editGroupForm).length === 0) return;
+    setSavingGroup(true);
+    toast.loading("Saving...");
+    const result = await updateGroupParticipantDetails(selectedGroup.id, editGroupForm);
+    toast.dismiss();
+    setSavingGroup(false);
+    if (result.success) {
+      toast.success(result.message);
+      setEditGroupForm({});
+      setIsEditingGroup(false);
+      fetchCategoriesWithEvents();
+      if (resetAfterSave) {
+        await handleResetToPending(selectedGroup.id, "GROUP");
+        setShowGroupDetailsModal(false);
+        setSelectedGroup(null);
+      } else {
+        setSelectedGroup((prev: any) => {
+          const next = { ...prev };
+          if (editGroupForm.teamLead) next.user = { ...prev.user, ...editGroupForm.teamLead };
+          if (editGroupForm.groupName !== undefined) next.groupName = editGroupForm.groupName;
+          if (editGroupForm.mentorName !== undefined) next.mentorName = editGroupForm.mentorName;
+          if (editGroupForm.mentorPhone !== undefined) next.mentorPhone = editGroupForm.mentorPhone;
+          if (editGroupForm.members !== undefined) next.members = editGroupForm.members;
+          return next;
+        });
+      }
+    } else {
+      toast.error(result.error || "Failed to save");
+    }
+  };
+
+  const startEditingStudent = () => {
+    setEditStudentForm({
+      name: selectedStudent?.name ?? "",
+      email: selectedStudent?.email ?? "",
+      phone: selectedStudent?.phone ?? "",
+      collage: selectedStudent?.collage ?? "",
+      collageId: selectedStudent?.collageId ?? "",
+      branch: selectedStudent?.branch ?? "",
+      year: selectedStudent?.year ?? null,
+      city: selectedStudent?.city ?? "",
+      state: selectedStudent?.state ?? "",
+      gender: selectedStudent?.gender ?? "",
+      country: selectedStudent?.country ?? "",
+    });
+    setIsEditingStudent(true);
+  };
+
+  const startEditingGroup = () => {
+    const raw = selectedGroup?.members;
+    const memberList = Array.isArray(raw) ? raw : (raw && typeof raw === "object" ? Object.values(raw) : []);
+    setEditGroupForm({
+      groupName: selectedGroup?.groupName ?? "",
+      mentorName: selectedGroup?.mentorName ?? "",
+      mentorPhone: selectedGroup?.mentorPhone ?? "",
+      teamLead: {
+        name: selectedGroup?.user?.name ?? "",
+        email: selectedGroup?.user?.email ?? "",
+        phone: selectedGroup?.user?.phone ?? "",
+        collage: selectedGroup?.user?.collage ?? "",
+        collageId: selectedGroup?.user?.collageId ?? "",
+        branch: selectedGroup?.user?.branch ?? "",
+        year: selectedGroup?.user?.year ?? null,
+        city: selectedGroup?.user?.city ?? "",
+        state: selectedGroup?.user?.state ?? "",
+        gender: selectedGroup?.user?.gender ?? "",
+        country: selectedGroup?.user?.country ?? "",
+      },
+      members: memberList.length > 0 ? memberList : undefined,
+    });
+    setIsEditingGroup(true);
   };
 
   const fetchSchedules = async () => {
@@ -1210,21 +1338,35 @@ export default function EventsManagement() {
                                         </p>
                                       </div>
                                     </div>
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-2">
                                       <span className="text-red-500 text-sm group-hover:underline">View Details &rarr;</span>
                                       {session?.user.role === "MASTER" && (
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteRegistration(group.id, "GROUP");
-                                          }}
-                                          className="text-zinc-500 hover:text-red-500 p-2 rounded-full hover:bg-red-500/10 transition-colors"
-                                          title="Delete Registration"
-                                        >
-                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                          </svg>
-                                        </button>
+                                        <>
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleResetToPending(group.id, "GROUP");
+                                            }}
+                                            className="text-zinc-500 hover:text-amber-400 p-2 rounded-full hover:bg-amber-500/10 transition-colors"
+                                            title="Reset to Pending (re-appear in Approvals for re-approval + email)"
+                                          >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                          </button>
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleDeleteRegistration(group.id, "GROUP");
+                                            }}
+                                            className="text-zinc-500 hover:text-red-500 p-2 rounded-full hover:bg-red-500/10 transition-colors"
+                                            title="Delete Registration"
+                                          >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                          </button>
+                                        </>
                                       )}
                                     </div>
                                   </div>
@@ -1253,9 +1395,10 @@ export default function EventsManagement() {
                               const isVirtual = !!reg.isVirtual || !!student.isInternational;
                               return (
                                 <div
-                                  key={student.id}
+                                  key={reg.id}
                                   onClick={() => {
                                     setSelectedStudent(student);
+                                    setSelectedIndividualRegId(reg.id);
                                     setShowStudentDetailsModal(true);
                                   }}
                                   className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-red-600/50 transition-all cursor-pointer group"
@@ -1286,18 +1429,32 @@ export default function EventsManagement() {
                                       )}
                                     </div>
                                     {session?.user.role === "MASTER" && (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleDeleteRegistration(reg.id, "INDIVIDUAL");
-                                        }}
-                                        className="text-zinc-500 hover:text-red-500 p-2 rounded-full hover:bg-red-500/10 transition-colors"
-                                        title="Delete Registration"
-                                      >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                      </button>
+                                      <div className="flex items-center gap-1">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleResetToPending(reg.id, "INDIVIDUAL");
+                                          }}
+                                          className="text-zinc-500 hover:text-amber-400 p-2 rounded-full hover:bg-amber-500/10 transition-colors"
+                                          title="Reset to Pending (re-appear in Approvals for re-approval + email)"
+                                        >
+                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteRegistration(reg.id, "INDIVIDUAL");
+                                          }}
+                                          className="text-zinc-500 hover:text-red-500 p-2 rounded-full hover:bg-red-500/10 transition-colors"
+                                          title="Delete Registration"
+                                        >
+                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                          </svg>
+                                        </button>
+                                      </div>
                                     )}
                                   </div>
                                 </div>
@@ -1670,6 +1827,9 @@ export default function EventsManagement() {
                   onClick={() => {
                     setShowStudentDetailsModal(false);
                     setSelectedStudent(null);
+                    setSelectedIndividualRegId(null);
+                    setIsEditingStudent(false);
+                    setEditStudentForm({});
                   }}
                   className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
                 >
@@ -1682,38 +1842,158 @@ export default function EventsManagement() {
               <div className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0 overscroll-contain" data-lenis-prevent>
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-16 h-16 rounded-full bg-red-600/20 flex items-center justify-center text-red-500 text-2xl font-bold border border-red-500/30">
-                    {selectedStudent.name ? selectedStudent.name.charAt(0).toUpperCase() : '?'}
+                    {(isEditingStudent ? editStudentForm.name : selectedStudent.name)?.charAt(0)?.toUpperCase() || "?"}
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-white">{selectedStudent.name || "No name"}</h3>
-                    <p className="text-zinc-400">{selectedStudent.email}</p>
+                  <div className="flex-1">
+                    {isEditingStudent ? (
+                      <div className="space-y-2">
+                        <input
+                          value={editStudentForm.name ?? ""}
+                          onChange={(e) => setEditStudentForm((f) => ({ ...f, name: e.target.value }))}
+                          placeholder="Name"
+                          className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
+                        />
+                        <input
+                          type="email"
+                          value={editStudentForm.email ?? ""}
+                          onChange={(e) => setEditStudentForm((f) => ({ ...f, email: e.target.value }))}
+                          placeholder="Email"
+                          className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        <h3 className="text-xl font-bold text-white">{selectedStudent.name || "No name"}</h3>
+                        <p className="text-zinc-400">{selectedStudent.email}</p>
+                      </>
+                    )}
                   </div>
+                  {canEditParticipant && !isEditingStudent && (
+                    <button
+                      onClick={startEditingStudent}
+                      className="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg text-sm font-medium"
+                    >
+                      Edit
+                    </button>
+                  )}
                 </div>
 
                 <div className="space-y-3">
-                  <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div className="grid grid-cols-3 gap-2 text-sm items-center">
                     <span className="text-zinc-500">Phone:</span>
-                    <span className="text-white col-span-2 font-medium">{selectedStudent.phone || "N/A"}</span>
+                    {isEditingStudent ? (
+                      <input
+                        value={editStudentForm.phone ?? ""}
+                        onChange={(e) => setEditStudentForm((f) => ({ ...f, phone: e.target.value }))}
+                        placeholder="Phone"
+                        className="col-span-2 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
+                      />
+                    ) : (
+                      <span className="text-white col-span-2 font-medium">{selectedStudent.phone || "N/A"}</span>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div className="grid grid-cols-3 gap-2 text-sm items-center">
                     <span className="text-zinc-500">College:</span>
-                    <span className="text-white col-span-2 font-medium">{selectedStudent.collage || "N/A"}</span>
+                    {isEditingStudent ? (
+                      <input
+                        value={editStudentForm.collage ?? ""}
+                        onChange={(e) => setEditStudentForm((f) => ({ ...f, collage: e.target.value }))}
+                        placeholder="College"
+                        className="col-span-2 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
+                      />
+                    ) : (
+                      <span className="text-white col-span-2 font-medium">{selectedStudent.collage || "N/A"}</span>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div className="grid grid-cols-3 gap-2 text-sm items-center">
                     <span className="text-zinc-500">Branch:</span>
-                    <span className="text-white col-span-2 font-medium">{selectedStudent.branch || "N/A"}</span>
+                    {isEditingStudent ? (
+                      <input
+                        value={editStudentForm.branch ?? ""}
+                        onChange={(e) => setEditStudentForm((f) => ({ ...f, branch: e.target.value }))}
+                        placeholder="Branch"
+                        className="col-span-2 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
+                      />
+                    ) : (
+                      <span className="text-white col-span-2 font-medium">{selectedStudent.branch || "N/A"}</span>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div className="grid grid-cols-3 gap-2 text-sm items-center">
                     <span className="text-zinc-500">Year:</span>
-                    <span className="text-white col-span-2 font-medium">{selectedStudent.year || "N/A"}</span>
+                    {isEditingStudent ? (
+                      <input
+                        type="number"
+                        value={editStudentForm.year ?? ""}
+                        onChange={(e) => setEditStudentForm((f) => ({ ...f, year: e.target.value ? parseInt(e.target.value, 10) : null }))}
+                        placeholder="Year"
+                        className="col-span-2 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
+                      />
+                    ) : (
+                      <span className="text-white col-span-2 font-medium">{selectedStudent.year || "N/A"}</span>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div className="grid grid-cols-3 gap-2 text-sm items-center">
                     <span className="text-zinc-500">College ID:</span>
-                    <span className="text-white col-span-2 font-medium font-mono bg-zinc-800 px-2 py-0.5 rounded w-fit">{selectedStudent.collageId || "N/A"}</span>
+                    {isEditingStudent ? (
+                      <input
+                        value={editStudentForm.collageId ?? ""}
+                        onChange={(e) => setEditStudentForm((f) => ({ ...f, collageId: e.target.value }))}
+                        placeholder="College ID"
+                        className="col-span-2 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white font-mono placeholder-zinc-500"
+                      />
+                    ) : (
+                      <span className="text-white col-span-2 font-medium font-mono bg-zinc-800 px-2 py-0.5 rounded w-fit">{selectedStudent.collageId || "N/A"}</span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-sm items-center">
+                    <span className="text-zinc-500">City:</span>
+                    {isEditingStudent ? (
+                      <input
+                        value={editStudentForm.city ?? ""}
+                        onChange={(e) => setEditStudentForm((f) => ({ ...f, city: e.target.value }))}
+                        placeholder="City"
+                        className="col-span-2 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
+                      />
+                    ) : (
+                      <span className="text-white col-span-2 font-medium">{selectedStudent.city || "N/A"}</span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-sm items-center">
+                    <span className="text-zinc-500">State:</span>
+                    {isEditingStudent ? (
+                      <input
+                        value={editStudentForm.state ?? ""}
+                        onChange={(e) => setEditStudentForm((f) => ({ ...f, state: e.target.value }))}
+                        placeholder="State"
+                        className="col-span-2 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
+                      />
+                    ) : (
+                      <span className="text-white col-span-2 font-medium">{selectedStudent.state || "N/A"}</span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-sm items-center">
+                    <span className="text-zinc-500">Gender:</span>
+                    {isEditingStudent ? (
+                      <select
+                        value={editStudentForm.gender ?? ""}
+                        onChange={(e) => setEditStudentForm((f) => ({ ...f, gender: e.target.value }))}
+                        className="col-span-2 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                      >
+                        <option value="">Select</option>
+                        <option value="MALE">Male</option>
+                        <option value="FEMALE">Female</option>
+                        <option value="OTHER">Other</option>
+                      </select>
+                    ) : (
+                      <span className="text-white col-span-2 font-medium">{selectedStudent.gender || "N/A"}</span>
+                    )}
                   </div>
 
                   {getSubmissionForStudent(selectedStudent.id) && (
@@ -1751,11 +2031,58 @@ export default function EventsManagement() {
                 </div>
               </div>
 
-              <div className="px-6 py-4 bg-zinc-950/50 border-t border-zinc-800 flex justify-end">
+              <div className="px-6 py-4 bg-zinc-950/50 border-t border-zinc-800 flex justify-between items-center flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  {isEditingStudent ? (
+                    <>
+                      <button
+                        onClick={() => handleSaveIndividual(false)}
+                        disabled={savingStudent || Object.keys(editStudentForm).length === 0}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
+                      >
+                        {savingStudent ? "Saving..." : "Save"}
+                      </button>
+                      {session?.user.role === "MASTER" && selectedIndividualRegId && (
+                        <button
+                          onClick={() => handleSaveIndividual(true)}
+                          disabled={savingStudent || Object.keys(editStudentForm).length === 0}
+                          className="px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
+                        >
+                          Save & Reset to Pending
+                        </button>
+                      )}
+                      <button
+                        onClick={() => { setIsEditingStudent(false); setEditStudentForm({}); }}
+                        className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg text-sm font-medium"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {session?.user.role === "MASTER" && selectedIndividualRegId && (
+                        <button
+                          onClick={async () => {
+                            await handleResetToPending(selectedIndividualRegId, "INDIVIDUAL");
+                            setShowStudentDetailsModal(false);
+                            setSelectedStudent(null);
+                            setSelectedIndividualRegId(null);
+                          }}
+                          className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium transition-colors"
+                        >
+                          Reset to Pending
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
                 <button
                   onClick={() => {
                     setShowStudentDetailsModal(false);
                     setSelectedStudent(null);
+                    setSelectedIndividualRegId(null);
+                    setIsEditingStudent(false);
+                    setEditStudentForm({});
                   }}
                   className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium transition-colors"
                 >
@@ -1776,22 +2103,35 @@ export default function EventsManagement() {
               onWheel={(e) => e.stopPropagation()}
               className="bg-zinc-900 rounded-xl w-full max-w-2xl border border-zinc-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
             >
-              <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between shrink-0">
-                <div>
-                  <h2 className="text-xl font-bold text-white">{selectedGroup.groupName}</h2>
+              <div className="px-6 py-4 border-b border-zinc-800 flex justify-between shrink-0">
+                <div className="flex-1">
+                  {isEditingGroup ? (
+                    <input
+                      value={editGroupForm.groupName ?? ""}
+                      onChange={(e) => setEditGroupForm((f) => ({ ...f, groupName: e.target.value }))}
+                      placeholder="Group Name"
+                      className="text-xl font-bold bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1 text-white placeholder-zinc-500 w-full max-w-md"
+                    />
+                  ) : (
+                    <h2 className="text-xl font-bold text-white">{selectedGroup.groupName}</h2>
+                  )}
                   <p className="text-zinc-400 text-sm">Group Details</p>
                 </div>
-                <button
-                  onClick={() => {
-                    setShowGroupDetailsModal(false);
-                    setSelectedGroup(null);
-                  }}
-                  className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                <div className="flex items-center gap-2">
+                  {canEditParticipant && !isEditingGroup && (
+                    <button onClick={startEditingGroup} className="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg text-sm font-medium">
+                      Edit
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { setShowGroupDetailsModal(false); setSelectedGroup(null); setIsEditingGroup(false); setEditGroupForm({}); }}
+                    className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               <div className="p-6 overflow-y-auto flex-1 min-h-0 overscroll-contain" data-lenis-prevent>
@@ -1800,14 +2140,27 @@ export default function EventsManagement() {
                     <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">Team Lead</h3>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500 font-bold border border-blue-500/30">
-                        {selectedGroup.user.name ? selectedGroup.user.name.charAt(0).toUpperCase() : 'L'}
+                        {(isEditingGroup ? editGroupForm.teamLead?.name : selectedGroup.user.name)?.charAt(0)?.toUpperCase() || "L"}
                       </div>
-                      <div>
-                        <p className="text-white font-medium">{selectedGroup.user.name}</p>
-                        <p className="text-sm text-zinc-400">{selectedGroup.user.email}</p>
-                        <p className="text-xs text-zinc-500 mt-1">{selectedGroup.user.phone || "No Phone"}</p>
+                      <div className="flex-1 min-w-0">
+                        {isEditingGroup && editGroupForm.teamLead ? (
+                          <div className="space-y-2">
+                            <input value={editGroupForm.teamLead.name ?? ""} onChange={(e) => setEditGroupForm((f) => ({ ...f, teamLead: { ...f.teamLead!, name: e.target.value } }))} placeholder="Name" className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500" />
+                            <input type="email" value={editGroupForm.teamLead.email ?? ""} onChange={(e) => setEditGroupForm((f) => ({ ...f, teamLead: { ...f.teamLead!, email: e.target.value } }))} placeholder="Email" className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500" />
+                            <input value={editGroupForm.teamLead.phone ?? ""} onChange={(e) => setEditGroupForm((f) => ({ ...f, teamLead: { ...f.teamLead!, phone: e.target.value } }))} placeholder="Phone" className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500" />
+                            <input value={editGroupForm.teamLead.collage ?? ""} onChange={(e) => setEditGroupForm((f) => ({ ...f, teamLead: { ...f.teamLead!, collage: e.target.value } }))} placeholder="College" className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500" />
+                            <input value={editGroupForm.teamLead.collageId ?? ""} onChange={(e) => setEditGroupForm((f) => ({ ...f, teamLead: { ...f.teamLead!, collageId: e.target.value } }))} placeholder="College ID" className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm font-mono placeholder-zinc-500" />
+                          </div>
+                        ) : (
+                          <>
+                            <p className="text-white font-medium">{selectedGroup.user.name}</p>
+                            <p className="text-sm text-zinc-400">{selectedGroup.user.email}</p>
+                            <p className="text-xs text-zinc-500 mt-1">{selectedGroup.user.phone || "No Phone"}</p>
+                          </>
+                        )}
                       </div>
                     </div>
+                    {!isEditingGroup && (
                     <div className="mt-3 text-xs text-zinc-500 space-y-1">
                       <p>College: {selectedGroup.user.collage || "N/A"}</p>
                       <p>ID: {selectedGroup.user.collageId || "N/A"}</p>
@@ -1828,11 +2181,17 @@ export default function EventsManagement() {
                         );
                       })()}
                     </div>
+                    )}
                   </div>
 
                   <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700">
                     <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">Mentor / Coordinator</h3>
-                    {selectedGroup.mentorName ? (
+                    {isEditingGroup ? (
+                      <div className="space-y-2">
+                        <input value={editGroupForm.mentorName ?? ""} onChange={(e) => setEditGroupForm((f) => ({ ...f, mentorName: e.target.value }))} placeholder="Mentor Name" className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500" />
+                        <input value={editGroupForm.mentorPhone ?? ""} onChange={(e) => setEditGroupForm((f) => ({ ...f, mentorPhone: e.target.value }))} placeholder="Mentor Phone" className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500" />
+                      </div>
+                    ) : selectedGroup.mentorName ? (
                       <>
                         <p className="text-white font-medium">{selectedGroup.mentorName}</p>
                         <p className="text-sm text-zinc-400">{selectedGroup.mentorPhone || "No Phone"}</p>
@@ -1850,38 +2209,43 @@ export default function EventsManagement() {
 
                 <div className="space-y-3">
                   {(() => {
-                    interface GroupMember {
-                      name: string;
-                      gender: string;
-                      phone: string;
-                      inGameName?: string;
-                      inGameId?: string;
-                      riotId?: string;
-                    }
-                    const raw = selectedGroup.members;
+                    interface GroupMember { name: string; gender: string; phone: string; inGameName?: string; inGameId?: string; riotId?: string }
+                    const raw = isEditingGroup ? editGroupForm.members : selectedGroup.members;
                     const memberList: GroupMember[] = Array.isArray(raw) ? raw : (raw && typeof raw === "object" ? Object.values(raw) : []);
                     return memberList.length > 0 ? (
                       memberList.map((member: GroupMember, idx: number) => (
                         <div key={idx} className="bg-zinc-800 p-4 rounded-lg border border-zinc-700 flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 font-bold text-sm">
+                          <div className="flex items-center gap-4 flex-1">
+                            <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 font-bold text-sm shrink-0">
                               {idx + 1}
                             </div>
-                            <div>
-                              <p className="text-white font-medium">{member.name}</p>
-                              <div className="flex items-center gap-2 text-xs text-zinc-400 mt-0.5">
-                                <span>{member.gender}</span>
-                                <span>•</span>
-                                <span>{member.phone}</span>
+                            {isEditingGroup ? (
+                              <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <input value={member.name ?? ""} onChange={(e) => { const m = Array.isArray(editGroupForm.members) ? editGroupForm.members.map((x, i) => i === idx ? { ...x, name: e.target.value } : x) : []; setEditGroupForm((f) => ({ ...f, members: m })); }} placeholder="Name" className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500" />
+                                <input value={member.phone ?? ""} onChange={(e) => { const m = Array.isArray(editGroupForm.members) ? editGroupForm.members.map((x, i) => i === idx ? { ...x, phone: e.target.value } : x) : []; setEditGroupForm((f) => ({ ...f, members: m })); }} placeholder="Phone" className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500" />
+                                <select value={member.gender ?? ""} onChange={(e) => { const m = Array.isArray(editGroupForm.members) ? editGroupForm.members.map((x, i) => i === idx ? { ...x, gender: e.target.value } : x) : []; setEditGroupForm((f) => ({ ...f, members: m })); }} className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm">
+                                  <option value="">Gender</option>
+                                  <option value="MALE">Male</option>
+                                  <option value="FEMALE">Female</option>
+                                </select>
                               </div>
-                              {(member.inGameName || member.inGameId || member.riotId) && (
-                                <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-amber-400/90 mt-1.5">
-                                  {member.inGameName && <span>IGN: {member.inGameName}</span>}
-                                  {member.inGameId && <span>ID: {member.inGameId}</span>}
-                                  {member.riotId && <span>Riot: {member.riotId}</span>}
+                            ) : (
+                              <div>
+                                <p className="text-white font-medium">{member.name}</p>
+                                <div className="flex items-center gap-2 text-xs text-zinc-400 mt-0.5">
+                                  <span>{member.gender}</span>
+                                  <span>•</span>
+                                  <span>{member.phone}</span>
                                 </div>
-                              )}
-                            </div>
+                                {(member.inGameName || member.inGameId || member.riotId) && (
+                                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-amber-400/90 mt-1.5">
+                                    {member.inGameName && <span>IGN: {member.inGameName}</span>}
+                                    {member.inGameId && <span>ID: {member.inGameId}</span>}
+                                    {member.riotId && <span>Riot: {member.riotId}</span>}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))
@@ -1892,14 +2256,31 @@ export default function EventsManagement() {
                 </div>
               </div>
 
-              <div className="px-6 py-4 bg-zinc-950/50 border-t border-zinc-800 flex justify-end">
-                <button
-                  onClick={() => {
-                    setShowGroupDetailsModal(false);
-                    setSelectedGroup(null);
-                  }}
-                  className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium transition-colors"
-                >
+              <div className="px-6 py-4 bg-zinc-950/50 border-t border-zinc-800 flex justify-between items-center flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  {isEditingGroup ? (
+                    <>
+                      <button onClick={() => handleSaveGroup(false)} disabled={savingGroup} className="px-4 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium">
+                        {savingGroup ? "Saving..." : "Save"}
+                      </button>
+                      {session?.user.role === "MASTER" && (
+                        <button onClick={() => handleSaveGroup(true)} disabled={savingGroup} className="px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium">
+                          Save & Reset to Pending
+                        </button>
+                      )}
+                      <button onClick={() => { setIsEditingGroup(false); setEditGroupForm({}); }} className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg text-sm font-medium">
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    session?.user.role === "MASTER" && selectedGroup?.id && (
+                      <button onClick={async () => { await handleResetToPending(selectedGroup.id, "GROUP"); setShowGroupDetailsModal(false); setSelectedGroup(null); }} className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium">
+                        Reset to Pending
+                      </button>
+                    )
+                  )}
+                </div>
+                <button onClick={() => { setShowGroupDetailsModal(false); setSelectedGroup(null); setIsEditingGroup(false); setEditGroupForm({}); }} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium">
                   Close
                 </button>
               </div>
