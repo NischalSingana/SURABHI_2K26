@@ -23,6 +23,7 @@ import { useSession } from "@/lib/auth-client";
 import { withRetry } from "@/lib/retry";
 import { checkVirtualEligibility, getRegistrationFee } from "@/lib/virtual-eligibility";
 import { REGISTRATION_FEES } from "@/lib/constants";
+import { isOnlineRegistrationClosed, ONLINE_REG_CLOSED_MESSAGE } from "@/lib/registration-deadline";
 
 declare global {
     interface Window {
@@ -733,6 +734,36 @@ export default function EventRegistrationPage() {
     }
 
     if (!event) return null;
+
+    if (isOnlineRegistrationClosed()) {
+        return (
+            <div className="min-h-screen bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-xl mx-auto">
+                    <button
+                        onClick={() => router.push(`/competitions/${categorySlug}/${slug}`)}
+                        className="flex items-center text-zinc-400 hover:text-white mb-8 transition-colors"
+                    >
+                        <FiChevronLeft className="mr-2" />
+                        Back to Event
+                    </button>
+                    <div className="bg-zinc-900 border border-amber-500/30 rounded-2xl p-8 shadow-xl">
+                        <div className="text-center mb-6">
+                            <h1 className="text-2xl font-bold text-amber-400 mb-2">Online Registration Closed</h1>
+                            <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-line">
+                                {ONLINE_REG_CLOSED_MESSAGE}
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => router.push(`/competitions/${categorySlug}/${slug}`)}
+                            className="w-full px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
+                        >
+                            Back to Event
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
     const userCollege = (session?.user as { collage?: string | null } | undefined)?.collage?.toLowerCase();

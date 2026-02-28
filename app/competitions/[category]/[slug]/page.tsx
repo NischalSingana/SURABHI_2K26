@@ -24,6 +24,7 @@ import {
   unregisterFromEvent,
 } from "@/actions/events.action";
 import { formatTime } from "@/lib/utils";
+import { isOnlineRegistrationClosed, ONLINE_REG_CLOSED_MESSAGE } from "@/lib/registration-deadline";
 import { useSession } from "@/lib/auth-client";
 import { PRIZE_DATA } from "@/lib/prize-data";
 
@@ -284,6 +285,7 @@ function EventDetailPageContent() {
   const [showImageModal, setShowImageModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showVastranautTooltip, setShowVastranautTooltip] = useState(false);
+  const [showRegClosedTooltip, setShowRegClosedTooltip] = useState(false);
   /* unused: const [hasGoogleAccount, setHasGoogleAccount] = useState(false); */
   const [termsTab, setTermsTab] = useState<"physical" | "virtual">("physical");
   const { data: session } = useSession();
@@ -304,6 +306,8 @@ function EventDetailPageContent() {
   }, [slug]);
 
   /* Google check removed */
+  const regClosed = isOnlineRegistrationClosed();
+
   // Lock body scroll when any modal is open
   useEffect(() => {
     if (showImageModal || showUnregisterConfirm) {
@@ -847,6 +851,31 @@ function EventDetailPageContent() {
                       Finals registration opens for shortlisted teams/members after round-1 completion
                     </div>
                     {/* Arrow */}
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                      <div className="border-8 border-transparent border-t-zinc-800"></div>
+                    </div>
+                  </div>
+                </div>
+              ) : regClosed ? (
+                // Blocked: online registration closed after 5 PM
+                <div className="relative group mt-6">
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setShowRegClosedTooltip(!showRegClosedTooltip);
+                      setTimeout(() => setShowRegClosedTooltip(false), 6000);
+                    }}
+                    onMouseEnter={() => setShowRegClosedTooltip(true)}
+                    onMouseLeave={() => setShowRegClosedTooltip(false)}
+                    className="w-full px-6 py-4 bg-zinc-700 text-zinc-400 font-bold rounded-lg cursor-not-allowed opacity-60 relative"
+                  >
+                    Register Now
+                  </motion.button>
+                  <div className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-zinc-800 text-white text-sm rounded-lg shadow-xl border border-zinc-700 transition-opacity duration-200 w-80 text-center z-10 ${showRegClosedTooltip ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    <div className="font-semibold mb-2 text-amber-400">Online Registration Closed</div>
+                    <div className="text-zinc-300 text-xs leading-relaxed whitespace-pre-line">
+                      {ONLINE_REG_CLOSED_MESSAGE}
+                    </div>
                     <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
                       <div className="border-8 border-transparent border-t-zinc-800"></div>
                     </div>

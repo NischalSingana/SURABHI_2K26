@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { checkVirtualEligibility } from "@/lib/virtual-eligibility";
+import { isOnlineRegistrationClosed, ONLINE_REG_CLOSED_MESSAGE } from "@/lib/registration-deadline";
 import { Role, Prisma, PaymentStatus } from "@prisma/client";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -749,6 +750,10 @@ export async function registerGroupEvent(
       return { success: false, error: "Please login to register for events" };
     }
 
+    if (isOnlineRegistrationClosed()) {
+      return { success: false, error: ONLINE_REG_CLOSED_MESSAGE };
+    }
+
     const isInternational = !!(session.user as { isInternational?: boolean }).isInternational;
 
     if (!isInternational && !paymentDetails) {
@@ -983,6 +988,10 @@ export async function registerForEvent(
 
     if (!session || !session.user) {
       return { success: false, error: "Please login to register for events" };
+    }
+
+    if (isOnlineRegistrationClosed()) {
+      return { success: false, error: ONLINE_REG_CLOSED_MESSAGE };
     }
 
     const isInternational = !!(session.user as { isInternational?: boolean }).isInternational;

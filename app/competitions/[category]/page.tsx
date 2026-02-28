@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
 import { formatTime } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
+import { isOnlineRegistrationClosed } from "@/lib/registration-deadline";
 
 interface Event {
   id: string;
@@ -285,9 +286,14 @@ function CategoryPageContent() {
     setExpandedEventId(expandedEventId === eventId ? null : eventId);
   };
 
+  const regClosed = isOnlineRegistrationClosed();
+
   const handleRegisterClick = (event: Event, e: React.MouseEvent) => {
     e.stopPropagation();
-
+    if (regClosed) {
+      toast.error("Online registrations are closed for today. Spot registrations available on campus until 10:15 AM.");
+      return;
+    }
     toast.info("Redirecting to registration page...");
     const eventIdentifier = event.slug || event.id;
     router.push(`/competitions/${categorySlug}/${eventIdentifier}`);
@@ -688,6 +694,14 @@ function CategoryPageContent() {
                                     className="bg-zinc-700 text-zinc-400 px-6 py-2 rounded-md cursor-not-allowed"
                                   >
                                     Event Full
+                                  </button>
+                                ) : regClosed ? (
+                                  <button
+                                    disabled
+                                    className="bg-zinc-700 text-zinc-400 px-6 py-2 rounded-md cursor-not-allowed"
+                                    title="Online registrations closed. Spot registrations on campus until 10:15 AM."
+                                  >
+                                    Online Reg Closed
                                   </button>
                                 ) : (
                                   <button
