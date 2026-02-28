@@ -129,8 +129,10 @@ export default function CompetitionsClient({
         initial={{ opacity: 0 }}
         animate={{ opacity: isLoading ? 0 : 1 }}
         transition={{ duration: 0.3 }}
-        className="min-h-screen bg-black py-8 sm:py-10 md:py-12 px-4 sm:px-6 lg:px-8"
+        className="min-h-screen competitions-bg py-8 sm:py-10 md:py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
       >
+        {/* Subtle dot grid for depth */}
+        <div className="absolute inset-0 competitions-bg-dots pointer-events-none" aria-hidden />
       {/* Registration Notice Marquee */}
       <div className="fixed top-[72px] left-0 right-0 z-40 bg-gradient-to-r from-red-950 via-red-900 to-red-950 border-b border-red-800/60 shadow-lg shadow-black/40 flex items-center">
         <div className="flex-1 overflow-hidden">
@@ -149,46 +151,46 @@ export default function CompetitionsClient({
           </div>
         </div>
         <div className="shrink-0 flex items-center gap-1.5 px-3 md:px-4 py-2 bg-black/50 border-l border-red-800/50 font-[family-name:var(--font-Lexend)]">
-          <svg className="w-3.5 h-3.5 text-red-400 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <span className="text-[10px] sm:text-xs text-red-200/90 hidden sm:inline">Online reg closes 5 PM</span>
           {regClosed ? (
-            <span className="text-xs md:text-sm font-semibold text-amber-400">Closed</span>
+            <span className="text-xs md:text-sm font-semibold text-red-300">Online Registration Closed!</span>
           ) : (
-            <div className="flex items-center gap-1 text-xs md:text-sm font-semibold tabular-nums">
-              <span className="bg-red-950 text-white px-1.5 py-0.5 rounded border border-red-900/60">{String(timeLeft.days).padStart(2, "0")}d</span>
-              <span className="text-red-600">:</span>
-              <span className="bg-red-950 text-white px-1.5 py-0.5 rounded border border-red-900/60">{String(timeLeft.hours).padStart(2, "0")}h</span>
-              <span className="text-red-600">:</span>
-              <span className="bg-red-950 text-white px-1.5 py-0.5 rounded border border-red-900/60">{String(timeLeft.minutes).padStart(2, "0")}m</span>
-              <span className="text-red-600">:</span>
-              <span className="bg-red-950 text-white px-1.5 py-0.5 rounded border border-red-900/60">{String(timeLeft.seconds).padStart(2, "0")}s</span>
-            </div>
+            <>
+              <svg className="w-3.5 h-3.5 text-red-400 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span className="text-[10px] sm:text-xs text-red-200/90 hidden sm:inline">Online reg closes 5 PM</span>
+              <div className="flex items-center gap-1 text-xs md:text-sm font-semibold tabular-nums">
+                <span className="bg-red-950 text-white px-1.5 py-0.5 rounded border border-red-900/60">{String(timeLeft.days).padStart(2, "0")}d</span>
+                <span className="text-red-600">:</span>
+                <span className="bg-red-950 text-white px-1.5 py-0.5 rounded border border-red-900/60">{String(timeLeft.hours).padStart(2, "0")}h</span>
+                <span className="text-red-600">:</span>
+                <span className="bg-red-950 text-white px-1.5 py-0.5 rounded border border-red-900/60">{String(timeLeft.minutes).padStart(2, "0")}m</span>
+                <span className="text-red-600">:</span>
+                <span className="bg-red-950 text-white px-1.5 py-0.5 rounded border border-red-900/60">{String(timeLeft.seconds).padStart(2, "0")}s</span>
+              </div>
+            </>
           )}
         </div>
       </div>
 
-      {/* Crime-tape overlay when online reg closed (after 5 PM IST) */}
+      {/* Closed overlay when online reg closed (after 5 PM IST) */}
       <AnimatePresence>
         {regClosed && !hasChosenToBrowse && (
           <motion.div
-            key="crime-tape-overlay"
+            key="reg-closed-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="fixed inset-0 z-30 pt-[72px] flex flex-col items-center justify-center bg-black"
+            className="fixed inset-0 z-30 pt-[72px] flex flex-col items-center justify-center overflow-hidden bg-[#080a0a]"
           >
-            {/* Crime-scene tape: diagonal yellow/black stripes */}
+            {/* Premium layered background */}
+            <div className="absolute inset-0 reg-closed-overlay-bg" />
+            <div className="absolute inset-0 reg-closed-overlay-mesh" />
+            <div className="absolute inset-0 reg-closed-overlay-rays" />
+            {/* Soft vignette */}
             <div
-              className="absolute inset-0 opacity-95"
+              className="absolute inset-0 pointer-events-none"
               style={{
-                backgroundImage: `repeating-linear-gradient(
-                  135deg,
-                  #1a1a1a 0,
-                  #1a1a1a 25px,
-                  #d4af37 25px,
-                  #d4af37 50px
-                )`,
+                background: "radial-gradient(ellipse 80% 70% at 50% 50%, transparent 40%, rgba(0,0,0,0.6) 100%)",
               }}
             />
 
@@ -197,33 +199,38 @@ export default function CompetitionsClient({
                 initial={{ scale: 0.9, y: 20 }}
                 animate={{ scale: 1, y: 0 }}
                 transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                className="bg-black/90 border-4 border-amber-500 px-8 py-10 rounded-2xl shadow-2xl"
+                className="relative bg-zinc-950/90 backdrop-blur-2xl border border-red-900/50 px-8 py-10 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden"
               >
-                <div className="text-amber-500 font-black text-4xl md:text-5xl mb-2 tracking-widest uppercase">
-                  Online registrations closed
+                {/* Premium inner glow & gradient */}
+                <div className="absolute inset-0 bg-gradient-to-b from-red-950/15 via-transparent to-black/30 pointer-events-none" />
+                <div className="absolute inset-0 ring-1 ring-inset ring-red-500/10 pointer-events-none rounded-2xl" />
+                <div className="relative">
+                  <div className="text-red-400 font-black text-4xl md:text-5xl mb-2 tracking-widest uppercase drop-shadow-[0_0_30px_rgba(248,113,113,0.2)]">
+                    Online registrations closed
+                  </div>
+<div className="text-red-500/90 text-lg font-bold mb-6">
+                  Deadline: 28th February 2026, 5:00 PM
                 </div>
-                <div className="text-amber-600/90 text-lg font-bold mb-6">
-                  Deadline: 5:00 PM
+                  <div className="text-zinc-400 text-sm mb-8 leading-relaxed whitespace-pre-line">
+                    {ONLINE_REG_CLOSED_MESSAGE}
+                  </div>
+                  <motion.button
+                    onClick={handleBrowseClick}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="relative inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-4 rounded-xl transition-all shadow-lg shadow-red-950/50 hover:shadow-red-600/30 hover:shadow-xl"
+                  >
+                    <FiSearch size={22} />
+                    Browse competition details
+                  </motion.button>
                 </div>
-                <div className="text-zinc-300 text-sm mb-8 leading-relaxed whitespace-pre-line">
-                  {ONLINE_REG_CLOSED_MESSAGE}
-                </div>
-                <motion.button
-                  onClick={handleBrowseClick}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-black font-bold px-8 py-4 rounded-xl transition-colors shadow-lg"
-                >
-                  <FiSearch size={22} />
-                  Browse competition details
-                </motion.button>
               </motion.div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="max-w-7xl mx-auto">
+      <div className="relative max-w-7xl mx-auto">
         <div className="text-center mb-6 sm:mb-8 md:mb-10 mt-32 sm:mt-28 md:mt-28">
           <div className="flex justify-center items-center gap-4 mb-6">
             <motion.h1

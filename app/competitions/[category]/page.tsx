@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { getPublicEvents, registerForEvent, getUserRegistrations, getCategories } from "@/actions/events.action";
-import { FiArrowLeft, FiCalendar, FiMapPin, FiClock, FiFileText } from "react-icons/fi";
+import { FiArrowLeft, FiCalendar, FiMapPin, FiClock, FiFileText, FiInfo } from "react-icons/fi";
+import Link from "next/link";
 
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
@@ -696,13 +697,13 @@ function CategoryPageContent() {
                                     Event Full
                                   </button>
                                 ) : regClosed ? (
-                                  <button
-                                    disabled
-                                    className="bg-zinc-700 text-zinc-400 px-6 py-2 rounded-md cursor-not-allowed"
-                                    title="Online registrations closed. Spot registrations on campus until 10:15 AM."
+                                  <Link
+                                    href={`/competitions/${categorySlug}/${event.slug || event.id}`}
+                                    className="inline-flex items-center gap-2 bg-red-600/80 hover:bg-red-600 text-white px-6 py-2 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-600/30"
                                   >
-                                    Online Reg Closed
-                                  </button>
+                                    <FiInfo size={16} />
+                                    View Full Details
+                                  </Link>
                                 ) : (
                                   <button
                                     onClick={(e) => handleRegisterClick(event, e)}

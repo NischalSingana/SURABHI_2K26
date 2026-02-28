@@ -861,17 +861,19 @@ function EventDetailPageContent() {
                 <div className="relative group mt-6">
                   <motion.button
                     whileTap={{ scale: 0.98 }}
+                    disabled
                     onClick={() => {
                       setShowRegClosedTooltip(!showRegClosedTooltip);
                       setTimeout(() => setShowRegClosedTooltip(false), 6000);
                     }}
                     onMouseEnter={() => setShowRegClosedTooltip(true)}
                     onMouseLeave={() => setShowRegClosedTooltip(false)}
-                    className="w-full px-6 py-4 bg-zinc-700 text-zinc-400 font-bold rounded-lg cursor-not-allowed opacity-60 relative"
+                    title="Online registrations closed. Spot registrations on campus until 10:15 AM."
+                    className="w-full px-6 py-4 bg-zinc-700 text-zinc-400 font-bold rounded-lg cursor-not-allowed opacity-80 relative"
                   >
-                    Register Now
+                    Online Reg Closed
                   </motion.button>
-                  <div className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-zinc-800 text-white text-sm rounded-lg shadow-xl border border-zinc-700 transition-opacity duration-200 w-80 text-center z-10 ${showRegClosedTooltip ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                  <div className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-zinc-800 text-white text-sm rounded-lg shadow-xl border border-zinc-700 transition-opacity duration-200 w-80 text-center z-10 ${showRegClosedTooltip ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
                     <div className="font-semibold mb-2 text-amber-400">Online Registration Closed</div>
                     <div className="text-zinc-300 text-xs leading-relaxed whitespace-pre-line">
                       {ONLINE_REG_CLOSED_MESSAGE}

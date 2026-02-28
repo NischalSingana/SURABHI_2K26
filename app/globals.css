@@ -84,6 +84,60 @@ html {
 }
 
 
+/* Competitions page: rich layered background */
+.competitions-bg {
+  background-color: #050505;
+  background-image:
+    radial-gradient(ellipse 120% 80% at 50% 0%, rgba(88, 28, 28, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 120% at 80% 100%, rgba(127, 29, 29, 0.05) 0%, transparent 45%),
+    radial-gradient(ellipse 60% 80% at 10% 80%, rgba(88, 28, 28, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+}
+.competitions-bg-dots {
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(127, 29, 29, 0.15) 1px,
+    transparent 0
+  );
+  background-size: 32px 32px;
+  opacity: 0.4;
+}
+
+/* Closed overlay: premium dark red cinematic background */
+.reg-closed-overlay-bg {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 40%, rgba(127, 29, 29, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 80% at 100% 0%, rgba(69, 10, 10, 0.2) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 60% at 0% 100%, rgba(88, 28, 28, 0.15) 0%, transparent 45%);
+}
+.reg-closed-overlay-mesh {
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(69, 10, 10, 0.08) 2px,
+      rgba(69, 10, 10, 0.08) 3px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(69, 10, 10, 0.06) 2px,
+      rgba(69, 10, 10, 0.06) 3px
+    );
+  background-size: 48px 48px;
+}
+.reg-closed-overlay-rays {
+  background: repeating-linear-gradient(
+    105deg,
+    transparent 0px,
+    transparent 60px,
+    rgba(127, 29, 29, 0.06) 60px,
+    rgba(127, 29, 29, 0.06) 61px
+  );
+}
+
 /* Profile tabs: hide horizontal scrollbar, keep scroll */
 .profile-tabs-scroll {
   -ms-overflow-style: none;
