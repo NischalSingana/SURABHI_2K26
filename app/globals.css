@@ -31,7 +31,7 @@ html {
 }
 .marquee-track {
   display: inline-flex;
-  animation: marquee-scroll 25s linear infinite;
+  animation: marquee-scroll 70s linear infinite;
   will-change: transform;
 }
 

@@ -189,6 +189,13 @@ export const CHIEF_GUEST_KNOWLEDGE = `
 Chief guests / chief guest for Surabhi 2026: Not yet decided. When asked about chief guests, say they are not yet decided and will be announced later.
 `.trim();
 
+export const REGISTRATION_NOTICE_KNOWLEDGE = `
+Registration Notice (current during event week):
+- The deadline for online registrations is today at 5:00 PM.
+- Spot Registrations: Spot registrations will be available daily up to 10:15 AM. Participants must visit the campus and carry their physical college ID card to complete the spot registration process. Registrations will close strictly at 10:15 AM each day.
+- Important Note: On 7th March, only virtual competitions will be conducted. Students from other colleges will not be permitted to enter the campus on that day.
+`.trim();
+
 export const REGISTRATION_WORKFLOW_KNOWLEDGE = `
 How to register for Surabhi 2026:
 1. Go to the website ${WEBSITE_URL} and click Login / Register.
@@ -246,6 +253,9 @@ ${CHIEF_GUEST_KNOWLEDGE}
 
 ## Registration fees
 ${REGISTRATION_FEES_KNOWLEDGE}
+
+## Registration Notice (deadlines, spot registration, March 7)
+${REGISTRATION_NOTICE_KNOWLEDGE}
 
 ## Virtual participation
 ${VIRTUAL_PARTICIPATION_KNOWLEDGE}
