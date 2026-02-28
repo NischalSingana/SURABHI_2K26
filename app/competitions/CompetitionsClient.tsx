@@ -140,9 +140,9 @@ export default function CompetitionsClient({
             {[...Array(4)].map((_, i) => (
               <span key={i} className="mx-10 text-sm md:text-base font-medium text-red-100/90 inline-flex items-center gap-3 font-[family-name:var(--font-Lexend)]">
                 <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                The deadline for online registrations is today at 5:00 PM.
+                Online registrations are closed.
                 <span className="text-red-700">|</span>
-                <span className="text-amber-300 font-semibold">Spot Registrations: Participants who wish to register on the spot must visit the campus on the day of the respective competition before 10:15 AM with their physical college ID card to complete the registration process. Registrations will close strictly at 10:15 AM each day. No registrations will be accepted after the deadline.</span>
+                <span className="text-amber-300 font-semibold">Spot registrations: 8:00 AM to 10:00 AM at the venue. Visit campus on the competition day with your physical college ID card for verification.</span>
                 <span className="text-red-700">|</span>
                 <span className="text-emerald-300 font-semibold">Important Note: On 7th March, only virtual competitions will be conducted. Students from other colleges will not be permitted to enter the campus on that day.</span>
                 <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -208,9 +208,6 @@ export default function CompetitionsClient({
                   <div className="text-red-400 font-black text-4xl md:text-5xl mb-2 tracking-widest uppercase drop-shadow-[0_0_30px_rgba(248,113,113,0.2)]">
                     Online registrations closed
                   </div>
-<div className="text-red-500/90 text-lg font-bold mb-6">
-                  Deadline: 28th February 2026, 5:00 PM
-                </div>
                   <div className="text-zinc-400 text-sm mb-8 leading-relaxed whitespace-pre-line">
                     {ONLINE_REG_CLOSED_MESSAGE}
                   </div>

@@ -292,7 +292,7 @@ function CategoryPageContent() {
   const handleRegisterClick = (event: Event, e: React.MouseEvent) => {
     e.stopPropagation();
     if (regClosed) {
-      toast.error("Online registrations are closed!! Spot registrations: visit campus on the day of the competition before 10:15 AM with your college ID card.");
+      toast.error("Online registrations closed. Spot registrations: 8:00 AM to 10:00 AM at the venue. Carry your college ID card.");
       return;
     }
     toast.info("Redirecting to registration page...");

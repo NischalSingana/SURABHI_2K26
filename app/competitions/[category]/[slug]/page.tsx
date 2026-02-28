@@ -868,7 +868,7 @@ function EventDetailPageContent() {
                     }}
                     onMouseEnter={() => setShowRegClosedTooltip(true)}
                     onMouseLeave={() => setShowRegClosedTooltip(false)}
-                    title="Online registrations closed. Spot registrations on campus until 10:15 AM."
+                    title="Online registrations closed. Spot registrations: 8:00 AM to 10:00 AM at the venue."
                     className="w-full px-6 py-4 bg-zinc-700 text-zinc-400 font-bold rounded-lg cursor-not-allowed opacity-80 relative"
                   >
                     Online Reg Closed
