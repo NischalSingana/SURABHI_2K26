@@ -4,8 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { FiCalendar, FiClock } from "react-icons/fi";
+import { FiCalendar, FiClock, FiSearch } from "react-icons/fi";
 import Loader from "@/components/ui/Loader";
+import { isOnlineRegistrationClosed, ONLINE_REG_CLOSED_MESSAGE } from "@/lib/registration-deadline";
 
 export interface CategoryData {
   name: string;
@@ -26,7 +27,7 @@ export default function CompetitionsClient({
   const [isLoading, setIsLoading] = useState(true);
   const [imagesLoaded, setImagesLoaded] = useState(0);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [isClosed, setIsClosed] = useState(false);
+  const [hasChosenToBrowse, setHasChosenToBrowse] = useState(false);
   const minLoadTime = 1200;
   const startTimeRef = useRef<number>(Date.now());
 
@@ -65,13 +66,13 @@ export default function CompetitionsClient({
     checkComplete();
   }, [imagesLoaded, initialCategories.length]);
 
-  // Countdown to today 5:00 PM; after 5 PM, show "Closed" until tomorrow
+  const regClosed = isOnlineRegistrationClosed();
+
   useEffect(() => {
     const tick = () => {
       const now = new Date();
       const deadline = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 17, 0, 0, 0);
       const diff = Math.max(0, deadline.getTime() - now.getTime());
-      setIsClosed(now >= deadline);
       setTimeLeft({
         days: Math.floor(diff / (1000 * 60 * 60 * 24)),
         hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
@@ -83,6 +84,18 @@ export default function CompetitionsClient({
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem("surabhi_competitions_browsed");
+      if (stored === "1") setHasChosenToBrowse(true);
+    } catch { /* ignore */ }
+  }, []);
+
+  const handleBrowseClick = () => {
+    try { sessionStorage.setItem("surabhi_competitions_browsed", "1"); } catch { /* ignore */ }
+    setHasChosenToBrowse(true);
+  };
 
   const handleImageLoad = () => {
     setImagesLoaded((prev) => prev + 1);
@@ -138,7 +151,7 @@ export default function CompetitionsClient({
         <div className="shrink-0 flex items-center gap-1.5 px-3 md:px-4 py-2 bg-black/50 border-l border-red-800/50 font-[family-name:var(--font-Lexend)]">
           <svg className="w-3.5 h-3.5 text-red-400 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           <span className="text-[10px] sm:text-xs text-red-200/90 hidden sm:inline">Online reg closes 5 PM</span>
-          {isClosed ? (
+          {regClosed ? (
             <span className="text-xs md:text-sm font-semibold text-amber-400">Closed</span>
           ) : (
             <div className="flex items-center gap-1 text-xs md:text-sm font-semibold tabular-nums">
@@ -153,6 +166,62 @@ export default function CompetitionsClient({
           )}
         </div>
       </div>
+
+      {/* Crime-tape overlay when online reg closed (after 5 PM IST) */}
+      <AnimatePresence>
+        {regClosed && !hasChosenToBrowse && (
+          <motion.div
+            key="crime-tape-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="fixed inset-0 z-30 pt-[72px] flex flex-col items-center justify-center bg-black"
+          >
+            {/* Crime-scene tape: diagonal yellow/black stripes */}
+            <div
+              className="absolute inset-0 opacity-95"
+              style={{
+                backgroundImage: `repeating-linear-gradient(
+                  135deg,
+                  #1a1a1a 0,
+                  #1a1a1a 25px,
+                  #d4af37 25px,
+                  #d4af37 50px
+                )`,
+              }}
+            />
+
+            <div className="relative z-10 max-w-xl mx-auto px-6 text-center">
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                className="bg-black/90 border-4 border-amber-500 px-8 py-10 rounded-2xl shadow-2xl"
+              >
+                <div className="text-amber-500 font-black text-4xl md:text-5xl mb-2 tracking-widest uppercase">
+                  Online registrations closed
+                </div>
+                <div className="text-amber-600/90 text-lg font-bold mb-6">
+                  Deadline: 5:00 PM
+                </div>
+                <div className="text-zinc-300 text-sm mb-8 leading-relaxed whitespace-pre-line">
+                  {ONLINE_REG_CLOSED_MESSAGE}
+                </div>
+                <motion.button
+                  onClick={handleBrowseClick}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-black font-bold px-8 py-4 rounded-xl transition-colors shadow-lg"
+                >
+                  <FiSearch size={22} />
+                  Browse competition details
+                </motion.button>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-6 sm:mb-8 md:mb-10 mt-32 sm:mt-28 md:mt-28">

@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAllBookings, approveBooking, rejectBooking } from "@/actions/admin/accommodation.action";
+import { getAllBookings, approveBooking, rejectBooking, getAccommodationExcelData } from "@/actions/admin/accommodation.action";
 import { BookingType, Gender, PaymentStatus, BookingStatus } from "@prisma/client";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 export default function AccommodationPage() {
     const [bookings, setBookings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
     const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+    const [excelLoading, setExcelLoading] = useState<"boys" | "girls" | null>(null);
     const [filter, setFilter] = useState<{
         bookingType?: BookingType;
         gender?: Gender;
@@ -86,10 +88,76 @@ export default function AccommodationPage() {
         setSelectedBooking(booking);
     };
 
+    const handleDownloadExcel = async (gender: "boys" | "girls") => {
+        setExcelLoading(gender);
+        try {
+            const result = await getAccommodationExcelData();
+            if (!result.success || !result.boys || !result.girls) {
+                toast.error(result.error || "Failed to load accommodation data");
+                return;
+            }
+            const data = gender === "boys" ? result.boys : result.girls;
+            if (data.length === 0) {
+                toast.info(`No ${gender} accommodation data to export`);
+                return;
+            }
+            const ws = XLSX.utils.json_to_sheet(
+                data.map((r) => ({
+                    "S.No": r.sNo,
+                    Name: r.name,
+                    College: r.college,
+                    Competitions: r.competitions,
+                    "Group Name(s)": (r as { groupNames?: string }).groupNames ?? "—",
+                    "Phone Number": r.phone,
+                    Gender: r.gender,
+                    Email: r.email,
+                    "Booking Type": r.bookingType,
+                }))
+            );
+            const colWidths = [
+                { wch: 6 },
+                { wch: 22 },
+                { wch: 28 },
+                { wch: 50 },
+                { wch: 22 },
+                { wch: 14 },
+                { wch: 8 },
+                { wch: 28 },
+                { wch: 12 },
+            ];
+            ws["!cols"] = colWidths;
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, gender === "boys" ? "Boys" : "Girls");
+            XLSX.writeFile(wb, `Accommodation_${gender === "boys" ? "Boys" : "Girls"}_${new Date().toISOString().split("T")[0]}.xlsx`);
+            toast.success(`${gender === "boys" ? "Boys" : "Girls"} Excel downloaded`);
+        } catch (err) {
+            console.error(err);
+            toast.error(`Failed to download ${gender} Excel`);
+        } finally {
+            setExcelLoading(null);
+        }
+    };
+
     return (
         <div className="px-4 py-6">
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
                 <h1 className="text-3xl font-bold text-white">Accommodation Management</h1>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => handleDownloadExcel("boys")}
+                        disabled={!!excelLoading}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-wait text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                    >
+                        {excelLoading === "boys" ? "Preparing..." : "Download Boys Excel"}
+                    </button>
+                    <button
+                        onClick={() => handleDownloadExcel("girls")}
+                        disabled={!!excelLoading}
+                        className="bg-pink-600 hover:bg-pink-700 disabled:opacity-50 disabled:cursor-wait text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                    >
+                        {excelLoading === "girls" ? "Preparing..." : "Download Girls Excel"}
+                    </button>
+                </div>
             </div>
 
             {/* Filters */}
