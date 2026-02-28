@@ -82,7 +82,10 @@ NATYAKA (Drama) – March 3rd
 Natyaka features drama and mono action. Skit: 1st ₹10,000, 2nd ₹8,000, 3rd ₹5,000. Mono Action: 1st ₹5,000, 2nd ₹3,000, 3rd ₹2,000.
 
 SAHITHYA (Literature) – March 2nd
-Sahithya celebrates the power of words and ideas. Short Story Writing: 1st ₹5,000, 2nd ₹3,000, 3rd ₹2,000. Elocution: 1st ₹5,000, 2nd ₹3,000, 3rd ₹2,000. National Mock Parliament: 1st ₹8,000, Runner-up ₹5,000, Best Speaker Award ₹3,000.
+Sahithya celebrates the power of words and ideas. Short Story Writing: 1st ₹5,000, 2nd ₹3,000, 3rd ₹2,000. Elocution: 1st ₹5,000, 2nd ₹3,000, 3rd ₹2,000.
+
+NATIONAL PARLIAMENTARY SIMULATION – March 5th
+National Mock Parliament: 1st ₹8,000, Runner-up ₹5,000, Best Speaker Award ₹3,000.
 
 KURUKSHETRA (eSports)
 Kurukshetra is the eSports category. BGMI Tournament: 1st ₹15,000, 2nd ₹10,000, 3rd ₹5,000. Free Fire Tournament: 1st ₹20,000, 2nd ₹15,000, 3rd ₹10,000, 4th ₹5,000. Valorant Tournament: 1st ₹5,000, 2nd ₹3,000, 3rd ₹2,000.

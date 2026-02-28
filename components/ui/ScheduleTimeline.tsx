@@ -89,7 +89,6 @@ const SCHEDULE_DATA = [
     date: "March 3, 2026",
     categories: [
       { name: "CINE CARNIVAL - Short Films", events: ["Short Film", "Photography", "Cover songs"] },
-      { name: "National Parliamentary Simulation", events: ["National Mock Parliament"] },
       { name: "NATYAKA - Dramatics", events: ["Skit", "Mono Action"] },
     ],
   },
@@ -102,6 +101,7 @@ const SCHEDULE_DATA = [
   {
     date: "March 5, 2026",
     categories: [
+      { name: "National Parliamentary Simulation", events: ["National Mock Parliament"] },
       { name: "NRITHYA - Dance", events: ["Group (Classical, Western, Folk)", "Solo (Classical, Western, Folk)"] },
     ],
   },
