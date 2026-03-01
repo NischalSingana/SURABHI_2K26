@@ -363,6 +363,61 @@ export async function sendEventConfirmationEmail(
     });
 }
 
+/** Password reset email – theme matches Surabhi 2026 (dark, red accent) */
+export async function sendPasswordResetEmail(email: string, name: string, resetUrl: string) {
+    const baseUrl = "https://klusurabhi.in";
+    const klLogoUrl = `${baseUrl}/images/kl_logo_white_text.png`;
+    const surabhiLogoUrl = `${baseUrl}/images/surabhi1.png`;
+
+    const htmlBody = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>Reset Your Password - Surabhi 2026</title>
+        <style>
+            body { margin: 0; padding: 0; background-color: #000000; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+            .container { max-width: 600px; margin: 0 auto; background-color: #0a0a0a; border: 1px solid #333; }
+            .content { padding: 40px 30px; color: #ffffff; }
+            .welcome-header { font-size: 20px; color: #dc2626; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+            .main-heading { font-size: 28px; color: #ffffff; font-weight: 800; margin-bottom: 20px; line-height: 1.2; }
+            .text-body { color: #d4d4d8; font-size: 16px; line-height: 1.6; margin-bottom: 20px; }
+            .btn { display: inline-block; background-color: #dc2626; color: #ffffff !important; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; margin: 20px 0; }
+            .footer { background-color: #18181b; padding: 30px; text-align: center; color: #52525b; font-size: 12px; border-top: 1px solid #333; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #000000; border-bottom: 3px solid #dc2626;">
+                <tr>
+                    <td align="left" style="padding: 20px;"><img src="${klLogoUrl}" alt="KL University" width="130"></td>
+                    <td align="right" style="padding: 20px;"><img src="${surabhiLogoUrl}" alt="Surabhi 2026" width="110"></td>
+                </tr>
+            </table>
+            <div class="content">
+                <div class="welcome-header">Surabhi 2026</div>
+                <div class="main-heading">Reset Your Password</div>
+                <p class="text-body">Hello <strong style="color: #ffffff;">${name}</strong>,</p>
+                <p class="text-body">We received a request to reset your password for your Surabhi 2026 account. Click the button below to set a new password:</p>
+                <p style="text-align: center;"><a href="${resetUrl}" class="btn">Reset Password</a></p>
+                <p class="text-body" style="font-size: 14px; color: #a1a1aa;">If you didn't request this, you can safely ignore this email. This link expires in 1 hour.</p>
+                <p class="text-body" style="font-size: 12px; color: #71717a; word-break: break-all;">Or copy this link: ${resetUrl}</p>
+            </div>
+            <div class="footer">
+                <p>&copy; 2026 KL University. All rights reserved.</p>
+                <p>Koneru Lakshmaiah Education Foundation, Vijayawada, Andhra Pradesh.</p>
+            </div>
+        </div>
+    </body>
+    </html>`;
+
+    return sendZeptoMail({
+        to: [{ email, name }],
+        subject: "Reset Your Password - Surabhi 2026",
+        htmlBody,
+    });
+}
+
 export async function sendAccommodationConfirmationEmail(
     user: { name: string; email: string },
     accommodationDetails: {
@@ -495,6 +550,16 @@ export async function sendAccommodationConfirmationEmail(
     });
 }
 
+function isNationalMockParliamentParticipant(competitions: { name: string; category?: string }[]): boolean {
+    return competitions.some(
+        (c) =>
+            (c.name || "").toLowerCase().includes("national mock parliament") ||
+            (c.name || "").toLowerCase().includes("national parliamentary simulation") ||
+            (c.category || "").toLowerCase().includes("national mock parliament") ||
+            (c.category || "").toLowerCase().includes("national parliamentary simulation")
+    );
+}
+
 /** Day-wise welcome email for competition participants - fest info, entry pass, competition details, venue */
 export async function sendWelcomeEmail(
     user: { name: string; email: string },
@@ -505,6 +570,7 @@ export async function sendWelcomeEmail(
     const baseUrl = "https://klusurabhi.in";
     const klLogoUrl = `${baseUrl}/images/kl_logo_white_text.png`;
     const surabhiLogoUrl = `${baseUrl}/images/surabhi1.png`;
+    const showPrizeSection = !isNationalMockParliamentParticipant(competitions);
 
     const competitionsHtml = competitions.length > 0
         ? competitions.map((c) => `
@@ -561,10 +627,12 @@ export async function sendWelcomeEmail(
         <p style="color: #d4d4d8; margin: 0 0 12px 0; line-height: 1.7;"><strong style="color: #ffffff;">Spot registration participants</strong> travelling from other cities are eligible for accommodation.</p>
         <p style="color: #a1a1aa; font-size: 14px; margin: 0;"><strong style="color: #f59e0b;">Note:</strong> Accommodation is <strong>not provided</strong> for participants from nearby areas (within 75 km radius).</p>
       </div>
+      ${showPrizeSection ? `
       <div style="background-color: rgba(34,197,94,0.12); border: 1px solid #22c55e; border-radius: 8px; padding: 20px; margin: 25px 0; text-align: center;">
         <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 0 0 10px 0;">🏆 Prize Distribution & Certificates</p>
         <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; margin: 0;">Please note that cash prizes will be distributed on the same day of the competition from <strong style="color: #ffffff;">5:30 PM to 6:30 PM</strong>. All participants will also receive a <strong style="color: #ffffff;">Certificate of Appreciation</strong> during the prize distribution ceremony.</p>
       </div>
+      ` : ''}
       <p style="color: #d4d4d8; font-size: 16px; text-align: center; margin: 25px 0 0 0;">We look forward to your enthusiastic participation.</p>
       <p style="color: #52525b; font-size: 12px; margin-top: 20px;">For queries: <a href="mailto:surabhi@kluniversity.in" style="color: #dc2626;">surabhi@kluniversity.in</a></p>
     </div>

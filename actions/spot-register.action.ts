@@ -180,8 +180,29 @@ export async function createSpotRegisterUserWithPassword(
     const msg = error && typeof error === "object" && "message" in error
       ? String((error as { message?: string }).message)
       : "Failed to create user";
-    if (msg.toLowerCase().includes("already exists") || msg.toLowerCase().includes("email")) {
-      return { success: false, error: "A user with this email already exists" };
+    if (msg.toLowerCase().includes("already exists") || msg.toLowerCase().includes("email") || msg.toLowerCase().includes("unique")) {
+      const normalized = email.trim().toLowerCase();
+      const existingUser = await prisma.user.findUnique({
+        where: { email: normalized },
+      });
+      if (existingUser) {
+        await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            name: details.name.trim(),
+            phone: details.phone.trim(),
+            collage: details.college.trim(),
+            collageId: details.collageId?.trim() || null,
+            branch: details.branch?.trim() || null,
+            year: details.year ?? null,
+            state: details.state?.trim() || null,
+            city: details.city?.trim() || null,
+            country: details.country?.trim() || null,
+            gender: mappedGender,
+          },
+        });
+        return { success: true, userId: existingUser.id, existed: true };
+      }
     }
     console.error("createSpotRegisterUserWithPassword error:", error);
     return { success: false, error: msg };

@@ -15,7 +15,6 @@ import { uploadPaymentScreenshot } from "@/actions/upload.action";
 import { Category, Event } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { REGISTRATION_FEES } from "@/lib/constants";
-import { checkVirtualEligibility } from "@/lib/virtual-eligibility";
 
 type CategoryWithEvents = Category & { Event: Event[] };
 
@@ -25,17 +24,6 @@ interface SearchedUser {
   email: string;
   collage: string | null;
   collageId: string | null;
-}
-
-function isKLStudent(user: { email?: string | null; collage?: string | null }): boolean {
-  return !!(
-    user.email?.toLowerCase().endsWith("@kluniversity.in") ||
-    user.collage?.toLowerCase()?.includes("kl university")
-  );
-}
-
-function isKurukshetraEvent(categoryName?: string | null): boolean {
-  return (categoryName ?? "").toLowerCase().includes("kurukshetra");
 }
 
 export default function SpotRegisterForm({ categories }: { categories: CategoryWithEvents[] }) {
@@ -50,7 +38,6 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
   const [file, setFile] = useState<File | null>(null);
   const [utr, setUtr] = useState("");
   const [payee, setPayee] = useState("");
-  const [isVirtual, setIsVirtual] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [teamSizeInput, setTeamSizeInput] = useState("1");
   const [teamSize, setTeamSize] = useState(1);
@@ -61,7 +48,13 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
   const [manualName, setManualName] = useState("");
   const [manualPhone, setManualPhone] = useState("");
   const [manualGender, setManualGender] = useState<"" | "MALE" | "FEMALE" | "OTHER">("");
-  const [manualCollege, setManualCollege] = useState("Spot Registration");
+  const [manualCollege, setManualCollege] = useState("");
+  const [manualCollageId, setManualCollageId] = useState("");
+  const [manualBranch, setManualBranch] = useState("");
+  const [manualYear, setManualYear] = useState<number | "">("");
+  const [manualCountry, setManualCountry] = useState("India");
+  const [manualState, setManualState] = useState("Andhra Pradesh");
+  const [manualCity, setManualCity] = useState("");
   const [manualPassword, setManualPassword] = useState("");
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchedUser[]>([]);
@@ -142,7 +135,13 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
         setManualName(user.name || "");
         setManualPhone("");
         setManualGender("");
-        setManualCollege(user.collage || "Spot Registration");
+        setManualCollege(user.collage && user.collage !== "Spot Registration" ? user.collage : "");
+        setManualCollageId(user.collageId || "");
+        setManualBranch("");
+        setManualYear("");
+        setManualCountry("India");
+        setManualState("Andhra Pradesh");
+        setManualCity("");
       }
     } catch {
       toast.error("Failed to fetch user");
@@ -156,31 +155,14 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
   const isGroupEvent = !!selectedEventDetails?.isGroupEvent;
   const minTeamSize = selectedEventDetails?.minTeamSize ?? 1;
   const maxTeamSize = selectedEventDetails?.maxTeamSize ?? 1;
-  const categoryName = categories.find((c) => c.id === selectedCategory)?.name;
-  const isKurukshetra = isKurukshetraEvent(categoryName);
   const leadProfile = fetchedUser || {
     email: email.trim().toLowerCase(),
     collage: manualCollege,
-    state: editDetails.state || null,
-    isInternational: editDetails.isInternational ?? false,
+    state: manualState || null,
+    isInternational: false,
   };
-  const isKL = isKLStudent(leadProfile);
-  const virtualEligibility = checkVirtualEligibility({
-    email: leadProfile.email,
-    collage: leadProfile.collage,
-    state: leadProfile.state,
-    isInternational: leadProfile.isInternational ?? false,
-  });
-  const canChooseVirtual =
-    selectedEventDetails?.virtualEnabled &&
-    (isKurukshetra ? !isKL : virtualEligibility.isEligible);
-  const effectiveVirtual = isVirtual && canChooseVirtual;
   const amount =
-    leadProfile.isInternational
-      ? 0
-      : effectiveVirtual
-        ? REGISTRATION_FEES.VIRTUAL
-        : REGISTRATION_FEES.PHYSICAL;
+    leadProfile.isInternational ? 0 : teamSize * REGISTRATION_FEES.PHYSICAL;
 
   const clampTeamSize = (n: number) => Math.max(minTeamSize, Math.min(maxTeamSize, n));
 
@@ -204,7 +186,13 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
         setManualName("");
         setManualPhone("");
         setManualGender("");
-        setManualCollege("Spot Registration");
+        setManualCollege("");
+        setManualCollageId("");
+        setManualBranch("");
+        setManualYear("");
+        setManualCountry("India");
+        setManualState("Andhra Pradesh");
+        setManualCity("");
       }
     } catch {
       toast.error("Failed to fetch user");
@@ -220,11 +208,16 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
       toast.error("Name, phone, and gender are required");
       return;
     }
+    const phoneDigits = merged.phone.replace(/\D/g, "");
+    if (phoneDigits.length !== 10) {
+      toast.error("Phone number must be 10 digits");
+      return;
+    }
     setIsSavingDetails(true);
     try {
       const res = await updateSpotRegisterUserDetails(fetchedUser.id, {
         name: merged.name,
-        phone: merged.phone,
+        phone: phoneDigits,
         collage: merged.collage,
         collageId: merged.collageId,
         branch: merged.branch,
@@ -283,7 +276,13 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
     setManualName("");
     setManualPhone("");
     setManualGender("");
-    setManualCollege("Spot Registration");
+    setManualCollege("");
+        setManualCollageId("");
+        setManualBranch("");
+        setManualYear("");
+        setManualCountry("India");
+        setManualState("Andhra Pradesh");
+        setManualCity("");
     setManualPassword("");
     router.refresh();
   };
@@ -302,6 +301,18 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
         toast.error("Enter name, phone, and gender for new user");
         return;
       }
+      if (manualPhone.length !== 10) {
+        toast.error("Phone number must be 10 digits");
+        return;
+      }
+      if (!manualCollege.trim()) {
+        toast.error("Enter college name for new user");
+        return;
+      }
+      if (!manualCollageId.trim()) {
+        toast.error("Enter college ID / roll number for new user");
+        return;
+      }
       if (!manualPassword || manualPassword.length < 6) {
         toast.error("Set a password (min 6 characters) so they can log in");
         return;
@@ -309,6 +320,12 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
     } else if (!fetchedUser) {
       toast.error("Fetch user details first");
       return;
+    } else {
+      const leadPhoneVal = (fetchedUser.phone || editDetails.phone || "").toString().replace(/\D/g, "");
+      if (leadPhoneVal.length !== 10) {
+        toast.error("Phone number must be 10 digits");
+        return;
+      }
     }
 
     if (!selectedEvent) {
@@ -332,6 +349,10 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
       toast.error("Upload screenshot, UTR ID, and payee name");
       return;
     }
+    if (amount > 0 && utr.replace(/\D/g, "").length !== 12) {
+      toast.error("UTR ID must be 12 digits");
+      return;
+    }
 
     startTransition(async () => {
       let didCreateUser = false;
@@ -344,13 +365,19 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
             phone: manualPhone.trim(),
             gender: manualGender as "MALE" | "FEMALE" | "OTHER",
             college: manualCollege.trim(),
+            collageId: manualCollageId.trim() || undefined,
+            branch: manualBranch.trim() || undefined,
+            year: manualYear === "" ? undefined : Number(manualYear),
+            country: manualCountry.trim() || undefined,
+            state: manualState.trim() || undefined,
+            city: manualCity.trim() || undefined,
           }
         );
         if (!createRes.success) {
           toast.error(createRes.error);
           return;
         }
-        didCreateUser = true;
+        didCreateUser = !(createRes as { existed?: boolean }).existed;
       }
 
       let paymentScreenshot = "";
@@ -386,7 +413,7 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
             }
           : undefined,
         {
-          isVirtual: effectiveVirtual,
+          isVirtual: false,
           createUserIfNotFound: !didCreateUser,
           manualLeadName: !didCreateUser && userNotFound ? manualName.trim() : undefined,
           manualLeadPhone: !didCreateUser && userNotFound ? manualPhone.trim() : leadPhone,
@@ -415,13 +442,13 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
           email: email.trim(),
           phone: manualPhone,
           collage: manualCollege,
-          collageId: "",
-          branch: "",
-          year: null as number | null,
+          collageId: manualCollageId,
+          branch: manualBranch,
+          year: manualYear === "" ? null : (manualYear as number),
           gender: manualGender || "",
-          state: "",
-          city: "",
-          country: "",
+          state: manualState,
+          city: manualCity,
+          country: manualCountry,
           isInternational: false,
         }
       : null;
@@ -506,9 +533,9 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
       {displayUser && (
         <div className="bg-zinc-900 p-6 rounded-lg border border-zinc-800 space-y-4">
           {userNotFound && (
-            <div className="rounded-lg p-4 bg-amber-900/30 border border-amber-600/50">
-              <p className="text-amber-200 font-medium">Create New User</p>
-              <p className="text-amber-200/80 text-sm mt-1">User not found. Enter details and set a password so they can log in and see their competitions.</p>
+            <div className="rounded-lg p-4 bg-amber-900/30 border-2 border-amber-500/70">
+              <p className="text-amber-200 font-semibold text-base">Create New User</p>
+              <p className="text-amber-200/90 text-sm mt-1">User not found. Enter all details below and set a password so they can log in and see their competitions.</p>
             </div>
           )}
           <h3 className="text-lg font-semibold text-white flex items-center justify-between">
@@ -530,21 +557,27 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
               <input
                 type="text"
                 value={(userNotFound ? manualName : editDetails.name ?? fetchedUser?.name) ?? ""}
-                onChange={(e) =>
-                  userNotFound ? setManualName(e.target.value) : setEditDetails((p) => ({ ...p, name: e.target.value }))
-                }
+                onChange={(e) => {
+                  const v = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                  userNotFound ? setManualName(v) : setEditDetails((p) => ({ ...p, name: v }));
+                }}
                 className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                placeholder="Letters only"
               />
             </div>
             <div>
               <label className="block text-xs text-zinc-500 mb-1">Phone</label>
               <input
-                type="text"
+                type="tel"
+                inputMode="numeric"
                 value={(userNotFound ? manualPhone : editDetails.phone ?? fetchedUser?.phone) ?? ""}
-                onChange={(e) =>
-                  userNotFound ? setManualPhone(e.target.value) : setEditDetails((p) => ({ ...p, phone: e.target.value }))
-                }
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, "").slice(0, 10);
+                  userNotFound ? setManualPhone(v) : setEditDetails((p) => ({ ...p, phone: v }));
+                }}
+                maxLength={10}
                 className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                placeholder="10 digits"
               />
             </div>
             <div>
@@ -565,7 +598,7 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
               </select>
             </div>
             <div>
-              <label className="block text-xs text-zinc-500 mb-1">College</label>
+              <label className="block text-xs text-zinc-500 mb-1">College Name</label>
               <input
                 type="text"
                 value={(userNotFound ? manualCollege : editDetails.collage ?? fetchedUser?.collage) ?? ""}
@@ -573,6 +606,83 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
                   userNotFound ? setManualCollege(e.target.value) : setEditDetails((p) => ({ ...p, collage: e.target.value }))
                 }
                 className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                placeholder="e.g. KL University, ABC College"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-zinc-500 mb-1">College ID / Roll No</label>
+              <input
+                type="text"
+                value={userNotFound ? manualCollageId : (editDetails.collageId ?? fetchedUser?.collageId ?? "")}
+                onChange={(e) =>
+                  userNotFound ? setManualCollageId(e.target.value) : setEditDetails((p) => ({ ...p, collageId: e.target.value }))
+                }
+                className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                placeholder="College ID / Roll number"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-zinc-500 mb-1">Branch</label>
+              <input
+                type="text"
+                value={userNotFound ? manualBranch : (editDetails.branch ?? fetchedUser?.branch ?? "")}
+                onChange={(e) =>
+                  userNotFound ? setManualBranch(e.target.value) : setEditDetails((p) => ({ ...p, branch: e.target.value }))
+                }
+                className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                placeholder="e.g. CSE, ECE"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-zinc-500 mb-1">Year</label>
+              <input
+                type="number"
+                min={1}
+                max={5}
+                value={userNotFound ? (manualYear === "" ? "" : manualYear) : (editDetails.year ?? fetchedUser?.year ?? "")}
+                onChange={(e) =>
+                  userNotFound
+                    ? setManualYear(e.target.value ? parseInt(e.target.value, 10) : "")
+                    : setEditDetails((p) => ({ ...p, year: e.target.value ? parseInt(e.target.value, 10) : null }))
+                }
+                className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                placeholder="1–5"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-zinc-500 mb-1">Country</label>
+              <input
+                type="text"
+                value={userNotFound ? manualCountry : (editDetails.country ?? fetchedUser?.country ?? "")}
+                onChange={(e) =>
+                  userNotFound ? setManualCountry(e.target.value) : setEditDetails((p) => ({ ...p, country: e.target.value }))
+                }
+                className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                placeholder="India (editable)"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-zinc-500 mb-1">State</label>
+              <input
+                type="text"
+                value={userNotFound ? manualState : (editDetails.state ?? fetchedUser?.state ?? "")}
+                onChange={(e) =>
+                  userNotFound ? setManualState(e.target.value) : setEditDetails((p) => ({ ...p, state: e.target.value }))
+                }
+                className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                placeholder="Andhra Pradesh (editable)"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-zinc-500 mb-1">City</label>
+              <input
+                type="text"
+                value={userNotFound ? manualCity : (editDetails.city ?? fetchedUser?.city ?? "")}
+                onChange={(e) =>
+                  userNotFound ? setManualCity(e.target.value) : setEditDetails((p) => ({ ...p, city: e.target.value }))
+                }
+                className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                placeholder="City"
               />
             </div>
             {userNotFound && (
@@ -587,59 +697,6 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
                 />
                 <p className="text-xs text-zinc-500 mt-1">They will use this with their email to log in at /login</p>
               </div>
-            )}
-            {!userNotFound && (
-              <>
-                <div>
-                  <label className="block text-xs text-zinc-500 mb-1">College ID</label>
-                  <input
-                    type="text"
-                    value={editDetails.collageId ?? fetchedUser?.collageId ?? ""}
-                    onChange={(e) => setEditDetails((p) => ({ ...p, collageId: e.target.value }))}
-                    className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-zinc-500 mb-1">Branch</label>
-                  <input
-                    type="text"
-                    value={editDetails.branch ?? fetchedUser?.branch ?? ""}
-                    onChange={(e) => setEditDetails((p) => ({ ...p, branch: e.target.value }))}
-                    className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-zinc-500 mb-1">Year</label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={5}
-                    value={editDetails.year ?? fetchedUser?.year ?? ""}
-                    onChange={(e) =>
-                      setEditDetails((p) => ({ ...p, year: e.target.value ? parseInt(e.target.value, 10) : null }))
-                    }
-                    className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-zinc-500 mb-1">State</label>
-                  <input
-                    type="text"
-                    value={editDetails.state ?? fetchedUser?.state ?? ""}
-                    onChange={(e) => setEditDetails((p) => ({ ...p, state: e.target.value }))}
-                    className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-zinc-500 mb-1">City</label>
-                  <input
-                    type="text"
-                    value={editDetails.city ?? fetchedUser?.city ?? ""}
-                    onChange={(e) => setEditDetails((p) => ({ ...p, city: e.target.value }))}
-                    className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
-                  />
-                </div>
-              </>
             )}
           </div>
         </div>
@@ -683,7 +740,6 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
                   setTeamSizeInput("1");
                   setTeamMembers([]);
                 }
-                if (!ev?.virtualEnabled) setIsVirtual(false);
               }}
               className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
               disabled={!selectedCategory}
@@ -694,45 +750,9 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
               ))}
             </select>
           </div>
-          {selectedEventDetails && (
-            <div>
-              <label className="block text-sm text-zinc-400 mb-2">Mode</label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsVirtual(false)}
-                  className={`px-4 py-2 rounded text-sm font-medium ${
-                    !isVirtual ? "bg-red-600 text-white" : "bg-zinc-800 text-zinc-400"
-                  }`}
-                >
-                  Physical
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsVirtual(true)}
-                  disabled={!canChooseVirtual}
-                  className={`px-4 py-2 rounded text-sm font-medium ${
-                    isVirtual ? "bg-emerald-600 text-white" : "bg-zinc-800 text-zinc-400"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  Virtual
-                </button>
-              </div>
-              {!canChooseVirtual && selectedEventDetails.virtualEnabled && (
-                <p className="text-xs text-amber-400 mt-1">{virtualEligibility.reason}</p>
-              )}
-            </div>
-          )}
-
           {/* Group fields */}
           {isGroupEvent && (
             <div className="space-y-3 pt-4 border-t border-zinc-700">
-              <div className="rounded-lg p-4 bg-amber-900/30 border-2 border-amber-500/70">
-                <p className="text-base font-semibold text-amber-200">
-                  Team Lead: {displayUser.name} ({displayUser.email})
-                </p>
-                <p className="text-xs text-amber-200/90 mt-1">Lead is already added. Add only other members below.</p>
-              </div>
               <div>
                 <label className="block text-sm text-zinc-400 mb-1">Team Name</label>
                 <input
@@ -762,7 +782,13 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
                   }}
                   className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
                 />
-                <p className="text-xs text-zinc-500 mt-1">Allowed: {minTeamSize}–{maxTeamSize}</p>
+                <p className="text-xs text-zinc-500 mt-1">Allowed: {minTeamSize}–{maxTeamSize}. Add only {Math.max(0, teamSize - 1)} member(s) below (team lead counts as 1).</p>
+              </div>
+              <div className="rounded-lg p-4 bg-amber-900/30 border-2 border-amber-500/70">
+                <p className="text-base font-semibold text-amber-200">
+                  Team Lead: {displayUser.name} ({displayUser.email})
+                </p>
+                <p className="text-xs text-amber-200/90 mt-1">Lead is already added. Add only other members below.</p>
               </div>
               <div className="space-y-2 pt-2">
                 <p className="text-sm text-zinc-400">Add members (name + gender). Add only members — lead is already added when email was entered.</p>
@@ -810,10 +836,15 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
       {displayUser && selectedEvent && (
         <div className="bg-zinc-900 p-6 rounded-lg border border-zinc-800 space-y-4">
           <h3 className="text-lg font-semibold text-white">Payment</h3>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-1">
             <p className="text-2xl font-bold text-red-500">
               {amount === 0 ? "FREE" : `₹${amount}`}
             </p>
+            {amount > 0 && (
+              <p className="text-sm text-zinc-400">
+                {teamSize > 1 ? `₹350 × ${teamSize} participants = ₹${amount}` : "₹350 per participant"}
+              </p>
+            )}
             {amount === 0 && (
               <span className="text-sm text-emerald-400">(International participant)</span>
             )}
@@ -856,10 +887,14 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
                 <label className="block text-sm text-zinc-400 mb-1">UTR ID</label>
                 <input
                   type="text"
+                  inputMode="numeric"
                   value={utr}
-                  onChange={(e) => setUtr(e.target.value)}
+                  onChange={(e) => setUtr(e.target.value.replace(/\D/g, "").slice(0, 12))}
+                  maxLength={12}
+                  placeholder="Enter 12 digits"
                   className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
                 />
+                <p className="text-xs text-zinc-500 mt-1">Enter 12 digits</p>
               </div>
               <div>
                 <label className="block text-sm text-zinc-400 mb-1">Payee Name</label>

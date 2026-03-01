@@ -14,6 +14,7 @@ const baseURL = isProduction
     : "http://localhost:3000";
 
 export const auth = betterAuth({
+    basePath: "/api/auth",
     database: prismaAdapter(prisma, {
         provider: "postgresql",
 
@@ -67,7 +68,11 @@ export const auth = betterAuth({
                 const { compare } = await import("bcryptjs");
                 return compare(password, hash);
             }
-        }
+        },
+        sendResetPassword: async ({ user, url }) => {
+            const { sendPasswordResetEmail } = await import("./zeptomail");
+            await sendPasswordResetEmail(user.email, user.name || "Participant", url);
+        },
     },
     session: {
         cookieCache: {

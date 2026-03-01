@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiChevronRight, FiMail, FiLock } from "react-icons/fi";
 import SignInOAuthButton from "./signInOAuthButton";
@@ -276,7 +277,19 @@ const LoginFlow = () => {
               </p>
             </div>
 
-            {selectedCollege === "SPOT_EMAIL" && <SpotEmailLoginForm />}
+            {selectedCollege === "SPOT_EMAIL" && (
+              <>
+                <SpotEmailLoginForm />
+                <p className="mt-4 text-center">
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm text-zinc-400 hover:text-red-500 transition-colors"
+                  >
+                    Forgot password?
+                  </Link>
+                </p>
+              </>
+            )}
 
             {selectedCollege === "KL_UNIVERSITY" && (
               <div className="space-y-6">
