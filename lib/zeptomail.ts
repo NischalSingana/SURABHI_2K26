@@ -1,6 +1,7 @@
 import { generateTicketPDF } from "./pdf-generator";
 import path from "path";
 import fs from "fs";
+import { COMPETITIONS_SCHEDULE_IMAGE_URL } from "./schedule";
 
 interface EmailRecipient {
     email: string;
@@ -94,6 +95,21 @@ function getPublicAssetBase64(filename: string): string | null {
         return null;
     } catch (e) {
         console.error(`Error reading asset ${filename}:`, e);
+        return null;
+    }
+}
+
+async function getRemoteAssetBase64(url: string): Promise<{ content: string; mimeType: string } | null> {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) return null;
+
+        const mimeType = response.headers.get("content-type") || "image/jpeg";
+        const bytes = await response.arrayBuffer();
+        const content = Buffer.from(bytes).toString("base64");
+        return { content, mimeType };
+    } catch (e) {
+        console.error(`Error fetching remote asset ${url}:`, e);
         return null;
     }
 }
@@ -618,6 +634,12 @@ export async function sendWelcomeEmail(
         <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 10px;">🎟️ Your Entry Pass is Attached</p>
         <p style="color: #d4d4d8; font-size: 14px; margin: 0;">Your official entry pass (PDF) is attached. Download it and present it at the venue entrance.</p>
       </div>
+      <div style="background-color: #18181b; border: 1px solid #333; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 0 0 8px 0;">🗓️ Competitions Schedule Attached</p>
+        <p style="color: #d4d4d8; font-size: 14px; margin: 0; line-height: 1.6;">
+          Please find the competitions schedule attached.
+        </p>
+      </div>
       <div style="background: linear-gradient(135deg, #1e3a1e 0%, #0d2d0d 100%); border: 2px solid #22c55e; border-radius: 12px; padding: 24px; margin: 30px 0;">
         <p style="color: #22c55e; font-size: 18px; font-weight: 800; margin: 0 0 12px 0;">👋 Bringing Friends? No Problem!</p>
         <p style="color: #dcfce7; font-size: 16px; line-height: 1.7; margin: 0;">Even if your friends haven't registered online — get them to campus and complete <strong style="color: #ffffff;">spot registrations</strong> at the venue (8:00 AM – 10:00 AM daily). Accommodation will be provided to spot registration participants too!</p>
@@ -644,9 +666,24 @@ export async function sendWelcomeEmail(
     </html>
     `;
 
-    const attachments = entryPassPdfBuffer
-        ? [{ content: entryPassPdfBuffer.toString("base64"), mime_type: "application/pdf", name: "Surabhi_2026_Entry_Pass.pdf" }]
-        : [];
+    const attachments: { content: string; mime_type: string; name: string }[] = [];
+
+    if (entryPassPdfBuffer) {
+        attachments.push({
+            content: entryPassPdfBuffer.toString("base64"),
+            mime_type: "application/pdf",
+            name: "Surabhi_2026_Entry_Pass.pdf",
+        });
+    }
+
+    const scheduleAsset = await getRemoteAssetBase64(COMPETITIONS_SCHEDULE_IMAGE_URL);
+    if (scheduleAsset) {
+        attachments.push({
+            content: scheduleAsset.content,
+            mime_type: scheduleAsset.mimeType,
+            name: "Surabhi_2026_Competitions_Schedule.jpeg",
+        });
+    }
 
     return sendZeptoMail({
         to: [{ email: user.email, name: user.name }],
