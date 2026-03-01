@@ -29,6 +29,11 @@ export interface EventTicketData {
     teamMembers?: MemberData[];
     /** When true, venue shows Virtual, no time, and Virtual Participation Guidelines on page 2 */
     isInternational?: boolean;
+    /** Venue from event (DB) - when provided, used instead of default */
+    venue?: string | null;
+    /** Event start/end time from DB */
+    startTime?: string | null;
+    endTime?: string | null;
 }
 
 // Register fonts if needed, for now standard Helvetica is fine for speed/compatibility
@@ -414,13 +419,18 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                         {/* Event Details Footer */}
                         <View style={{ borderTop: '1px solid #27272a', paddingTop: 15, marginTop: 'auto' }}>
                             <Text style={styles.label}>VENUE</Text>
-                            <Text style={styles.valueSmall}>{ticketData.isInternational ? 'VIRTUAL' : 'KL UNIVERSITY, VIJAYAWADA'}</Text>
-                            {ticketData.isInternational && (
+                            <Text style={styles.valueSmall}>{ticketData.isInternational ? 'VIRTUAL' : (ticketData.venue?.trim() || 'KL UNIVERSITY, VIJAYAWADA')}</Text>
+                            {ticketData.isInternational ? (
                                 <>
                                     <Text style={[styles.label, { marginTop: 10 }]}>TIME</Text>
                                     <Text style={styles.valueSmall}>Will be announced later to your convenient timezone.</Text>
                                 </>
-                            )}
+                            ) : (ticketData.startTime || ticketData.endTime) ? (
+                                <>
+                                    <Text style={[styles.label, { marginTop: 10 }]}>TIME</Text>
+                                    <Text style={styles.valueSmall}>{[ticketData.startTime, ticketData.endTime].filter(Boolean).join(' – ')}</Text>
+                                </>
+                            ) : null}
                         </View>
                     </View>
 

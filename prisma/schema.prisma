@@ -44,6 +44,7 @@ model User {
   sessions                 Session[]
   assignedEvent            Event?                    @relation("EventJudges", fields: [assignedEventId], references: [id])
   visitorPassRegistrations VisitorPassRegistration[]
+  competitionFeedbacks     CompetitionFeedback[]
 
   @@index([paymentStatus])
   @@index([role])
@@ -166,6 +167,8 @@ model Event {
   groupRegistrations        GroupRegistration[]
   individualRegistrations   IndividualRegistration[]
   judges                    User[]                   @relation("EventJudges")
+  feedbackReleases          FeedbackRelease[]
+  competitionFeedbacks      CompetitionFeedback[]
 
   @@index([categoryId])
   @@index([date])
@@ -428,6 +431,36 @@ model AdminActivityLog {
   @@index([action])
   @@index([createdAt])
   @@map("admin_activity_logs")
+}
+
+model FeedbackRelease {
+  id        String   @id @default(cuid())
+  eventId   String   @unique
+  isReleased Boolean @default(false)
+  releasedAt DateTime?
+  releasedBy String?
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([isReleased])
+  @@map("feedback_releases")
+}
+
+model CompetitionFeedback {
+  id             String   @id @default(cuid())
+  userId         String
+  eventId        String
+  overallRating  Int
+  ratings        Json
+  suggestions    String?
+  createdAt      DateTime @default(now())
+  event          Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@index([eventId])
+  @@index([userId])
+  @@map("competition_feedbacks")
 }
 
 model DeleteRequest {

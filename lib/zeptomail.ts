@@ -297,6 +297,15 @@ export async function sendEventConfirmationEmail(
 
                 ${eventDetailsSection}
 
+                ${(!useVirtualTemplate && !isInternational && registrationType !== "VISITOR") ? `
+                <div style="background-color: rgba(34,197,94,0.12); border: 1px solid #22c55e; border-radius: 8px; padding: 20px; margin: 25px 0; text-align: center;">
+                    <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 0 0 10px 0;">🏆 Prize Distribution & Certificates</p>
+                    <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; margin: 0;">
+                        Please note that cash prizes will be distributed on the same day of the competition from <strong style="color: #ffffff;">5:30 PM to 6:30 PM</strong>. All participants will also receive a <strong style="color: #ffffff;">Certificate of Appreciation</strong> during the prize distribution ceremony.
+                    </p>
+                </div>
+                ` : ''}
+
                 ${whatsappButton}
 
                 <div class="divider"></div>
@@ -316,6 +325,7 @@ export async function sendEventConfirmationEmail(
                 <p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-bottom: 0;">
                     ${isInternational ? 'Please find your virtual participation ticket (PDF) attached. Follow the Virtual Participation Guidelines in the ticket.' : 'Please find your official entry pass (PDF) attached below. Keep it handy for security checks at the venue.'}
                 </p>
+                ${(!useVirtualTemplate && !isInternational && registrationType !== "VISITOR") ? '<p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-top: 12px; margin-bottom: 0;">We look forward to your enthusiastic participation.</p>' : ''}
                 ${isInternational ? '<p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-top: 10px; margin-bottom: 0;">For queries: <a href="mailto:surabhi@kluniversity.in" style="color: #dc2626;">surabhi@kluniversity.in</a></p>' : ''}
                 `}
 
@@ -482,5 +492,98 @@ export async function sendAccommodationConfirmationEmail(
             mime_type: "application/pdf",
             name: "Surabhi_2026_Accommodation_Pass.pdf",
         }],
+    });
+}
+
+/** Day-wise welcome email for competition participants - fest info, entry pass, competition details, venue */
+export async function sendWelcomeEmail(
+    user: { name: string; email: string },
+    dayLabel: string,
+    competitions: { name: string; category?: string; date: string; venue: string; startTime: string; endTime?: string }[],
+    entryPassPdfBuffer: Buffer | null
+) {
+    const baseUrl = "https://klusurabhi.in";
+    const klLogoUrl = `${baseUrl}/images/kl_logo_white_text.png`;
+    const surabhiLogoUrl = `${baseUrl}/images/surabhi1.png`;
+
+    const competitionsHtml = competitions.length > 0
+        ? competitions.map((c) => `
+            <div style="background: #0f0f0f; border-left: 4px solid #dc2626; padding: 16px; margin-bottom: 12px; border-radius: 0 8px 8px 0;">
+              <p style="color: #ffffff; font-weight: 700; margin: 0 0 6px 0;">${c.name}</p>
+              <p style="color: #a1a1aa; margin: 0; font-size: 14px;">📅 ${c.date} · ⏰ ${c.startTime}${c.endTime ? ` – ${c.endTime}` : ""}</p>
+              <p style="color: #a1a1aa; margin: 4px 0 0 0; font-size: 14px;">📍 ${c.venue}</p>
+            </div>`).join("")
+        : "<p style=\"color: #a1a1aa;\">No competition details</p>";
+
+    const htmlBody = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+    <body style="margin: 0; padding: 0; background-color: #000000; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #0a0a0a; border: 1px solid #333;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #000000; border-bottom: 3px solid #dc2626;">
+      <tr><td align="left" style="padding: 20px;"><img src="${klLogoUrl}" alt="KL University" width="130"></td>
+      <td align="right" style="padding: 20px;"><img src="${surabhiLogoUrl}" alt="Surabhi 2026" width="110"></td></tr>
+    </table>
+    <div style="padding: 40px 30px; color: #ffffff;">
+      <div style="font-size: 20px; color: #dc2626; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Welcome to</div>
+      <div style="font-size: 28px; color: #ffffff; font-weight: 800; margin-bottom: 20px;">Surabhi International Cultural Fest 2026</div>
+      <p style="color: #d4d4d8; font-size: 16px; line-height: 1.7; margin-bottom: 20px;">Hello <strong style="color: #ffffff;">${user.name}</strong>,</p>
+      <p style="color: #d4d4d8; font-size: 16px; line-height: 1.7; margin-bottom: 20px;">We are thrilled to welcome you to <strong style="color: #dc2626;">Surabhi 2026</strong> — KL University's International Cultural Fest! This March 2nd–7th, the campus comes alive with music, dance, drama, art, literature, and more.</p>
+      <div style="background-color: #18181b; border: 1px solid #333; border-radius: 8px; padding: 25px; margin: 25px 0;">
+        <h3 style="color: #dc2626; font-size: 16px; margin-top: 0;">About Surabhi</h3>
+        <p style="color: #d4d4d8; margin: 0; line-height: 1.7;">Surabhi is the flagship cultural festival of KL University, bringing together thousands of students for artistic expression and cultural exchange. Across Chitrakala, Sahitya, Cine Carnival, Natyaka, Raaga, Nrithya, Vastranaut, National Parliamentary Simulation, and Kurukshetra — expect performances, competitions, and memories you'll cherish.</p>
+      </div>
+      <div style="background-color: #18181b; border: 1px solid #333; border-radius: 8px; padding: 25px; margin: 25px 0;">
+        <h3 style="color: #dc2626; font-size: 16px; margin-top: 0;">Your Competition(s) – ${dayLabel}</h3>
+        ${competitionsHtml}
+      </div>
+      <div style="background-color: #18181b; border: 1px solid #333; border-radius: 8px; padding: 25px; margin: 25px 0;">
+        <h3 style="color: #dc2626; font-size: 16px; margin-top: 0;">Venue & Location</h3>
+        <p style="color: #d4d4d8; margin: 8px 0;"><strong style="color: #ffffff;">Venue:</strong> KL University (KLEF Deemed to be University)</p>
+        <p style="color: #d4d4d8; margin: 8px 0;"><strong style="color: #ffffff;">Address:</strong> Green Fields, Vaddeswaram, Guntur District, Andhra Pradesh – 522 302</p>
+        <p style="color: #d4d4d8; margin: 8px 0;"><strong style="color: #ffffff;">Spot Registration:</strong> 8:00 AM – 10:00 AM daily at the venue</p>
+      </div>
+      <div style="background-color: #f59e0b; border: 2px solid #d97706; padding: 20px; margin: 25px 0; border-radius: 8px; text-align: center;">
+        <p style="color: #000000; font-size: 16px; font-weight: 700; margin: 0 0 8px 0;">⚠️ Important – Carry With You</p>
+        <p style="color: #1c1917; font-size: 15px; font-weight: 600; margin: 0;">Please carry your <strong>physical college ID card</strong> and your <strong>Entry Pass PDF</strong> (attached) for verification at the venue.</p>
+      </div>
+      <div style="background-color: rgba(220,38,38,0.15); border-left: 4px solid #dc2626; padding: 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
+        <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 10px;">🎟️ Your Entry Pass is Attached</p>
+        <p style="color: #d4d4d8; font-size: 14px; margin: 0;">Your official entry pass (PDF) is attached. Download it and present it at the venue entrance.</p>
+      </div>
+      <div style="background: linear-gradient(135deg, #1e3a1e 0%, #0d2d0d 100%); border: 2px solid #22c55e; border-radius: 12px; padding: 24px; margin: 30px 0;">
+        <p style="color: #22c55e; font-size: 18px; font-weight: 800; margin: 0 0 12px 0;">👋 Bringing Friends? No Problem!</p>
+        <p style="color: #dcfce7; font-size: 16px; line-height: 1.7; margin: 0;">Even if your friends haven't registered online — get them to campus and complete <strong style="color: #ffffff;">spot registrations</strong> at the venue (8:00 AM – 10:00 AM daily). Accommodation will be provided to spot registration participants too!</p>
+      </div>
+      <div style="background-color: #18181b; border: 1px solid #333; border-radius: 8px; padding: 25px; margin: 25px 0;">
+        <h3 style="color: #dc2626; font-size: 16px; margin-top: 0;">Accommodation</h3>
+        <p style="color: #d4d4d8; margin: 0 0 12px 0; line-height: 1.7;"><strong style="color: #ffffff;">Spot registration participants</strong> travelling from other cities are eligible for accommodation.</p>
+        <p style="color: #a1a1aa; font-size: 14px; margin: 0;"><strong style="color: #f59e0b;">Note:</strong> Accommodation is <strong>not provided</strong> for participants from nearby areas (within 75 km radius).</p>
+      </div>
+      <div style="background-color: rgba(34,197,94,0.12); border: 1px solid #22c55e; border-radius: 8px; padding: 20px; margin: 25px 0; text-align: center;">
+        <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 0 0 10px 0;">🏆 Prize Distribution & Certificates</p>
+        <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; margin: 0;">Please note that cash prizes will be distributed on the same day of the competition from <strong style="color: #ffffff;">5:30 PM to 6:30 PM</strong>. All participants will also receive a <strong style="color: #ffffff;">Certificate of Appreciation</strong> during the prize distribution ceremony.</p>
+      </div>
+      <p style="color: #d4d4d8; font-size: 16px; text-align: center; margin: 25px 0 0 0;">We look forward to your enthusiastic participation.</p>
+      <p style="color: #52525b; font-size: 12px; margin-top: 20px;">For queries: <a href="mailto:surabhi@kluniversity.in" style="color: #dc2626;">surabhi@kluniversity.in</a></p>
+    </div>
+    <div style="background-color: #18181b; padding: 30px; text-align: center; color: #52525b; font-size: 12px; border-top: 1px solid #333;">
+      <p>&copy; 2026 KL University. All rights reserved.</p>
+    </div>
+    </div>
+    </body>
+    </html>
+    `;
+
+    const attachments = entryPassPdfBuffer
+        ? [{ content: entryPassPdfBuffer.toString("base64"), mime_type: "application/pdf", name: "Surabhi_2026_Entry_Pass.pdf" }]
+        : [];
+
+    return sendZeptoMail({
+        to: [{ email: user.email, name: user.name }],
+        subject: `Welcome to Surabhi 2026 – Your Entry for ${dayLabel}`,
+        htmlBody,
+        attachments,
     });
 }
