@@ -45,6 +45,7 @@ export default function AdminLayoutWrapper({
     { href: "/admin/users", label: "Users", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/accommodation", label: "Stay", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/analytics", label: "Analytics", roles: ["ADMIN", "MASTER"] },
+    { href: "/admin/feedback", label: "Feedback", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/registration-analytics", label: "Registration Analytics", roles: ["GOD"] },
     { href: "/admin/accommodation-analytics", label: "Accommodation Analytics", roles: ["GOD"] },
     { href: "/admin/judges", label: "Judges", roles: ["ADMIN", "MASTER"] },
@@ -53,6 +54,7 @@ export default function AdminLayoutWrapper({
     { href: "/admin/spot-register", label: "Spot Register", roles: ["ADMIN", "MANAGER", "MASTER"] },
     { href: "/admin/logs", label: "Logs", roles: ["MASTER"] },
     { href: "/admin/approval", label: "Approval", roles: ["MASTER"] },
+    { href: "/admin/welcome-emails", label: "Welcome Emails", roles: ["MASTER"] },
   ];
 
   const navLinks = allNavLinks.filter(link => link.roles.includes(session?.user?.role));

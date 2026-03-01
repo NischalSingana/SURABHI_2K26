@@ -5,8 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { getUserRegisteredEvents } from "@/actions/submissions.action";
 import { unregisterFromEvent } from "@/actions/events.action";
+import { getFeedbackReleasesForUser, getFeedbackStatusForUser } from "@/actions/feedback.action";
 import SubmissionModal from "@/components/ui/SubmissionModal";
-import { FiCalendar, FiMapPin, FiClock, FiUsers, FiUpload, FiCheckCircle, FiX, FiCreditCard, FiAward, FiTrash2, FiVideo } from "react-icons/fi";
+import FeedbackModal from "@/components/ui/FeedbackModal";
+import ViewFeedbackModal from "@/components/ui/ViewFeedbackModal";
+import { FiCalendar, FiMapPin, FiClock, FiUsers, FiUpload, FiCheckCircle, FiX, FiCreditCard, FiAward, FiTrash2, FiVideo, FiMessageSquare } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
@@ -79,6 +82,10 @@ export default function MyEventsPage() {
     const [unregistering, setUnregistering] = useState<string | null>(null);
     const [showUnregisterConfirm, setShowUnregisterConfirm] = useState<string | null>(null);
     const [fetchError, setFetchError] = useState<string | null>(null);
+    const [feedbackReleasedIds, setFeedbackReleasedIds] = useState<Set<string>>(new Set());
+    const [feedbackSubmitted, setFeedbackSubmitted] = useState<Record<string, boolean>>({});
+    const [feedbackEvent, setFeedbackEvent] = useState<Event | null>(null);
+    const [viewFeedbackEvent, setViewFeedbackEvent] = useState<Event | null>(null);
     // const [hasGoogleAccount, setHasGoogleAccount] = useState(false); // Unused
     // const isKL = !!session?.user?.email?.endsWith("@kluniversity.in"); // Unused
     const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
@@ -107,6 +114,17 @@ export default function MyEventsPage() {
                     ...g,
                     members: g.members as Member[]
                 })));
+                const eventIds = (result.data as { id: string }[]).map((e) => e.id);
+                const [releasesRes, statusRes] = await Promise.all([
+                    getFeedbackReleasesForUser(),
+                    getFeedbackStatusForUser(eventIds),
+                ]);
+                if (releasesRes.success && releasesRes.eventIds) {
+                    setFeedbackReleasedIds(new Set(releasesRes.eventIds));
+                }
+                if (statusRes.success && statusRes.submitted) {
+                    setFeedbackSubmitted(statusRes.submitted);
+                }
             }
         } catch (error) {
             const message = error instanceof Error ? error.message : "Unable to load your competition registrations right now.";
@@ -427,6 +445,19 @@ export default function MyEventsPage() {
                                                 </>
                                             )}
 
+                                            {event.registrationStatus !== "REJECTED" && feedbackReleasedIds.has(event.id) && (
+                                                <button
+                                                    onClick={() => (feedbackSubmitted[event.id] ? setViewFeedbackEvent(event) : setFeedbackEvent(event))}
+                                                    className={`sm:col-span-2 w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${feedbackSubmitted[event.id]
+                                                        ? "bg-zinc-800 text-emerald-400 border border-emerald-500/30 hover:bg-zinc-700"
+                                                        : "bg-amber-600/90 text-white hover:bg-amber-600 hover:shadow-lg hover:shadow-amber-600/30"
+                                                        }`}
+                                                >
+                                                    <FiMessageSquare size={16} />
+                                                    {feedbackSubmitted[event.id] ? "View your Feedback" : "Submit Feedback"}
+                                                </button>
+                                            )}
+
                                             {/* Hide unregister for other college & KL; show only for International */}
                                             {isInternational && (
                                                 <button
@@ -490,6 +521,29 @@ export default function MyEventsPage() {
                     />
                 )
             }
+
+            {feedbackEvent && (
+                <FeedbackModal
+                    isOpen={!!feedbackEvent}
+                    onClose={() => setFeedbackEvent(null)}
+                    eventId={feedbackEvent.id}
+                    eventName={feedbackEvent.name}
+                    onSuccess={() => {
+                        setFeedbackSubmitted((p) => ({ ...p, [feedbackEvent.id]: true }));
+                        setFeedbackEvent(null);
+                        fetchMyEvents();
+                    }}
+                />
+            )}
+
+            {viewFeedbackEvent && (
+                <ViewFeedbackModal
+                    isOpen={!!viewFeedbackEvent}
+                    onClose={() => setViewFeedbackEvent(null)}
+                    eventId={viewFeedbackEvent.id}
+                    eventName={viewFeedbackEvent.name}
+                />
+            )}
 
             {/* Unregister Confirmation Modal */}
             <AnimatePresence>

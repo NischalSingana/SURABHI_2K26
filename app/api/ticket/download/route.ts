@@ -55,7 +55,7 @@ export async function GET(req: Request) {
         // Fetch Event Details
         const event = await prisma.event.findUnique({
             where: { id: eventId },
-            select: { name: true, isGroupEvent: true, id: true }
+            select: { name: true, isGroupEvent: true, id: true, venue: true, startTime: true, endTime: true }
         });
 
         if (!event) {
@@ -75,6 +75,9 @@ export async function GET(req: Request) {
             eventName: event.name,
             eventId: event.id,
             isGroupEvent: event.isGroupEvent,
+            venue: event.venue ?? undefined,
+            startTime: event.startTime ?? undefined,
+            endTime: event.endTime ?? undefined,
             paymentStatus: 'CONFIRMED',
             isApproved: true,
             isInternational: !!user.isInternational,

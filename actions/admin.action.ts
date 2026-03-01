@@ -386,6 +386,9 @@ export async function updateRegistrationStatus(
                                 gender: userFull.gender,
                                 state: userFull.state,
                                 city: userFull.city,
+                                venue: registration.event.venue ?? undefined,
+                                startTime: registration.event.startTime ?? undefined,
+                                endTime: registration.event.endTime ?? undefined,
                             });
                         }
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
@@ -529,6 +532,9 @@ export async function updateRegistrationStatus(
                                 gender: lead.gender,
                                 state: lead.state,
                                 city: lead.city,
+                                venue: registration.event.venue ?? undefined,
+                                startTime: registration.event.startTime ?? undefined,
+                                endTime: registration.event.endTime ?? undefined,
                             });
                         }
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");

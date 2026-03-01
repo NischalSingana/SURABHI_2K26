@@ -19,6 +19,7 @@ import {
   FiZap,
   FiAward,
   FiVideo,
+  FiMessageSquare,
 } from "react-icons/fi";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -26,6 +27,9 @@ import Link from "next/link";
 import { signOut, useSession } from "@/lib/auth-client";
 import { updateProfile } from "@/actions/profile.action";
 import { unregisterFromEvent } from "@/actions/events.action";
+import { getFeedbackReleasesForUser, getFeedbackStatusForUser } from "@/actions/feedback.action";
+import FeedbackModal from "@/components/ui/FeedbackModal";
+import ViewFeedbackModal from "@/components/ui/ViewFeedbackModal";
 import Image from "next/image";
 import { BRANCHES, INDIAN_STATES } from "@/lib/constants";
 
@@ -110,6 +114,27 @@ export default function ProfileClient({
   }>({ screenshot: null, utrId: "", payeeName: "" });
   const [passToken, setPassToken] = useState<string | null>(null);
   const [passPaymentStatus, setPassPaymentStatus] = useState<string | null>(null);
+  const [feedbackReleasedIds, setFeedbackReleasedIds] = useState<Set<string>>(new Set());
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState<Record<string, boolean>>({});
+  const [feedbackEvent, setFeedbackEvent] = useState<Event | null>(null);
+  const [viewFeedbackEvent, setViewFeedbackEvent] = useState<Event | null>(null);
+
+  useEffect(() => {
+    if (registeredEvents.length > 0) {
+      const eventIds = registeredEvents.map((e) => e.id);
+      Promise.all([
+        getFeedbackReleasesForUser(),
+        getFeedbackStatusForUser(eventIds),
+      ]).then(([releasesRes, statusRes]) => {
+        if (releasesRes.success && releasesRes.eventIds) {
+          setFeedbackReleasedIds(new Set(releasesRes.eventIds));
+        }
+        if (statusRes.success && statusRes.submitted) {
+          setFeedbackSubmitted(statusRes.submitted);
+        }
+      });
+    }
+  }, [registeredEvents]);
 
   useEffect(() => {
     // Check if user already has a visitor pass
@@ -1157,6 +1182,22 @@ export default function ProfileClient({
                           Results
                         </motion.button>
 
+                        {/* Submit Feedback / View Feedback - shown when feedback is released */}
+                        {event.registrationStatus !== "REJECTED" && feedbackReleasedIds.has(event.id) && (
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => (feedbackSubmitted[event.id] ? setViewFeedbackEvent(event) : setFeedbackEvent(event))}
+                            className={`w-full px-4 py-2.5 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${feedbackSubmitted[event.id]
+                              ? "bg-zinc-800 text-emerald-400 border border-emerald-500/30 hover:bg-zinc-700"
+                              : "bg-amber-600 hover:bg-amber-500 text-white"
+                            }`}
+                          >
+                            <FiMessageSquare size={16} />
+                            {feedbackSubmitted[event.id] ? "View your Feedback" : "Submit Feedback"}
+                          </motion.button>
+                        )}
+
                         {/* Hide unregister for other college & KL; show only for International */}
                         {user.isInternational && (
                           <motion.button
@@ -1181,6 +1222,28 @@ export default function ProfileClient({
           </motion.div>
         )
       }
+
+      {feedbackEvent && (
+        <FeedbackModal
+          isOpen={!!feedbackEvent}
+          onClose={() => setFeedbackEvent(null)}
+          eventId={feedbackEvent.id}
+          eventName={feedbackEvent.name}
+          onSuccess={() => {
+            setFeedbackSubmitted((p) => ({ ...p, [feedbackEvent.id]: true }));
+            setFeedbackEvent(null);
+          }}
+        />
+      )}
+
+      {viewFeedbackEvent && (
+        <ViewFeedbackModal
+          isOpen={!!viewFeedbackEvent}
+          onClose={() => setViewFeedbackEvent(null)}
+          eventId={viewFeedbackEvent.id}
+          eventName={viewFeedbackEvent.name}
+        />
+      )}
 
       {/* Unregister Confirmation Modal */}
       <AnimatePresence>
