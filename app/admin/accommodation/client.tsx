@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAllBookings, approveBooking, rejectBooking, getAccommodationExcelData } from "@/actions/admin/accommodation.action";
+import { getAllBookings, approveBooking, rejectBooking, getAccommodationExcelData, getAccommodationExcelDataByDays } from "@/actions/admin/accommodation.action";
 import { BookingType, Gender, PaymentStatus, BookingStatus } from "@prisma/client";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -12,6 +12,8 @@ export default function AccommodationPage() {
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
     const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
     const [excelLoading, setExcelLoading] = useState<"boys" | "girls" | null>(null);
+    const [dayWiseLoading, setDayWiseLoading] = useState(false);
+    const [selectedDays, setSelectedDays] = useState<number[]>([2, 3, 4, 5, 6, 7]);
     const [filter, setFilter] = useState<{
         bookingType?: BookingType;
         gender?: Gender;
@@ -138,11 +140,87 @@ export default function AccommodationPage() {
         }
     };
 
+    const handleDownloadDayWise = async () => {
+        if (selectedDays.length === 0) {
+            toast.error("Select at least one day");
+            return;
+        }
+        setDayWiseLoading(true);
+        try {
+            const result = await getAccommodationExcelDataByDays(selectedDays);
+            if (!result.success) {
+                toast.error(result.error || "Failed to load data");
+                return;
+            }
+            const boys = result.boys || [];
+            const girls = result.girls || [];
+            if (boys.length === 0 && girls.length === 0) {
+                toast.info("No accommodation data for selected days");
+                return;
+            }
+            const dayStr = selectedDays.sort((a, b) => a - b).join("-");
+            const wb = XLSX.utils.book_new();
+            if (boys.length > 0) {
+                const ws = XLSX.utils.json_to_sheet(
+                    boys.map((r) => ({
+                        "S.No": r.sNo,
+                        Name: r.name,
+                        College: r.college,
+                        State: r.state,
+                        "City/Place": r.city,
+                        "Category (e.g. Chitrakala, Sahitya)": r.categoryNames,
+                        "Team Name": r.teamName,
+                        Competitions: r.competitions,
+                        "Phone Number": r.phone,
+                        Email: r.email,
+                        Gender: r.gender,
+                        "Booking Type": r.bookingType,
+                    }))
+                );
+                ws["!cols"] = [{ wch: 5 }, { wch: 22 }, { wch: 28 }, { wch: 18 }, { wch: 18 }, { wch: 35 }, { wch: 22 }, { wch: 45 }, { wch: 14 }, { wch: 28 }, { wch: 8 }, { wch: 12 }];
+                XLSX.utils.book_append_sheet(wb, ws, "Boys");
+            }
+            if (girls.length > 0) {
+                const ws = XLSX.utils.json_to_sheet(
+                    girls.map((r) => ({
+                        "S.No": r.sNo,
+                        Name: r.name,
+                        College: r.college,
+                        State: r.state,
+                        "City/Place": r.city,
+                        "Category (e.g. Chitrakala, Sahitya)": r.categoryNames,
+                        "Team Name": r.teamName,
+                        Competitions: r.competitions,
+                        "Phone Number": r.phone,
+                        Email: r.email,
+                        Gender: r.gender,
+                        "Booking Type": r.bookingType,
+                    }))
+                );
+                ws["!cols"] = [{ wch: 5 }, { wch: 22 }, { wch: 28 }, { wch: 18 }, { wch: 18 }, { wch: 35 }, { wch: 22 }, { wch: 45 }, { wch: 14 }, { wch: 28 }, { wch: 8 }, { wch: 12 }];
+                XLSX.utils.book_append_sheet(wb, ws, "Girls");
+            }
+            XLSX.writeFile(wb, `Accommodation_DayWise_Mar${dayStr}_${new Date().toISOString().split("T")[0]}.xlsx`);
+            toast.success(`Day-wise accommodation data downloaded (Mar ${dayStr})`);
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to download day-wise data");
+        } finally {
+            setDayWiseLoading(false);
+        }
+    };
+
+    const toggleDay = (day: number) => {
+        setSelectedDays((prev) =>
+            prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort((a, b) => a - b)
+        );
+    };
+
     return (
         <div className="px-4 py-6">
             <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
                 <h1 className="text-3xl font-bold text-white">Accommodation Management</h1>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                     <button
                         onClick={() => handleDownloadExcel("boys")}
                         disabled={!!excelLoading}
@@ -156,6 +234,41 @@ export default function AccommodationPage() {
                         className="bg-pink-600 hover:bg-pink-700 disabled:opacity-50 disabled:cursor-wait text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
                     >
                         {excelLoading === "girls" ? "Preparing..." : "Download Girls Excel"}
+                    </button>
+                </div>
+            </div>
+
+            {/* Day-wise export */}
+            <div className="bg-gray-800 rounded-lg p-4 mb-6 border border-gray-700">
+                <h3 className="text-lg font-semibold text-white mb-3">Day-wise Accommodation Export (March 2026)</h3>
+                <p className="text-gray-400 text-sm mb-3">Select days to filter accommodation by competition dates. Downloads Excel with Boys and Girls in separate sheets. Includes State, City, College, Category (Chitrakala, Sahitya, etc.), Team Name for groups.</p>
+                <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex flex-wrap gap-2">
+                        {[2, 3, 4, 5, 6, 7].map((day) => (
+                            <label
+                                key={day}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors ${
+                                    selectedDays.includes(day)
+                                        ? "bg-amber-600/20 border-amber-500 text-amber-200"
+                                        : "bg-gray-700 border-gray-600 text-gray-400 hover:border-gray-500"
+                                }`}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={selectedDays.includes(day)}
+                                    onChange={() => toggleDay(day)}
+                                    className="rounded border-gray-500"
+                                />
+                                <span className="text-sm font-medium">Mar {day}</span>
+                            </label>
+                        ))}
+                    </div>
+                    <button
+                        onClick={handleDownloadDayWise}
+                        disabled={dayWiseLoading}
+                        className="bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-wait text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                    >
+                        {dayWiseLoading ? "Preparing..." : "Download Data"}
                     </button>
                 </div>
             </div>

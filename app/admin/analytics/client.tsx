@@ -196,6 +196,7 @@ export default function AnalyticsPage() {
             event.groupRegistrations.forEach((reg) => {
                 const members = (reg.members as Record<string, { name: string }>) || {};
                 const memberList = Object.values(members).map((m) => m.name).filter(Boolean);
+                const teamSize = memberList.length + 1;
                 
                 groupData.push({
                     "Group Name": reg.groupName || "",
@@ -203,7 +204,7 @@ export default function AnalyticsPage() {
                     "Email": reg.user.email || "",
                     "Phone": reg.user.phone || "",
                     "Gender": reg.user.gender || "",
-                    "Team Size": memberList.length,
+                    "Team Size": teamSize,
                     "Members": memberList.join(", "),
                     "Mentor": reg.mentorName || "—",
                     "Mentor Phone": reg.mentorPhone || "—",
@@ -344,6 +345,7 @@ export default function AnalyticsPage() {
                 event.groupRegistrations.forEach((reg) => {
                     const members = (reg.members as Record<string, { name: string }>) || {};
                     const memberList = Object.values(members).map((m) => m.name).filter(Boolean);
+                    const teamSize = memberList.length + 1;
                     
                     groupData.push({
                         "Event": event.name,
@@ -353,7 +355,7 @@ export default function AnalyticsPage() {
                         "Email": reg.user.email || "",
                         "Phone": reg.user.phone || "",
                         "Gender": reg.user.gender || "",
-                        "Team Size": memberList.length,
+                        "Team Size": teamSize,
                         "Members": memberList.join(", "),
                         "Mentor": reg.mentorName || "—",
                         "Mentor Phone": reg.mentorPhone || "—",

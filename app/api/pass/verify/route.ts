@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { verifyPass, getPassDetails } from "@/lib/pass";
-import { Role } from "@prisma/client"; // Adjust import path if needed
 
 // GET: Get pass details without verifying (for preview)
 export async function GET(request: NextRequest) {
@@ -11,7 +10,8 @@ export async function GET(request: NextRequest) {
             headers: await headers(),
         });
 
-        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "MASTER")) {
+        const allowedRoles = ["ADMIN", "MASTER", "MANAGER"];
+        if (!session?.user || !allowedRoles.includes(session.user.role)) {
             return NextResponse.json(
                 { error: "Unauthorized" },
                 { status: 401 }
@@ -57,9 +57,10 @@ export async function POST(request: NextRequest) {
             headers: await headers(),
         });
 
-        if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "MASTER")) {
+        const allowedRoles = ["ADMIN", "MASTER", "MANAGER"];
+        if (!session?.user || !allowedRoles.includes(session.user.role)) {
             return NextResponse.json(
-                { error: "Unauthorized. Admin or Master access required." },
+                { error: "Unauthorized. Admin, Master, or Manager access required." },
                 { status: 401 }
             );
         }

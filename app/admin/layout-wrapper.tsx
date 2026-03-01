@@ -50,6 +50,7 @@ export default function AdminLayoutWrapper({
     { href: "/admin/judges", label: "Judges", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/evaluations", label: "Evaluations", roles: ["ADMIN", "MANAGER", "MASTER"] },
     { href: "/admin/registrations/approvals", label: "Registrations", roles: ["ADMIN", "MANAGER", "MASTER"] },
+    { href: "/admin/spot-register", label: "Spot Register", roles: ["ADMIN", "MANAGER", "MASTER"] },
     { href: "/admin/logs", label: "Logs", roles: ["MASTER"] },
     { href: "/admin/approval", label: "Approval", roles: ["MASTER"] },
   ];

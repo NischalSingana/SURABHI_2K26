@@ -72,7 +72,7 @@ function getEventPosterSrc(event: Event, categoryImage: string | null): string {
 
 function getEffectiveParticipantLimit(event: Pick<Event, "name" | "participantLimit">): number {
   if (event.name.toLowerCase().includes("national mock parliament")) {
-    return 50;
+    return 150;
   }
   return event.participantLimit;
 }

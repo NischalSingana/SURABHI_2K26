@@ -199,6 +199,25 @@ const page = async () => {
 
                 {(isAdmin || isManager) && (
                     <Link
+                        href="/admin/spot-register"
+                        className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
+                    >
+                        <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-amber-600 rounded-full flex items-center justify-center shadow-lg shadow-amber-600/20">
+                                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                </svg>
+                            </div>
+                            <h2 className="text-lg sm:text-xl font-semibold text-white">Spot Registration</h2>
+                            <p className="text-gray-400 text-center text-xs sm:text-sm">
+                                Register participants on-site with email, payment, and competition selection
+                            </p>
+                        </div>
+                    </Link>
+                )}
+
+                {(isAdmin || isManager) && (
+                    <Link
                         href="/admin/judges"
                         className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
                     >

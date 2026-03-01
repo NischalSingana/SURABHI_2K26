@@ -40,7 +40,7 @@ function isNationalMockParliamentEventName(eventName?: string | null): boolean {
 
 function getEffectiveParticipantLimit(event: { name?: string | null; participantLimit: number }): number {
   if (isNationalMockParliamentEventName(event.name)) {
-    return 50;
+    return 150;
   }
   return event.participantLimit;
 }
@@ -1628,6 +1628,7 @@ export async function registerUserByAdmin(
     manualLeadPhone?: string;
     manualLeadGender?: "MALE" | "FEMALE" | "OTHER";
     manualCollegeName?: string;
+    allowManager?: boolean;
   }
 ) {
   try {
@@ -1636,7 +1637,9 @@ export async function registerUserByAdmin(
       headers: headersList,
     });
 
-    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "MASTER")) {
+    const allowManager = (adminOptions as { allowManager?: boolean } | undefined)?.allowManager;
+    const allowedRoles = ["ADMIN", "MASTER", ...(allowManager ? ["MANAGER"] : [])];
+    if (!session || !allowedRoles.includes(session.user.role)) {
       return { success: false, error: "Unauthorized: Only admins and masters can manually register users." };
     }
 
@@ -1981,7 +1984,18 @@ export async function registerUserByAdmin(
 
     revalidatePath("/admin/events");
     revalidatePath("/admin/registrations");
-    
+    revalidatePath("/admin/spot-register");
+
+    if (adminOptions?.allowManager) {
+      await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
+        action: registrationResult.regType === "GROUP" ? "SPOT_REGISTER_GROUP" : "SPOT_REGISTER_INDIVIDUAL",
+        entityType: registrationResult.regType === "GROUP" ? "GROUP_REGISTRATION" : "INDIVIDUAL_REGISTRATION",
+        entityId: registrationResult.regId,
+        entityName: `${registrationResult.userName} → ${registrationResult.eventName}`,
+        details: { participant: registrationResult.userName, event: registrationResult.eventName },
+      });
+    }
+
     const registrationLabel = registrationResult.regType === "GROUP" ? "group" : "individual";
     const modeLabel = adminOptions?.isVirtual ? "virtual" : "physical";
     return { success: true, message: `Successfully registered ${registrationResult.userName} for ${registrationResult.eventName} (${registrationLabel}, ${modeLabel}). Status set to PENDING.` };
@@ -2003,15 +2017,16 @@ export async function searchUsers(query: string) {
       return { success: false, error: "Unauthorized" };
     }
 
-    if (!query || query.length < 2) {
+    if (!query || query.trim().length < 1) {
       return { success: true, data: [] };
     }
 
+    const searchTerm = query.trim();
     const users = await prisma.user.findMany({
       where: {
         OR: [
-          { email: { contains: query, mode: "insensitive" } },
-          { name: { contains: query, mode: "insensitive" } }
+          { email: { contains: searchTerm, mode: "insensitive" } },
+          { name: { contains: searchTerm, mode: "insensitive" } }
         ]
       },
       select: {
@@ -2021,7 +2036,7 @@ export async function searchUsers(query: string) {
         collage: true,
         collageId: true
       },
-      take: 10
+      take: 20
     });
 
     return { success: true, data: users };

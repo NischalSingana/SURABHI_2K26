@@ -87,7 +87,7 @@ export async function approveUser(userId: string) {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
             throw new Error("Unauthorized");
         }
 

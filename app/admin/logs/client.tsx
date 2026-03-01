@@ -23,6 +23,8 @@ const ACTION_LABELS: Record<string, string> = {
   REJECT_GROUP_REGISTRATION: "Rejected group registration",
   APPROVE_VISITOR_PASS: "Approved visitor pass",
   REJECT_VISITOR_PASS: "Rejected visitor pass",
+  SPOT_REGISTER_INDIVIDUAL: "Spot registered (individual)",
+  SPOT_REGISTER_GROUP: "Spot registered (group)",
 };
 
 export default function LogsClient() {
@@ -83,6 +85,8 @@ export default function LogsClient() {
               <option value="REJECT_INDIVIDUAL_REGISTRATION">Rejected individual registration</option>
               <option value="APPROVE_GROUP_REGISTRATION">Approved group registration</option>
               <option value="REJECT_GROUP_REGISTRATION">Rejected group registration</option>
+              <option value="SPOT_REGISTER_INDIVIDUAL">Spot registered (individual)</option>
+              <option value="SPOT_REGISTER_GROUP">Spot registered (group)</option>
             </optgroup>
             <optgroup label="Events & Categories">
               {Object.entries(ACTION_LABELS)
