@@ -186,6 +186,8 @@ export async function createSpotRegisterUserWithPassword(
         where: { email: normalized },
       });
       if (existingUser) {
+        const mappedGender =
+          details.gender === "FEMALE" ? "Female" : details.gender === "OTHER" ? "Other" : "Male";
         await prisma.user.update({
           where: { id: existingUser.id },
           data: {
