@@ -306,7 +306,8 @@ function EventDetailPageContent() {
   }, [slug]);
 
   /* Google check removed */
-  const regClosed = isOnlineRegistrationClosed();
+  const isEsportsEvent = categorySlug.toLowerCase().includes("kurukshetra") || (event?.Category?.name ?? "").toLowerCase().includes("kurukshetra");
+  const regClosed = isOnlineRegistrationClosed() && !isEsportsEvent;
 
   // Lock body scroll when any modal is open
   useEffect(() => {
@@ -855,6 +856,18 @@ function EventDetailPageContent() {
                       <div className="border-8 border-transparent border-t-zinc-800"></div>
                     </div>
                   </div>
+                </div>
+              ) : !isEsportsEvent ? (
+                <div className="mt-6">
+                  <button
+                    disabled
+                    className="w-full px-6 py-4 bg-zinc-700 text-zinc-400 font-bold rounded-lg cursor-not-allowed opacity-80"
+                  >
+                    Registration Closed for This Category
+                  </button>
+                  <p className="text-xs text-zinc-500 mt-2 text-center">
+                    Registrations are currently open only for eSports competitions.
+                  </p>
                 </div>
               ) : regClosed ? (
                 // Blocked: online registration closed after 5 PM

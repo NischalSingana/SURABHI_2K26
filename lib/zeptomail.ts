@@ -27,6 +27,25 @@ interface ZeptoMailOptions {
 const ZEPTO_API_URL = process.env.ZEPTO_API_URL || "https://api.zeptomail.in/v1.1/email"; // Default to India DC
 const SENDER_EMAIL = "noreply@klusurabhi.in"; // Updated to match user domain
 const SENDER_NAME = "Surabhi 2026 Team";
+const MANDATORY_COLLEGE_ID_TEXT = "Attendees must carry their Physical College ID Card. It is mandatory for identity verification.";
+
+function addMandatoryCollegeIdNotice(html: string): string {
+    if (MANDATORY_COLLEGE_ID_TEXT.toLowerCase() && html.toLowerCase().includes(MANDATORY_COLLEGE_ID_TEXT.toLowerCase())) {
+        return html;
+    }
+
+    const noticeBlock = `
+<div style="margin: 24px 0; padding: 14px 16px; border: 2px solid #dc2626; border-radius: 10px; background-color: rgba(220, 38, 38, 0.12);">
+  <p style="margin: 0; color: #ffffff; font-size: 14px; line-height: 1.6; font-weight: 700;">
+    ⚠️ ${MANDATORY_COLLEGE_ID_TEXT}
+  </p>
+</div>`;
+
+    if (html.includes("</body>")) {
+        return html.replace("</body>", `${noticeBlock}\n</body>`);
+    }
+    return `${html}\n${noticeBlock}`;
+}
 
 export async function sendZeptoMail(options: ZeptoMailOptions) {
     const apiKey = process.env.ZEPTO_MAIL_TOKEN;
@@ -48,7 +67,7 @@ export async function sendZeptoMail(options: ZeptoMailOptions) {
             }
         })),
         subject: options.subject,
-        htmlbody: options.htmlBody,
+        htmlbody: addMandatoryCollegeIdNotice(options.htmlBody),
         attachments: options.attachments,
         inline_images: options.inlineImages,
     };
@@ -123,7 +142,7 @@ export async function sendEventConfirmationEmail(
     teamDetails?: { groupName: string; members: any[] },
     eventDetails?: { description?: string; termsAndConditions?: string; virtualTermsAndConditions?: string | null; whatsappLink?: string | null },
     isInternational?: boolean,
-    /** For virtual/international competition participants: no PDF, virtual-only content, Zoom sent 2 days before */
+    /** For virtual/international competition participants: no PDF, virtual-only content, Meet link shared before event */
     isVirtualParticipant?: boolean,
     includeScheduleAttachment?: boolean
 ) {
@@ -148,7 +167,7 @@ export async function sendEventConfirmationEmail(
 
     // Theme colors: #dc2626 (Red), #000000 (Black), #18181b (Zinc-900)
 
-    // Virtual participants (competitions): no PDF, virtual-only content, Zoom sent 2 days before
+    // Virtual participants (competitions): no PDF, virtual-only content, Meet link shared before event
     const useVirtualTemplate = !!isVirtualParticipant;
 
     let headingTitle = "You are IN!";
@@ -163,11 +182,11 @@ export async function sendEventConfirmationEmail(
         subjectLine = `Your Ticket for Visitor Pass - Surabhi 2026`;
     } else if (useVirtualTemplate) {
         headingTitle = "Virtual Participation – You're Registered!";
-        welcomeMessage = `We are delighted to confirm your <strong class="highlight">virtual participation</strong> for <strong class="highlight">${event.name}</strong>. The Zoom meeting link will be sent to your email before 2 days of the event date. Thank you for being part of Surabhi International Cultural Fest 2026.`;
+        welcomeMessage = `We are delighted to confirm your <strong class="highlight">virtual participation</strong> for <strong class="highlight">${event.name}</strong>. The Google Meet link will be shared with you via <strong class="highlight">email and WhatsApp</strong> before the event. Thank you for being part of Surabhi International Cultural Fest 2026.`;
         subjectLine = `Registration Confirmed (Virtual): ${event.name} - Surabhi 2026`;
     } else if (isInternational) {
         headingTitle = "Virtual Participation – You're Registered!";
-        welcomeMessage = `We are delighted to confirm your <strong class="highlight">virtual participation</strong> for <strong class="highlight">${event.name}</strong>. Thank you for being part of Surabhi International Cultural Fest 2026.`;
+        welcomeMessage = `We are delighted to confirm your <strong class="highlight">virtual participation</strong> for <strong class="highlight">${event.name}</strong>. The Google Meet link will be shared with you via <strong class="highlight">email and WhatsApp</strong> before the event. Thank you for being part of Surabhi International Cultural Fest 2026.`;
         subjectLine = `Registration Confirmed (Virtual): ${event.name} - Surabhi 2026`;
     }
 
@@ -281,7 +300,7 @@ export async function sendEventConfirmationEmail(
                     <div class="event-name">${event.name}</div>
                     <div class="event-meta">📅 ${dateStr}</div>
                     ${useVirtualTemplate
-                        ? `<div class="event-meta">📍 Virtual</div><div class="event-meta">🔗 Zoom meeting link will be sent to your email before 2 days of the event date.</div>`
+                        ? `<div class="event-meta">📍 Virtual</div><div class="event-meta">🔗 Google Meet link will be shared via email and WhatsApp before the event.</div>`
                         : isInternational
                             ? `<div class="event-meta">📍 Virtual</div><div class="event-meta">⏰ Time will be announced later to your convenient timezone.</div>`
                             : `<div class="event-meta">⏰ ${event.startTime || ''} ${event.endTime ? `- ${event.endTime}` : ''}</div><div class="event-meta">📍 ${event.venue}</div>`}
@@ -307,7 +326,7 @@ export async function sendEventConfirmationEmail(
                 <div style="background-color: #18181b; padding: 20px; border-left: 4px solid #dc2626; margin: 25px 0; border-radius: 0 8px 8px 0;">
                     <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 12px;">🌐 Virtual Participation</p>
                     <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; margin: 0;">
-                        This competition will be conducted <strong style="color: #ffffff;">virtually</strong>. ${useVirtualTemplate ? 'The Zoom meeting link will be sent to your email before 2 days of the event date. ' : ''}Please refer to the <strong style="color: #ffffff;">Virtual Participation Rules and Regulations</strong> for this competition (see below). ${!useVirtualTemplate ? 'Your ticket (PDF) is attached. ' : ''}We look forward to your participation!
+                        This competition will be conducted <strong style="color: #ffffff;">virtually</strong>. ${useVirtualTemplate ? 'The Google Meet link will be shared via email and WhatsApp before the event. ' : ''}Please refer to the <strong style="color: #ffffff;">Virtual Participation Rules and Regulations</strong> for this competition (see below). ${!useVirtualTemplate ? 'Your ticket (PDF) is attached. ' : ''}We look forward to your participation!
                     </p>
                 </div>
                 <div style="background-color: #18181b; padding: 18px; border-radius: 8px; margin: 20px 0; border: 1px solid #333;">
@@ -333,10 +352,10 @@ export async function sendEventConfirmationEmail(
 
                 ${useVirtualTemplate ? `
                 <p style="color: #ffffff; font-size: 18px; text-align: center; margin-bottom: 15px;">
-                    <strong>🔗 Zoom Link Coming Soon</strong>
+                    <strong>🔗 Google Meet Link Coming Soon</strong>
                 </p>
                 <p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-bottom: 0;">
-                    No physical ticket is required. The Zoom meeting link will be sent to your email before 2 days of the event date. Please follow the Virtual Participation Rules and Regulations for this competition.
+                    No physical ticket is required. The Google Meet link will be shared via email and WhatsApp before the event. Please follow the Virtual Participation Rules and Regulations for this competition.
                 </p>
                 <p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-top: 10px; margin-bottom: 0;">For queries: <a href="mailto:surabhi@kluniversity.in" style="color: #dc2626;">surabhi@kluniversity.in</a></p>
                 ` : `
@@ -631,7 +650,7 @@ export async function sendWelcomeEmail(
       <p style="color: #d4d4d8; font-size: 16px; line-height: 1.7; margin-bottom: 20px;">We are thrilled to welcome you to <strong style="color: #dc2626;">Surabhi 2026</strong> — KL University's International Cultural Fest! This March 2nd–7th, the campus comes alive with music, dance, drama, art, literature, and more.</p>
       <div style="background-color: #18181b; border: 1px solid #333; border-radius: 8px; padding: 25px; margin: 25px 0;">
         <h3 style="color: #dc2626; font-size: 16px; margin-top: 0;">About Surabhi</h3>
-        <p style="color: #d4d4d8; margin: 0; line-height: 1.7;">Surabhi is the flagship cultural festival of KL University, bringing together thousands of students for artistic expression and cultural exchange. Across Chitrakala, Sahitya, Cine Carnival, Natyaka, Raaga, Nrithya, Vastranaut, National Parliamentary Simulation, and Kurukshetra — expect performances, competitions, and memories you'll cherish.</p>
+                        <p style="color: #d4d4d8; margin: 0; line-height: 1.7;">Surabhi is the flagship cultural festival of KL University, bringing together thousands of students for artistic expression and cultural exchange. Across Chitrakala, Sahitya, Cine Carnival, Natyaka, Raaga, Nrithya, Vastranaut, National Parliamentary Simulation, and Kurukshetra - expect performances, competitions, and memories you'll cherish.</p>
       </div>
       <div style="background-color: #18181b; border: 1px solid #333; border-radius: 8px; padding: 25px; margin: 25px 0;">
         <h3 style="color: #dc2626; font-size: 16px; margin-top: 0;">Your Competition(s) – ${dayLabel}</h3>
@@ -645,7 +664,7 @@ export async function sendWelcomeEmail(
       </div>
       <div style="background-color: #f59e0b; border: 2px solid #d97706; padding: 20px; margin: 25px 0; border-radius: 8px; text-align: center;">
         <p style="color: #000000; font-size: 16px; font-weight: 700; margin: 0 0 8px 0;">⚠️ Important – Carry With You</p>
-        <p style="color: #1c1917; font-size: 15px; font-weight: 600; margin: 0;">Please carry your <strong>physical college ID card</strong> and your <strong>Entry Pass PDF</strong> (attached) for verification at the venue.</p>
+        <p style="color: #1c1917; font-size: 15px; font-weight: 700; margin: 0;">Attendees must carry their <strong>Physical College ID Card</strong>. It is mandatory for identity verification. Please also carry your <strong>Entry Pass PDF</strong> (attached) for verification at the venue.</p>
       </div>
       <div style="background-color: rgba(220,38,38,0.15); border-left: 4px solid #dc2626; padding: 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
         <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 10px;">🎟️ Your Entry Pass is Attached</p>
