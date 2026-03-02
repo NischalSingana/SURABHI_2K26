@@ -4,6 +4,19 @@ import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
+function normalizeText(value?: string | null): string {
+    return (value || "").trim().toLowerCase();
+}
+
+function getMaxScoreForEvent(categoryName?: string | null, eventName?: string | null): number {
+    const category = normalizeText(categoryName);
+    const event = normalizeText(eventName);
+    if (!category.includes("natyaka")) return 10;
+    if (event.includes("mono") && event.includes("action")) return 50;
+    if (event.includes("skit")) return 60;
+    return 10;
+}
+
 export async function POST(req: Request) {
     try {
         const session = await auth.api.getSession({
@@ -21,14 +34,27 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
-        // Ensure score is within valid range (1-10), can be decimal
+        const event = await prisma.event.findUnique({
+            where: { id: eventId },
+            select: {
+                name: true,
+                Category: { select: { name: true } },
+            },
+        });
+        if (!event) {
+            return NextResponse.json({ error: "Event not found" }, { status: 404 });
+        }
+
+        const maxScore = getMaxScoreForEvent(event.Category?.name, event.name);
+
+        // Ensure score is within valid range, can be decimal
         const scoreNum = typeof score === 'number' ? score : parseFloat(score);
-        if (isNaN(scoreNum) || scoreNum < 1 || scoreNum > 10) {
-            return NextResponse.json({ error: "Score must be a number between 1 and 10 (decimals allowed)" }, { status: 400 });
+        if (isNaN(scoreNum) || scoreNum < 0 || scoreNum > maxScore) {
+            return NextResponse.json({ error: `Score must be a number between 0 and ${maxScore} (decimals allowed)` }, { status: 400 });
         }
         
-        // Round to 2 decimal places for storage
-        const roundedScore = Math.round(scoreNum * 100) / 100;
+        // Round to 1 decimal place for storage
+        const roundedScore = Math.round(scoreNum * 10) / 10;
 
         const evaluation = await prisma.evaluation.upsert({
             where: {

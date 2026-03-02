@@ -11,6 +11,50 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
 
+type RubricCriterion = {
+    key: string;
+    label: string;
+    max: number;
+};
+
+function normalizeText(value?: string | null): string {
+    return (value || "").trim().toLowerCase();
+}
+
+function getNatyakaRubric(categoryName?: string, eventName?: string): RubricCriterion[] | null {
+    const category = normalizeText(categoryName);
+    const event = normalizeText(eventName);
+    if (!category.includes("natyaka")) return null;
+
+    if (event.includes("mono") && event.includes("action")) {
+        return [
+            { key: "dialogueDelivery", label: "Dialogue Delivery", max: 10 },
+            { key: "expressions", label: "Expressions", max: 10 },
+            { key: "bodyLanguage", label: "Body Language", max: 10 },
+            { key: "confidenceAndPresence", label: "Confidence and Stage Presence", max: 10 },
+            { key: "overallPerformance", label: "Overall Performance", max: 10 },
+        ];
+    }
+
+    if (event.includes("skit")) {
+        return [
+            { key: "dialogueDelivery", label: "Dialogue Delivery", max: 10 },
+            { key: "expressionAndActing", label: "Expression and Acting", max: 10 },
+            { key: "bodyLanguage", label: "Body Language", max: 10 },
+            { key: "teamworkAndPresence", label: "Team Work and Stage Presence", max: 15 },
+            { key: "overallPerformance", label: "Overall Performance", max: 15 },
+        ];
+    }
+
+    return null;
+}
+
+function getEventMaxScore(categoryName?: string, eventName?: string): number {
+    const rubric = getNatyakaRubric(categoryName, eventName);
+    if (!rubric) return 10;
+    return rubric.reduce((sum, item) => sum + item.max, 0);
+}
+
 interface Participant {
     id: string;
     name: string | null;
@@ -53,6 +97,7 @@ export default function JudgeDashboard() {
     const [submitting, setSubmitting] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
+    const [criteriaScores, setCriteriaScores] = useState<Record<string, number | "">>({});
 
     useEffect(() => {
         if (!isPending && !session) {
@@ -85,16 +130,29 @@ export default function JudgeDashboard() {
 
     const handleEvaluationSubmit = async () => {
         if (!selectedEvent || !evaluatingParticipant) return;
-        
-        // Validate score: must be number (can be decimal) between 1 and 10
-        const scoreNum = Number(score);
-        if (score === "" || isNaN(scoreNum) || scoreNum < 1 || scoreNum > 10) {
-            toast.error("Please enter a valid score between 1 and 10 (decimals allowed)");
-            return;
+        const rubric = getNatyakaRubric(categoryName, selectedEvent.name);
+        const maxScore = getEventMaxScore(categoryName, selectedEvent.name);
+        let roundedScore = 0;
+
+        if (rubric) {
+            for (const criterion of rubric) {
+                const rawValue = criteriaScores[criterion.key];
+                const value = Number(rawValue);
+                if (rawValue === "" || Number.isNaN(value) || value < 0 || value > criterion.max) {
+                    toast.error(`Enter valid marks for ${criterion.label} (0-${criterion.max})`);
+                    return;
+                }
+            }
+            const total = rubric.reduce((sum, criterion) => sum + Number(criteriaScores[criterion.key] || 0), 0);
+            roundedScore = Math.round(total * 10) / 10;
+        } else {
+            const scoreNum = Number(score);
+            if (score === "" || isNaN(scoreNum) || scoreNum < 0 || scoreNum > maxScore) {
+                toast.error(`Please enter a valid score between 0 and ${maxScore} (decimals allowed)`);
+                return;
+            }
+            roundedScore = Math.round(scoreNum * 10) / 10;
         }
-        
-        // Round to 2 decimal places
-        const roundedScore = Math.round(scoreNum * 100) / 100;
 
         setSubmitting(true);
         try {
@@ -114,6 +172,7 @@ export default function JudgeDashboard() {
                 setEvaluatingParticipant(null);
                 setScore("");
                 setRemarks("");
+                setCriteriaScores({});
                 fetchJudgeData(); // Refresh data to update local state
             } else {
                 const err = await res.json();
@@ -124,6 +183,23 @@ export default function JudgeDashboard() {
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const prepareEvaluationForm = (participant: Participant, evaluation?: Evaluation) => {
+        setEvaluatingParticipant(participant);
+        setRemarks(evaluation?.remarks || "");
+        const rubric = selectedEvent ? getNatyakaRubric(categoryName, selectedEvent.name) : null;
+        if (rubric) {
+            const initialScores: Record<string, number | ""> = {};
+            rubric.forEach((criterion) => {
+                initialScores[criterion.key] = "";
+            });
+            setCriteriaScores(initialScores);
+            setScore("");
+            return;
+        }
+        setCriteriaScores({});
+        setScore(evaluation ? evaluation.score : "");
     };
 
     // Helper to find existing evaluation for a participant
@@ -228,7 +304,7 @@ export default function JudgeDashboard() {
                 });
             }
 
-            const averageScore = evaluatedMembersCount > 0 ? parseFloat((totalScore / evaluatedMembersCount).toFixed(2)) : undefined;
+            const averageScore = evaluatedMembersCount > 0 ? parseFloat((totalScore / evaluatedMembersCount).toFixed(1)) : undefined;
 
             list.push({
                 id: `group-${reg.user.id}-${index}`,
@@ -306,8 +382,10 @@ export default function JudgeDashboard() {
     if (loading || isPending) return <Loader />;
 
     const getScoreColor = (score: number) => {
-        if (score >= 7) return "bg-green-500/20 text-green-400 border-green-500/30";
-        if (score >= 4) return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
+        const eventMax = getEventMaxScore(categoryName, selectedEvent?.name);
+        const ratio = eventMax > 0 ? score / eventMax : 0;
+        if (ratio >= 0.7) return "bg-green-500/20 text-green-400 border-green-500/30";
+        if (ratio >= 0.4) return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
         return "bg-red-500/20 text-red-400 border-red-500/30";
     };
 
@@ -361,6 +439,25 @@ export default function JudgeDashboard() {
                         <div className="bg-[#111] border border-white/10 rounded-2xl p-4 sm:p-5 md:p-6 mb-6 sm:mb-8">
                             <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">{selectedEvent.name}</h2>
                             <p className="text-gray-400 text-sm sm:text-base mb-4 sm:mb-6">{selectedEvent.description}</p>
+                            {(() => {
+                                const rubric = getNatyakaRubric(categoryName, selectedEvent.name);
+                                if (!rubric) return null;
+                                return (
+                                    <div className="mb-5 rounded-xl border border-red-500/30 bg-red-500/5 p-4">
+                                        <p className="text-sm font-semibold text-red-300 mb-2">Evaluation Pattern</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-zinc-300">
+                                            {rubric.map((criterion, idx) => (
+                                                <div key={criterion.key}>
+                                                    {idx + 1}. {criterion.label} - <span className="text-red-300">{criterion.max}M</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <p className="text-xs text-zinc-400 mt-3">
+                                            Total marks: {rubric.reduce((sum, item) => sum + item.max, 0)}
+                                        </p>
+                                    </div>
+                                );
+                            })()}
 
                             {/* Statistics Cards */}
                             {(() => {
@@ -519,7 +616,7 @@ export default function JudgeDashboard() {
                                             <div className="shrink-0">
                                                 {participant.isEvaluated ? (
                                                     <span className={`text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 font-medium border ${getScoreColor(participant.score || 0)}`}>
-                                                        <FiCheckCircle size={14} /> {participant.type === 'GROUP' ? 'Avg: ' : ''}{participant.score}/10
+                                                        <FiCheckCircle size={14} /> {participant.type === 'GROUP' ? 'Avg: ' : ''}{participant.score}/{getEventMaxScore(categoryName, selectedEvent.name)}
                                                     </span>
                                                 ) : (
                                                     <span className="bg-yellow-500/20 text-yellow-400 text-xs px-3 py-1.5 rounded-full font-medium border border-yellow-500/30">
@@ -578,23 +675,21 @@ export default function JudgeDashboard() {
                                                                                    We need the LEADER'S individual score here.
                                                                                    We can fetch it using getEvaluation(selectedEvent.id, participant.actualUserId)
                                                                                */}
-                                                                                {getEvaluation(selectedEvent.id, participant.actualUserId || "")?.score}/10
+                                                                                {getEvaluation(selectedEvent.id, participant.actualUserId || "")?.score}/{getEventMaxScore(categoryName, selectedEvent.name)}
                                                                             </span>
                                                                         )}
                                                                     </div>
                                                                     <button
                                                                         onClick={() => {
-                                                                            setEvaluatingParticipant({
+                                                                            const participantData = {
                                                                                 id: participant.actualUserId || participant.id,
                                                                                 name: participant.subtitle?.replace('Leader: ', '') || participant.displayName,
                                                                                 email: "",
                                                                                 collageId: null,
                                                                                 image: null
-                                                                            });
-                                                                            // Fetch Leader's specific score, not team average
+                                                                            };
                                                                             const leaderEval = getEvaluation(selectedEvent.id, participant.actualUserId || "");
-                                                                            setScore(leaderEval ? leaderEval.score : "");
-                                                                            setRemarks(leaderEval?.remarks || "");
+                                                                            prepareEvaluationForm(participantData, leaderEval || undefined);
                                                                         }}
                                                                         className="w-full py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg text-xs font-semibold transition-all"
                                                                     >
@@ -615,22 +710,20 @@ export default function JudgeDashboard() {
                                                                                 {m.rollNo && <span className="text-gray-500 text-xs">{m.rollNo}</span>}
                                                                                 {isMemberEvaluated && (
                                                                                     <span className={`text-xs px-2 py-0.5 rounded border ${getScoreColor(memberEvaluation?.score || 0)}`}>
-                                                                                        {memberEvaluation?.score}/10
+                                                                                        {memberEvaluation?.score}/{getEventMaxScore(categoryName, selectedEvent.name)}
                                                                                     </span>
                                                                                 )}
                                                                             </div>
                                                                             <button
                                                                                 onClick={() => {
-                                                                                    setEvaluatingParticipant({
+                                                                                    const participantData = {
                                                                                         id: m.userId || `member-${idx}`,
                                                                                         name: m.name || m,
                                                                                         email: m.email || "",
                                                                                         collageId: m.rollNo || null,
                                                                                         image: null
-                                                                                    });
-                                                                                    const scoreVal = memberEvaluation?.score;
-                                                                                    setScore(scoreVal !== undefined && scoreVal !== null ? scoreVal : "");
-                                                                                    setRemarks(memberEvaluation?.remarks || "");
+                                                                                    };
+                                                                                    prepareEvaluationForm(participantData, memberEvaluation || undefined);
                                                                                 }}
                                                                                 className={`w-full py-2 rounded-lg text-xs font-semibold transition-all ${isMemberEvaluated
                                                                                     ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
@@ -655,16 +748,15 @@ export default function JudgeDashboard() {
                                         <div className="p-4 sm:p-5 border-t border-white/5">
                                             <button
                                                 onClick={() => {
-                                                    setEvaluatingParticipant({
+                                                    const participantData = {
                                                         id: participant.actualUserId || participant.id,
                                                         name: participant.displayName,
                                                         email: "", // Not needed for display
                                                         collageId: null,
                                                         image: null
-                                                    });
-                                                    const scoreVal = participant.score;
-                                                    setScore(scoreVal !== undefined && scoreVal !== null ? scoreVal : "");
-                                                    setRemarks(participant.remarks || "");
+                                                    };
+                                                    const currentEvaluation = getEvaluation(selectedEvent.id, participant.actualUserId || participant.id);
+                                                    prepareEvaluationForm(participantData, currentEvaluation || undefined);
                                                 }}
                                                 className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg text-sm sm:text-base font-semibold transition-all shadow-lg hover:shadow-red-500/20"
                                             >
@@ -729,63 +821,125 @@ export default function JudgeDashboard() {
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4"
                         onClick={() => setEvaluatingParticipant(null)}
+                        data-lenis-prevent
                     >
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-[#1a1a1a] border border-white/10 w-full max-w-lg rounded-2xl p-4 sm:p-5 md:p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+                            className="bg-[#1a1a1a] border border-white/10 w-full max-w-lg rounded-2xl p-4 sm:p-5 md:p-6 shadow-2xl max-h-[90vh] overflow-y-auto overscroll-contain touch-pan-y"
                             onClick={(e) => e.stopPropagation()}
+                            data-lenis-prevent
                         >
+                            <div className="flex justify-end mb-2">
+                                <button
+                                    onClick={() => setEvaluatingParticipant(null)}
+                                    className="w-8 h-8 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white flex items-center justify-center text-lg leading-none transition-colors"
+                                    aria-label="Close evaluation popup"
+                                >
+                                    ×
+                                </button>
+                            </div>
                             <h3 className="text-xl sm:text-2xl font-bold mb-1">Evaluate {evaluatingParticipant.name}</h3>
                             <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6">{selectedEvent?.name}</p>
 
                             <div className="space-y-4 sm:space-y-6">
-                                <div>
-                                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-                                        Score <span className="text-red-400">*</span> (1-10, decimals allowed)
-                                    </label>
-                                    <div className="relative">
-                                        <FiStar className="absolute left-4 top-1/2 -translate-y-1/2 text-yellow-500" />
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            max="10"
-                                            step="0.01"
-                                            value={score}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                if (val === "") {
-                                                    setScore("");
-                                                    return;
-                                                }
-                                                const num = parseFloat(val);
-                                                if (!isNaN(num) && num >= 1 && num <= 10) {
-                                                    // Allow up to 2 decimal places
-                                                    const rounded = Math.round(num * 100) / 100;
-                                                    setScore(rounded);
-                                                } else if (val === "" || val === "-") {
-                                                    setScore("");
-                                                }
-                                            }}
-                                            onBlur={(e) => {
-                                                const val = e.target.value;
-                                                const num = parseFloat(val);
-                                                if (val !== "" && (isNaN(num) || num < 1 || num > 10)) {
-                                                    toast.error("Score must be between 1 and 10");
-                                                    setScore("");
-                                                } else if (val !== "" && !isNaN(num)) {
-                                                    // Round to 2 decimal places on blur
-                                                    const rounded = Math.round(num * 100) / 100;
-                                                    setScore(rounded);
-                                                }
-                                            }}
-                                            className="w-full bg-[#111] border border-white/10 rounded-xl px-3 pl-12 sm:px-4 sm:pl-12 py-2.5 sm:py-3 text-white text-base sm:text-lg focus:outline-none focus:border-red-500 transition-colors"
-                                            placeholder="Enter 1.00-10.00"
-                                        />
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-1.5">Enter a score between 1.00 and 10.00 (up to 2 decimal places)</p>
-                                </div>
+                                {(() => {
+                                    const rubric = getNatyakaRubric(categoryName, selectedEvent?.name);
+                                    if (!rubric) {
+                                        const maxScore = getEventMaxScore(categoryName, selectedEvent?.name);
+                                        return (
+                                            <div>
+                                                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                                                    Score <span className="text-red-400">*</span> (0-{maxScore}, decimals allowed)
+                                                </label>
+                                                <div className="relative">
+                                                    <FiStar className="absolute left-4 top-1/2 -translate-y-1/2 text-yellow-500" />
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        max={maxScore}
+                                                        step="1"
+                                                        value={score}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            if (val === "") {
+                                                                setScore("");
+                                                                return;
+                                                            }
+                                                            const num = parseFloat(val);
+                                                            if (!isNaN(num) && num >= 0 && num <= maxScore) {
+                                                                const rounded = Math.round(num * 10) / 10;
+                                                                setScore(rounded);
+                                                            } else if (val === "" || val === "-") {
+                                                                setScore("");
+                                                            }
+                                                        }}
+                                                        onBlur={(e) => {
+                                                            const val = e.target.value;
+                                                            const num = parseFloat(val);
+                                                            if (val !== "" && (isNaN(num) || num < 0 || num > maxScore)) {
+                                                                toast.error(`Score must be between 0 and ${maxScore}`);
+                                                                setScore("");
+                                                            } else if (val !== "" && !isNaN(num)) {
+                                                                const rounded = Math.round(num * 10) / 10;
+                                                                setScore(rounded);
+                                                            }
+                                                        }}
+                                                        className="w-full bg-[#111] border border-white/10 rounded-xl px-3 pl-12 sm:px-4 sm:pl-12 py-2.5 sm:py-3 text-white text-base sm:text-lg focus:outline-none focus:border-red-500 transition-colors"
+                                                        placeholder={`Enter 0.0-${maxScore}.0`}
+                                                    />
+                                                </div>
+                                                <p className="text-xs text-gray-500 mt-1.5">
+                                                    Enter a score between 0.0 and {maxScore}.0 (up to 1 decimal place)
+                                                </p>
+                                            </div>
+                                        );
+                                    }
+
+                                    const total = rubric.reduce((sum, criterion) => sum + Number(criteriaScores[criterion.key] || 0), 0);
+                                    return (
+                                        <div className="space-y-3">
+                                            <label className="block text-xs sm:text-sm font-medium text-gray-300">
+                                                Criteria-wise Marks <span className="text-red-400">*</span>
+                                            </label>
+                                            {rubric.map((criterion) => (
+                                                <div key={criterion.key}>
+                                                    <div className="flex items-center justify-between mb-1.5">
+                                                        <span className="text-xs sm:text-sm text-zinc-300">{criterion.label}</span>
+                                                        <span className="text-xs text-zinc-400">Max {criterion.max}M</span>
+                                                    </div>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        max={criterion.max}
+                                                        step="1"
+                                                        value={criteriaScores[criterion.key] ?? ""}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            if (val === "") {
+                                                                setCriteriaScores((prev) => ({ ...prev, [criterion.key]: "" }));
+                                                                return;
+                                                            }
+                                                            const num = parseFloat(val);
+                                                            if (!isNaN(num) && num >= 0 && num <= criterion.max) {
+                                                                setCriteriaScores((prev) => ({ ...prev, [criterion.key]: Math.round(num * 10) / 10 }));
+                                                            }
+                                                        }}
+                                                        className="w-full bg-[#111] border border-white/10 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base focus:outline-none focus:border-red-500 transition-colors"
+                                                        placeholder={`0 - ${criterion.max}`}
+                                                    />
+                                                </div>
+                                            ))}
+                                            <div className="mt-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm flex items-center justify-between">
+                                                <span className="text-zinc-300">Total Score</span>
+                                                <span className="font-bold text-red-300">
+                                                    {Math.round(total * 10) / 10}/{rubric.reduce((sum, item) => sum + item.max, 0)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
 
                                 <div>
                                     <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Remarks (Optional)</label>
