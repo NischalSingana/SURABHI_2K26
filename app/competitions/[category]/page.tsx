@@ -287,7 +287,8 @@ function CategoryPageContent() {
     setExpandedEventId(expandedEventId === eventId ? null : eventId);
   };
 
-  const regClosed = isOnlineRegistrationClosed();
+  const isEsportsCategory = categorySlug.toLowerCase().includes("kurukshetra");
+  const regClosed = isOnlineRegistrationClosed() && !isEsportsCategory;
 
   const handleRegisterClick = (event: Event, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -414,7 +415,6 @@ function CategoryPageContent() {
     event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.venue.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
   return (
     <div className="min-h-screen bg-black py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
@@ -696,6 +696,14 @@ function CategoryPageContent() {
                                   >
                                     Event Full
                                   </button>
+                                ) : !isEsportsCategory ? (
+                                  <Link
+                                    href={`/competitions/${categorySlug}/${event.slug || event.id}`}
+                                    className="inline-flex items-center gap-2 bg-red-600/80 hover:bg-red-600 text-white px-6 py-2 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-600/30"
+                                  >
+                                    <FiInfo size={16} />
+                                    View Full Details
+                                  </Link>
                                 ) : regClosed ? (
                                   <Link
                                     href={`/competitions/${categorySlug}/${event.slug || event.id}`}

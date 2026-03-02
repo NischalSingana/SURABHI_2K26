@@ -34,6 +34,11 @@ function isKurukshetraEvent(categoryName?: string | null): boolean {
   return (categoryName ?? "").toLowerCase().includes("kurukshetra");
 }
 
+function isEsportsCategory(categoryName?: string | null): boolean {
+  const normalized = (categoryName ?? "").toLowerCase();
+  return normalized.includes("kurukshetra") || normalized.includes("esport");
+}
+
 function isNationalMockParliamentEventName(eventName?: string | null): boolean {
   return (eventName ?? "").toLowerCase().includes("national mock parliament");
 }
@@ -970,14 +975,8 @@ export async function registerGroupEvent(
       return { success: false, error: "Please login to register for events" };
     }
 
-    if (isOnlineRegistrationClosed()) {
-      return { success: false, error: ONLINE_REG_CLOSED_MESSAGE };
-    }
-
-    const isInternational = !!(session.user as { isInternational?: boolean }).isInternational;
-
-    if (!isInternational && !paymentDetails) {
-      return { success: false, error: "Payment details are required for non-international students." };
+    if (!paymentDetails) {
+      return { success: false, error: "Payment details are required." };
     }
 
     const userWithState = await prisma.user.findUnique({
@@ -988,35 +987,28 @@ export async function registerGroupEvent(
       where: { id: eventId },
       select: { name: true, Category: { select: { name: true } } },
     });
+    if (!isEsportsCategory(eventMeta?.Category?.name)) {
+      return { success: false, error: "Registrations are currently open only for eSports competitions." };
+    }
     const kurukshetraEvent = isKurukshetraEvent(eventMeta?.Category?.name);
+    if (isOnlineRegistrationClosed() && !kurukshetraEvent) {
+      return { success: false, error: ONLINE_REG_CLOSED_MESSAGE };
+    }
     const isKLStudent = isKLStudentProfile({
       email: userWithState?.email ?? session.user.email,
       collage: userWithState?.collage ?? null,
     });
 
-    if (!isInternational && kurukshetraEvent) {
+    if (kurukshetraEvent) {
       if (isKLStudent && isVirtual) {
-        return { success: false, error: "Kurukshetra: KL students must register in physical mode only." };
+        return { success: false, error: "Kurukshetra: KL students must register in physical mode only (₹350 per member)." };
       }
       if (!isKLStudent && !isVirtual) {
-        return { success: false, error: "Kurukshetra: Other college students must register in virtual mode only." };
+        return { success: false, error: "Kurukshetra: Other college/international participants must register in virtual mode only (₹150 per member)." };
       }
     }
 
-    // Generic virtual-eligibility validation for non-Kurukshetra events.
-    if (isVirtual && !isInternational && !(kurukshetraEvent && !isKLStudent)) {
-      const eligibility = checkVirtualEligibility({
-        email: userWithState?.email,
-        state: userWithState?.state ?? undefined,
-        isInternational: userWithState?.isInternational ?? false,
-        collage: userWithState?.collage ?? undefined,
-      });
-      if (!eligibility.isEligible) {
-        return { success: false, error: eligibility.reason ?? "You are not eligible for virtual participation." };
-      }
-    }
-
-    const paymentStatus = isInternational ? "APPROVED" : "PENDING";
+    const paymentStatus = "PENDING";
 
     const registrationResult = await withTransactionRetry(() => prisma.$transaction(
       async (tx) => {
@@ -1091,33 +1083,6 @@ export async function registerGroupEvent(
 
     revalidatePath("/events");
     revalidatePath("/profile");
-
-    // International: send virtual participation email (no PDF) - Zoom link sent 2 days before
-    if (registrationResult.success && registrationResult.paymentStatus === "APPROVED" && isInternational && registrationResult.event) {
-      (async () => {
-        try {
-          const userFull = await prisma.user.findUnique({
-            where: { id: session.user!.id },
-            select: { id: true, name: true, email: true },
-          });
-          if (!userFull) return;
-          const ev = registrationResult.event!;
-          const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
-          await sendEventConfirmationEmail(
-            { name: userFull.name || "Team Lead", email: userFull.email },
-            { name: ev.name, date: ev.date, venue: "Virtual", startTime: ev.startTime ?? undefined, endTime: ev.endTime ?? undefined },
-            null,
-            "GROUP",
-            { groupName: registrationResult.groupName || "Team", members: registrationResult.members || [] },
-            { termsAndConditions: ev.termsandconditions, virtualTermsAndConditions: ev.virtualTermsAndConditions, whatsappLink: ev.whatsappLink },
-            true,
-            true
-          );
-        } catch (e) {
-          console.error("Failed to send international group registration email", e);
-        }
-      })();
-    }
 
     // Special message for pending users
     if (registrationResult.success && registrationResult.paymentStatus === "PENDING") {
@@ -1210,14 +1175,8 @@ export async function registerForEvent(
       return { success: false, error: "Please login to register for events" };
     }
 
-    if (isOnlineRegistrationClosed()) {
-      return { success: false, error: ONLINE_REG_CLOSED_MESSAGE };
-    }
-
-    const isInternational = !!(session.user as { isInternational?: boolean }).isInternational;
-
-    if (!isInternational && !paymentDetails) {
-      return { success: false, error: "Payment details are required for non-international students." };
+    if (!paymentDetails) {
+      return { success: false, error: "Payment details are required." };
     }
 
     const userWithState = await prisma.user.findUnique({
@@ -1228,35 +1187,28 @@ export async function registerForEvent(
       where: { id: eventId },
       select: { name: true, Category: { select: { name: true } } },
     });
+    if (!isEsportsCategory(eventMeta?.Category?.name)) {
+      return { success: false, error: "Registrations are currently open only for eSports competitions." };
+    }
     const kurukshetraEvent = isKurukshetraEvent(eventMeta?.Category?.name);
+    if (isOnlineRegistrationClosed() && !kurukshetraEvent) {
+      return { success: false, error: ONLINE_REG_CLOSED_MESSAGE };
+    }
     const isKLStudent = isKLStudentProfile({
       email: userWithState?.email ?? session.user.email,
       collage: userWithState?.collage ?? null,
     });
 
-    if (!isInternational && kurukshetraEvent) {
+    if (kurukshetraEvent) {
       if (isKLStudent && isVirtual) {
-        return { success: false, error: "Kurukshetra: KL students must register in physical mode only." };
+        return { success: false, error: "Kurukshetra: KL students must register in physical mode only (₹350 per member)." };
       }
       if (!isKLStudent && !isVirtual) {
-        return { success: false, error: "Kurukshetra: Other college students must register in virtual mode only." };
+        return { success: false, error: "Kurukshetra: Other college/international participants must register in virtual mode only (₹150 per member)." };
       }
     }
 
-    const paymentStatus = isInternational ? "APPROVED" : "PENDING";
-
-    // Generic virtual-eligibility validation for non-Kurukshetra events.
-    if (isVirtual && !isInternational && !(kurukshetraEvent && !isKLStudent)) {
-      const eligibility = checkVirtualEligibility({
-        email: userWithState?.email,
-        state: userWithState?.state ?? undefined,
-        isInternational: userWithState?.isInternational ?? false,
-        collage: userWithState?.collage ?? undefined,
-      });
-      if (!eligibility.isEligible) {
-        return { success: false, error: eligibility.reason ?? "You are not eligible for virtual participation." };
-      }
-    }
+    const paymentStatus = "PENDING";
 
     // Use transaction with serializable isolation to prevent race conditions
     const registrationResult = await withTransactionRetry(() => prisma.$transaction(
@@ -1380,33 +1332,6 @@ export async function registerForEvent(
     // Special message for pending users
     if (registrationResult.success && registrationResult.paymentStatus === "PENDING") {
       return { success: true, message: "Registration submitted! Please wait for admin to review and approve your registration. You'll receive an email when confirmed." };
-    }
-
-    // International: send virtual participation email (no PDF) - Zoom link sent 2 days before
-    if (registrationResult.success && registrationResult.paymentStatus === "APPROVED" && isInternational && registrationResult.event) {
-      (async () => {
-        try {
-          const userFull = await prisma.user.findUnique({
-            where: { id: session.user!.id },
-            select: { id: true, name: true, email: true },
-          });
-          if (!userFull) return;
-          const ev = registrationResult.event!;
-          const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
-          await sendEventConfirmationEmail(
-            { name: userFull.name || "Participant", email: userFull.email },
-            { name: ev.name, date: ev.date, venue: "Virtual", startTime: ev.startTime ?? undefined, endTime: ev.endTime ?? undefined },
-            null,
-            "INDIVIDUAL",
-            undefined,
-            { termsAndConditions: ev.termsandconditions, virtualTermsAndConditions: ev.virtualTermsAndConditions, whatsappLink: ev.whatsappLink },
-            true,
-            true
-          );
-        } catch (e) {
-          console.error("Failed to send international registration email", e);
-        }
-      })();
     }
 
     // For approved registrations (KL students), just return success
