@@ -346,6 +346,7 @@ export async function sendEventConfirmationEmail(
                 <p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-bottom: 0;">
                     ${isInternational ? 'Please find your virtual participation ticket (PDF) attached. Follow the Virtual Participation Guidelines in the ticket.' : 'Please find your official entry pass (PDF) attached below. Keep it handy for security checks at the venue.'}
                 </p>
+                ${(!useVirtualTemplate && !isInternational) ? '<p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-top: 10px; margin-bottom: 0;"><strong style="color: #ffffff;">Physical College ID Card is mandatory</strong> for entry and verification at the venue.</p>' : ''}
                 ${scheduleAttachment ? '<p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-top: 10px; margin-bottom: 0;">Please find the schedule attached.</p>' : ''}
                 ${(!useVirtualTemplate && !isInternational && registrationType !== "VISITOR") ? '<p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-top: 12px; margin-bottom: 0;">We look forward to your enthusiastic participation.</p>' : ''}
                 ${isInternational ? '<p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-top: 10px; margin-bottom: 0;">For queries: <a href="mailto:surabhi@kluniversity.in" style="color: #dc2626;">surabhi@kluniversity.in</a></p>' : ''}

@@ -11,7 +11,6 @@ import {
   type UserFullDetails,
 } from "@/actions/spot-register.action";
 import { searchUsers } from "@/actions/events.action";
-import { uploadPaymentScreenshot } from "@/actions/upload.action";
 import { Category, Event } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { REGISTRATION_FEES } from "@/lib/constants";
@@ -45,7 +44,6 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
   const [isSavingDetails, setIsSavingDetails] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedEvent, setSelectedEvent] = useState("");
-  const [file, setFile] = useState<File | null>(null);
   const [utr, setUtr] = useState("");
   const [payee, setPayee] = useState("");
   const [groupName, setGroupName] = useState("");
@@ -67,7 +65,6 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
   const [manualCity, setManualCity] = useState("");
   const [manualPassword, setManualPassword] = useState("");
   const [showManualPassword, setShowManualPassword] = useState(false);
-  const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchedUser[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -75,7 +72,6 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
   const [accommodationRequired, setAccommodationRequired] = useState(false);
   const [showAccommodationReview, setShowAccommodationReview] = useState(false);
   const [reviewBookings, setReviewBookings] = useState<AccommodationBookingDraft[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const inputContainerRef = useRef<HTMLDivElement>(null);
   const [pending, startTransition] = useTransition();
 
@@ -379,7 +375,6 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
     setUserNotFound(false);
     setSelectedCategory("");
     setSelectedEvent("");
-    setFile(null);
     setUtr("");
     setPayee("");
     setTeamMembers([]);
@@ -475,8 +470,8 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
       }
     }
 
-    if (amount > 0 && (!file || !utr.trim() || !payee.trim())) {
-      toast.error("Upload screenshot, UTR ID, and payee name");
+    if (amount > 0 && (!utr.trim() || !payee.trim())) {
+      toast.error("Enter UTR ID and payee name");
       return;
     }
     if (amount > 0 && utr.replace(/\D/g, "").length !== 12) {
@@ -510,19 +505,7 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
         didCreateUser = !(createRes as { existed?: boolean }).existed;
       }
 
-      let paymentScreenshot = "";
-      if (amount > 0) {
-        const formData = new FormData();
-        formData.append("file", file!);
-        const uploadRes = await uploadPaymentScreenshot(formData);
-        if (!uploadRes.success || !uploadRes.url) {
-          toast.error(uploadRes.error || "Failed to upload screenshot");
-          return;
-        }
-        paymentScreenshot = uploadRes.url;
-      } else {
-        paymentScreenshot = "FREE_INTERNATIONAL";
-      }
+      const paymentScreenshot = amount > 0 ? "SPOT_PAYMENT_NO_SCREENSHOT" : "FREE_INTERNATIONAL";
 
       const leadPhone =
         (fetchedUser?.phone || editDetails.phone || manualPhone)?.trim() || "0000000000";
@@ -1044,30 +1027,6 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
                   className="w-40 h-40 object-contain"
                 />
               </div>
-              <div
-                onDragOver={(e) => { e.preventDefault(); setIsDraggingFile(true); }}
-                onDragLeave={(e) => { e.preventDefault(); setIsDraggingFile(false); }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setIsDraggingFile(false);
-                  setFile(e.dataTransfer.files?.[0] || null);
-                }}
-                onClick={() => fileInputRef.current?.click()}
-                className={`border rounded p-4 cursor-pointer transition-colors ${
-                  isDraggingFile ? "border-red-500 bg-red-500/10" : "border-zinc-700 bg-zinc-800/50"
-                }`}
-              >
-                <p className="text-zinc-300 text-sm">
-                  {file ? file.name : "Drag & drop payment screenshot or click to choose"}
-                </p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                />
-              </div>
               <div>
                 <label className="block text-sm text-zinc-400 mb-1">UTR ID</label>
                 <input
@@ -1098,7 +1057,7 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
       {displayUser && selectedEvent && (
         <button
           type="submit"
-          disabled={pending || (amount > 0 && (!file || !utr || !payee))}
+          disabled={pending || (amount > 0 && (!utr || !payee))}
           className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending ? "Registering..." : "Complete Spot Registration"}

@@ -215,7 +215,7 @@ export async function spotRegisterUser(
   targetEmail: string,
   eventId: string,
   paymentDetails: {
-    paymentScreenshot: string;
+    paymentScreenshot?: string;
     utrId: string;
     payeeName: string;
   },
@@ -260,7 +260,10 @@ export async function spotRegisterUser(
   const registrationResult = await registerUserByAdmin(
     targetEmail,
     eventId,
-    paymentDetails,
+    {
+      ...paymentDetails,
+      paymentScreenshot: paymentDetails.paymentScreenshot || "SPOT_PAYMENT_NO_SCREENSHOT",
+    },
     groupDetails
       ? {
           groupName: groupDetails.groupName.trim(),

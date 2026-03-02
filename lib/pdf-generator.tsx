@@ -500,7 +500,7 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                             </View>
                             <View style={styles.bulletRow}>
                                 <View style={styles.bullet} />
-                                <Text style={styles.ruleText}>Attendees must carry a valid College ID / Govt ID proving their identity.</Text>
+                                <Text style={styles.ruleText}>Attendees must carry their Physical College ID Card. It is mandatory for identity verification.</Text>
                             </View>
                             <View style={styles.bulletRow}>
                                 <View style={styles.bullet} />
@@ -575,7 +575,7 @@ export interface AccommodationPassData {
 
 const ACCOMMODATION_RULES = [
     "This accommodation pass is mandatory for entry to the accommodation facility during Surabhi 2026.",
-    "All guests must carry a valid College ID / Govt ID for identity verification.",
+    "All guests must carry their Physical College ID Card. It is mandatory for identity verification.",
     "Strict discipline must be maintained within the accommodation premises at all times.",
     "Possession or consumption of alcohol, drugs, or smoking is strictly prohibited.",
     "Any form of misbehavior or damage to property will result in immediate eviction and penalties.",
