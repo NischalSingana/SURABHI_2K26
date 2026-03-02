@@ -421,6 +421,7 @@ export async function updateRegistrationStatus(
                             });
                         }
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
+                        const includeScheduleAttachment = !!manualContactEmail;
                         await sendEventConfirmationEmail(
                             { name: userFull.name || "User", email: destinationEmail },
                             {
@@ -440,7 +441,8 @@ export async function updateRegistrationStatus(
                                 whatsappLink: registration.event.whatsappLink
                             },
                             isInternational,
-                            isVirtualParticipant
+                            isVirtualParticipant,
+                            includeScheduleAttachment
                         );
                     } catch (e: unknown) {
                         const err = e as Error;
@@ -595,6 +597,7 @@ export async function updateRegistrationStatus(
                             });
                         }
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
+                        const includeScheduleAttachment = !!manualContactEmail;
                         await sendEventConfirmationEmail(
                             { name: lead.name || "User", email: destinationEmail },
                             {
@@ -614,7 +617,8 @@ export async function updateRegistrationStatus(
                                 whatsappLink: registration.event.whatsappLink
                             },
                             isInternational,
-                            isVirtualParticipant
+                            isVirtualParticipant,
+                            includeScheduleAttachment
                         );
                     } catch (e) {
                         console.error("Failed to send group approval email", e);

@@ -124,7 +124,8 @@ export async function sendEventConfirmationEmail(
     eventDetails?: { description?: string; termsAndConditions?: string; virtualTermsAndConditions?: string | null; whatsappLink?: string | null },
     isInternational?: boolean,
     /** For virtual/international competition participants: no PDF, virtual-only content, Zoom sent 2 days before */
-    isVirtualParticipant?: boolean
+    isVirtualParticipant?: boolean,
+    includeScheduleAttachment?: boolean
 ) {
     // 1. Prepare Logos - Using Public URLs
     // Assuming site is at https://klusurabhi.in
@@ -224,6 +225,10 @@ export async function sendEventConfirmationEmail(
             </div>
         `;
     }
+
+    const scheduleAttachment = includeScheduleAttachment
+        ? await getRemoteAssetBase64(COMPETITIONS_SCHEDULE_IMAGE_URL)
+        : null;
 
     const htmlBody = `
     <!DOCTYPE html>
@@ -341,6 +346,7 @@ export async function sendEventConfirmationEmail(
                 <p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-bottom: 0;">
                     ${isInternational ? 'Please find your virtual participation ticket (PDF) attached. Follow the Virtual Participation Guidelines in the ticket.' : 'Please find your official entry pass (PDF) attached below. Keep it handy for security checks at the venue.'}
                 </p>
+                ${scheduleAttachment ? '<p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-top: 10px; margin-bottom: 0;">Please find the schedule attached.</p>' : ''}
                 ${(!useVirtualTemplate && !isInternational && registrationType !== "VISITOR") ? '<p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-top: 12px; margin-bottom: 0;">We look forward to your enthusiastic participation.</p>' : ''}
                 ${isInternational ? '<p style="color: #a1a1aa; font-size: 14px; text-align: center; margin-top: 10px; margin-bottom: 0;">For queries: <a href="mailto:surabhi@kluniversity.in" style="color: #dc2626;">surabhi@kluniversity.in</a></p>' : ''}
                 `}
@@ -364,17 +370,27 @@ export async function sendEventConfirmationEmail(
     `;
 
     // 3. Send Email - virtual participants: no PDF; others: attach PDF
+    const attachments: { content: string; mime_type: string; name: string }[] = [];
+    if (pdfBuffer && !useVirtualTemplate) {
+        attachments.push({
+            content: pdfBuffer.toString("base64"),
+            mime_type: "application/pdf",
+            name: `Surabhi_2026_${isInternational ? "Virtual_" : ""}Ticket_${event.name.replace(/\s+/g, "_")}.pdf`,
+        });
+    }
+    if (scheduleAttachment) {
+        attachments.push({
+            content: scheduleAttachment.content,
+            mime_type: scheduleAttachment.mimeType,
+            name: "Surabhi_2026_Competitions_Schedule.jpeg",
+        });
+    }
+
     return sendZeptoMail({
         to: [{ email: user.email, name: user.name }],
         subject: subjectLine,
         htmlBody: htmlBody,
-        ...(pdfBuffer && !useVirtualTemplate && {
-            attachments: [{
-                content: pdfBuffer.toString('base64'),
-                mime_type: "application/pdf",
-                name: `Surabhi_2026_${isInternational ? 'Virtual_' : ''}Ticket_${event.name.replace(/\s+/g, '_')}.pdf`
-            }],
-        }),
+        ...(attachments.length > 0 ? { attachments } : {}),
         inlineImages: inlineImages
     });
 }
