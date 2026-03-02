@@ -60,6 +60,7 @@ interface RegistrationUser {
 
 interface IndividualRegistration {
     id: string;
+    isVirtual?: boolean | null;
     createdAt: Date;
     paymentStatus: string;
     user: RegistrationUser;
@@ -67,6 +68,7 @@ interface IndividualRegistration {
 
 interface GroupRegistration {
     id: string;
+    isVirtual?: boolean | null;
     groupName: string | null;
     mentorName: string | null;
     mentorPhone: string | null;
@@ -117,6 +119,77 @@ function isKLUser(user: RegistrationUser): boolean {
         collage.includes("koneru") ||
         collage.includes("klef")
     );
+}
+
+function withVirtualTag(name: string | null | undefined, isVirtual: boolean | null | undefined): string {
+    const safeName = (name || "").trim();
+    if (!isVirtual) return safeName;
+    return safeName ? `${safeName} [VIRTUAL]` : "[VIRTUAL]";
+}
+
+function highlightVirtualNameCells(ws: XLSX.WorkSheet, headerName: string) {
+    const ref = ws["!ref"];
+    if (!ref) return;
+    const range = XLSX.utils.decode_range(ref);
+
+    let nameCol = -1;
+    for (let col = range.s.c; col <= range.e.c; col++) {
+        const headerAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+        const headerValue = ws[headerAddress]?.v;
+        if (String(headerValue ?? "").trim() === headerName) {
+            nameCol = col;
+            break;
+        }
+    }
+    if (nameCol === -1) return;
+
+    for (let row = 1; row <= range.e.r; row++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: row, c: nameCol });
+        const cell = ws[cellAddress];
+        if (!cell) continue;
+        const value = String(cell.v ?? "");
+        if (!value.includes("[VIRTUAL]")) continue;
+        cell.s = {
+            ...(cell.s || {}),
+            fill: { fgColor: { rgb: "FFA500" } }, // Orange highlight for virtual participant names
+            font: {
+                ...(typeof cell.s === "object" && cell.s && "font" in cell.s ? (cell.s.font || {}) : {}),
+                bold: true,
+                color: { rgb: "000000" },
+            },
+        };
+    }
+}
+
+function mergeCellsByHeaderAndSpans(
+    ws: XLSX.WorkSheet,
+    headerName: string,
+    spans: Array<{ start: number; end: number }>
+) {
+    const ref = ws["!ref"];
+    if (!ref) return;
+    const range = XLSX.utils.decode_range(ref);
+
+    let targetCol = -1;
+    for (let col = range.s.c; col <= range.e.c; col++) {
+        const headerAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+        const headerValue = ws[headerAddress]?.v;
+        if (String(headerValue ?? "").trim() === headerName) {
+            targetCol = col;
+            break;
+        }
+    }
+    if (targetCol === -1) return;
+
+    const merges = ws["!merges"] || [];
+    for (const span of spans) {
+        if (span.end <= span.start) continue;
+        merges.push({
+            s: { r: span.start + 1, c: targetCol }, // +1 for header row
+            e: { r: span.end + 1, c: targetCol },
+        });
+    }
+    ws["!merges"] = merges;
 }
 
 export default function AnalyticsPage() {
@@ -176,9 +249,10 @@ export default function AnalyticsPage() {
             const individualData: Record<string, string | number>[] = [];
             event.individualRegistrations.forEach((reg) => {
                 individualData.push({
-                    "Name": reg.user.name || "",
+                    "Name": withVirtualTag(reg.user.name, reg.isVirtual),
                     "Email": reg.user.email || "",
                     "Phone": reg.user.phone || "",
+                    "Participation Mode": reg.isVirtual ? "Virtual" : "Physical",
                     "Gender": reg.user.gender || "",
                     "College": reg.user.collage || "",
                     "College ID": reg.user.collageId || "",
@@ -193,19 +267,27 @@ export default function AnalyticsPage() {
 
             // Prepare Group Registrations Data
             const groupData: Record<string, string | number>[] = [];
+            const groupNameMergeSpans: Array<{ start: number; end: number }> = [];
+            let groupDataRowIndex = 0;
             event.groupRegistrations.forEach((reg) => {
-                const members = (reg.members as Record<string, { name: string }>) || {};
-                const memberList = Object.values(members).map((m) => m.name).filter(Boolean);
-                const teamSize = memberList.length + 1;
-                
+                const rawMembers = reg.members;
+                const membersList = Array.isArray(rawMembers)
+                    ? rawMembers
+                    : rawMembers && typeof rawMembers === "object"
+                        ? Object.values(rawMembers as Record<string, unknown>)
+                        : [];
+                const teamSize = membersList.length + 1;
+                const groupStart = groupDataRowIndex;
+
+                // Team lead row
                 groupData.push({
                     "Group Name": reg.groupName || "",
-                    "Leader": reg.user.name || "",
+                    "Member Name": withVirtualTag(reg.user.name, reg.isVirtual),
                     "Email": reg.user.email || "",
                     "Phone": reg.user.phone || "",
+                    "Participation Mode": reg.isVirtual ? "Virtual" : "Physical",
                     "Gender": reg.user.gender || "",
                     "Team Size": teamSize,
-                    "Members": memberList.join(", "),
                     "Mentor": reg.mentorName || "—",
                     "Mentor Phone": reg.mentorPhone || "—",
                     "College": reg.user.collage || "",
@@ -214,6 +296,36 @@ export default function AnalyticsPage() {
                     "State": reg.user.state || "",
                     "Country": reg.user.isInternational ? (reg.user.country || "") : "India",
                 });
+                groupDataRowIndex += 1;
+
+                // Team member rows: fallback to team lead details if member fields are missing.
+                membersList.forEach((member) => {
+                    const memberData = (member && typeof member === "object")
+                        ? (member as Record<string, unknown>)
+                        : {};
+                    groupData.push({
+                        "Group Name": reg.groupName || "",
+                        "Member Name": withVirtualTag(
+                            (memberData.name as string | undefined) || reg.user.name,
+                            reg.isVirtual
+                        ),
+                        "Email": (memberData.email as string | undefined) || reg.user.email || "",
+                        "Phone": (memberData.phone as string | undefined) || reg.user.phone || "",
+                        "Participation Mode": reg.isVirtual ? "Virtual" : "Physical",
+                        "Gender": (memberData.gender as string | undefined) || reg.user.gender || "",
+                        "Team Size": teamSize,
+                        "Mentor": reg.mentorName || "—",
+                        "Mentor Phone": reg.mentorPhone || "—",
+                        "College": reg.user.collage || "",
+                        "College ID": reg.user.collageId || "",
+                        "City": reg.user.city || "",
+                        "State": reg.user.state || "",
+                        "Country": reg.user.isInternational ? (reg.user.country || "") : "India",
+                    });
+                    groupDataRowIndex += 1;
+                });
+
+                groupNameMergeSpans.push({ start: groupStart, end: groupDataRowIndex - 1 });
             });
 
             if (individualData.length === 0 && groupData.length === 0) {
@@ -233,6 +345,7 @@ export default function AnalyticsPage() {
                     { wch: 20 }, // Name
                     { wch: 28 }, // Email
                     { wch: 15 }, // Phone
+                    { wch: 18 }, // Participation Mode
                     { wch: 10 }, // Gender
                     { wch: 35 }, // College
                     { wch: 18 }, // College ID
@@ -258,6 +371,7 @@ export default function AnalyticsPage() {
                         alignment: { horizontal: "center", vertical: "center" }
                     };
                 }
+                highlightVirtualNameCells(ws1, "Name");
 
                 XLSX.utils.book_append_sheet(wb, ws1, "Individual");
             }
@@ -269,12 +383,12 @@ export default function AnalyticsPage() {
                 // Set column widths
                 ws2['!cols'] = [
                     { wch: 25 }, // Group Name
-                    { wch: 20 }, // Leader
+                    { wch: 24 }, // Member Name
                     { wch: 28 }, // Email
                     { wch: 15 }, // Phone
+                    { wch: 18 }, // Participation Mode
                     { wch: 10 }, // Gender
                     { wch: 12 }, // Team Size
-                    { wch: 45 }, // Members
                     { wch: 20 }, // Mentor
                     { wch: 15 }, // Mentor Phone
                     { wch: 35 }, // College
@@ -299,6 +413,8 @@ export default function AnalyticsPage() {
                         alignment: { horizontal: "center", vertical: "center" }
                     };
                 }
+                highlightVirtualNameCells(ws2, "Member Name");
+                mergeCellsByHeaderAndSpans(ws2, "Group Name", groupNameMergeSpans);
 
                 XLSX.utils.book_append_sheet(wb, ws2, "Group");
             }
@@ -324,9 +440,10 @@ export default function AnalyticsPage() {
                     individualData.push({
                         "Event": event.name,
                         "Category": event.category,
-                        "Name": reg.user.name || "",
+                        "Name": withVirtualTag(reg.user.name, reg.isVirtual),
                         "Email": reg.user.email || "",
                         "Phone": reg.user.phone || "",
+                        "Participation Mode": reg.isVirtual ? "Virtual" : "Physical",
                         "Gender": reg.user.gender || "",
                         "College": reg.user.collage || "",
                         "College ID": reg.user.collageId || "",
@@ -341,22 +458,30 @@ export default function AnalyticsPage() {
 
             // Prepare Group Registrations Data (from ALL events)
             const groupData: Record<string, string | number>[] = [];
+            const groupNameMergeSpans: Array<{ start: number; end: number }> = [];
+            let groupDataRowIndex = 0;
             detailedEvents.forEach(event => {
                 event.groupRegistrations.forEach((reg) => {
-                    const members = (reg.members as Record<string, { name: string }>) || {};
-                    const memberList = Object.values(members).map((m) => m.name).filter(Boolean);
-                    const teamSize = memberList.length + 1;
-                    
+                    const rawMembers = reg.members;
+                    const membersList = Array.isArray(rawMembers)
+                        ? rawMembers
+                        : rawMembers && typeof rawMembers === "object"
+                            ? Object.values(rawMembers as Record<string, unknown>)
+                            : [];
+                    const teamSize = membersList.length + 1;
+                    const groupStart = groupDataRowIndex;
+
+                    // Team lead row
                     groupData.push({
                         "Event": event.name,
                         "Category": event.category,
                         "Group Name": reg.groupName || "",
-                        "Leader": reg.user.name || "",
+                        "Member Name": withVirtualTag(reg.user.name, reg.isVirtual),
                         "Email": reg.user.email || "",
                         "Phone": reg.user.phone || "",
+                        "Participation Mode": reg.isVirtual ? "Virtual" : "Physical",
                         "Gender": reg.user.gender || "",
                         "Team Size": teamSize,
-                        "Members": memberList.join(", "),
                         "Mentor": reg.mentorName || "—",
                         "Mentor Phone": reg.mentorPhone || "—",
                         "College": reg.user.collage || "",
@@ -365,6 +490,38 @@ export default function AnalyticsPage() {
                         "State": reg.user.state || "",
                         "Country": reg.user.isInternational ? (reg.user.country || "") : "India",
                     });
+                    groupDataRowIndex += 1;
+
+                    // Team member rows: fallback to team lead details if member fields are missing.
+                    membersList.forEach((member) => {
+                        const memberData = (member && typeof member === "object")
+                            ? (member as Record<string, unknown>)
+                            : {};
+                        groupData.push({
+                            "Event": event.name,
+                            "Category": event.category,
+                            "Group Name": reg.groupName || "",
+                            "Member Name": withVirtualTag(
+                                (memberData.name as string | undefined) || reg.user.name,
+                                reg.isVirtual
+                            ),
+                            "Email": (memberData.email as string | undefined) || reg.user.email || "",
+                            "Phone": (memberData.phone as string | undefined) || reg.user.phone || "",
+                            "Participation Mode": reg.isVirtual ? "Virtual" : "Physical",
+                            "Gender": (memberData.gender as string | undefined) || reg.user.gender || "",
+                            "Team Size": teamSize,
+                            "Mentor": reg.mentorName || "—",
+                            "Mentor Phone": reg.mentorPhone || "—",
+                            "College": reg.user.collage || "",
+                            "College ID": reg.user.collageId || "",
+                            "City": reg.user.city || "",
+                            "State": reg.user.state || "",
+                            "Country": reg.user.isInternational ? (reg.user.country || "") : "India",
+                        });
+                        groupDataRowIndex += 1;
+                    });
+
+                    groupNameMergeSpans.push({ start: groupStart, end: groupDataRowIndex - 1 });
                 });
             });
 
@@ -387,6 +544,7 @@ export default function AnalyticsPage() {
                     { wch: 20 }, // Name
                     { wch: 28 }, // Email
                     { wch: 15 }, // Phone
+                    { wch: 18 }, // Participation Mode
                     { wch: 10 }, // Gender
                     { wch: 35 }, // College
                     { wch: 18 }, // College ID
@@ -412,6 +570,7 @@ export default function AnalyticsPage() {
                         alignment: { horizontal: "center", vertical: "center" }
                     };
                 }
+                highlightVirtualNameCells(ws1, "Name");
 
                 XLSX.utils.book_append_sheet(wb, ws1, "Individual");
             }
@@ -425,12 +584,12 @@ export default function AnalyticsPage() {
                     { wch: 22 }, // Event
                     { wch: 18 }, // Category
                     { wch: 25 }, // Group Name
-                    { wch: 20 }, // Leader
+                    { wch: 24 }, // Member Name
                     { wch: 28 }, // Email
                     { wch: 15 }, // Phone
+                    { wch: 18 }, // Participation Mode
                     { wch: 10 }, // Gender
                     { wch: 12 }, // Team Size
-                    { wch: 45 }, // Members
                     { wch: 20 }, // Mentor
                     { wch: 15 }, // Mentor Phone
                     { wch: 35 }, // College
@@ -455,6 +614,8 @@ export default function AnalyticsPage() {
                         alignment: { horizontal: "center", vertical: "center" }
                     };
                 }
+                highlightVirtualNameCells(ws2, "Member Name");
+                mergeCellsByHeaderAndSpans(ws2, "Group Name", groupNameMergeSpans);
 
                 XLSX.utils.book_append_sheet(wb, ws2, "Group");
             }

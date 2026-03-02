@@ -24,6 +24,7 @@ const getDetailedEventRegistrationsCached = unstable_cache(
                     where: { paymentStatus: "APPROVED" },
                     select: {
                         id: true,
+                        isVirtual: true,
                         createdAt: true,
                         paymentStatus: true,
                         user: {
@@ -49,6 +50,7 @@ const getDetailedEventRegistrationsCached = unstable_cache(
                     where: { paymentStatus: "APPROVED" },
                     select: {
                         id: true,
+                        isVirtual: true,
                         groupName: true,
                         mentorName: true,
                         mentorPhone: true,
