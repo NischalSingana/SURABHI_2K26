@@ -40,24 +40,25 @@ export default function AdminLayoutWrapper({
   }
 
   const allNavLinks = [
-    { href: "/admin/dashboard", label: "Dashboard", roles: ["ADMIN", "MANAGER", "MASTER"] },
+    { href: "/admin/dashboard", label: "Dashboard", roles: ["ADMIN", "MANAGER", "MASTER", "RNC"] },
     { href: "/admin/competitions", label: "Competitions", roles: ["ADMIN", "MANAGER", "MASTER"] },
     { href: "/admin/users", label: "Users", roles: ["ADMIN", "MASTER"] },
-    { href: "/admin/accommodation", label: "Stay", roles: ["ADMIN", "MASTER"] },
-    { href: "/admin/analytics", label: "Analytics", roles: ["ADMIN", "MASTER"] },
+    { href: "/admin/accommodation", label: "Stay", roles: ["ADMIN", "MASTER", "RNC"] },
+    { href: "/admin/analytics", label: "Analytics", roles: ["ADMIN", "MASTER", "RNC"] },
     { href: "/admin/feedback", label: "Feedback", roles: ["ADMIN", "MASTER"] },
-    { href: "/admin/registration-analytics", label: "Registration Analytics", roles: ["GOD"] },
-    { href: "/admin/accommodation-analytics", label: "Accommodation Analytics", roles: ["GOD"] },
+    { href: "/admin/registration-analytics", label: "Registration Analytics", roles: ["GOD", "RNC"] },
+    { href: "/admin/accommodation-analytics", label: "Accommodation Analytics", roles: ["GOD", "RNC"] },
     { href: "/admin/judges", label: "Judges", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/evaluations", label: "Evaluations", roles: ["ADMIN", "MANAGER", "MASTER"] },
-    { href: "/admin/registrations/approvals", label: "Registrations", roles: ["ADMIN", "MASTER"] },
-    { href: "/admin/spot-register", label: "Spot Register", roles: ["ADMIN", "MANAGER", "MASTER"] },
+    { href: "/admin/registrations/approvals", label: "Registrations", roles: ["ADMIN", "MASTER", "RNC"] },
+    { href: "/admin/spot-register", label: "Spot Register", roles: ["MASTER", "RNC"] },
     { href: "/admin/logs", label: "Logs", roles: ["MASTER"] },
     { href: "/admin/approval", label: "Approval", roles: ["MASTER"] },
     { href: "/admin/welcome-emails", label: "Welcome Emails", roles: ["MASTER"] },
   ];
 
-  const navLinks = allNavLinks.filter(link => link.roles.includes(session?.user?.role));
+  const userRole = session?.user?.role as string | undefined;
+  const navLinks = allNavLinks.filter(link => userRole ? link.roles.includes(userRole) : false);
 
   return (
     <div className="min-h-screen bg-black">
@@ -65,15 +66,17 @@ export default function AdminLayoutWrapper({
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-12 sm:h-14 gap-2 sm:gap-4">
             <Link
-              href={session?.user?.role === "GOD" ? "/admin/registration-analytics" : "/admin/dashboard"}
+              href={userRole === "GOD" ? "/admin/registration-analytics" : "/admin/dashboard"}
               className="text-white font-bold text-xl shrink-0 hidden sm:block"
             >
-              {session?.user?.role === "MASTER"
+              {userRole === "MASTER"
                 ? "Master Panel"
-                : session?.user?.role === "GOD"
+                : userRole === "GOD"
                   ? "Registration Analytics"
-                  : session?.user?.role === "MANAGER"
+                  : userRole === "MANAGER"
                     ? "Manager Panel"
+                    : userRole === "RNC"
+                      ? "R&C Panel"
                     : "Admin Panel"}
             </Link>
 

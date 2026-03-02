@@ -122,13 +122,46 @@ function sortByDateThenTop(a: DailyReportItem, b: DailyReportItem): number {
     return a.eventName.localeCompare(b.eventName);
 }
 
+function normalizePhone(value?: string | null): string {
+    return (value || "").replace(/\D/g, "");
+}
+
+function buildParticipantKeyFromUser(user?: {
+    email?: string | null;
+    id?: string | null;
+    phone?: string | null;
+    name?: string | null;
+}): string | null {
+    if (!user) return null;
+    const email = (user.email || "").trim().toLowerCase();
+    if (email) return `email:${email}`;
+    const phone = normalizePhone(user.phone);
+    if (phone) return `phone:${phone}`;
+    const id = (user.id || "").trim();
+    if (id) return `id:${id}`;
+    const name = (user.name || "").trim().toLowerCase();
+    if (name) return `name:${name}`;
+    return null;
+}
+
+function buildParticipantKeyFromMember(member: unknown, index: number): string {
+    const m = (member || {}) as { email?: string; phone?: string; name?: string; gender?: string };
+    const email = (m.email || "").trim().toLowerCase();
+    if (email) return `email:${email}`;
+    const phone = normalizePhone(m.phone);
+    if (phone) return `phone:${phone}`;
+    const name = (m.name || "").trim().toLowerCase();
+    const gender = (m.gender || "").trim().toLowerCase();
+    return `member:${name || "unknown"}:${gender || "na"}:${index}`;
+}
+
 export default function GodDashboard() {
     const { data: session, isPending } = useSession();
     const router = useRouter();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [reportLoading, setReportLoading] = useState(false);
-    const [activeReport, setActiveReport] = useState<"dailyPdf" | "dailyExcel" | "accommodationPdf" | null>(null);
+    const [activeReport, setActiveReport] = useState<"dailyPdf" | "dailyExcel" | "categoryExcel" | "accommodationPdf" | null>(null);
 
     useEffect(() => {
         if (!isPending && !session) {
@@ -507,7 +540,23 @@ export default function GodDashboard() {
         try {
             setActiveReport("dailyExcel");
             setReportLoading(true);
-            const { dailyData, detailedEvents } = await fetchReportData();
+            let dailyData: DailyReportItem[] = [];
+            let detailedEvents: DetailedEvent[] = [];
+
+            try {
+                const reportData = await fetchReportData();
+                dailyData = reportData.dailyData;
+                detailedEvents = reportData.detailedEvents;
+            } catch (error) {
+                console.error("Falling back to daily-only export data:", error);
+                const dailyResult = await getDailyReportStats();
+                if (!dailyResult.success || !dailyResult.data) {
+                    throw new Error("Failed to fetch daily report stats");
+                }
+                dailyData = dailyResult.data as DailyReportItem[];
+                toast.warning("Detailed headcount data unavailable. Export generated with available totals.");
+            }
+
             const { summary, overallVirtualParticipants, overallPhysicalParticipants } = buildSummary(detailedEvents, dailyData);
 
             const genderByEvent = new Map<string, { male: number; female: number }>();
@@ -621,8 +670,37 @@ export default function GodDashboard() {
                 };
             });
 
-            const categoryTotals = Object.values(
-                sortedData.reduce<Record<string, {
+            const uniqueParticipantsByCategory = new Map<string, Set<string>>();
+            detailedEvents.forEach((event) => {
+                const categoryName = event.category;
+                if (!uniqueParticipantsByCategory.has(categoryName)) {
+                    uniqueParticipantsByCategory.set(categoryName, new Set<string>());
+                }
+                const participantSet = uniqueParticipantsByCategory.get(categoryName)!;
+
+                event.individualRegistrations.forEach((reg) => {
+                    const key = buildParticipantKeyFromUser(reg.user);
+                    if (key) participantSet.add(key);
+                });
+
+                event.groupRegistrations.forEach((reg) => {
+                    const leadKey = buildParticipantKeyFromUser(reg.user);
+                    if (leadKey) participantSet.add(leadKey);
+
+                    const membersValue = reg.members;
+                    let membersList: unknown[] = [];
+                    if (Array.isArray(membersValue)) {
+                        membersList = membersValue;
+                    } else if (membersValue && typeof membersValue === "object") {
+                        membersList = Object.values(membersValue as Record<string, unknown>);
+                    }
+                    membersList.forEach((member, idx) => {
+                        participantSet.add(buildParticipantKeyFromMember(member, idx));
+                    });
+                });
+            });
+
+            const categoryTotalsMap = sortedData.reduce<Record<string, {
                     Category: string;
                     Competitions: number;
                     "Solo Competitions": number;
@@ -655,8 +733,16 @@ export default function GodDashboard() {
                     acc[item.categoryName]["Virtual Participants"] += item.virtualParticipants;
                     acc[item.categoryName]["Physical Participants"] += item.physicalParticipants;
                     return acc;
-                }, {})
-            );
+                }, {});
+
+            Object.entries(categoryTotalsMap).forEach(([categoryName, categoryRow]) => {
+                const uniqueCount = uniqueParticipantsByCategory.get(categoryName)?.size;
+                if (typeof uniqueCount === "number" && uniqueCount > 0) {
+                    categoryRow["Total Participants"] = uniqueCount;
+                }
+            });
+
+            const categoryTotals = Object.values(categoryTotalsMap);
 
             const wb = XLSX.utils.book_new();
             const wsSummary = XLSX.utils.json_to_sheet(summarySheet);
@@ -706,6 +792,91 @@ export default function GodDashboard() {
         } catch (error) {
             console.error(error);
             toast.error("Failed to generate report Excel");
+        } finally {
+            setReportLoading(false);
+            setActiveReport(null);
+        }
+    };
+
+    const handleDownloadCategoryHeadcountExcel = async () => {
+        try {
+            setActiveReport("categoryExcel");
+            setReportLoading(true);
+
+            const detailedResult = await getDetailedEventRegistrations();
+            if (!detailedResult.success || !detailedResult.events) {
+                throw new Error("Failed to fetch detailed registration stats");
+            }
+
+            const detailedEvents = detailedResult.events as DetailedEvent[];
+            const uniqueParticipantsByCategory = new Map<string, Set<string>>();
+
+            detailedEvents.forEach((event) => {
+                const categoryName = event.category || "Uncategorized";
+                if (!uniqueParticipantsByCategory.has(categoryName)) {
+                    uniqueParticipantsByCategory.set(categoryName, new Set<string>());
+                }
+                const participantSet = uniqueParticipantsByCategory.get(categoryName)!;
+
+                event.individualRegistrations.forEach((reg) => {
+                    const key = buildParticipantKeyFromUser(reg.user);
+                    if (key) participantSet.add(key);
+                });
+
+                event.groupRegistrations.forEach((reg) => {
+                    const leadKey = buildParticipantKeyFromUser(reg.user);
+                    if (leadKey) participantSet.add(leadKey);
+
+                    const membersValue = reg.members;
+                    let membersList: unknown[] = [];
+                    if (Array.isArray(membersValue)) {
+                        membersList = membersValue;
+                    } else if (membersValue && typeof membersValue === "object") {
+                        membersList = Object.values(membersValue as Record<string, unknown>);
+                    }
+
+                    membersList.forEach((member, idx) => {
+                        participantSet.add(buildParticipantKeyFromMember(member, idx));
+                    });
+                });
+            });
+
+            const categoryRows = Array.from(uniqueParticipantsByCategory.entries())
+                .map(([categoryName, participants]) => ({
+                    Category: categoryName,
+                    "Unique Participants (No Duplicates)": participants.size,
+                }))
+                .sort((a, b) => b["Unique Participants (No Duplicates)"] - a["Unique Participants (No Duplicates)"]);
+
+            const totalUnique = categoryRows.reduce(
+                (acc, row) => acc + row["Unique Participants (No Duplicates)"],
+                0
+            );
+
+            const summaryRows = [
+                { Metric: "Total Categories", Value: categoryRows.length },
+                { Metric: "Total Category-wise Unique Participants", Value: totalUnique },
+                { Metric: "Rule", Value: "Same user in multiple events of same category counted once" },
+            ];
+
+            const wb = XLSX.utils.book_new();
+
+            const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
+            wsSummary["!cols"] = [{ wch: 44 }, { wch: 58 }];
+
+            const wsCategory = XLSX.utils.json_to_sheet(categoryRows);
+            wsCategory["!cols"] = [{ wch: 32 }, { wch: 34 }];
+            const categoryRef = XLSX.utils.decode_range(wsCategory["!ref"] || "A1");
+            wsCategory["!autofilter"] = { ref: XLSX.utils.encode_range(categoryRef) };
+
+            XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
+            XLSX.utils.book_append_sheet(wb, wsCategory, "Category Headcount");
+            XLSX.writeFile(wb, `Category_Headcount_Unique_${new Date().toISOString().split("T")[0]}.xlsx`);
+
+            toast.success("Category-wise unique headcount Excel downloaded");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to download category-wise headcount Excel");
         } finally {
             setReportLoading(false);
             setActiveReport(null);
@@ -960,6 +1131,14 @@ export default function GodDashboard() {
                         >
                             <FiDownload />
                             {activeReport === "dailyExcel" ? "Preparing..." : "Download Daily Report Excel"}
+                        </button>
+                        <button
+                            onClick={handleDownloadCategoryHeadcountExcel}
+                            disabled={reportLoading}
+                            className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                            <FiDownload />
+                            {activeReport === "categoryExcel" ? "Preparing..." : "Category-wise Headcount Excel"}
                         </button>
                         <button
                             onClick={handleDownloadAccommodationReportPdf}

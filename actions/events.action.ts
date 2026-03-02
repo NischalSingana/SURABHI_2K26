@@ -1563,9 +1563,9 @@ export async function registerUserByAdmin(
     });
 
     const allowManager = (adminOptions as { allowManager?: boolean } | undefined)?.allowManager;
-    const allowedRoles = ["ADMIN", "MASTER", ...(allowManager ? ["MANAGER"] : [])];
+    const allowedRoles = ["ADMIN", "MASTER", "RNC", ...(allowManager ? ["MANAGER"] : [])];
     if (!session || !allowedRoles.includes(session.user.role)) {
-      return { success: false, error: "Unauthorized: Only admins and masters can manually register users." };
+      return { success: false, error: "Unauthorized: Only admins, masters, and R&C can manually register users." };
     }
 
     const normalizedEmail = targetEmail.trim().toLowerCase();

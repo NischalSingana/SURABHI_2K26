@@ -7,7 +7,7 @@ import { Role } from "@prisma/client";
 import { registerUserByAdmin } from "@/actions/events.action";
 import { logAdminActivity } from "@/lib/admin-logs";
 
-const ALLOWED_ROLES = [Role.ADMIN, Role.MASTER, Role.MANAGER];
+const ALLOWED_ROLES = [Role.MASTER, Role.RNC];
 
 export interface UserFullDetails {
   id: string;
@@ -279,7 +279,7 @@ export async function spotRegisterUser(
       manualLeadPhone: options?.manualLeadPhone?.trim() || groupDetails?.teamLeadPhone,
       manualLeadGender: options?.manualLeadGender,
       manualCollegeName: options?.manualCollegeName?.trim() || "Spot Registration",
-      allowManager: true,
+      allowManager: false,
     }
   );
 

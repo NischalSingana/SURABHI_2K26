@@ -13,8 +13,9 @@ export async function getAccommodationAnalytics() {
   try {
     const headersList = await headers();
     const session = await auth.api.getSession({ headers: headersList });
+    const userRole = session?.user?.role as string | undefined;
 
-    if (!session || (session.user.role !== Role.GOD && session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+    if (!session || (userRole !== Role.GOD && userRole !== Role.ADMIN && userRole !== Role.MASTER && userRole !== "RNC")) {
       return { success: false, error: "Unauthorized" };
     }
 

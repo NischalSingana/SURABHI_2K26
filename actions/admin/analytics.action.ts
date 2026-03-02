@@ -13,7 +13,7 @@ export async function getUserStats() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.GOD)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.GOD && session.user.role !== Role.RNC)) {
             throw new Error("Unauthorized");
         }
 
@@ -81,7 +81,7 @@ export async function getEventStats() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.GOD)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.GOD && session.user.role !== Role.RNC)) {
             throw new Error("Unauthorized");
         }
 
@@ -135,7 +135,7 @@ export async function getAccommodationStats() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.GOD)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.GOD && session.user.role !== Role.RNC)) {
             throw new Error("Unauthorized");
         }
 
@@ -191,7 +191,7 @@ export async function getDetailedEventRegistrations() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.GOD)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.GOD && session.user.role !== Role.RNC)) {
             throw new Error("Unauthorized");
         }
 
@@ -294,7 +294,7 @@ export async function getDailyReportStats() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.GOD)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.GOD && session.user.role !== Role.RNC)) {
             throw new Error("Unauthorized");
         }
 

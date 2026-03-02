@@ -20,7 +20,7 @@ export async function getAllBookings(filters?: {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.RNC)) {
             throw new Error("Unauthorized");
         }
 
@@ -195,7 +195,7 @@ export async function getAccommodationExcelData(): Promise<{
         const headersList = await headers();
         const session = await auth.api.getSession({ headers: headersList });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.RNC)) {
             return { success: false, error: "Unauthorized" };
         }
 
@@ -445,7 +445,7 @@ export async function getAccommodationExcelDataByDays(selectedDays: number[]): P
         const headersList = await headers();
         const session = await auth.api.getSession({ headers: headersList });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.RNC)) {
             return { success: false, error: "Unauthorized" };
         }
 
@@ -844,7 +844,7 @@ export async function approveBooking(bookingId: string) {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.RNC)) {
             throw new Error("Unauthorized");
         }
 
@@ -863,7 +863,7 @@ export async function rejectBooking(bookingId: string) {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.RNC)) {
             throw new Error("Unauthorized");
         }
 
@@ -888,7 +888,7 @@ export async function updateBookingStatus(bookingId: string, status: BookingStat
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.RNC)) {
             throw new Error("Unauthorized");
         }
 

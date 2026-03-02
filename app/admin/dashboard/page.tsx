@@ -10,22 +10,31 @@ const page = async () => {
         headers: headersList,
     });
 
+    const userRole = session?.user?.role as string | undefined;
+
     // Redirect GOD role users directly to registration analytics
-    if (session?.user?.role === Role.GOD) {
+    if (userRole === Role.GOD) {
         redirect("/admin/registration-analytics");
     }
 
     // Admin has full access, Manager has limited access
-    const isManager = session?.user?.role === "MANAGER";
-    const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "MASTER";
+    const isManager = userRole === "MANAGER";
+    const isAdmin = userRole === "ADMIN" || userRole === "MASTER";
+    const isRnc = userRole === "RNC";
+    const canRegistrationsMgmt = isAdmin || isRnc;
+    const canAccommodationMgmt = isAdmin || isRnc;
+    const canAnalyticsDashboard = isAdmin || isRnc;
+    const canSpotRegister = userRole === "MASTER" || userRole === "RNC";
 
     const roleLabel =
-        session?.user?.role === "MASTER"
+        userRole === "MASTER"
             ? "Master"
-            : session?.user?.role === "ADMIN"
+            : userRole === "ADMIN"
                 ? "Admin"
-                : session?.user?.role === "MANAGER"
+                : userRole === "MANAGER"
                     ? "Manager"
+                    : userRole === "RNC"
+                        ? "R&C"
                     : "Admin";
 
     return (
@@ -91,7 +100,7 @@ const page = async () => {
                     </Link>
                 )}
 
-                {isAdmin && (
+                {canRegistrationsMgmt && (
                     <Link
                         href="/admin/registrations/approvals"
                         className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
@@ -110,7 +119,7 @@ const page = async () => {
                     </Link>
                 )}
 
-                {isAdmin && (
+                {canAccommodationMgmt && (
                     <Link
                         href="/admin/accommodation"
                         className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
@@ -158,7 +167,7 @@ const page = async () => {
                     </Link>
                 )}
 
-                {isAdmin && (
+                {canAnalyticsDashboard && (
                     <Link
                         href="/admin/analytics"
                         className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
@@ -216,7 +225,7 @@ const page = async () => {
                     </Link>
                 )}
 
-                {(isAdmin || isManager) && (
+                {canSpotRegister && (
                     <Link
                         href="/admin/spot-register"
                         className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"

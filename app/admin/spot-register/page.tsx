@@ -14,7 +14,7 @@ export default async function SpotRegisterPage() {
     headers: headersList,
   });
 
-  const allowedRoles = ["ADMIN", "MASTER", "MANAGER"];
+  const allowedRoles = ["MASTER", "RNC"];
   if (!session?.user || !allowedRoles.includes(session.user.role)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
@@ -23,7 +23,7 @@ export default async function SpotRegisterPage() {
         </div>
         <h1 className="text-2xl font-bold text-white mb-2">Unauthorized Access</h1>
         <p className="text-gray-400 mb-6 max-w-md">
-          You do not have permission to access the spot registration page. This is restricted to Managers, Admins, and Masters.
+          You do not have permission to access the spot registration page. This is restricted to Master and R&C roles only.
         </p>
         <Link
           href="/admin/dashboard"

@@ -92,7 +92,7 @@ export const auth = betterAuth({
     user: {
         additionalFields: {
             role: {
-                type: ["USER", "ADMIN", "JUDGE", "MANAGER", "MASTER", "GOD"] as Array<Role>,
+                type: ["USER", "ADMIN", "JUDGE", "MANAGER", "MASTER", "RNC", "GOD"] as Array<Role>,
                 input: false
             },
             assignedEventId: {
@@ -148,12 +148,13 @@ export const auth = betterAuth({
     plugins: [
         nextCookies(),
         admin({
-            adminRoles: ["ADMIN", "MASTER", "MANAGER"],
+            adminRoles: ["ADMIN", "MASTER", "MANAGER", "RNC"],
             defaultRole: "USER",
             roles: {
                 ADMIN: defaultRoles.admin,
                 MASTER: defaultRoles.admin,
                 MANAGER: defaultRoles.admin,
+                RNC: defaultRoles.admin,
                 USER: defaultRoles.user,
             },
         }),

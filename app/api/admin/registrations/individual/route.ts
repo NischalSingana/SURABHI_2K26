@@ -8,7 +8,7 @@ export async function GET() {
     try {
         const session = await auth.api.getSession({ headers: await headers() });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER && session.user.role !== Role.RNC)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 

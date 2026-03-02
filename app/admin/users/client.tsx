@@ -304,6 +304,7 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
                                             <option value="MANAGER">Manager</option>
                                             <option value="ADMIN">Admin</option>
                                             <option value="MASTER">Master</option>
+                                            <option value="RNC">R&amp;C</option>
                                             <option value="JUDGE">Judge</option>
                                             <option value="GOD">GOD</option>
                                         </select>

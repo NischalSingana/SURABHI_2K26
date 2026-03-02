@@ -33,8 +33,8 @@ export async function getRegistrationStatsByCollege() {
             headers: headersList,
         });
 
-        if (!session || session.user.role !== Role.GOD) {
-            throw new Error("Unauthorized - GOD role required");
+        if (!session || (session.user.role !== Role.GOD && session.user.role !== Role.RNC)) {
+            throw new Error("Unauthorized - GOD or R&C role required");
         }
 
         // Get all approved individual registrations with user data
@@ -232,8 +232,8 @@ export async function getCategoryWiseAnalytics() {
             headers: headersList,
         });
 
-        if (!session || session.user.role !== Role.GOD) {
-            throw new Error("Unauthorized - GOD role required");
+        if (!session || (session.user.role !== Role.GOD && session.user.role !== Role.RNC)) {
+            throw new Error("Unauthorized - GOD or R&C role required");
         }
 
         // Get categories with their events

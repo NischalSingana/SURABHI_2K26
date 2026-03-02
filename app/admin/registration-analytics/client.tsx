@@ -125,7 +125,10 @@ interface CategoryAnalytics {
 }
 
 interface ReportRegistrationUser {
+    id?: string | null;
+    name?: string | null;
     email: string;
+    phone?: string | null;
     collage: string | null;
     gender: string | null;
 }
@@ -135,6 +138,7 @@ interface ReportIndividualRegistration {
 }
 
 interface ReportGroupRegistration {
+    id?: string;
     user: ReportRegistrationUser;
     members?: unknown;
 }
@@ -175,13 +179,47 @@ function sortByDateThenTop(a: DailyReportItem, b: DailyReportItem): number {
     return a.eventName.localeCompare(b.eventName);
 }
 
+function normalizePhone(value?: string | null): string {
+    return (value || "").replace(/\D/g, "");
+}
+
+function buildParticipantKeyFromUser(user?: {
+    email?: string | null;
+    id?: string | null;
+    phone?: string | null;
+    name?: string | null;
+}): string | null {
+    if (!user) return null;
+    const email = (user.email || "").trim().toLowerCase();
+    if (email) return `email:${email}`;
+    const phone = normalizePhone(user.phone);
+    if (phone) return `phone:${phone}`;
+    const id = (user.id || "").trim();
+    if (id) return `id:${id}`;
+    const name = (user.name || "").trim().toLowerCase();
+    if (name) return `name:${name}`;
+    return null;
+}
+
+function buildParticipantKeyFromMember(member: unknown, index: number): string {
+    const m = (member || {}) as { email?: string; phone?: string; name?: string; gender?: string };
+    const email = (m.email || "").trim().toLowerCase();
+    if (email) return `email:${email}`;
+    const phone = normalizePhone(m.phone);
+    if (phone) return `phone:${phone}`;
+    const name = (m.name || "").trim().toLowerCase();
+    const gender = (m.gender || "").trim().toLowerCase();
+    return `member:${name || "unknown"}:${gender || "na"}:${index}`;
+}
+
 export default function RegistrationAnalyticsClient() {
     const [collegeStats, setCollegeStats] = useState<any>(null);
     const [categories, setCategories] = useState<CategoryAnalytics[]>([]);
     const [loading, setLoading] = useState(true);
     const [reportLoading, setReportLoading] = useState(false);
-    const [activeReport, setActiveReport] = useState<"dailyPdf" | "dailyExcel" | null>(null);
+    const [activeReport, setActiveReport] = useState<"dailyPdf" | "dailyExcel" | "headcountExcel" | null>(null);
     const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+    const [downloadingCategoryId, setDownloadingCategoryId] = useState<string | null>(null);
     const [expandedCompetition, setExpandedCompetition] = useState<{ categoryId: string; competitionId: string | null }>({
         categoryId: "",
         competitionId: null,
@@ -546,8 +584,37 @@ export default function RegistrationAnalyticsClient() {
                 "Total Participants": `${item.totalParticipants} participants`,
             }));
 
-            const categoryTotals = Object.values(
-                sortedData.reduce<Record<string, {
+            const uniqueParticipantsByCategory = new Map<string, Set<string>>();
+            detailedEvents.forEach((event) => {
+                const categoryName = event.category;
+                if (!uniqueParticipantsByCategory.has(categoryName)) {
+                    uniqueParticipantsByCategory.set(categoryName, new Set<string>());
+                }
+                const participantSet = uniqueParticipantsByCategory.get(categoryName)!;
+
+                event.individualRegistrations.forEach((reg) => {
+                    const key = buildParticipantKeyFromUser(reg.user);
+                    if (key) participantSet.add(key);
+                });
+
+                event.groupRegistrations.forEach((reg) => {
+                    const leadKey = buildParticipantKeyFromUser(reg.user);
+                    if (leadKey) participantSet.add(leadKey);
+
+                    const membersValue = reg.members;
+                    let membersList: unknown[] = [];
+                    if (Array.isArray(membersValue)) {
+                        membersList = membersValue;
+                    } else if (membersValue && typeof membersValue === "object") {
+                        membersList = Object.values(membersValue as Record<string, unknown>);
+                    }
+                    membersList.forEach((member, idx) => {
+                        participantSet.add(buildParticipantKeyFromMember(member, idx));
+                    });
+                });
+            });
+
+            const categoryTotalsMap = sortedData.reduce<Record<string, {
                     Category: string;
                     Competitions: number;
                     "Solo Competitions": number;
@@ -580,8 +647,16 @@ export default function RegistrationAnalyticsClient() {
                     acc[item.categoryName]["Virtual Participants"] += item.virtualParticipants;
                     acc[item.categoryName]["Physical Participants"] += item.physicalParticipants;
                     return acc;
-                }, {})
-            );
+                }, {});
+
+            Object.entries(categoryTotalsMap).forEach(([categoryName, categoryRow]) => {
+                const uniqueCount = uniqueParticipantsByCategory.get(categoryName)?.size;
+                if (typeof uniqueCount === "number" && uniqueCount > 0) {
+                    categoryRow["Total Participants"] = uniqueCount;
+                }
+            });
+
+            const categoryTotals = Object.values(categoryTotalsMap);
 
             const wb = XLSX.utils.book_new();
             const wsSummary = XLSX.utils.json_to_sheet(summarySheet);
@@ -619,6 +694,333 @@ export default function RegistrationAnalyticsClient() {
         } finally {
             setReportLoading(false);
             setActiveReport(null);
+        }
+    };
+
+    const handleDownloadHeadcountExcel = async () => {
+        try {
+            setActiveReport("headcountExcel");
+            setReportLoading(true);
+
+            const detailedResult = await getDetailedEventRegistrations();
+            if (!detailedResult.success || !detailedResult.events) {
+                throw new Error("Failed to fetch detailed registration stats");
+            }
+
+            const detailedEvents = detailedResult.events as ReportDetailedEvent[];
+            const uniqueUsersByCategory = new Map<string, Map<string, {
+                name: string;
+                email: string;
+                phone: string;
+                gender: string;
+                collage: string;
+                events: Set<string>;
+            }>>();
+
+            detailedEvents.forEach((event) => {
+                const categoryName = event.category || "Uncategorized";
+                if (!uniqueUsersByCategory.has(categoryName)) {
+                    uniqueUsersByCategory.set(categoryName, new Map());
+                }
+                const usersMap = uniqueUsersByCategory.get(categoryName)!;
+
+                const upsertUser = (
+                    participantKey: string,
+                    userData: {
+                        name?: string | null;
+                        email?: string | null;
+                        phone?: string | null;
+                        gender?: string | null;
+                        collage?: string | null;
+                    }
+                ) => {
+                    const existing = usersMap.get(participantKey);
+                    const normalized = {
+                        name: (userData.name || existing?.name || "").toString().trim() || "N/A",
+                        email: (userData.email || existing?.email || "").toString().trim() || "N/A",
+                        phone: (userData.phone || existing?.phone || "").toString().trim() || "N/A",
+                        gender: (userData.gender || existing?.gender || "").toString().trim() || "N/A",
+                        collage: (userData.collage || existing?.collage || "").toString().trim() || "N/A",
+                    };
+                    const events = existing?.events || new Set<string>();
+                    events.add(event.name);
+                    usersMap.set(participantKey, { ...normalized, events });
+                };
+
+                event.individualRegistrations.forEach((reg) => {
+                    const key = buildParticipantKeyFromUser(reg.user);
+                    if (key) {
+                        upsertUser(key, {
+                            name: reg.user.name,
+                            email: reg.user.email,
+                            phone: reg.user.phone,
+                            gender: reg.user.gender,
+                            collage: reg.user.collage,
+                        });
+                    }
+                });
+
+                event.groupRegistrations.forEach((reg, regIndex) => {
+                    const leadKey = buildParticipantKeyFromUser(reg.user);
+                    if (leadKey) {
+                        upsertUser(leadKey, {
+                            name: reg.user.name,
+                            email: reg.user.email,
+                            phone: reg.user.phone,
+                            gender: reg.user.gender,
+                            collage: reg.user.collage,
+                        });
+                    }
+
+                    const membersValue = reg.members;
+                    let membersList: unknown[] = [];
+                    if (Array.isArray(membersValue)) {
+                        membersList = membersValue;
+                    } else if (membersValue && typeof membersValue === "object") {
+                        membersList = Object.values(membersValue as Record<string, unknown>);
+                    }
+
+                    membersList.forEach((member, idx) => {
+                        const m = (member || {}) as {
+                            name?: string;
+                            email?: string;
+                            phone?: string;
+                            gender?: string;
+                            collage?: string;
+                            college?: string;
+                        };
+
+                        const memberKeyByIdentity = buildParticipantKeyFromMember(member, idx);
+                        const memberKey = memberKeyByIdentity.startsWith("member:")
+                            ? `member:${categoryName}:${event.id}:${reg.id || regIndex}:${idx}`
+                            : memberKeyByIdentity;
+
+                        upsertUser(memberKey, {
+                            name: m.name,
+                            email: m.email,
+                            phone: m.phone,
+                            gender: m.gender,
+                            collage: m.collage || m.college || null,
+                        });
+                    });
+                });
+            });
+
+            const categoryRows = Array.from(uniqueUsersByCategory.entries())
+                .map(([categoryName, users]) => ({
+                    Category: categoryName,
+                    "Unique Participants (No Duplicates)": users.size,
+                }))
+                .sort((a, b) => b["Unique Participants (No Duplicates)"] - a["Unique Participants (No Duplicates)"]);
+
+            const categoryUsersRows = Array.from(uniqueUsersByCategory.entries())
+                .flatMap(([categoryName, usersMap]) =>
+                    Array.from(usersMap.values()).map((user) => ({
+                        Category: categoryName,
+                        Name: user.name,
+                        Email: user.email,
+                        Phone: user.phone,
+                        Gender: user.gender,
+                        College: user.collage,
+                        "Competitions (Within Category)": Array.from(user.events).sort((a, b) => a.localeCompare(b)).join(", "),
+                        "Competitions Count": user.events.size,
+                    }))
+                )
+                .sort((a, b) => {
+                    if (a.Category !== b.Category) return a.Category.localeCompare(b.Category);
+                    return a.Name.localeCompare(b.Name);
+                });
+
+            const wb = XLSX.utils.book_new();
+            const wsHeadcount = XLSX.utils.json_to_sheet(categoryRows);
+            wsHeadcount["!cols"] = [{ wch: 34 }, { wch: 38 }];
+
+            const wsRef = XLSX.utils.decode_range(wsHeadcount["!ref"] || "A1");
+            wsHeadcount["!autofilter"] = { ref: XLSX.utils.encode_range(wsRef) };
+
+            const wsUsers = XLSX.utils.json_to_sheet(categoryUsersRows);
+            wsUsers["!cols"] = [
+                { wch: 24 },
+                { wch: 24 },
+                { wch: 32 },
+                { wch: 18 },
+                { wch: 12 },
+                { wch: 30 },
+                { wch: 58 },
+                { wch: 20 },
+            ];
+            const usersRef = XLSX.utils.decode_range(wsUsers["!ref"] || "A1");
+            wsUsers["!autofilter"] = { ref: XLSX.utils.encode_range(usersRef) };
+
+            XLSX.utils.book_append_sheet(wb, wsHeadcount, "Category Headcount");
+            XLSX.utils.book_append_sheet(wb, wsUsers, "Category Unique Users");
+            XLSX.writeFile(wb, `Category_Headcount_Unique_${new Date().toISOString().split("T")[0]}.xlsx`);
+
+            toast.success("Category-wise unique users Excel downloaded");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to download headcount Excel");
+        } finally {
+            setReportLoading(false);
+            setActiveReport(null);
+        }
+    };
+
+    const handleDownloadSingleCategoryExcel = (category: CategoryAnalytics) => {
+        try {
+            setDownloadingCategoryId(category.id);
+
+            const uniqueUsers = new Map<string, {
+                name: string;
+                email: string;
+                phone: string;
+                gender: string;
+                collage: string;
+                competitions: Set<string>;
+            }>();
+
+            const upsertUser = (
+                key: string,
+                details: {
+                    name?: string | null;
+                    email?: string | null;
+                    phone?: string | null;
+                    gender?: string | null;
+                    collage?: string | null;
+                },
+                competitionName: string
+            ) => {
+                const existing = uniqueUsers.get(key);
+                const competitions = existing?.competitions || new Set<string>();
+                competitions.add(competitionName);
+                uniqueUsers.set(key, {
+                    name: (details.name || existing?.name || "").trim() || "N/A",
+                    email: (details.email || existing?.email || "").trim() || "N/A",
+                    phone: (details.phone || existing?.phone || "").trim() || "N/A",
+                    gender: (details.gender || existing?.gender || "").trim() || "N/A",
+                    collage: (details.collage || existing?.collage || "").trim() || "N/A",
+                    competitions,
+                });
+            };
+
+            category.competitions.forEach((competition, compIdx) => {
+                competition.individual.registrations.forEach((reg) => {
+                    const key = buildParticipantKeyFromUser(reg.user);
+                    if (!key) return;
+                    upsertUser(
+                        key,
+                        {
+                            name: reg.user?.name,
+                            email: reg.user?.email,
+                            phone: reg.user?.phone,
+                            gender: reg.user?.gender,
+                            collage: reg.user?.collage,
+                        },
+                        competition.name
+                    );
+                });
+
+                competition.team.registrations.forEach((reg, regIdx) => {
+                    const leadKey = buildParticipantKeyFromUser(reg.user);
+                    if (leadKey) {
+                        upsertUser(
+                            leadKey,
+                            {
+                                name: reg.user?.name,
+                                email: reg.user?.email,
+                                phone: reg.user?.phone,
+                                gender: reg.user?.gender,
+                                collage: reg.user?.collage,
+                            },
+                            competition.name
+                        );
+                    }
+
+                    const members = reg.members;
+                    const membersList: unknown[] = Array.isArray(members)
+                        ? members
+                        : members && typeof members === "object"
+                            ? Object.values(members as Record<string, unknown>)
+                            : [];
+
+                    membersList.forEach((member, memberIdx) => {
+                        const m = (member || {}) as {
+                            name?: string;
+                            email?: string;
+                            phone?: string;
+                            gender?: string;
+                            collage?: string;
+                            college?: string;
+                        };
+                        const rawKey = buildParticipantKeyFromMember(member, memberIdx);
+                        const stableFallbackKey = rawKey.startsWith("member:")
+                            ? `member:${category.id}:${competition.id}:${reg.id || regIdx}:${memberIdx}:${compIdx}`
+                            : rawKey;
+
+                        upsertUser(
+                            stableFallbackKey,
+                            {
+                                name: m.name,
+                                email: m.email,
+                                phone: m.phone,
+                                gender: m.gender,
+                                collage: m.collage || m.college || null,
+                            },
+                            competition.name
+                        );
+                    });
+                });
+            });
+
+            const summaryRows = [
+                { Metric: "Category", Value: category.name },
+                { Metric: "Total Competitions", Value: category.competitions.length },
+                { Metric: "Unique Users (No Duplicates)", Value: uniqueUsers.size },
+                { Metric: "Rule", Value: "Same user in multiple events in this category counted once" },
+            ];
+
+            const usersRows = Array.from(uniqueUsers.values())
+                .map((user) => ({
+                    Category: category.name,
+                    Name: user.name,
+                    Email: user.email,
+                    Phone: user.phone,
+                    Gender: user.gender,
+                    College: user.collage,
+                    Competitions: Array.from(user.competitions).sort((a, b) => a.localeCompare(b)).join(", "),
+                    "Competition Count": user.competitions.size,
+                }))
+                .sort((a, b) => a.Name.localeCompare(b.Name));
+
+            const wb = XLSX.utils.book_new();
+
+            const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
+            wsSummary["!cols"] = [{ wch: 34 }, { wch: 56 }];
+
+            const wsUsers = XLSX.utils.json_to_sheet(usersRows);
+            wsUsers["!cols"] = [
+                { wch: 24 },
+                { wch: 24 },
+                { wch: 32 },
+                { wch: 18 },
+                { wch: 12 },
+                { wch: 30 },
+                { wch: 54 },
+                { wch: 18 },
+            ];
+            const usersRef = XLSX.utils.decode_range(wsUsers["!ref"] || "A1");
+            wsUsers["!autofilter"] = { ref: XLSX.utils.encode_range(usersRef) };
+
+            XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
+            XLSX.utils.book_append_sheet(wb, wsUsers, "Unique Users");
+            XLSX.writeFile(wb, `${category.name.replace(/[^a-zA-Z0-9]+/g, "_")}_Unique_Users_${new Date().toISOString().split("T")[0]}.xlsx`);
+
+            toast.success(`${category.name} unique users Excel downloaded`);
+        } catch (error) {
+            console.error(error);
+            toast.error(`Failed to download ${category.name} Excel`);
+        } finally {
+            setDownloadingCategoryId(null);
         }
     };
 
@@ -675,6 +1077,13 @@ export default function RegistrationAnalyticsClient() {
                                             className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50"
                                         >
                                             {activeReport === "dailyExcel" ? "Preparing..." : "Daily Excel"}
+                                        </button>
+                                        <button
+                                            onClick={handleDownloadHeadcountExcel}
+                                            disabled={reportLoading}
+                                            className="px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50"
+                                        >
+                                            {activeReport === "headcountExcel" ? "Preparing..." : "Headcount Excel"}
                                         </button>
                                     </div>
                                 </div>
@@ -822,6 +1231,24 @@ export default function RegistrationAnalyticsClient() {
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m3 6h-3m-2 0h-2m2 0v-2m0 2v2" />
                                                     </svg>
                                                     {category.competitions.length} Competition{category.competitions.length !== 1 ? 's' : ''}
+                                                </span>
+                                                <span
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDownloadSingleCategoryExcel(category);
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter" || e.key === " ") {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            handleDownloadSingleCategoryExcel(category);
+                                                        }
+                                                    }}
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-600/30 to-emerald-700/20 border border-emerald-500/40 rounded-lg text-emerald-200 text-xs font-semibold backdrop-blur-sm shadow-lg shadow-emerald-500/10 hover:from-emerald-600/40 hover:to-emerald-700/30 transition-colors cursor-pointer"
+                                                >
+                                                    {downloadingCategoryId === category.id ? "Preparing..." : "Excel Download"}
                                                 </span>
                                             </div>
                                         </div>

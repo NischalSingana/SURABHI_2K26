@@ -10,7 +10,11 @@ export default async function AccommodationPage(props: any) {
         headers: await headers()
     });
 
-    if (session?.user.role !== Role.ADMIN && session?.user.role !== Role.MASTER) {
+    if (
+        session?.user.role !== Role.ADMIN &&
+        session?.user.role !== Role.MASTER &&
+        session?.user.role !== Role.RNC
+    ) {
         return redirect("/admin/competitions");
     }
 
