@@ -74,6 +74,7 @@ export default function RegistrationApprovalsClient() {
     const [activeTab, setActiveTab] = useState<"INDIVIDUAL" | "GROUP" | "VISITOR" | "INTERNATIONAL">("INDIVIDUAL");
     const [viewMode, setViewMode] = useState<"PENDING" | "HISTORY">("PENDING");
     const [collegeFilter, setCollegeFilter] = useState<CollegeFilter>("ALL");
+    const [exportDate, setExportDate] = useState("");
     const [filters, setFilters] = useState({
         user: "",
         event: "",
@@ -227,11 +228,24 @@ export default function RegistrationApprovalsClient() {
         "Actions": reg.approvedAt ? format(new Date(reg.approvedAt), "dd MMM yyyy") : format(new Date(reg.createdAt), "dd MMM yyyy"),
     });
 
+    const getActionDate = (reg: Registration) =>
+        reg.approvedAt ? new Date(reg.approvedAt) : new Date(reg.createdAt);
+
+    const toLocalDateInputValue = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    };
+
     const exportToXlsx = () => {
-        const toExport = filteredRegistrations.map(rowToExport);
+        const dateFilteredRegistrations = exportDate
+            ? filteredRegistrations.filter((reg) => toLocalDateInputValue(getActionDate(reg)) === exportDate)
+            : filteredRegistrations;
+        const toExport = dateFilteredRegistrations.map(rowToExport);
 
         if (toExport.length === 0) {
-            toast.error("No registrations to export");
+            toast.error(exportDate ? "No registrations found for selected date" : "No registrations to export");
             return;
         }
         try {
@@ -241,7 +255,8 @@ export default function RegistrationApprovalsClient() {
             const wb = XLSX.utils.book_new();
             const sheetName = `${activeTab}_${viewMode}${collegeFilter !== "ALL" ? `_${collegeFilter === "KL_UNIVERSITY" ? "KL" : "Other"}` : ""}`.slice(0, 31);
             XLSX.utils.book_append_sheet(wb, ws, sheetName);
-            XLSX.writeFile(wb, `registrations_${viewMode}_${activeTab}_${new Date().toISOString().split("T")[0]}.xlsx`);
+            const dateSuffix = exportDate || new Date().toISOString().split("T")[0];
+            XLSX.writeFile(wb, `registrations_${viewMode}_${activeTab}_${dateSuffix}.xlsx`);
             toast.success("Exported successfully");
         } catch (e) {
             console.error(e);
@@ -258,6 +273,21 @@ export default function RegistrationApprovalsClient() {
             <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
                 <h1 className="text-3xl font-bold text-white">Registration Approvals</h1>
                 <div className="flex items-center gap-2">
+                    <input
+                        type="date"
+                        value={exportDate}
+                        onChange={(e) => setExportDate(e.target.value)}
+                        className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-600"
+                        title="Export selected date"
+                    />
+                    {exportDate && (
+                        <button
+                            onClick={() => setExportDate("")}
+                            className="px-3 py-2 bg-zinc-700/40 text-zinc-300 hover:bg-zinc-700 rounded-lg text-xs font-medium transition-colors border border-zinc-600"
+                        >
+                            Clear Date
+                        </button>
+                    )}
                     <button
                         onClick={fetchRegistrations}
                         className="px-4 py-2 bg-zinc-700/50 text-zinc-200 hover:bg-zinc-700 rounded-lg text-sm font-medium transition-colors border border-zinc-600"

@@ -288,7 +288,7 @@ function CategoryPageContent() {
   };
 
   const isEsportsCategory = categorySlug.toLowerCase().includes("kurukshetra");
-  const regClosed = isOnlineRegistrationClosed() && !isEsportsCategory;
+  const regClosed = isOnlineRegistrationClosed() && !isEsportsCategory && !isInternational;
 
   const handleRegisterClick = (event: Event, e: React.MouseEvent) => {
     e.stopPropagation();

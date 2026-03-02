@@ -4,7 +4,231 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { Role } from "@prisma/client";
+import { unstable_cache } from "next/cache";
 import { isRegistrationComplete } from "@/lib/registration-check";
+
+const getDetailedEventRegistrationsCached = unstable_cache(
+    async () => {
+        const events = await prisma.event.findMany({
+            select: {
+                id: true,
+                name: true,
+                date: true,
+                isGroupEvent: true,
+                Category: {
+                    select: {
+                        name: true,
+                    },
+                },
+                individualRegistrations: {
+                    where: { paymentStatus: "APPROVED" },
+                    select: {
+                        id: true,
+                        createdAt: true,
+                        paymentStatus: true,
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                phone: true,
+                                collage: true,
+                                collageId: true,
+                                branch: true,
+                                year: true,
+                                state: true,
+                                city: true,
+                                country: true,
+                                isInternational: true,
+                                gender: true,
+                            },
+                        },
+                    },
+                },
+                groupRegistrations: {
+                    where: { paymentStatus: "APPROVED" },
+                    select: {
+                        id: true,
+                        groupName: true,
+                        mentorName: true,
+                        mentorPhone: true,
+                        members: true,
+                        createdAt: true,
+                        paymentStatus: true,
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                phone: true,
+                                collage: true,
+                                collageId: true,
+                                branch: true,
+                                year: true,
+                                state: true,
+                                city: true,
+                                country: true,
+                                isInternational: true,
+                                gender: true,
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: {
+                name: "asc",
+            },
+        });
+
+        return events.map((event) => ({
+            id: event.id,
+            name: event.name,
+            category: event.Category.name,
+            isGroupEvent: event.isGroupEvent,
+            totalRegistrations:
+                event.individualRegistrations.length + event.groupRegistrations.length,
+            individualCount: event.individualRegistrations.length,
+            groupCount: event.groupRegistrations.length,
+            individualRegistrations: event.individualRegistrations,
+            groupRegistrations: event.groupRegistrations,
+        }));
+    },
+    ["admin-detailed-event-registrations-v1"],
+    { revalidate: 30, tags: ["admin-analytics"] }
+);
+
+const getDailyReportStatsCached = unstable_cache(
+    async () => {
+        const events = await prisma.event.findMany({
+            select: {
+                id: true,
+                name: true,
+                date: true,
+                isGroupEvent: true,
+                Category: {
+                    select: {
+                        name: true,
+                    },
+                },
+                individualRegistrations: {
+                    where: { paymentStatus: "APPROVED" },
+                    select: {
+                        isVirtual: true,
+                        user: {
+                            select: {
+                                email: true,
+                                collage: true,
+                            },
+                        },
+                    },
+                },
+                groupRegistrations: {
+                    where: { paymentStatus: "APPROVED" },
+                    select: {
+                        isVirtual: true,
+                        members: true,
+                        user: {
+                            select: {
+                                email: true,
+                                collage: true,
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: {
+                Category: {
+                    name: "asc",
+                }
+            }
+        });
+
+        return events.map((event) => {
+            const individualRegs = event.individualRegistrations;
+            const groupRegs = event.groupRegistrations;
+
+            const isKL = (user: { email?: string | null; collage?: string | null }) => {
+                const email = (user.email || "").toLowerCase();
+                const collage = (user.collage || "").toLowerCase();
+                return (
+                    email.endsWith("@kluniversity.in") ||
+                    collage.includes("kl university") ||
+                    collage.includes("koneru") ||
+                    collage.includes("klef")
+                );
+            };
+
+            const getTeamParticipants = (members: unknown) => {
+                const memberCount = Array.isArray(members)
+                    ? members.length
+                    : members && typeof members === "object"
+                        ? Object.keys(members as Record<string, unknown>).length
+                        : 0;
+                return 1 + memberCount;
+            };
+
+            let klIndividualParticipants = 0;
+            let otherIndividualParticipants = 0;
+            let klTeams = 0;
+            let otherTeams = 0;
+            let klTeamParticipants = 0;
+            let otherTeamParticipants = 0;
+            let eventVirtualParticipants = 0;
+            let eventPhysicalParticipants = 0;
+
+            for (const reg of individualRegs) {
+                const isKlParticipant = isKL(reg.user);
+                if (isKlParticipant) klIndividualParticipants += 1;
+                else otherIndividualParticipants += 1;
+
+                if (reg.isVirtual) eventVirtualParticipants += 1;
+                else eventPhysicalParticipants += 1;
+            }
+
+            for (const reg of groupRegs) {
+                const teamParticipants = getTeamParticipants(reg.members);
+                const isKlTeam = isKL(reg.user);
+                if (isKlTeam) {
+                    klTeams += 1;
+                    klTeamParticipants += teamParticipants;
+                } else {
+                    otherTeams += 1;
+                    otherTeamParticipants += teamParticipants;
+                }
+
+                if (reg.isVirtual) eventVirtualParticipants += teamParticipants;
+                else eventPhysicalParticipants += teamParticipants;
+            }
+
+            const eventTotalParticipants = eventVirtualParticipants + eventPhysicalParticipants;
+            const totalParticipantsByCollege = klIndividualParticipants + otherIndividualParticipants + klTeamParticipants + otherTeamParticipants;
+            const totalTeams = klTeams + otherTeams;
+
+            return {
+                eventId: event.id,
+                eventName: event.name,
+                eventDate: event.date.toISOString(),
+                categoryName: event.Category.name,
+                isGroupEvent: event.isGroupEvent,
+                participants: {
+                    kl: klIndividualParticipants + klTeamParticipants,
+                    other: otherIndividualParticipants + otherTeamParticipants,
+                    total: totalParticipantsByCollege,
+                },
+                teams: {
+                    kl: klTeams,
+                    other: otherTeams,
+                    total: totalTeams,
+                },
+                virtualParticipants: eventVirtualParticipants,
+                physicalParticipants: eventPhysicalParticipants,
+                totalParticipants: eventTotalParticipants,
+            };
+        });
+    },
+    ["admin-daily-report-stats-v1"],
+    { revalidate: 30, tags: ["admin-analytics"] }
+);
 
 export async function getUserStats() {
     try {
@@ -195,91 +419,11 @@ export async function getDetailedEventRegistrations() {
             throw new Error("Unauthorized");
         }
 
-        const events = await prisma.event.findMany({
-            select: {
-                id: true,
-                name: true,
-                date: true,
-                isGroupEvent: true,
-                Category: {
-                    select: {
-                        name: true,
-                    },
-                },
-                individualRegistrations: {
-                    where: { paymentStatus: "APPROVED" },
-                    select: {
-                        id: true,
-                        createdAt: true,
-                        paymentStatus: true,
-                        user: {
-                            select: {
-                                id: true,
-                                name: true,
-                                email: true,
-                                phone: true,
-                                collage: true,
-                                collageId: true,
-                                branch: true,
-                                year: true,
-                                state: true,
-                                city: true,
-                                country: true,
-                                isInternational: true,
-                                gender: true,
-                            },
-                        },
-                    },
-                },
-                groupRegistrations: {
-                    where: { paymentStatus: "APPROVED" },
-                    select: {
-                        id: true,
-                        groupName: true,
-                        mentorName: true,
-                        mentorPhone: true,
-                        members: true,
-                        createdAt: true,
-                        paymentStatus: true,
-                        user: {
-                            select: {
-                                id: true,
-                                name: true,
-                                email: true,
-                                phone: true,
-                                collage: true,
-                                collageId: true,
-                                branch: true,
-                                year: true,
-                                state: true,
-                                city: true,
-                                country: true,
-                                isInternational: true,
-                                gender: true,
-                            },
-                        },
-                    },
-                },
-            },
-            orderBy: {
-                name: "asc",
-            },
-        });
+        const events = await getDetailedEventRegistrationsCached();
 
         return {
             success: true,
-            events: events.map((event) => ({
-                id: event.id,
-                name: event.name,
-                category: event.Category.name,
-                isGroupEvent: event.isGroupEvent,
-                totalRegistrations:
-                    event.individualRegistrations.length + event.groupRegistrations.length,
-                individualCount: event.individualRegistrations.length,
-                groupCount: event.groupRegistrations.length,
-                individualRegistrations: event.individualRegistrations,
-                groupRegistrations: event.groupRegistrations,
-            })),
+            events,
         };
     } catch (error: unknown) {
         console.error("Error fetching detailed event registrations:", error);
@@ -298,118 +442,7 @@ export async function getDailyReportStats() {
             throw new Error("Unauthorized");
         }
 
-        const events = await prisma.event.findMany({
-            select: {
-                id: true,
-                name: true,
-                date: true,
-                isGroupEvent: true,
-                Category: {
-                    select: {
-                        name: true,
-                    },
-                },
-                individualRegistrations: {
-                    where: { paymentStatus: "APPROVED" },
-                    select: {
-                        isVirtual: true,
-                        user: {
-                            select: {
-                                email: true,
-                                collage: true,
-                            },
-                        },
-                    },
-                },
-                groupRegistrations: {
-                    where: { paymentStatus: "APPROVED" },
-                    select: {
-                        isVirtual: true,
-                        members: true,
-                        user: {
-                            select: {
-                                email: true,
-                                collage: true,
-                            },
-                        },
-                    },
-                },
-            },
-            orderBy: {
-                Category: {
-                    name: "asc", 
-                }
-            }
-        });
-
-        // Process data for the report
-        const reportData = events.map(event => {
-            const individualRegs = event.individualRegistrations;
-            const groupRegs = event.groupRegistrations;
-
-            const isKL = (user: { email?: string | null; collage?: string | null }) => {
-                const email = (user.email || "").toLowerCase();
-                const collage = (user.collage || "").toLowerCase();
-                return (
-                    email.endsWith("@kluniversity.in") ||
-                    collage.includes("kl university") ||
-                    collage.includes("koneru") ||
-                    collage.includes("klef")
-                );
-            };
-
-            const getTeamParticipants = (members: unknown) => {
-                const memberCount = Array.isArray(members)
-                    ? members.length
-                    : members && typeof members === "object"
-                        ? Object.keys(members as Record<string, unknown>).length
-                        : 0;
-                return 1 + memberCount; // team lead + members
-            };
-
-            const klIndividualParticipants = individualRegs.filter(r => isKL(r.user)).length;
-            const otherIndividualParticipants = individualRegs.filter(r => !isKL(r.user)).length;
-
-            const klTeamRegs = groupRegs.filter(r => isKL(r.user));
-            const otherTeamRegs = groupRegs.filter(r => !isKL(r.user));
-            const klTeamParticipants = klTeamRegs.reduce((acc, reg) => acc + getTeamParticipants(reg.members), 0);
-            const otherTeamParticipants = otherTeamRegs.reduce((acc, reg) => acc + getTeamParticipants(reg.members), 0);
-
-            const klTeams = klTeamRegs.length;
-            const otherTeams = otherTeamRegs.length;
-
-            const eventVirtualParticipants =
-                individualRegs.reduce((acc, reg) => acc + (reg.isVirtual ? 1 : 0), 0) +
-                groupRegs.reduce((acc, reg) => acc + (reg.isVirtual ? getTeamParticipants(reg.members) : 0), 0);
-            const eventPhysicalParticipants =
-                individualRegs.reduce((acc, reg) => acc + (!reg.isVirtual ? 1 : 0), 0) +
-                groupRegs.reduce((acc, reg) => acc + (!reg.isVirtual ? getTeamParticipants(reg.members) : 0), 0);
-            const eventTotalParticipants = eventVirtualParticipants + eventPhysicalParticipants;
-
-            const totalParticipantsByCollege = klIndividualParticipants + otherIndividualParticipants + klTeamParticipants + otherTeamParticipants;
-            const totalTeams = klTeams + otherTeams;
-
-            return {
-                eventId: event.id,
-                eventName: event.name,
-                eventDate: event.date.toISOString(),
-                categoryName: event.Category.name,
-                isGroupEvent: event.isGroupEvent,
-                participants: {
-                    kl: klIndividualParticipants + klTeamParticipants,
-                    other: otherIndividualParticipants + otherTeamParticipants,
-                    total: totalParticipantsByCollege,
-                },
-                teams: {
-                    kl: klTeams,
-                    other: otherTeams,
-                    total: totalTeams,
-                },
-                virtualParticipants: eventVirtualParticipants,
-                physicalParticipants: eventPhysicalParticipants,
-                totalParticipants: eventTotalParticipants,
-            };
-        });
+        const reportData = await getDailyReportStatsCached();
 
         return {
             success: true,

@@ -975,23 +975,25 @@ export async function registerGroupEvent(
       return { success: false, error: "Please login to register for events" };
     }
 
-    if (!paymentDetails) {
-      return { success: false, error: "Payment details are required." };
-    }
-
     const userWithState = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { state: true, email: true, isInternational: true, collage: true },
     });
+    const isInternationalStudent = !!userWithState?.isInternational;
+    const effectiveIsVirtual = isInternationalStudent ? true : !!isVirtual;
+
+    if (!paymentDetails && !isInternationalStudent) {
+      return { success: false, error: "Payment details are required." };
+    }
     const eventMeta = await prisma.event.findUnique({
       where: { id: eventId },
       select: { name: true, Category: { select: { name: true } } },
     });
-    if (!isEsportsCategory(eventMeta?.Category?.name)) {
+    if (!isInternationalStudent && !isEsportsCategory(eventMeta?.Category?.name)) {
       return { success: false, error: "Registrations are currently open only for eSports competitions." };
     }
     const kurukshetraEvent = isKurukshetraEvent(eventMeta?.Category?.name);
-    if (isOnlineRegistrationClosed() && !kurukshetraEvent) {
+    if (!isInternationalStudent && isOnlineRegistrationClosed() && !kurukshetraEvent) {
       return { success: false, error: ONLINE_REG_CLOSED_MESSAGE };
     }
     const isKLStudent = isKLStudentProfile({
@@ -999,11 +1001,11 @@ export async function registerGroupEvent(
       collage: userWithState?.collage ?? null,
     });
 
-    if (kurukshetraEvent) {
-      if (isKLStudent && isVirtual) {
+    if (!isInternationalStudent && kurukshetraEvent) {
+      if (isKLStudent && effectiveIsVirtual) {
         return { success: false, error: "Kurukshetra: KL students must register in physical mode only (₹350 per member)." };
       }
-      if (!isKLStudent && !isVirtual) {
+      if (!isKLStudent && !effectiveIsVirtual) {
         return { success: false, error: "Kurukshetra: Other college/international participants must register in virtual mode only (₹150 per member)." };
       }
     }
@@ -1065,7 +1067,7 @@ export async function registerGroupEvent(
             mentorName,
             mentorPhone,
             members: members as unknown as Prisma.InputJsonValue, // Storing manual details
-            isVirtual: isVirtual || false,
+            isVirtual: effectiveIsVirtual,
             registrationDetails: registrationDetails || undefined,
             paymentScreenshot: paymentDetails?.paymentScreenshot || null,
             utrId: paymentDetails?.utrId || null,
@@ -1175,23 +1177,25 @@ export async function registerForEvent(
       return { success: false, error: "Please login to register for events" };
     }
 
-    if (!paymentDetails) {
-      return { success: false, error: "Payment details are required." };
-    }
-
     const userWithState = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { state: true, email: true, isInternational: true, collage: true },
     });
+    const isInternationalStudent = !!userWithState?.isInternational;
+    const effectiveIsVirtual = isInternationalStudent ? true : !!isVirtual;
+
+    if (!paymentDetails && !isInternationalStudent) {
+      return { success: false, error: "Payment details are required." };
+    }
     const eventMeta = await prisma.event.findUnique({
       where: { id: eventId },
       select: { name: true, Category: { select: { name: true } } },
     });
-    if (!isEsportsCategory(eventMeta?.Category?.name)) {
+    if (!isInternationalStudent && !isEsportsCategory(eventMeta?.Category?.name)) {
       return { success: false, error: "Registrations are currently open only for eSports competitions." };
     }
     const kurukshetraEvent = isKurukshetraEvent(eventMeta?.Category?.name);
-    if (isOnlineRegistrationClosed() && !kurukshetraEvent) {
+    if (!isInternationalStudent && isOnlineRegistrationClosed() && !kurukshetraEvent) {
       return { success: false, error: ONLINE_REG_CLOSED_MESSAGE };
     }
     const isKLStudent = isKLStudentProfile({
@@ -1199,11 +1203,11 @@ export async function registerForEvent(
       collage: userWithState?.collage ?? null,
     });
 
-    if (kurukshetraEvent) {
-      if (isKLStudent && isVirtual) {
+    if (!isInternationalStudent && kurukshetraEvent) {
+      if (isKLStudent && effectiveIsVirtual) {
         return { success: false, error: "Kurukshetra: KL students must register in physical mode only (₹350 per member)." };
       }
-      if (!isKLStudent && !isVirtual) {
+      if (!isKLStudent && !effectiveIsVirtual) {
         return { success: false, error: "Kurukshetra: Other college/international participants must register in virtual mode only (₹150 per member)." };
       }
     }
@@ -1264,7 +1268,7 @@ export async function registerForEvent(
           data: {
             userId: session.user.id,
             eventId: eventId,
-            isVirtual: isVirtual || false,
+            isVirtual: effectiveIsVirtual,
             registrationDetails: registrationDetails || undefined,
             paymentScreenshot: paymentDetails?.paymentScreenshot || null,
             utrId: paymentDetails?.utrId || null,

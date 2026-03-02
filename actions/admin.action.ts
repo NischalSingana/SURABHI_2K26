@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Role, Prisma } from "@prisma/client";
 import { headers } from "next/headers";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { logAdminActivity } from "@/lib/admin-logs";
 import { approveBookingInternal } from "@/actions/admin/accommodation.action";
 
@@ -104,20 +104,6 @@ export async function getRegistrationHistory() {
             }
         });
 
-        // Fetch approver info for individual registrations
-        const individualRegistrations = await Promise.all(
-            individualRegistrationsRaw.map(async (reg) => {
-                let approver = null;
-                if (reg.approvedBy) {
-                    approver = await prisma.user.findUnique({
-                        where: { id: reg.approvedBy },
-                        select: { id: true, name: true, email: true, role: true },
-                    });
-                }
-                return { ...reg, approver };
-            })
-        );
-
         const groupRegistrationsRaw = await prisma.groupRegistration.findMany({
             where: {
                 paymentStatus: { in: ["APPROVED", "REJECTED"] }
@@ -131,39 +117,44 @@ export async function getRegistrationHistory() {
             }
         });
 
-        // Fetch approver info for group registrations
-        const groupRegistrations = await Promise.all(
-            groupRegistrationsRaw.map(async (reg) => {
-                let approver = null;
-                if (reg.approvedBy) {
-                    approver = await prisma.user.findUnique({
-                        where: { id: reg.approvedBy },
-                        select: { id: true, name: true, email: true, role: true },
-                    });
-                }
-                return { ...reg, approver };
-            })
-        );
-
         const visitorPassesRaw = await prisma.visitorPassRegistration.findMany({
             where: { paymentStatus: { in: ["APPROVED", "REJECTED"] } },
             include: { user: true },
             orderBy: { updatedAt: "desc" },
         });
 
-        // Fetch approver info for visitor passes
-        const visitorPasses = await Promise.all(
-            visitorPassesRaw.map(async (pass) => {
-                let approver = null;
-                if (pass.approvedBy) {
-                    approver = await prisma.user.findUnique({
-                        where: { id: pass.approvedBy },
-                        select: { id: true, name: true, email: true, role: true },
-                    });
-                }
-                return { ...pass, approver };
-            })
+        // Batch-load approvers once to avoid N+1 queries.
+        const approverIds = Array.from(
+            new Set(
+                [
+                    ...individualRegistrationsRaw.map((reg) => reg.approvedBy).filter(Boolean),
+                    ...groupRegistrationsRaw.map((reg) => reg.approvedBy).filter(Boolean),
+                    ...visitorPassesRaw.map((pass) => pass.approvedBy).filter(Boolean),
+                ] as string[]
+            )
         );
+        const approvers = approverIds.length > 0
+            ? await prisma.user.findMany({
+                where: { id: { in: approverIds } },
+                select: { id: true, name: true, email: true, role: true },
+            })
+            : [];
+        const approverMap = new Map(approvers.map((user) => [user.id, user]));
+
+        const individualRegistrations = individualRegistrationsRaw.map((reg) => ({
+            ...reg,
+            approver: reg.approvedBy ? (approverMap.get(reg.approvedBy) ?? null) : null,
+        }));
+
+        const groupRegistrations = groupRegistrationsRaw.map((reg) => ({
+            ...reg,
+            approver: reg.approvedBy ? (approverMap.get(reg.approvedBy) ?? null) : null,
+        }));
+
+        const visitorPasses = visitorPassesRaw.map((pass) => ({
+            ...pass,
+            approver: pass.approvedBy ? (approverMap.get(pass.approvedBy) ?? null) : null,
+        }));
 
         return {
             success: true,
@@ -282,6 +273,7 @@ export async function updateRegistrationStatus(
             revalidatePath("/profile");
             revalidatePath("/profile/competitions");
             revalidatePath("/competitions");
+            revalidateTag("admin-analytics", "max");
             return { success: true, message: `Visitor pass ${status.toLowerCase()} successfully` };
         } else if (type === "INDIVIDUAL") {
             // Check if registration exists first
@@ -631,6 +623,7 @@ export async function updateRegistrationStatus(
         revalidatePath("/profile");
         revalidatePath("/profile/competitions");
         revalidatePath("/competitions");
+        revalidateTag("admin-analytics", "max");
         return { success: true, message: `Registration ${status.toLowerCase()} successfully` };
 
     } catch (error) {

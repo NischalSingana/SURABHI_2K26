@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
@@ -179,12 +179,18 @@ export default function EventsManagement() {
   const [selectedEventForSubmissions, setSelectedEventForSubmissions] = useState<Event | null>(null);
   const [expandedSubmissionId, setExpandedSubmissionId] = useState<string | null>(null);
 
-  const getSubmissionForStudent = (studentId: string) => {
-    if (!selectedEventForRegistrations?.submissions) return null;
-    return selectedEventForRegistrations.submissions.find(
-      (s) => s.userId === studentId
-    );
-  };
+  const submissionsByUserId = useMemo(() => {
+    const map = new Map<string, any>();
+    if (!selectedEventForRegistrations?.submissions) return map;
+    for (const submission of selectedEventForRegistrations.submissions) {
+      if (submission.userId && !map.has(submission.userId)) {
+        map.set(submission.userId, submission);
+      }
+    }
+    return map;
+  }, [selectedEventForRegistrations?.submissions]);
+
+  const getSubmissionForStudent = (studentId: string) => submissionsByUserId.get(studentId) ?? null;
 
   useEffect(() => {
     fetchCategoriesWithEvents();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAllUsers, approveUser, rejectUser, updatePaymentStatus, updateUserRole, updateUserDetailsByMaster } from "@/actions/admin/users.action";
 import { PaymentStatus, Role } from "@prisma/client";
@@ -76,31 +76,48 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
         setLoading(false);
     };
 
-    // Separate users: KL, other domestic, international
-    const klUsers = allUsers.filter(user => user.email.endsWith("@kluniversity.in") && !user.isInternational);
-    const internationalUsers = allUsers.filter(user => !!user.isInternational);
-    const otherUsers = allUsers.filter(user =>
-        !user.email.endsWith("@kluniversity.in") && !user.isInternational
-    );
+    const { klUsers, internationalUsers, otherUsers } = useMemo(() => {
+        const kl: User[] = [];
+        const international: User[] = [];
+        const other: User[] = [];
+        for (const user of allUsers) {
+            if (user.isInternational) {
+                international.push(user);
+            } else if (user.email.endsWith("@kluniversity.in")) {
+                kl.push(user);
+            } else {
+                other.push(user);
+            }
+        }
+        return { klUsers: kl, internationalUsers: international, otherUsers: other };
+    }, [allUsers]);
 
-    // Filter by search
-    const filteredKLUsers = klUsers.filter(user =>
-        user.name?.toLowerCase().includes(searchKL.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchKL.toLowerCase()) ||
-        user.collage?.toLowerCase().includes(searchKL.toLowerCase())
-    );
+    const filteredKLUsers = useMemo(() => {
+        const term = searchKL.toLowerCase();
+        return klUsers.filter(user =>
+            user.name?.toLowerCase().includes(term) ||
+            user.email.toLowerCase().includes(term) ||
+            user.collage?.toLowerCase().includes(term)
+        );
+    }, [klUsers, searchKL]);
 
-    const filteredOtherUsers = otherUsers.filter(user =>
-        user.name?.toLowerCase().includes(searchOther.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchOther.toLowerCase()) ||
-        user.collage?.toLowerCase().includes(searchOther.toLowerCase())
-    );
+    const filteredOtherUsers = useMemo(() => {
+        const term = searchOther.toLowerCase();
+        return otherUsers.filter(user =>
+            user.name?.toLowerCase().includes(term) ||
+            user.email.toLowerCase().includes(term) ||
+            user.collage?.toLowerCase().includes(term)
+        );
+    }, [otherUsers, searchOther]);
 
-    const filteredInternationalUsers = internationalUsers.filter(user =>
-        user.name?.toLowerCase().includes(searchInternational.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchInternational.toLowerCase()) ||
-        user.country?.toLowerCase().includes(searchInternational.toLowerCase())
-    );
+    const filteredInternationalUsers = useMemo(() => {
+        const term = searchInternational.toLowerCase();
+        return internationalUsers.filter(user =>
+            user.name?.toLowerCase().includes(term) ||
+            user.email.toLowerCase().includes(term) ||
+            user.country?.toLowerCase().includes(term)
+        );
+    }, [internationalUsers, searchInternational]);
 
     const handleApprove = async (userId: string) => {
         const result = await approveUser(userId);

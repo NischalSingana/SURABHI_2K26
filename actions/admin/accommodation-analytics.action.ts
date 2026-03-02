@@ -44,30 +44,32 @@ export async function getAccommodationAnalytics() {
       return true;
     });
 
-    // Virtual check: user must have physical reg - we verify via registration data
+    // Virtual check: user must have physical reg - compute in two bulk queries (avoid per-user N+1 counts)
     const userIds = [...new Set(eligibleBookings.map((b) => b.userId))];
-    const physicalRegs = await Promise.all(
-      userIds.map(async (uid) => {
-        const [indiv, group] = await Promise.all([
-          prisma.individualRegistration.count({
-            where: {
-              userId: uid,
-              paymentStatus: { in: ["PENDING", "APPROVED"] },
-              isVirtual: false,
-            },
-          }),
-          prisma.groupRegistration.count({
-            where: {
-              userId: uid,
-              paymentStatus: { in: ["PENDING", "APPROVED"] },
-              isVirtual: false,
-            },
-          }),
-        ]);
-        return { userId: uid, hasPhysical: indiv > 0 || group > 0 };
-      })
-    );
-    const physicalUserIds = new Set(physicalRegs.filter((r) => r.hasPhysical).map((r) => r.userId));
+    const [physicalIndividualUserRows, physicalGroupUserRows] = await Promise.all([
+      prisma.individualRegistration.findMany({
+        where: {
+          userId: { in: userIds },
+          paymentStatus: { in: ["PENDING", "APPROVED"] },
+          isVirtual: false,
+        },
+        select: { userId: true },
+        distinct: ["userId"],
+      }),
+      prisma.groupRegistration.findMany({
+        where: {
+          userId: { in: userIds },
+          paymentStatus: { in: ["PENDING", "APPROVED"] },
+          isVirtual: false,
+        },
+        select: { userId: true },
+        distinct: ["userId"],
+      }),
+    ]);
+    const physicalUserIds = new Set<string>([
+      ...physicalIndividualUserRows.map((row) => row.userId),
+      ...physicalGroupUserRows.map((row) => row.userId),
+    ]);
 
     // Build competition list per user (physical + active regs only)
     const [individualRegs, groupRegs] = await Promise.all([

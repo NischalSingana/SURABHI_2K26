@@ -204,6 +204,9 @@ model GroupRegistration {
   @@index([userId])
   @@index([isVirtual])
   @@index([paymentStatus])
+  @@index([paymentStatus, updatedAt])
+  @@index([userId, paymentStatus, isVirtual])
+  @@index([eventId, paymentStatus])
   @@index([approvedBy])
   @@map("group_registrations")
 }
@@ -233,6 +236,8 @@ model AccommodationBooking {
   @@unique([userId, gender])
   @@index([paymentStatus])
   @@index([status])
+  @@index([status, createdAt])
+  @@index([userId, status])
   @@index([passToken])
   @@map("accommodation_bookings")
 }
@@ -276,6 +281,9 @@ model IndividualRegistration {
   @@index([userId])
   @@index([isVirtual])
   @@index([paymentStatus])
+  @@index([paymentStatus, updatedAt])
+  @@index([userId, paymentStatus, isVirtual])
+  @@index([eventId, paymentStatus])
   @@index([approvedBy])
   @@map("individual_registrations")
 }

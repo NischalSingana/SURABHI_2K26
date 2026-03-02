@@ -307,7 +307,7 @@ function EventDetailPageContent() {
 
   /* Google check removed */
   const isEsportsEvent = categorySlug.toLowerCase().includes("kurukshetra") || (event?.Category?.name ?? "").toLowerCase().includes("kurukshetra");
-  const regClosed = isOnlineRegistrationClosed() && !isEsportsEvent;
+  const regClosed = isOnlineRegistrationClosed() && !isEsportsEvent && !isInternational;
 
   // Lock body scroll when any modal is open
   useEffect(() => {
@@ -857,7 +857,7 @@ function EventDetailPageContent() {
                     </div>
                   </div>
                 </div>
-              ) : !isEsportsEvent ? (
+              ) : !isEsportsEvent && !isInternational ? (
                 <div className="mt-6">
                   <button
                     disabled

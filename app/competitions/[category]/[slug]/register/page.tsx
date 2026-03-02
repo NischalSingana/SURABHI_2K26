@@ -449,22 +449,25 @@ export default function EventRegistrationPage() {
             }
         }
 
-        if (!paymentDetails.screenshot || !paymentDetails.utrId || !paymentDetails.payeeName) {
-            toast.error("Please complete all payment details (Upload Screenshot, UTR, Payee Name)");
-            return;
-        }
+        const skipPaymentForInternational = isInternational;
+        if (!skipPaymentForInternational) {
+            if (!paymentDetails.screenshot || !paymentDetails.utrId || !paymentDetails.payeeName) {
+                toast.error("Please complete all payment details (Upload Screenshot, UTR, Payee Name)");
+                return;
+            }
 
-        // Validate UTR ID format (12 digits)
-        if (!/^\d{12}$/.test(paymentDetails.utrId.trim())) {
-            toast.error("UTR ID must be exactly 12 digits");
-            return;
-        }
+            // Validate UTR ID format (12 digits)
+            if (!/^\d{12}$/.test(paymentDetails.utrId.trim())) {
+                toast.error("UTR ID must be exactly 12 digits");
+                return;
+            }
 
-        // Validate payee name
-        const payeeNameValidation = validateMemberName(paymentDetails.payeeName);
-        if (!payeeNameValidation.valid) {
-            toast.error(`Payee ${payeeNameValidation.error}`);
-            return;
+            // Validate payee name
+            const payeeNameValidation = validateMemberName(paymentDetails.payeeName);
+            if (!payeeNameValidation.valid) {
+                toast.error(`Payee ${payeeNameValidation.error}`);
+                return;
+            }
         }
 
         // Preflight: avoid submitting from stale client after a deployment switch.
@@ -497,7 +500,7 @@ export default function EventRegistrationPage() {
         try {
             let uploadedScreenshotUrl = "";
 
-            if (paymentDetails.screenshot) {
+            if (!skipPaymentForInternational && paymentDetails.screenshot) {
                 const screenshotFile = paymentDetails.screenshot;
                 uploadedScreenshotUrl = await withRetry(async () => {
                     const uploadResult = await uploadPaymentScreenshotWithFallback(screenshotFile);
@@ -518,7 +521,7 @@ export default function EventRegistrationPage() {
             const isKLStudent = !!session?.user?.email?.toLowerCase().endsWith("@kluniversity.in") || userCollege === "kl university";
             const eventCategoryName = event.Category?.name?.toLowerCase() ?? "";
             const isKurukshetraEvent = categorySlug.toLowerCase().includes("kurukshetra") || eventCategoryName.includes("kurukshetra");
-            const selectedVirtualMode = isKurukshetraEvent ? !isKLStudent : isVirtual;
+            const selectedVirtualMode = isInternational ? true : (isKurukshetraEvent ? !isKLStudent : isVirtual);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const regDetails: Record<string, any> = isVastranaut ? { styleDNA } : {};
@@ -538,7 +541,7 @@ export default function EventRegistrationPage() {
                         mentorName: event.isGroupEvent ? mentorName : undefined,
                         mentorPhone: event.isGroupEvent ? mentorPhone : undefined,
                         registrationDetails: Object.keys(regDetails).length ? regDetails : undefined,
-                        paymentDetails: paymentData,
+                        paymentDetails: skipPaymentForInternational ? undefined : paymentData,
                         isVirtual: selectedVirtualMode,
                     }),
                 { retries: 1, delayMs: 1200 }
@@ -624,6 +627,12 @@ export default function EventRegistrationPage() {
         if (event?.isGroupEvent) {
             setIsReviewing(true);
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
+        // International users register directly (virtual + free); others continue to payment.
+        if (isInternational) {
+            void processPaymentAndRegister();
             return;
         }
 
@@ -733,7 +742,9 @@ export default function EventRegistrationPage() {
     const isKurukshetraEvent = categorySlug.toLowerCase().includes("kurukshetra") || eventCategoryName.includes("kurukshetra");
     const isKurukshetraOtherCollegeVirtualOnly = isKurukshetraEvent && !isKLStudent;
     const isKurukshetraKLPhysicalOnly = isKurukshetraEvent && isKLStudent;
-    const effectiveIsVirtual = isKurukshetraOtherCollegeVirtualOnly ? true : (isKurukshetraKLPhysicalOnly ? false : isVirtual);
+    const effectiveIsVirtual = isInternational
+        ? true
+        : (isKurukshetraOtherCollegeVirtualOnly ? true : (isKurukshetraKLPhysicalOnly ? false : isVirtual));
     const virtualEligibility = session?.user ? checkVirtualEligibility({
         email: session.user.email,
         state: (session.user as { state?: string }).state,
@@ -742,10 +753,10 @@ export default function EventRegistrationPage() {
     }) : { isEligible: false };
     
     const memberCount = event.isGroupEvent ? teamSize : 1;
-    const feePerPerson = getRegistrationFee(effectiveIsVirtual);
+    const feePerPerson = isInternational ? 0 : getRegistrationFee(effectiveIsVirtual);
     const totalFee = memberCount * feePerPerson;
 
-    if (isOnlineRegistrationClosed() && !isKurukshetraEvent) {
+    if (!isInternational && isOnlineRegistrationClosed() && !isKurukshetraEvent) {
         return (
             <div className="min-h-screen bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-xl mx-auto">
@@ -775,7 +786,7 @@ export default function EventRegistrationPage() {
         );
     }
 
-    if (!isKurukshetraEvent) {
+    if (!isInternational && !isKurukshetraEvent) {
         return (
             <div className="min-h-screen bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-xl mx-auto">
@@ -830,7 +841,9 @@ export default function EventRegistrationPage() {
                         {isKurukshetraOtherCollegeVirtualOnly && (
                             <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg inline-block">
                                 <p className="text-emerald-300 text-sm font-medium">
-                                    ℹ️ Kurukshetra: Other college and international participants must join virtual mode only. Fee: ₹150 per member.
+                                    {isInternational
+                                        ? "ℹ️ International participants: virtual participation only. Registration is free."
+                                        : "ℹ️ Kurukshetra: Other college participants must join virtual mode only. Fee: ₹150 per member."}
                                 </p>
                             </div>
                         )}
@@ -962,10 +975,16 @@ export default function EventRegistrationPage() {
                                     <FiEdit2 /> Edit Details
                                 </button>
                                 <button
-                                    onClick={() => setShowPaymentModal(true)}
+                                    onClick={() => {
+                                        if (isInternational) {
+                                            void processPaymentAndRegister();
+                                            return;
+                                        }
+                                        setShowPaymentModal(true);
+                                    }}
                                     className="flex-1 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-red-600/20"
                                 >
-                                    Proceed to Payment
+                                    {isInternational ? "Submit Registration" : "Proceed to Payment"}
                                 </button>
                             </div>
                         </div>
@@ -1343,7 +1362,7 @@ export default function EventRegistrationPage() {
                                     <div className="p-4 rounded-lg border-2 border-emerald-600 bg-emerald-600/10">
                                         <div className="flex items-center justify-between">
                                             <span className="text-white font-semibold">Virtual Participation (Mandatory)</span>
-                                            <span className="text-red-500 font-bold">₹{REGISTRATION_FEES.VIRTUAL}</span>
+                                            <span className="text-red-500 font-bold">{isInternational ? "FREE" : `₹${REGISTRATION_FEES.VIRTUAL}`}</span>
                                         </div>
                                         <p className="text-zinc-300 text-sm mt-1">
                                             Other college and international participants must participate online for Kurukshetra.
@@ -1509,7 +1528,9 @@ export default function EventRegistrationPage() {
                                     disabled={!acceptedTerms || registering || (isVastranaut && !styleDNA) || (event.isGroupEvent && (!groupName || teamSize < event.minTeamSize || teamSize > event.maxTeamSize))}
                                     className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {event.isGroupEvent ? "Review Details" : "Proceed to Payment"}
+                                    {event.isGroupEvent
+                                        ? "Review Details"
+                                        : (isInternational ? "Submit Registration" : "Proceed to Payment")}
                                 </button>
                             </div>
                         </div>
