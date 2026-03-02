@@ -6,6 +6,7 @@ import { Role, Prisma } from "@prisma/client";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { logAdminActivity } from "@/lib/admin-logs";
+import { approveBookingInternal } from "@/actions/admin/accommodation.action";
 
 interface GroupMember {
     name: string;
@@ -29,8 +30,8 @@ export async function getPendingRegistrations() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.MASTER && session.user.role !== Role.ADMIN && session.user.role !== Role.MANAGER)) {
-            return { success: false, error: "Unauthorized. Admin, Manager, or Master only." };
+        if (!session || (session.user.role !== Role.MASTER && session.user.role !== Role.ADMIN)) {
+            return { success: false, error: "Unauthorized. Admin or Master only." };
         }
 
         const individualRegistrations = await prisma.individualRegistration.findMany({
@@ -86,8 +87,8 @@ export async function getRegistrationHistory() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.MASTER && session.user.role !== Role.ADMIN && session.user.role !== Role.MANAGER)) {
-            return { success: false, error: "Unauthorized. Admin, Manager, or Master only." };
+        if (!session || (session.user.role !== Role.MASTER && session.user.role !== Role.ADMIN)) {
+            return { success: false, error: "Unauthorized. Admin or Master only." };
         }
 
         const individualRegistrationsRaw = await prisma.individualRegistration.findMany({
@@ -189,8 +190,8 @@ export async function updateRegistrationStatus(
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.MASTER && session.user.role !== Role.ADMIN && session.user.role !== Role.MANAGER)) {
-            return { success: false, error: "Unauthorized. Admin, Manager, or Master only." };
+        if (!session || (session.user.role !== Role.MASTER && session.user.role !== Role.ADMIN)) {
+            return { success: false, error: "Unauthorized. Admin or Master only." };
         }
 
         if (type === "VISITOR_PASS") {
@@ -352,6 +353,34 @@ export async function updateRegistrationStatus(
             }
 
             if (status === "APPROVED") {
+                try {
+                    const manualContactEmail = getManualContactEmail(registration.registrationDetails);
+                    const accommodationEmails = [registration.user.email, manualContactEmail].filter(
+                        (value): value is string => !!value
+                    );
+                    const pendingAccommodationBookings = await prisma.accommodationBooking.findMany({
+                        where: {
+                            status: "PENDING",
+                            OR: [
+                                { userId: registration.userId },
+                                ...(accommodationEmails.length > 0
+                                    ? [{ primaryEmail: { in: accommodationEmails } }]
+                                    : []),
+                            ],
+                        },
+                        select: { id: true },
+                    });
+                    for (const booking of pendingAccommodationBookings) {
+                        try {
+                            await approveBookingInternal(booking.id);
+                        } catch (bookingError) {
+                            console.error("Failed to auto-approve accommodation booking:", bookingError);
+                        }
+                    }
+                } catch (accommodationError) {
+                    console.error("Failed to auto-approve accommodation for individual approval:", accommodationError);
+                }
+
                 const userFull = await prisma.user.findUnique({
                     where: { id: registration.userId },
                     select: { id: true, name: true, email: true, phone: true, collage: true, collageId: true, gender: true, state: true, city: true, isInternational: true },
@@ -490,6 +519,34 @@ export async function updateRegistrationStatus(
             }
 
             if (status === "APPROVED") {
+                try {
+                    const manualContactEmail = getManualContactEmail(registration.registrationDetails);
+                    const accommodationEmails = [registration.user.email, manualContactEmail].filter(
+                        (value): value is string => !!value
+                    );
+                    const pendingAccommodationBookings = await prisma.accommodationBooking.findMany({
+                        where: {
+                            status: "PENDING",
+                            OR: [
+                                { userId: registration.userId },
+                                ...(accommodationEmails.length > 0
+                                    ? [{ primaryEmail: { in: accommodationEmails } }]
+                                    : []),
+                            ],
+                        },
+                        select: { id: true },
+                    });
+                    for (const booking of pendingAccommodationBookings) {
+                        try {
+                            await approveBookingInternal(booking.id);
+                        } catch (bookingError) {
+                            console.error("Failed to auto-approve accommodation booking:", bookingError);
+                        }
+                    }
+                } catch (accommodationError) {
+                    console.error("Failed to auto-approve accommodation for group approval:", accommodationError);
+                }
+
                 const lead = await prisma.user.findUnique({
                     where: { id: registration.userId },
                     select: { id: true, name: true, email: true, phone: true, collage: true, collageId: true, gender: true, state: true, city: true, isInternational: true },

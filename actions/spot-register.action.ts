@@ -231,6 +231,18 @@ export async function spotRegisterUser(
     manualLeadPhone?: string;
     manualLeadGender?: "MALE" | "FEMALE" | "OTHER";
     manualCollegeName?: string;
+  },
+  accommodationRequest?: {
+    required: boolean;
+    bookings: {
+      gender: "MALE" | "FEMALE";
+      bookingType: "INDIVIDUAL" | "GROUP";
+      primaryName: string;
+      primaryEmail: string;
+      primaryPhone: string;
+      numberOfGuests: number;
+      groupMembers: { name: string; phone: string; email?: string; gender?: string }[];
+    }[];
   }
 ) {
   const headersList = await headers();
@@ -245,7 +257,7 @@ export async function spotRegisterUser(
     phone: groupDetails.teamLeadPhone,
   })) ?? [];
 
-  return registerUserByAdmin(
+  const registrationResult = await registerUserByAdmin(
     targetEmail,
     eventId,
     paymentDetails,
@@ -267,4 +279,94 @@ export async function spotRegisterUser(
       allowManager: true,
     }
   );
+
+  if (!registrationResult.success || !accommodationRequest?.required) {
+    return registrationResult;
+  }
+
+  try {
+    const normalizedEmail = targetEmail.trim().toLowerCase();
+    const leadUser = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true, name: true, email: true, phone: true },
+    });
+
+    if (!leadUser) {
+      return {
+        ...registrationResult,
+        message: `${registrationResult.message} Registration completed, but accommodation could not be created because the participant user record was not found.`,
+      };
+    }
+
+    const notes: string[] = [];
+    let createdCount = 0;
+    let skippedCount = 0;
+
+    for (const booking of accommodationRequest.bookings || []) {
+      const gender = booking.gender === "FEMALE" ? "FEMALE" : "MALE";
+      const guestCount = Math.max(1, Number(booking.numberOfGuests || 1));
+      const bookingType = guestCount > 1 ? "GROUP" : "INDIVIDUAL";
+      const primaryName = booking.primaryName?.trim() || leadUser.name || "Participant";
+      const primaryEmail = booking.primaryEmail?.trim() || leadUser.email;
+      const primaryPhone = booking.primaryPhone?.trim() || leadUser.phone || "0000000000";
+
+      const existingActive = await prisma.accommodationBooking.findFirst({
+        where: {
+          userId: leadUser.id,
+          gender,
+          status: { notIn: ["REJECTED", "CANCELLED"] },
+        },
+        select: { id: true },
+      });
+
+      if (existingActive) {
+        skippedCount += 1;
+        notes.push(`Skipped ${gender.toLowerCase()} booking (already exists).`);
+        continue;
+      }
+
+      const groupMembers = (booking.groupMembers || []).map((m) => ({
+        name: m.name?.trim() || "Member",
+        phone: m.phone?.trim() || "",
+        email: m.email?.trim() || "",
+        gender: m.gender?.toString().trim() || "",
+      }));
+
+      await prisma.accommodationBooking.create({
+        data: {
+          userId: leadUser.id,
+          gender,
+          bookingType,
+          primaryName,
+          primaryEmail,
+          primaryPhone,
+          totalMembers: guestCount,
+          groupMembers: groupMembers as unknown as any,
+          amount: 0,
+          paymentStatus: "PENDING",
+          status: "PENDING",
+        },
+      });
+
+      createdCount += 1;
+    }
+
+    if (createdCount > 0) {
+      notes.unshift(`${createdCount} accommodation booking(s) created as pending.`);
+    }
+    if (skippedCount > 0) {
+      notes.push(`${skippedCount} booking(s) skipped due to existing active gender booking.`);
+    }
+
+    return {
+      ...registrationResult,
+      message: notes.length > 0 ? `${registrationResult.message} ${notes.join(" ")}` : registrationResult.message,
+    };
+  } catch (error) {
+    console.error("spotRegisterUser accommodation creation error:", error);
+    return {
+      ...registrationResult,
+      message: `${registrationResult.message} Registration completed, but accommodation creation failed.`,
+    };
+  }
 }

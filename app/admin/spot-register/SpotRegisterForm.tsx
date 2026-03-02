@@ -26,6 +26,16 @@ interface SearchedUser {
   collageId: string | null;
 }
 
+type AccommodationBookingDraft = {
+  gender: "MALE" | "FEMALE";
+  bookingType: "INDIVIDUAL" | "GROUP";
+  primaryName: string;
+  primaryEmail: string;
+  primaryPhone: string;
+  numberOfGuests: number;
+  groupMembers: { name: string; phone: string; email?: string; gender?: string }[];
+};
+
 export default function SpotRegisterForm({ categories }: { categories: CategoryWithEvents[] }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -56,11 +66,15 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
   const [manualState, setManualState] = useState("Andhra Pradesh");
   const [manualCity, setManualCity] = useState("");
   const [manualPassword, setManualPassword] = useState("");
+  const [showManualPassword, setShowManualPassword] = useState(false);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchedUser[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [accommodationRequired, setAccommodationRequired] = useState(false);
+  const [showAccommodationReview, setShowAccommodationReview] = useState(false);
+  const [reviewBookings, setReviewBookings] = useState<AccommodationBookingDraft[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputContainerRef = useRef<HTMLDivElement>(null);
   const [pending, startTransition] = useTransition();
@@ -165,6 +179,105 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
     leadProfile.isInternational ? 0 : teamSize * REGISTRATION_FEES.PHYSICAL;
 
   const clampTeamSize = (n: number) => Math.max(minTeamSize, Math.min(maxTeamSize, n));
+  const requiredAdditionalMembers = Math.max(0, teamSize - 1);
+  const groupMembersCompleted = !isGroupEvent || teamMembers.length === requiredAdditionalMembers;
+
+  const normalizeGender = (value?: string | null): "MALE" | "FEMALE" | null => {
+    const g = (value || "").toString().trim().toUpperCase();
+    if (g === "MALE" || g === "M") return "MALE";
+    if (g === "FEMALE" || g === "F") return "FEMALE";
+    return null;
+  };
+
+  const buildAccommodationDrafts = (): { bookings: AccommodationBookingDraft[]; error?: string } => {
+    if (!displayUser) return { bookings: [], error: "User details are missing." };
+    if (!selectedEvent) return { bookings: [], error: "Select an event first." };
+
+    const leadGender = normalizeGender(displayUser.gender);
+    if (!leadGender) {
+      return { bookings: [], error: "Team lead gender must be Male or Female for accommodation auto-booking." };
+    }
+
+    if (!isGroupEvent) {
+      return {
+        bookings: [
+          {
+            gender: leadGender,
+            bookingType: "INDIVIDUAL",
+            primaryName: displayUser.name?.trim() || "Participant",
+            primaryEmail: displayUser.email?.trim() || "",
+            primaryPhone: (displayUser.phone || "0000000000").trim(),
+            numberOfGuests: 1,
+            groupMembers: [],
+          },
+        ],
+      };
+    }
+
+    type Participant = {
+      name: string;
+      gender: "MALE" | "FEMALE";
+      phone: string;
+      email?: string;
+      isLead?: boolean;
+    };
+
+    const participants: Participant[] = [
+      {
+        name: displayUser.name?.trim() || "Team Lead",
+        gender: leadGender,
+        phone: (displayUser.phone || "0000000000").trim(),
+        email: displayUser.email?.trim() || "",
+        isLead: true,
+      },
+    ];
+
+    for (const member of teamMembers) {
+      const memberGender = normalizeGender(member.gender);
+      if (!memberGender) {
+        return {
+          bookings: [],
+          error: `Member "${member.name}" has unsupported gender for auto accommodation. Use Male/Female.`,
+        };
+      }
+      participants.push({
+        name: member.name.trim(),
+        gender: memberGender,
+        phone: "",
+      });
+    }
+
+    const makeBooking = (gender: "MALE" | "FEMALE"): AccommodationBookingDraft | null => {
+      const list = participants.filter((p) => p.gender === gender);
+      if (list.length === 0) return null;
+      const primary = list.find((p) => p.isLead) || list[0];
+      const others = list.filter((p) => p !== primary);
+      return {
+        gender,
+        bookingType: list.length > 1 ? "GROUP" : "INDIVIDUAL",
+        primaryName: primary.name,
+        primaryEmail: primary.email || displayUser.email?.trim() || "",
+        primaryPhone: primary.phone || (displayUser.phone || "0000000000").trim(),
+        numberOfGuests: list.length,
+        groupMembers: others.map((p) => ({
+          name: p.name,
+          phone: p.phone || "",
+          email: p.email || "",
+          gender: p.gender,
+        })),
+      };
+    };
+
+    const male = makeBooking("MALE");
+    const female = makeBooking("FEMALE");
+    const bookings = [male, female].filter(Boolean) as AccommodationBookingDraft[];
+
+    if (bookings.length === 0) {
+      return { bookings: [], error: "Unable to prepare accommodation groups." };
+    }
+
+    return { bookings };
+  };
 
   const handleFetchUser = async () => {
     const normalized = email.trim().toLowerCase();
@@ -284,12 +397,14 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
         setManualState("Andhra Pradesh");
         setManualCity("");
     setManualPassword("");
+    setShowManualPassword(false);
+    setAccommodationRequired(false);
+    setShowAccommodationReview(false);
+    setReviewBookings([]);
     router.refresh();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const submitRegistration = async (skipAccommodationReview: boolean) => {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) {
       toast.error("Enter email");
@@ -341,6 +456,21 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
       const required = Math.max(0, teamSize - 1);
       if (teamMembers.length !== required) {
         toast.error(`Add exactly ${required} team member(s)`);
+        return;
+      }
+    }
+
+    let accommodationDrafts: AccommodationBookingDraft[] = [];
+    if (accommodationRequired) {
+      const draftResult = buildAccommodationDrafts();
+      if (draftResult.error) {
+        toast.error(draftResult.error);
+        return;
+      }
+      accommodationDrafts = draftResult.bookings;
+      if (!skipAccommodationReview) {
+        setReviewBookings(accommodationDrafts);
+        setShowAccommodationReview(true);
         return;
       }
     }
@@ -422,7 +552,13 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
               ? manualGender
               : (editDetails.gender as "MALE" | "FEMALE" | "OTHER") || undefined,
           manualCollegeName: !didCreateUser && userNotFound ? manualCollege.trim() : undefined,
-        }
+        },
+        accommodationRequired
+          ? {
+              required: true,
+              bookings: accommodationDrafts,
+            }
+          : undefined
       );
 
       if (res.success) {
@@ -432,6 +568,11 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
         toast.error(res.error);
       }
     });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await submitRegistration(false);
   };
 
   const displayUser = fetchedUser
@@ -635,19 +776,28 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
             </div>
             <div>
               <label className="block text-xs text-zinc-500 mb-1">Year</label>
-              <input
-                type="number"
-                min={1}
-                max={5}
-                value={userNotFound ? (manualYear === "" ? "" : manualYear) : (editDetails.year ?? fetchedUser?.year ?? "")}
+              <select
+                value={
+                  userNotFound
+                    ? (manualYear === "" ? "" : String(manualYear))
+                    : (editDetails.year ?? fetchedUser?.year ?? "") === ""
+                      ? ""
+                      : String(editDetails.year ?? fetchedUser?.year ?? "")
+                }
                 onChange={(e) =>
                   userNotFound
                     ? setManualYear(e.target.value ? parseInt(e.target.value, 10) : "")
                     : setEditDetails((p) => ({ ...p, year: e.target.value ? parseInt(e.target.value, 10) : null }))
                 }
                 className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
-                placeholder="1–5"
-              />
+              >
+                <option value="">Select Year</option>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+                <option value="5">5th Year</option>
+              </select>
             </div>
             <div>
               <label className="block text-xs text-zinc-500 mb-1">Country</label>
@@ -688,13 +838,22 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
             {userNotFound && (
               <div>
                 <label className="block text-xs text-zinc-500 mb-1">Password (for login)</label>
-                <input
-                  type="password"
-                  value={manualPassword}
-                  onChange={(e) => setManualPassword(e.target.value)}
-                  className="w-full bg-zinc-800 p-2 rounded text-white border border-zinc-700"
-                  placeholder="Min 6 characters"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type={showManualPassword ? "text" : "password"}
+                    value={manualPassword}
+                    onChange={(e) => setManualPassword(e.target.value)}
+                    className="flex-1 bg-zinc-800 p-2 rounded text-white border border-zinc-700"
+                    placeholder="Min 6 characters"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowManualPassword((prev) => !prev)}
+                    className="px-3 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded text-sm border border-zinc-600"
+                  >
+                    {showManualPassword ? "Hide" : "See"}
+                  </button>
+                </div>
                 <p className="text-xs text-zinc-500 mt-1">They will use this with their email to log in at /login</p>
               </div>
             )}
@@ -834,6 +993,32 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
 
       {/* Payment */}
       {displayUser && selectedEvent && (
+        <div className="bg-zinc-900 p-6 rounded-lg border border-zinc-800 space-y-3">
+          <h3 className="text-lg font-semibold text-white">Accommodation</h3>
+          <label className="inline-flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={accommodationRequired}
+              onChange={(e) => setAccommodationRequired(e.target.checked)}
+              disabled={isGroupEvent && !groupMembersCompleted}
+              className="mt-1 h-4 w-4 rounded border-zinc-600 bg-zinc-800 text-red-600 focus:ring-red-500 disabled:opacity-50"
+            />
+            <span className="text-zinc-300 text-sm">
+              Accommodation required
+              <span className="block text-xs text-zinc-500 mt-1">
+                Free accommodation. {isGroupEvent ? "For group events, boys and girls are auto-split into separate bookings." : "For solo events, one individual booking is created."}
+              </span>
+            </span>
+          </label>
+          {isGroupEvent && !groupMembersCompleted && (
+            <p className="text-xs text-amber-400">
+              Add exactly {requiredAdditionalMembers} team member(s) to enable accommodation request.
+            </p>
+          )}
+        </div>
+      )}
+
+      {displayUser && selectedEvent && (
         <div className="bg-zinc-900 p-6 rounded-lg border border-zinc-800 space-y-4">
           <h3 className="text-lg font-semibold text-white">Payment</h3>
           <div className="flex flex-col gap-1">
@@ -918,6 +1103,60 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
         >
           {pending ? "Registering..." : "Complete Spot Registration"}
         </button>
+      )}
+
+      {showAccommodationReview && (
+        <div className="fixed inset-0 z-[10000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl bg-zinc-900 border border-zinc-700 rounded-xl p-6 space-y-4">
+            <h3 className="text-xl font-semibold text-white">Review Accommodation Booking Details</h3>
+            <p className="text-sm text-zinc-400">
+              Please confirm the auto-generated accommodation booking groups before completing spot registration.
+            </p>
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
+              {reviewBookings.map((booking, idx) => (
+                <div key={`${booking.gender}-${idx}`} className="border border-zinc-700 rounded-lg p-4 bg-zinc-800/40">
+                  <p className="text-sm text-zinc-300">
+                    <span className="font-semibold text-white">{booking.gender === "MALE" ? "Boys" : "Girls"}</span> · {booking.bookingType} · {booking.numberOfGuests} Guest(s)
+                  </p>
+                  <p className="text-sm text-zinc-400 mt-1">
+                    Primary: <span className="text-zinc-200">{booking.primaryName}</span>
+                  </p>
+                  {booking.groupMembers.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs text-zinc-500 mb-1">Group Members</p>
+                      <ul className="space-y-1">
+                        {booking.groupMembers.map((m, mIdx) => (
+                          <li key={`${m.name}-${mIdx}`} className="text-sm text-zinc-300">
+                            {m.name} {m.gender ? `(${m.gender})` : ""}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowAccommodationReview(false)}
+                className="px-4 py-2 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setShowAccommodationReview(false);
+                  await submitRegistration(true);
+                }}
+                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold"
+              >
+                Confirm and Complete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </form>
   );

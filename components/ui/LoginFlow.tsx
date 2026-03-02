@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiChevronRight, FiMail, FiLock } from "react-icons/fi";
+import { FiChevronRight, FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import SignInOAuthButton from "./signInOAuthButton";
 import { useSession, signIn } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
@@ -14,6 +14,7 @@ type College = "KL_UNIVERSITY" | "OTHER" | "INTERNATIONAL" | "SPOT_EMAIL" | "";
 function SpotEmailLoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -71,13 +72,21 @@ function SpotEmailLoginForm() {
           <div className="relative">
             <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               autoComplete="current-password"
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500/50"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg py-3 pl-10 pr-12 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500/50"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <FiEyeOff /> : <FiEye />}
+            </button>
           </div>
         </div>
         <button

@@ -742,6 +742,101 @@ export async function getAccommodationExcelDataByDays(selectedDays: number[]): P
     }
 }
 
+export async function approveBookingInternal(bookingId: string) {
+    const passToken = generateAccommodationPassToken();
+
+    const booking = await prisma.accommodationBooking.update({
+        where: { id: bookingId },
+        data: {
+            status: BookingStatus.CONFIRMED,
+            paymentStatus: PaymentStatus.APPROVED,
+            passToken,
+        },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    collage: true,
+                    collageId: true,
+                    individualRegistrations: {
+                        where: { paymentStatus: "APPROVED" },
+                        include: {
+                            event: {
+                                select: {
+                                    name: true,
+                                    Category: { select: { name: true } },
+                                },
+                            },
+                        },
+                    },
+                    groupRegistrations: {
+                        where: { paymentStatus: "APPROVED" },
+                        include: {
+                            event: {
+                                select: {
+                                    name: true,
+                                    Category: { select: { name: true } },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    });
+
+    const members = [
+        { name: booking.primaryName, email: booking.primaryEmail, phone: booking.primaryPhone || "" },
+        ...((booking.groupMembers as any[]) || []).map((m: any) => ({
+            name: m.name || "Unknown",
+            email: m.email || "",
+            phone: m.phone || "",
+        })),
+    ];
+
+    const individualEvents = (booking.user.individualRegistrations || []).map((r: any) => ({
+        name: r.event?.name,
+        category: r.event?.Category?.name,
+    }));
+    const groupEvents = (booking.user.groupRegistrations || []).map((r: any) => ({
+        name: r.event?.name,
+        category: r.event?.Category?.name,
+    }));
+    const competitions = [...individualEvents, ...groupEvents];
+
+    const pdfData = {
+        passToken,
+        primaryName: booking.primaryName,
+        primaryEmail: booking.primaryEmail,
+        primaryPhone: booking.primaryPhone || "",
+        collage: booking.user.collage,
+        collageId: booking.user.collageId,
+        gender: booking.gender,
+        bookingType: booking.bookingType,
+        members,
+        competitions,
+    };
+
+    const pdfBuffer = await generateAccommodationPassPDF(pdfData);
+
+    await sendAccommodationConfirmationEmail(
+        { name: booking.user.name || booking.primaryName, email: booking.primaryEmail },
+        {
+            primaryName: booking.primaryName,
+            primaryEmail: booking.primaryEmail,
+            primaryPhone: booking.primaryPhone || "",
+            bookingType: booking.bookingType,
+            gender: booking.gender,
+            totalMembers: booking.totalMembers,
+            members,
+            competitions,
+        },
+        pdfBuffer
+    );
+}
+
 export async function approveBooking(bookingId: string) {
     try {
         const headersList = await headers();
@@ -753,98 +848,7 @@ export async function approveBooking(bookingId: string) {
             throw new Error("Unauthorized");
         }
 
-        const passToken = generateAccommodationPassToken();
-
-        const booking = await prisma.accommodationBooking.update({
-            where: { id: bookingId },
-            data: {
-                status: BookingStatus.CONFIRMED,
-                paymentStatus: PaymentStatus.APPROVED,
-                passToken,
-            },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        collage: true,
-                        collageId: true,
-                        individualRegistrations: {
-                            where: { paymentStatus: "APPROVED" },
-                            include: {
-                                event: {
-                                    select: {
-                                        name: true,
-                                        Category: { select: { name: true } },
-                                    },
-                                },
-                            },
-                        },
-                        groupRegistrations: {
-                            where: { paymentStatus: "APPROVED" },
-                            include: {
-                                event: {
-                                    select: {
-                                        name: true,
-                                        Category: { select: { name: true } },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-        });
-
-        const members = [
-            { name: booking.primaryName, email: booking.primaryEmail, phone: booking.primaryPhone || "" },
-            ...((booking.groupMembers as any[]) || []).map((m: any) => ({
-                name: m.name || "Unknown",
-                email: m.email || "",
-                phone: m.phone || "",
-            })),
-        ];
-
-        const individualEvents = (booking.user.individualRegistrations || []).map((r: any) => ({
-            name: r.event?.name,
-            category: r.event?.Category?.name,
-        }));
-        const groupEvents = (booking.user.groupRegistrations || []).map((r: any) => ({
-            name: r.event?.name,
-            category: r.event?.Category?.name,
-        }));
-        const competitions = [...individualEvents, ...groupEvents];
-
-        const pdfData = {
-            passToken,
-            primaryName: booking.primaryName,
-            primaryEmail: booking.primaryEmail,
-            primaryPhone: booking.primaryPhone || "",
-            collage: booking.user.collage,
-            collageId: booking.user.collageId,
-            gender: booking.gender,
-            bookingType: booking.bookingType,
-            members,
-            competitions,
-        };
-
-        const pdfBuffer = await generateAccommodationPassPDF(pdfData);
-
-        await sendAccommodationConfirmationEmail(
-            { name: booking.user.name || booking.primaryName, email: booking.primaryEmail },
-            {
-                primaryName: booking.primaryName,
-                primaryEmail: booking.primaryEmail,
-                primaryPhone: booking.primaryPhone || "",
-                bookingType: booking.bookingType,
-                gender: booking.gender,
-                totalMembers: booking.totalMembers,
-                members,
-                competitions,
-            },
-            pdfBuffer
-        );
+        await approveBookingInternal(bookingId);
 
         return { success: true, message: "Booking approved successfully. Email sent with accommodation pass." };
     } catch (error: any) {
