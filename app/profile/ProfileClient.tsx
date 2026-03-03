@@ -86,6 +86,12 @@ interface ProfileClientProps {
   hasMicrosoftAccount: boolean;
 }
 
+function isPhotographyEvaluationEvent(event: Pick<Event, "name" | "Category">): boolean {
+  const categoryName = event.Category?.name?.toLowerCase() || "";
+  const eventName = event.name?.toLowerCase() || "";
+  return categoryName.includes("photography") || eventName.includes("photography");
+}
+
 export default function ProfileClient({
   user,
   registeredEvents,
@@ -1166,21 +1172,23 @@ export default function ProfileClient({
                         )}
 
                         {/* View Results Button */}
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => {
-                            if (event.isResultPublished) {
-                              router.push(`/results?category=${event.Category.id}&event=${event.slug}`);
-                            } else {
-                              toast.info("Evaluations not released yet");
-                            }
-                          }}
-                          className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                        >
-                          <FiAward size={16} />
-                          Results
-                        </motion.button>
+                        {!isPhotographyEvaluationEvent(event) && (
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => {
+                              if (event.isResultPublished) {
+                                router.push(`/results?category=${event.Category.id}&event=${event.slug}`);
+                              } else {
+                                toast.info("Evaluations not released yet");
+                              }
+                            }}
+                            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                          >
+                            <FiAward size={16} />
+                            Results
+                          </motion.button>
+                        )}
 
                         {/* Submit Feedback / View Feedback - shown when feedback is released */}
                         {event.registrationStatus !== "REJECTED" && feedbackReleasedIds.has(event.id) && (

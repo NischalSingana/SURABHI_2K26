@@ -69,6 +69,12 @@ interface GroupRegistration {
     members: Member[];
 }
 
+function isPhotographyEvaluationEvent(event: Pick<Event, "name" | "Category">): boolean {
+    const categoryName = event.Category?.name?.toLowerCase() || "";
+    const eventName = event.name?.toLowerCase() || "";
+    return categoryName.includes("photography") || eventName.includes("photography");
+}
+
 
 export default function MyEventsPage() {
     const router = useRouter();
@@ -426,22 +432,24 @@ export default function MyEventsPage() {
                                                             Download Ticket
                                                         </button>
                                                     )}
-                                                    <button
-                                                        onClick={() => {
-                                                            if (!event.isResultPublished) {
-                                                                toast.info("Results not released yet");
-                                                                return;
-                                                            }
-                                                            router.push(`/results?category=${event.Category.id}&event=${event.slug}`);
-                                                        }}
-                                                        className={`w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${event.isResultPublished
-                                                            ? "bg-emerald-900/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-900/40 hover:shadow-lg hover:shadow-emerald-900/20"
-                                                            : "bg-zinc-800/60 text-zinc-400 border border-zinc-700 cursor-not-allowed"
-                                                            }`}
-                                                    >
-                                                        <FiAward size={16} />
-                                                        View Results
-                                                    </button>
+                                                    {!isPhotographyEvaluationEvent(event) && (
+                                                        <button
+                                                            onClick={() => {
+                                                                if (!event.isResultPublished) {
+                                                                    toast.info("Results not released yet");
+                                                                    return;
+                                                                }
+                                                                router.push(`/results?category=${event.Category.id}&event=${event.slug}`);
+                                                            }}
+                                                            className={`w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${event.isResultPublished
+                                                                ? "bg-emerald-900/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-900/40 hover:shadow-lg hover:shadow-emerald-900/20"
+                                                                : "bg-zinc-800/60 text-zinc-400 border border-zinc-700 cursor-not-allowed"
+                                                                }`}
+                                                        >
+                                                            <FiAward size={16} />
+                                                            View Results
+                                                        </button>
+                                                    )}
                                                 </>
                                             )}
 
