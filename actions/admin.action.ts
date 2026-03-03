@@ -552,7 +552,7 @@ export async function updateRegistrationStatus(
                 const members = (registration.members as unknown as GroupMember[]) || [];
                 const membersForTicket = members.map((member) => ({
                     ...member,
-                    phone: member.phone || "-",
+                    phone: lead.phone || member.phone || "-",
                 }));
                 const groupName = registration.groupName || "Team";
                 const isInternational = !!lead.isInternational;

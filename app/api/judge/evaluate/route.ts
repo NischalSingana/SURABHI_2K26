@@ -22,6 +22,12 @@ function isCinecarnicalCategory(categoryName?: string | null): boolean {
 function getMaxScoreForEvent(categoryName?: string | null, eventName?: string | null): number {
     const category = normalizeText(categoryName);
     const event = normalizeText(eventName);
+    if (category.includes("raaga")) {
+        if (event.includes("voice") && event.includes("raaga")) return 40;
+        if (event.includes("instrumental")) return 40;
+        if (event.includes("battle") && event.includes("band")) return 50;
+        return 10;
+    }
     if (category.includes("natyaka")) {
         if (event.includes("mono") && event.includes("action")) return 50;
         if (event.includes("skit")) return 60;

@@ -409,7 +409,7 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                                 {ticketData.teamMembers.map((member, idx) => (
                                     <View key={idx} style={styles.tableRow}>
                                         <Text style={[styles.tableText, styles.col1]}>{member.name}</Text>
-                                        <Text style={[styles.tableText, styles.col2]}>{member.phone}</Text>
+                                        <Text style={[styles.tableText, styles.col2]}>{member.phone || ticketData.phone || '-'}</Text>
                                         <Text style={[styles.tableText, styles.col3]}>{member.gender}</Text>
                                     </View>
                                 ))}

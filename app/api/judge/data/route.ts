@@ -63,6 +63,12 @@ export async function GET() {
                 evaluations: {
                     where: {
                         judgeId: session.user.id
+                    },
+                    select: {
+                        id: true,
+                        score: true,
+                        remarks: true,
+                        participantId: true
                     }
                 },
                 // Include category info

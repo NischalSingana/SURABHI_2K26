@@ -56,6 +56,34 @@ function getEventRubric(categoryName?: string, eventName?: string): RubricCriter
     const category = normalizeText(categoryName);
     const event = normalizeText(eventName);
 
+    if (category.includes("raaga")) {
+        if (event.includes("voice") && event.includes("raaga")) {
+            return [
+                { key: "scale", label: "Scale", max: 10 },
+                { key: "tempo", label: "Tempo", max: 10 },
+                { key: "stagePresence", label: "Stage Presence", max: 10 },
+                { key: "dynamics", label: "Dynamics", max: 10 },
+            ];
+        }
+        if (event.includes("instrumental")) {
+            return [
+                { key: "scale", label: "Scale", max: 10 },
+                { key: "tempo", label: "Tempo", max: 10 },
+                { key: "stagePresence", label: "Stage Presence", max: 10 },
+                { key: "dynamics", label: "Dynamics", max: 10 },
+            ];
+        }
+        if (event.includes("battle") && event.includes("band")) {
+            return [
+                { key: "coordination", label: "Co-ordination", max: 10 },
+                { key: "scale", label: "Scale", max: 10 },
+                { key: "tempo", label: "Tempo", max: 10 },
+                { key: "stagePresence", label: "Stage Presence", max: 10 },
+                { key: "dynamics", label: "Dynamics", max: 10 },
+            ];
+        }
+    }
+
     if (category.includes("natyaka")) {
         if (event.includes("mono") && event.includes("action")) {
             return [

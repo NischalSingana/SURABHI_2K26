@@ -113,7 +113,7 @@ export async function GET(req: Request) {
             if (groupReg.members && Array.isArray(groupReg.members)) {
                 members = groupReg.members.map((m: any) => ({
                     name: m.name || "Unknown",
-                    phone: m.phone || "-",
+                    phone: ticketData.phone || m.phone || "-",
                     gender: m.gender || "-"
                 }));
             }

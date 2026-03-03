@@ -39,6 +39,11 @@ function isEsportsCategory(categoryName?: string | null): boolean {
   return normalized.includes("kurukshetra") || normalized.includes("esport");
 }
 
+function isRaagaCategory(categoryName?: string | null): boolean {
+  const normalized = (categoryName ?? "").toLowerCase();
+  return normalized.includes("raaga");
+}
+
 function isNationalMockParliamentEventName(eventName?: string | null): boolean {
   return (eventName ?? "").toLowerCase().includes("national mock parliament");
 }
@@ -901,8 +906,11 @@ export async function deleteEvent(id: string) {
 
 interface GroupMember {
   name: string;
-  phone?: string;
   gender: string;
+  collage?: string | null;
+  branch?: string | null;
+  collageId?: string | null;
+  phone?: string | null;
   inGameName?: string;
   inGameId?: string;  // Free Fire, BGMI
   riotId?: string;    // Valorant
@@ -989,11 +997,12 @@ export async function registerGroupEvent(
       where: { id: eventId },
       select: { name: true, Category: { select: { name: true } } },
     });
-    if (!isInternationalStudent && !isEsportsCategory(eventMeta?.Category?.name)) {
+    const isRaaga = isRaagaCategory(eventMeta?.Category?.name);
+    if (!isInternationalStudent && !isEsportsCategory(eventMeta?.Category?.name) && !isRaaga) {
       return { success: false, error: "Registrations are currently open only for eSports competitions." };
     }
     const kurukshetraEvent = isKurukshetraEvent(eventMeta?.Category?.name);
-    if (!isInternationalStudent && isOnlineRegistrationClosed() && !kurukshetraEvent) {
+    if (!isInternationalStudent && isOnlineRegistrationClosed() && !kurukshetraEvent && !isRaaga) {
       return { success: false, error: ONLINE_REG_CLOSED_MESSAGE };
     }
     const isKLStudent = isKLStudentProfile({
@@ -1191,11 +1200,12 @@ export async function registerForEvent(
       where: { id: eventId },
       select: { name: true, Category: { select: { name: true } } },
     });
-    if (!isInternationalStudent && !isEsportsCategory(eventMeta?.Category?.name)) {
+    const isRaaga2 = isRaagaCategory(eventMeta?.Category?.name);
+    if (!isInternationalStudent && !isEsportsCategory(eventMeta?.Category?.name) && !isRaaga2) {
       return { success: false, error: "Registrations are currently open only for eSports competitions." };
     }
-    const kurukshetraEvent = isKurukshetraEvent(eventMeta?.Category?.name);
-    if (!isInternationalStudent && isOnlineRegistrationClosed() && !kurukshetraEvent) {
+    const kurukshetraEvent2 = isKurukshetraEvent(eventMeta?.Category?.name);
+    if (!isInternationalStudent && isOnlineRegistrationClosed() && !kurukshetraEvent2 && !isRaaga2) {
       return { success: false, error: ONLINE_REG_CLOSED_MESSAGE };
     }
     const isKLStudent = isKLStudentProfile({
@@ -1203,7 +1213,7 @@ export async function registerForEvent(
       collage: userWithState?.collage ?? null,
     });
 
-    if (!isInternationalStudent && kurukshetraEvent) {
+    if (!isInternationalStudent && kurukshetraEvent2) {
       if (isKLStudent && effectiveIsVirtual) {
         return { success: false, error: "Kurukshetra: KL students must register in physical mode only (₹350 per member)." };
       }

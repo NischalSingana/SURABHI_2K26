@@ -6,8 +6,11 @@ import { Prisma } from "@prisma/client";
 
 type GroupMember = {
   name: string;
-  phone?: string;
   gender: string;
+  collage?: string | null;
+  branch?: string | null;
+  collageId?: string | null;
+  phone?: string | null;
   inGameName?: string;
   inGameId?: string;
   riotId?: string;

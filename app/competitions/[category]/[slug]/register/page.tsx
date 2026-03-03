@@ -143,8 +143,10 @@ interface Event {
 
 interface GroupMember {
     name: string;
-    phone: string;
     gender: string;
+    collage: string;
+    branch: string;
+    collageId: string;
     inGameName?: string;
     inGameId?: string;
     riotId?: string;
@@ -157,8 +159,6 @@ type CompetitionRegistrationPayload = {
     isGroupEvent: boolean;
     groupName?: string;
     members?: GroupMember[];
-    mentorName?: string;
-    mentorPhone?: string;
     registrationDetails?: any;
     paymentDetails?: {
         paymentScreenshot: string;
@@ -190,8 +190,8 @@ async function submitCompetitionRegistrationWithFallback(payload: CompetitionReg
                 payload.eventId,
                 payload.groupName || "Team",
                 payload.members || [],
-                payload.mentorName,
-                payload.mentorPhone,
+                undefined,
+                undefined,
                 payload.registrationDetails,
                 payload.paymentDetails,
                 payload.isVirtual
@@ -255,11 +255,11 @@ export default function EventRegistrationPage() {
     const [teamSize, setTeamSize] = useState(0);
     const [groupName, setGroupName] = useState("");
     const [teamMembers, setTeamMembers] = useState<GroupMember[]>([]);
-    const [mentorName, setMentorName] = useState("");
-    const [mentorPhone, setMentorPhone] = useState("");
     const [currentMemberName, setCurrentMemberName] = useState("");
-    const [currentMemberPhone, setCurrentMemberPhone] = useState("");
     const [currentMemberGender, setCurrentMemberGender] = useState("");
+    const [currentMemberCollege, setCurrentMemberCollege] = useState("");
+    const [currentMemberBranch, setCurrentMemberBranch] = useState("");
+    const [currentMemberCollegeId, setCurrentMemberCollegeId] = useState("");
     // Vastranaut Specific
     const [styleDNA, setStyleDNA] = useState("");
     const isVastranaut = slug?.includes("vastranaut");
@@ -393,24 +393,6 @@ export default function EventRegistrationPage() {
                 return;
             }
 
-            // Validate mentor name if provided
-            if (mentorName && mentorName.trim()) {
-                const mentorNameValidation = validateMemberName(mentorName);
-                if (!mentorNameValidation.valid) {
-                    toast.error(`Mentor ${mentorNameValidation.error}`);
-                    return;
-                }
-            }
-
-            // Validate mentor phone if provided
-            if (mentorPhone && mentorPhone.trim()) {
-                const mentorPhoneValidation = validatePhone(mentorPhone);
-                if (!mentorPhoneValidation.valid) {
-                    toast.error(`Mentor ${mentorPhoneValidation.error}`);
-                    return;
-                }
-            }
-
             // Validate Vastranaut style DNA
             if (isVastranaut && !styleDNA) {
                 toast.error("Please select a Style DNA for Vastranaut competition");
@@ -538,8 +520,6 @@ export default function EventRegistrationPage() {
                         isGroupEvent: event.isGroupEvent,
                         groupName,
                         members: event.isGroupEvent ? teamMembers : undefined,
-                        mentorName: event.isGroupEvent ? mentorName : undefined,
-                        mentorPhone: event.isGroupEvent ? mentorPhone : undefined,
                         registrationDetails: Object.keys(regDetails).length ? regDetails : undefined,
                         paymentDetails: skipPaymentForInternational ? undefined : paymentData,
                         isVirtual: selectedVirtualMode,
@@ -651,16 +631,24 @@ export default function EventRegistrationPage() {
             return;
         }
 
-        // Validate phone
-        const phoneValidation = validatePhone(currentMemberPhone);
-        if (!phoneValidation.valid) {
-            toast.error(phoneValidation.error);
-            return;
-        }
-
         // Validate gender
         if (!currentMemberGender) {
             toast.error("Please select gender");
+            return;
+        }
+
+        if (!currentMemberCollege.trim()) {
+            toast.error("Please enter college name");
+            return;
+        }
+
+        if (!currentMemberBranch.trim()) {
+            toast.error("Please enter branch");
+            return;
+        }
+
+        if (!currentMemberCollegeId.trim()) {
+            toast.error("Please enter college ID number");
             return;
         }
 
@@ -687,8 +675,10 @@ export default function EventRegistrationPage() {
 
         const memberObj: GroupMember = {
             name: currentMemberName.trim(),
-            phone: currentMemberPhone.trim().replace(/\s+/g, ''),
-            gender: currentMemberGender
+            gender: currentMemberGender,
+            collage: currentMemberCollege.trim(),
+            branch: currentMemberBranch.trim(),
+            collageId: currentMemberCollegeId.trim(),
         };
         if (needsInGameFields) {
             memberObj.inGameName = currentMemberInGameName.trim();
@@ -699,8 +689,10 @@ export default function EventRegistrationPage() {
 
         // Reset inputs
         setCurrentMemberName("");
-        setCurrentMemberPhone("");
         setCurrentMemberGender("");
+        setCurrentMemberCollege("");
+        setCurrentMemberBranch("");
+        setCurrentMemberCollegeId("");
         setCurrentMemberInGameName("");
         setCurrentMemberInGameId("");
         setCurrentMemberRiotId("");
@@ -716,8 +708,10 @@ export default function EventRegistrationPage() {
     const editMember = (index: number) => {
         const member = teamMembers[index];
         setCurrentMemberName(member.name);
-        setCurrentMemberPhone(member.phone);
         setCurrentMemberGender(member.gender);
+        setCurrentMemberCollege(member.collage);
+        setCurrentMemberBranch(member.branch);
+        setCurrentMemberCollegeId(member.collageId);
         setCurrentMemberInGameName(member.inGameName || "");
         setCurrentMemberInGameId(member.inGameId || "");
         setCurrentMemberRiotId(member.riotId || "");
@@ -740,6 +734,7 @@ export default function EventRegistrationPage() {
     const isKLStudent = !!session?.user?.email?.toLowerCase().endsWith("@kluniversity.in") || userCollege === "kl university";
     const eventCategoryName = event.Category?.name?.toLowerCase() ?? "";
     const isKurukshetraEvent = categorySlug.toLowerCase().includes("kurukshetra") || eventCategoryName.includes("kurukshetra");
+    const isRaagaEvent = categorySlug.toLowerCase().includes("raaga") || eventCategoryName.includes("raaga");
     const isKurukshetraOtherCollegeVirtualOnly = isKurukshetraEvent && !isKLStudent;
     const isKurukshetraKLPhysicalOnly = isKurukshetraEvent && isKLStudent;
     const effectiveIsVirtual = isInternational
@@ -756,7 +751,7 @@ export default function EventRegistrationPage() {
     const feePerPerson = isInternational ? 0 : getRegistrationFee(effectiveIsVirtual);
     const totalFee = memberCount * feePerPerson;
 
-    if (!isInternational && isOnlineRegistrationClosed() && !isKurukshetraEvent) {
+    if (!isInternational && isOnlineRegistrationClosed() && !isKurukshetraEvent && !isRaagaEvent) {
         return (
             <div className="min-h-screen bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-xl mx-auto">
@@ -786,7 +781,7 @@ export default function EventRegistrationPage() {
         );
     }
 
-    if (!isInternational && !isKurukshetraEvent) {
+    if (!isInternational && !isKurukshetraEvent && !isRaagaEvent) {
         return (
             <div className="min-h-screen bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-xl mx-auto">
@@ -910,22 +905,6 @@ export default function EventRegistrationPage() {
                                     )}
                                 </div>
 
-                                {mentorName && (
-                                    <div className="bg-zinc-900/50 p-4 rounded-lg mb-6 border border-zinc-800/50">
-                                        <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">Mentor Details</h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <p className="text-xs text-zinc-500">Name</p>
-                                                <p className="text-white">{mentorName}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-zinc-500">Phone</p>
-                                                <p className="text-white">{mentorPhone || "N/A"}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
                                 <div>
                                     <h3 className="text-lg font-semibold text-white mb-3">Team Roster</h3>
                                     <div className="space-y-3">
@@ -953,7 +932,9 @@ export default function EventRegistrationPage() {
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <span className="text-white font-medium">{member.name}</span>
                                                     </div>
-                                                    <p className="text-xs text-zinc-400">{member.gender} • {member.phone}</p>
+                                                    <p className="text-xs text-zinc-400">
+                                                        {member.gender} • {member.collage} • {member.branch} • ID: {member.collageId}
+                                                    </p>
                                                     {needsInGameFields && member.inGameName && (
                                                         <p className="text-xs text-amber-400/90 mt-1">
                                                             {isFreeFireOrBGMI && `IGN: ${member.inGameName} • ID: ${member.inGameId || "-"}`}
@@ -1083,42 +1064,6 @@ export default function EventRegistrationPage() {
                                         <p className="text-zinc-500 text-sm mt-1">Min: {event.minTeamSize} – Max: {event.maxTeamSize}</p>
                                     </div>
 
-                                    {/* Mentor Info */}
-                                    <div className="border-t border-zinc-800 pt-6">
-                                        <h3 className="text-lg font-semibold text-white mb-4">Mentor / Coordinator (Optional)</h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-zinc-300 mb-2">Name</label>
-                                                <input
-                                                    type="text"
-                                                    value={mentorName}
-                                                    onChange={(e) => setMentorName(e.target.value)}
-                                                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none transition-all"
-                                                    placeholder="Mentor Name"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-zinc-300 mb-2">Phone</label>
-                                                <input
-                                                    type="tel"
-                                                    value={mentorPhone}
-                                                    onChange={(e) => {
-                                                        const value = e.target.value.replace(/\D/g, '');
-                                                        if (value.length <= 10) {
-                                                            setMentorPhone(value);
-                                                        }
-                                                    }}
-                                                    maxLength={10}
-                                                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none transition-all"
-                                                    placeholder="10-digit phone number"
-                                                />
-                                                {mentorPhone && mentorPhone.length < 10 && (
-                                                    <p className="text-xs text-amber-400 mt-1">{10 - mentorPhone.length} digits remaining</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-
                                     {/* Team Members */}
                                     <div className="border-t border-zinc-800 pt-6">
                                         <h3 className="text-lg font-semibold text-white mb-4">Team Members</h3>
@@ -1201,26 +1146,29 @@ export default function EventRegistrationPage() {
                                                     placeholder="Full Name"
                                                     className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none"
                                                 />
-                                                <div className="relative">
-                                                    <input
-                                                        type="tel"
-                                                        value={currentMemberPhone}
-                                                        onChange={(e) => {
-                                                            const value = e.target.value.replace(/\D/g, '');
-                                                            if (value.length <= 10) {
-                                                                setCurrentMemberPhone(value);
-                                                            }
-                                                        }}
-                                                        maxLength={10}
-                                                        placeholder="10-digit phone"
-                                                        className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none"
-                                                    />
-                                                    {currentMemberPhone && currentMemberPhone.length !== 10 && (
-                                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-amber-400">
-                                                            {currentMemberPhone.length}/10
-                                                        </span>
-                                                    )}
-                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={currentMemberCollege}
+                                                    onChange={(e) => setCurrentMemberCollege(e.target.value)}
+                                                    placeholder="College Name"
+                                                    className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={currentMemberBranch}
+                                                    onChange={(e) => setCurrentMemberBranch(e.target.value)}
+                                                    placeholder="Branch"
+                                                    className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none"
+                                                />
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                                                <input
+                                                    type="text"
+                                                    value={currentMemberCollegeId}
+                                                    onChange={(e) => setCurrentMemberCollegeId(e.target.value)}
+                                                    placeholder="College ID Number"
+                                                    className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:ring-2 focus:ring-red-600 outline-none"
+                                                />
                                                 <select
                                                     value={currentMemberGender}
                                                     onChange={(e) => setCurrentMemberGender(e.target.value)}
@@ -1231,6 +1179,7 @@ export default function EventRegistrationPage() {
                                                     <option value="Female">Female</option>
                                                     <option value="Other">Other</option>
                                                 </select>
+                                                <div />
                                             </div>
                                             {needsInGameFields && (
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 col-span-1 md:col-span-3">
@@ -1285,7 +1234,9 @@ export default function EventRegistrationPage() {
                                                 <div key={idx} className="bg-zinc-800 p-3 rounded-lg border border-zinc-700 flex items-center justify-between">
                                                     <div>
                                                         <p className="text-white font-medium">{member.name}</p>
-                                                        <p className="text-xs text-zinc-400">{member.gender} • {member.phone}</p>
+                                                        <p className="text-xs text-zinc-400">
+                                                            {member.gender} • {member.collage} • {member.branch} • ID: {member.collageId}
+                                                        </p>
                                                         {needsInGameFields && member.inGameName && (
                                                             <p className="text-xs text-amber-400/90 mt-1">
                                                                 {isFreeFireOrBGMI && `IGN: ${member.inGameName} • ID: ${member.inGameId || "-"}`}

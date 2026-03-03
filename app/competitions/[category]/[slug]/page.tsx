@@ -306,8 +306,13 @@ function EventDetailPageContent() {
   }, [slug]);
 
   /* Google check removed */
-  const isEsportsEvent = categorySlug.toLowerCase().includes("kurukshetra") || (event?.Category?.name ?? "").toLowerCase().includes("kurukshetra");
-  const regClosed = isOnlineRegistrationClosed() && !isEsportsEvent && !isInternational;
+  const isEsportsEvent =
+    categorySlug.toLowerCase().includes("kurukshetra") ||
+    (event?.Category?.name ?? "").toLowerCase().includes("kurukshetra");
+  const isRaagaEvent =
+    categorySlug.toLowerCase().includes("raaga") ||
+    (event?.Category?.name ?? "").toLowerCase().includes("raaga");
+  const regClosed = isOnlineRegistrationClosed() && !isEsportsEvent && !isInternational && !isRaagaEvent;
 
   // Lock body scroll when any modal is open
   useEffect(() => {
@@ -857,7 +862,7 @@ function EventDetailPageContent() {
                     </div>
                   </div>
                 </div>
-              ) : !isEsportsEvent && !isInternational ? (
+              ) : !isEsportsEvent && !isInternational && !isRaagaEvent ? (
                 <div className="mt-6">
                   <button
                     disabled
