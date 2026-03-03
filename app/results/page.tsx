@@ -30,6 +30,44 @@ interface ParticipantResult {
         score: number;
         remarks: string | null;
     }>;
+    criteriaBreakdown?: Array<{
+        key: string;
+        label: string;
+        max: number;
+        score: number;
+    }> | null;
+}
+
+function normalizeText(value?: string | null): string {
+    return (value || "").trim().toLowerCase();
+}
+
+function isCinecarnicalCategory(categoryName?: string): boolean {
+    const category = normalizeText(categoryName);
+    return (
+        category.includes("cinecarnical") ||
+        category.includes("cine carnival") ||
+        category.includes("cinecarnival")
+    );
+}
+
+function getMaxScorePerJudge(categoryName?: string, eventName?: string): number {
+    const category = normalizeText(categoryName);
+    const event = normalizeText(eventName);
+
+    if (category.includes("natyaka")) {
+        if (event.includes("mono") && event.includes("action")) return 50;
+        if (event.includes("skit")) return 60;
+        return 10;
+    }
+
+    if (isCinecarnicalCategory(categoryName)) {
+        if (event.includes("short") && event.includes("film")) return 100;
+        if (event.includes("cover") && event.includes("song")) return 100;
+        return 10;
+    }
+
+    return 10;
 }
 
 export default function ResultsPage() {
@@ -43,6 +81,7 @@ export default function ResultsPage() {
 
     const { data: session } = useSession();
     const [isPublished, setIsPublished] = useState(false);
+    const maxScorePerJudge = getMaxScorePerJudge(eventMeta?.Category?.name || "", eventMeta?.name || "");
 
     const loadEventResults = async (eventSlug: string) => {
         if (!eventSlug) {
@@ -69,7 +108,8 @@ export default function ResultsPage() {
                     score: p.score,
                     isEvaluated: p.isEvaluated,
                     remarks: p.remarks || null,
-                    judgeScores: Array.isArray(p.judgeScores) ? p.judgeScores : []
+                    judgeScores: Array.isArray(p.judgeScores) ? p.judgeScores : [],
+                    criteriaBreakdown: Array.isArray(p.criteriaBreakdown) ? p.criteriaBreakdown : null,
                 }));
             setResults(evaluated);
         } else {
@@ -152,6 +192,11 @@ export default function ResultsPage() {
                                 const { rank, isDraw } = getRankInfo(index, results);
                                 const isUser = session?.user?.id === result.id; // Not foolproof for group leader ID vs user ID, but acceptable for now
                                 // Note: result.id is Leader ID for groups in my getEventResults implementation logic (userId)
+                                const judgeCount = result.judgeScores?.length || 0;
+                                const totalScore = judgeCount > 0
+                                    ? result.judgeScores!.reduce((sum, j) => sum + (j.score || 0), 0)
+                                    : result.score;
+                                const totalMax = maxScorePerJudge * (judgeCount || 1);
 
                                 return (
                                     <motion.div
@@ -191,14 +236,17 @@ export default function ResultsPage() {
                                                 {/* Score */}
                                                 <div className="flex-shrink-0 text-right">
                                                     <div className="text-2xl sm:text-4xl font-black text-white">
-                                                        {result.score}
+                                                        {parseFloat(totalScore.toFixed(2))}
                                                     </div>
                                                     <div className="text-xs sm:text-sm text-gray-400 uppercase font-medium tracking-wider">
-                                                        Avg Score
+                                                        Total Score
+                                                    </div>
+                                                    <div className="text-[10px] sm:text-xs text-gray-500 mt-1">
+                                                        /{totalMax}
                                                     </div>
                                                     {!!result.judgeScores?.length && (
                                                         <div className="text-[10px] sm:text-xs text-gray-500 mt-1">
-                                                            {result.judgeScores.length} Judge{result.judgeScores.length === 1 ? "" : "s"}
+                                                            Avg of {result.judgeScores.length} judge{result.judgeScores.length === 1 ? "" : "s"}: {result.score}/{maxScorePerJudge}
                                                         </div>
                                                     )}
                                                 </div>
@@ -248,7 +296,7 @@ export default function ResultsPage() {
                                                                                     )}
                                                                                 </div>
                                                                                 <div className="text-sm font-bold text-white">
-                                                                                    {j.score}
+                                                                                    {j.score}/{maxScorePerJudge}
                                                                                 </div>
                                                                             </div>
                                                                         ))}
@@ -256,6 +304,36 @@ export default function ResultsPage() {
                                                             </motion.div>
                                                         )}
                                                     </AnimatePresence>
+                                                </div>
+                                            )}
+
+                                            {/* Criteria-wise breakdown */}
+                                            {!!result.criteriaBreakdown?.length && (
+                                                <div className="pt-4 border-t border-white/10">
+                                                    <p className="text-sm text-gray-300 font-medium mb-2">Evaluation Criteria</p>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                        {result.criteriaBreakdown.map((c) => (
+                                                            <div
+                                                                key={c.key}
+                                                                className="bg-black/30 border border-white/10 rounded-lg px-3 py-2 flex items-center justify-between gap-3"
+                                                            >
+                                                                <div className="text-xs text-gray-300">{c.label}</div>
+                                                                <div className="text-sm font-bold text-white">
+                                                                    {c.score}/{c.max}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    <div className="mt-2 text-xs text-gray-400">
+                                                        Total from criteria:{" "}
+                                                        <span className="text-white font-semibold">
+                                                            {parseFloat(
+                                                                result.criteriaBreakdown
+                                                                    .reduce((sum, c) => sum + c.score, 0)
+                                                                    .toFixed(2)
+                                                            )}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             )}
 

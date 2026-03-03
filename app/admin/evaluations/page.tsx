@@ -60,6 +60,52 @@ interface ProcessedEntry {
     }>;
 }
 
+function normalizeText(value?: string | null): string {
+    return (value || "").trim().toLowerCase();
+}
+
+function isCinecarnicalCategory(categoryName?: string): boolean {
+    const category = normalizeText(categoryName);
+    return (
+        category.includes("cinecarnical") ||
+        category.includes("cine carnival") ||
+        category.includes("cinecarnival")
+    );
+}
+
+function getMaxScorePerJudge(categoryName?: string, eventName?: string): number {
+    const category = normalizeText(categoryName);
+    const event = normalizeText(eventName);
+
+    if (category.includes("natyaka")) {
+        if (event.includes("mono") && event.includes("action")) return 50;
+        if (event.includes("skit")) return 60;
+        return 10;
+    }
+
+    if (isCinecarnicalCategory(categoryName)) {
+        if (event.includes("short") && event.includes("film")) return 100;
+        if (event.includes("cover") && event.includes("song")) return 100;
+        return 10;
+    }
+
+    return 10;
+}
+
+const CRITERIA_REMARKS_PREFIX = "__CRITERIA__:";
+
+function parseStoredRemarks(remarks?: string | null): string | null {
+    if (!remarks) return null;
+    if (!remarks.startsWith(CRITERIA_REMARKS_PREFIX)) return remarks;
+    try {
+        const raw = remarks.slice(CRITERIA_REMARKS_PREFIX.length);
+        const parsed = JSON.parse(raw) as { judgeRemarks?: string | null };
+        return parsed?.judgeRemarks ?? null;
+    } catch {
+        return null;
+    }
+}
+
 export default function AdminEvaluationsPage() {
     const [events, setEvents] = useState<EventData[]>([]);
     const [loading, setLoading] = useState(true);
@@ -119,7 +165,7 @@ export default function AdminEvaluationsPage() {
                     judgeId: e.judge.id,
                     judgeName: e.judge.name,
                     score: parseFloat(e.score.toFixed(2)),
-                    remarks: e.remarks ?? null,
+                    remarks: parseStoredRemarks(e.remarks),
                 }));
 
                 return {
@@ -165,8 +211,8 @@ export default function AdminEvaluationsPage() {
                 membersList.forEach((m: any) => { if (m.userId) memberIds.add(m.userId); });
             }
 
-            // Collect all evaluations for this team
-            const teamEvaluations = event.evaluations.filter(ev => memberIds.has(ev.participant.id));
+            // Team is evaluated once using the team leader participant ID.
+            const teamEvaluations = event.evaluations.filter(ev => ev.participant.id === reg.user.id);
 
             if (teamEvaluations.length > 0) {
                 // Per-judge team score = avg across evaluated members; overall team score = avg of judge avgs
@@ -176,7 +222,8 @@ export default function AdminEvaluationsPage() {
                     const jname = ev.judge.name ?? null;
                     const entry = byJudge.get(jid) ?? { judgeId: jid, judgeName: jname, scores: [], remarks: [] };
                     entry.scores.push(ev.score);
-                    if (ev.remarks) entry.remarks.push(ev.remarks);
+                    const cleanRemarks = parseStoredRemarks(ev.remarks);
+                    if (cleanRemarks) entry.remarks.push(cleanRemarks);
                     byJudge.set(jid, entry);
                 }
 
@@ -206,8 +253,8 @@ export default function AdminEvaluationsPage() {
                     judgeScores,
                 });
 
-                // Mark these users as processed so we don't double count if logic is loose
-                memberIds.forEach(id => processedUserIds.add(id));
+                // Mark leader as processed.
+                processedUserIds.add(reg.user.id);
             }
         });
 
@@ -251,6 +298,7 @@ export default function AdminEvaluationsPage() {
                     <div className="space-y-6">
                         {events.map((event) => {
                             const processedEntries = processEventData(event);
+                            const maxScorePerJudge = getMaxScorePerJudge(event.Category?.name, event.name);
 
                             return (
                                 <motion.div
@@ -369,17 +417,28 @@ export default function AdminEvaluationsPage() {
                                                                             <div className="text-base font-medium text-gray-400 mt-1">{entry.subtitle}</div>
                                                                         </td>
                                                                         <td className="py-4 font-bold text-3xl text-red-500">
-                                                                            {entry.score}
-                                                                            <span className="text-sm text-gray-600 font-normal ml-1">/10</span>
+                                                                            {(() => {
+                                                                                const judgeCount = entry.judgeScores?.length || 0;
+                                                                                const totalScore = judgeCount > 0
+                                                                                    ? entry.judgeScores!.reduce((sum, j) => sum + (j.score || 0), 0)
+                                                                                    : (typeof entry.score === "number" ? entry.score : 0);
+                                                                                const totalMax = maxScorePerJudge * (judgeCount || 1);
+                                                                                return (
+                                                                                    <>
+                                                                                        {parseFloat(totalScore.toFixed(2))}
+                                                                                        <span className="text-sm text-gray-600 font-normal ml-1">/{totalMax}</span>
+                                                                                    </>
+                                                                                );
+                                                                            })()}
                                                                             {entry.judgeScores?.length ? (
                                                                                 <div className="text-[10px] text-gray-500 font-normal mt-1">
-                                                                                    Avg of {entry.judgeScores.length} judge{entry.judgeScores.length === 1 ? "" : "s"}
+                                                                                    Avg of {entry.judgeScores.length} judge{entry.judgeScores.length === 1 ? "" : "s"}: {entry.score}/{maxScorePerJudge}
                                                                                 </div>
                                                                             ) : null}
                                                                         </td>
                                                                         {event.isGroupEvent && (
                                                                             <td className="py-4 text-gray-400 text-base">
-                                                                                {entry.evaluationsCount} Members Evaluated
+                                                                                {entry.evaluationsCount} Evaluation{entry.evaluationsCount === 1 ? "" : "s"}
                                                                             </td>
                                                                         )}
                                                                         <td className="py-4">
@@ -406,7 +465,7 @@ export default function AdminEvaluationsPage() {
                                                                                                             <span className="truncate max-w-[180px]">
                                                                                                                 {j.judgeName || "Judge"}
                                                                                                             </span>
-                                                                                                            <span className="font-bold text-gray-200">{j.score}/10</span>
+                                                                                                            <span className="font-bold text-gray-200">{j.score}/{maxScorePerJudge}</span>
                                                                                                         </div>
                                                                                                     ))}
                                                                                             </div>
@@ -453,7 +512,25 @@ export default function AdminEvaluationsPage() {
                             <div className="flex justify-between items-start mb-6">
                                 <div>
                                     <h3 className="text-2xl font-bold mb-1">{selectedTeam.name}</h3>
-                                    <p className="text-gray-400 text-sm">Team Average Score: <span className="text-red-500 font-bold">{selectedTeam.score}/10</span></p>
+                                    <p className="text-gray-400 text-sm">
+                                        {(() => {
+                                            const selectedEvent = events.find((e) => e.id === selectedTeam.id || processEventData(e).some((entry) => entry.id === selectedTeam.id));
+                                            const maxScorePerJudge = getMaxScorePerJudge(selectedEvent?.Category?.name, selectedEvent?.name);
+                                            const judgeCount = selectedTeam.judgeScores?.length || 0;
+                                            const totalScore = judgeCount > 0
+                                                ? selectedTeam.judgeScores!.reduce((sum, j) => sum + (j.score || 0), 0)
+                                                : (typeof selectedTeam.score === "number" ? selectedTeam.score : 0);
+                                            const totalMax = maxScorePerJudge * (judgeCount || 1);
+                                            return (
+                                                <>
+                                                    Team Total Score: <span className="text-red-500 font-bold">{parseFloat(totalScore.toFixed(2))}/{totalMax}</span>
+                                                    {!!judgeCount && (
+                                                        <span className="ml-2 text-zinc-500">| Avg: {selectedTeam.score}/{maxScorePerJudge}</span>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
+                                    </p>
                                 </div>
                                 <button onClick={() => setSelectedTeam(null)} className="p-2 hover:bg-zinc-800 rounded-full transition-colors">
                                     <FiX size={20} />
@@ -474,25 +551,37 @@ export default function AdminEvaluationsPage() {
                                                             <div className="text-sm text-gray-200 truncate">{j.judgeName || "Judge"}</div>
                                                             {j.remarks && <div className="text-xs text-gray-500 truncate">{j.remarks}</div>}
                                                         </div>
-                                                        <div className="text-sm font-bold text-white">{j.score}/10</div>
+                                                        <div className="text-sm font-bold text-white">
+                                                            {(() => {
+                                                                const selectedEvent = events.find((e) => e.id === selectedTeam.id || processEventData(e).some((entry) => entry.id === selectedTeam.id));
+                                                                const maxScorePerJudge = getMaxScorePerJudge(selectedEvent?.Category?.name, selectedEvent?.name);
+                                                                return `${j.score}/${maxScorePerJudge}`;
+                                                            })()}
+                                                        </div>
                                                     </div>
                                                 ))}
                                         </div>
                                     </div>
                                 )}
-                                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Member Evaluations</h4>
+                                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Evaluation Records</h4>
                                 <div className="space-y-3">
                                     {selectedTeam.individualEvaluations?.map((ev, idx) => (
                                         <div key={idx} className="bg-black/40 border border-zinc-800 rounded-xl p-4 flex justify-between items-center">
                                             <div>
                                                 <p className="font-bold text-base text-white">{ev.participant.name}</p>
                                                 <p className="text-sm text-gray-400">{ev.participant.collageId || "No ID"}</p>
-                                                {ev.remarks && <p className="text-xs text-gray-400 mt-2 italic">"{ev.remarks}"</p>}
+                                                {parseStoredRemarks(ev.remarks) && <p className="text-xs text-gray-400 mt-2 italic">"{parseStoredRemarks(ev.remarks)}"</p>}
                                                 <p className="text-[10px] text-gray-600 mt-1">Judge: {ev.judge.name}</p>
                                             </div>
                                             <div className="text-right">
                                                 <span className="text-xl font-bold text-green-500">{ev.score}</span>
-                                                <span className="text-xs text-gray-600">/10</span>
+                                                <span className="text-xs text-gray-600">
+                                                    {(() => {
+                                                        const selectedEvent = events.find((e) => e.id === selectedTeam.id || processEventData(e).some((entry) => entry.id === selectedTeam.id));
+                                                        const maxScorePerJudge = getMaxScorePerJudge(selectedEvent?.Category?.name, selectedEvent?.name);
+                                                        return `/${maxScorePerJudge}`;
+                                                    })()}
+                                                </span>
                                             </div>
                                         </div>
                                     ))}

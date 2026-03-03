@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
+const CRITERIA_REMARKS_PREFIX = "__CRITERIA__:";
+
 function normalizeText(value?: string | null): string {
     return (value || "").trim().toLowerCase();
 }
@@ -32,6 +34,22 @@ function getMaxScoreForEvent(categoryName?: string | null, eventName?: string | 
     return 10;
 }
 
+function buildStoredRemarks(
+    remarks?: string | null,
+    criteriaScores?: Record<string, number>
+): string | null {
+    const cleanedRemarks = remarks?.trim() || null;
+    if (!criteriaScores || Object.keys(criteriaScores).length === 0) {
+        return cleanedRemarks;
+    }
+
+    const payload = {
+        criteriaScores,
+        judgeRemarks: cleanedRemarks,
+    };
+    return `${CRITERIA_REMARKS_PREFIX}${JSON.stringify(payload)}`;
+}
+
 export async function POST(req: Request) {
     try {
         const session = await auth.api.getSession({
@@ -43,7 +61,7 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        const { eventId, participantId, score, remarks } = body;
+        const { eventId, participantId, score, remarks, criteriaScores } = body;
 
         if (!eventId || !participantId || score === undefined) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -81,14 +99,14 @@ export async function POST(req: Request) {
             },
             update: {
                 score: roundedScore,
-                remarks
+                remarks: buildStoredRemarks(remarks, criteriaScores)
             },
             create: {
                 judgeId: session.user.id,
                 eventId,
                 participantId,
                 score: roundedScore,
-                remarks
+                remarks: buildStoredRemarks(remarks, criteriaScores)
             }
         });
 

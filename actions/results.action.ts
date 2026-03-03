@@ -4,6 +4,104 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
+const CRITERIA_REMARKS_PREFIX = "__CRITERIA__:";
+
+type RubricCriterion = {
+    key: string;
+    label: string;
+    max: number;
+};
+
+function normalizeText(value?: string | null): string {
+    return (value || "").trim().toLowerCase();
+}
+
+function isCinecarnicalCategory(categoryName?: string | null): boolean {
+    const category = normalizeText(categoryName);
+    return (
+        category.includes("cinecarnical") ||
+        category.includes("cine carnival") ||
+        category.includes("cinecarnival")
+    );
+}
+
+function getEventRubric(categoryName?: string | null, eventName?: string | null): RubricCriterion[] | null {
+    const category = normalizeText(categoryName);
+    const event = normalizeText(eventName);
+
+    if (category.includes("natyaka")) {
+        if (event.includes("mono") && event.includes("action")) {
+            return [
+                { key: "dialogueDelivery", label: "Dialogue Delivery", max: 10 },
+                { key: "expressions", label: "Expressions", max: 10 },
+                { key: "bodyLanguage", label: "Body Language", max: 10 },
+                { key: "confidenceAndPresence", label: "Confidence and Stage Presence", max: 10 },
+                { key: "overallPerformance", label: "Overall Performance", max: 10 },
+            ];
+        }
+        if (event.includes("skit")) {
+            return [
+                { key: "dialogueDelivery", label: "Dialogue Delivery", max: 10 },
+                { key: "expressionAndActing", label: "Expression and Acting", max: 10 },
+                { key: "bodyLanguage", label: "Body Language", max: 10 },
+                { key: "teamworkAndPresence", label: "Team Work and Stage Presence", max: 15 },
+                { key: "overallPerformance", label: "Overall Performance", max: 15 },
+            ];
+        }
+        return null;
+    }
+
+    if (!isCinecarnicalCategory(categoryName)) return null;
+    if (event.includes("short") && event.includes("film")) {
+        return [
+            { key: "socialMessage", label: "Social Message", max: 10 },
+            { key: "direction", label: "Direction", max: 10 },
+            { key: "editing", label: "Editing", max: 10 },
+            { key: "cinematography", label: "Cinematography", max: 10 },
+            { key: "dialogues", label: "Dialogues", max: 5 },
+            { key: "screenplay", label: "Screenplay", max: 20 },
+            { key: "acting", label: "Acting", max: 15 },
+            { key: "sfx", label: "SFX", max: 5 },
+            { key: "aiUsage", label: "AI Usage", max: 5 },
+            { key: "inTimeLimit", label: "In Time Limit", max: 10 },
+        ];
+    }
+    if (event.includes("cover") && event.includes("song")) {
+        return [
+            { key: "story", label: "Story", max: 10 },
+            { key: "direction", label: "Direction", max: 10 },
+            { key: "editing", label: "Editing", max: 10 },
+            { key: "cinematography", label: "Cinematography", max: 10 },
+            { key: "screenplay", label: "Screenplay", max: 20 },
+            { key: "acting", label: "Acting", max: 15 },
+            { key: "aiUsage", label: "AI Usage", max: 5 },
+            { key: "inTimeLimit", label: "In Time Limit", max: 10 },
+            { key: "understandableForEveryone", label: "Understandable for Everyone", max: 10 },
+        ];
+    }
+    return null;
+}
+
+function parseStoredRemarks(remarks?: string | null): {
+    judgeRemarks: string | null;
+    criteriaScores: Record<string, number>;
+} {
+    if (!remarks) return { judgeRemarks: null, criteriaScores: {} };
+    if (!remarks.startsWith(CRITERIA_REMARKS_PREFIX)) {
+        return { judgeRemarks: remarks, criteriaScores: {} };
+    }
+    try {
+        const raw = remarks.slice(CRITERIA_REMARKS_PREFIX.length);
+        const parsed = JSON.parse(raw) as { judgeRemarks?: string | null; criteriaScores?: Record<string, number> };
+        return {
+            judgeRemarks: parsed?.judgeRemarks ?? null,
+            criteriaScores: parsed?.criteriaScores || {},
+        };
+    } catch {
+        return { judgeRemarks: null, criteriaScores: {} };
+    }
+}
+
 export async function getCategories() {
     try {
         const categories = await prisma.category.findMany({
@@ -42,6 +140,7 @@ export async function getEventResults(eventSlug: string) {
         });
 
         if (!eventDetails) return { success: false, error: "Event not found" };
+        const rubric = getEventRubric(eventDetails.Category?.name, eventDetails.name);
 
         let participants = [];
 
@@ -76,7 +175,8 @@ export async function getEventResults(eventSlug: string) {
                     const judgeName = ev.judge?.name ?? null;
                     const entry = byJudge.get(judgeId) ?? { judgeId, judgeName, scores: [], remarks: [] };
                     entry.scores.push(ev.score);
-                    if (ev.remarks) entry.remarks.push(ev.remarks);
+                    const parsed = parseStoredRemarks(ev.remarks);
+                    if (parsed.judgeRemarks) entry.remarks.push(parsed.judgeRemarks);
                     byJudge.set(judgeId, entry);
                 }
 
@@ -89,6 +189,23 @@ export async function getEventResults(eventSlug: string) {
                         remarks: j.remarks.length ? j.remarks.join(" | ") : null,
                     };
                 });
+
+                const criteriaBreakdown = rubric
+                    ? rubric.map((criterion) => {
+                        const criteriaValues = teamEvals
+                            .map((ev) => parseStoredRemarks(ev.remarks).criteriaScores?.[criterion.key])
+                            .filter((v): v is number => typeof v === "number");
+                        const criteriaScore = criteriaValues.length
+                            ? parseFloat(criteriaValues.reduce((a, b) => a + b, 0).toFixed(2))
+                            : 0;
+                        return {
+                            key: criterion.key,
+                            label: criterion.label,
+                            max: criterion.max * (criteriaValues.length || 1),
+                            score: criteriaScore,
+                        };
+                    })
+                    : null;
 
                 // Overall team average = average of per-judge averages (so each judge has equal weight)
                 const averageScore =
@@ -111,6 +228,7 @@ export async function getEventResults(eventSlug: string) {
                     isEvaluated: judgeScores.length > 0,
                     remarks: allRemarks.length > 0 ? allRemarks.join(' | ') : null,
                     judgeScores,
+                    criteriaBreakdown,
                 };
             });
 
@@ -151,8 +269,25 @@ export async function getEventResults(eventSlug: string) {
                     judgeId: e.judgeId,
                     judgeName: e.judge?.name ?? null,
                     score: parseFloat(e.score.toFixed(2)),
-                    remarks: e.remarks ?? null,
+                    remarks: parseStoredRemarks(e.remarks).judgeRemarks,
                 }));
+
+                const criteriaBreakdown = rubric
+                    ? rubric.map((criterion) => {
+                        const criteriaValues = evals
+                            .map((ev) => parseStoredRemarks(ev.remarks).criteriaScores?.[criterion.key])
+                            .filter((v): v is number => typeof v === "number");
+                        const criteriaScore = criteriaValues.length
+                            ? parseFloat(criteriaValues.reduce((a, b) => a + b, 0).toFixed(2))
+                            : 0;
+                        return {
+                            key: criterion.key,
+                            label: criterion.label,
+                            max: criterion.max * (criteriaValues.length || 1),
+                            score: criteriaScore,
+                        };
+                    })
+                    : null;
 
                 let totalScore = 0;
                 const allRemarks: string[] = [];
@@ -172,6 +307,7 @@ export async function getEventResults(eventSlug: string) {
                     isEvaluated: evals.length > 0,
                     remarks: allRemarks.length > 0 ? allRemarks.join(' | ') : null,
                     judgeScores,
+                    criteriaBreakdown,
                 };
             });
         }

@@ -17,6 +17,28 @@ type RubricCriterion = {
     max: number;
 };
 
+const CRITERIA_REMARKS_PREFIX = "__CRITERIA__:";
+
+function parseStoredRemarks(remarks?: string | null): {
+    judgeRemarks: string;
+    criteriaScores: Record<string, number>;
+} {
+    if (!remarks) return { judgeRemarks: "", criteriaScores: {} };
+    if (!remarks.startsWith(CRITERIA_REMARKS_PREFIX)) {
+        return { judgeRemarks: remarks, criteriaScores: {} };
+    }
+    try {
+        const raw = remarks.slice(CRITERIA_REMARKS_PREFIX.length);
+        const parsed = JSON.parse(raw) as { judgeRemarks?: string | null; criteriaScores?: Record<string, number> };
+        return {
+            judgeRemarks: parsed?.judgeRemarks || "",
+            criteriaScores: parsed?.criteriaScores || {},
+        };
+    } catch {
+        return { judgeRemarks: "", criteriaScores: {} };
+    }
+}
+
 function normalizeText(value?: string | null): string {
     return (value || "").trim().toLowerCase();
 }
@@ -206,7 +228,13 @@ export default function JudgeDashboard() {
                     eventId: selectedEvent.id,
                     participantId: evaluatingParticipant.id,
                     score: roundedScore,
-                    remarks
+                    remarks,
+                    criteriaScores: rubric
+                        ? rubric.reduce<Record<string, number>>((acc, criterion) => {
+                            acc[criterion.key] = Number(criteriaScores[criterion.key] || 0);
+                            return acc;
+                        }, {})
+                        : undefined
                 })
             });
 
@@ -230,12 +258,14 @@ export default function JudgeDashboard() {
 
     const prepareEvaluationForm = (participant: Participant, evaluation?: Evaluation) => {
         setEvaluatingParticipant(participant);
-        setRemarks(evaluation?.remarks || "");
+        const parsed = parseStoredRemarks(evaluation?.remarks);
+        setRemarks(parsed.judgeRemarks || "");
         const rubric = selectedEvent ? getEventRubric(categoryName, selectedEvent.name) : null;
         if (rubric) {
             const initialScores: Record<string, number | ""> = {};
             rubric.forEach((criterion) => {
-                initialScores[criterion.key] = "";
+                const val = parsed.criteriaScores[criterion.key];
+                initialScores[criterion.key] = typeof val === "number" ? val : "";
             });
             setCriteriaScores(initialScores);
             setScore("");
