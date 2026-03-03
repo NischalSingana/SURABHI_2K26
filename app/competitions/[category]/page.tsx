@@ -288,7 +288,12 @@ function CategoryPageContent() {
   };
 
   const isEsportsCategory = categorySlug.toLowerCase().includes("kurukshetra");
-  const regClosed = isOnlineRegistrationClosed() && !isEsportsCategory && !isInternational;
+  const isRaagaCategory = categorySlug.toLowerCase().includes("raaga");
+  const isVastranautCategory = categorySlug.toLowerCase().includes("vastranaut");
+  const regClosed =
+    isRaagaCategory ||
+    isVastranautCategory ||
+    (isOnlineRegistrationClosed() && !isEsportsCategory && !isInternational);
 
   const handleRegisterClick = (event: Event, e: React.MouseEvent) => {
     e.stopPropagation();

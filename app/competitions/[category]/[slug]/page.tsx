@@ -312,7 +312,13 @@ function EventDetailPageContent() {
   const isRaagaEvent =
     categorySlug.toLowerCase().includes("raaga") ||
     (event?.Category?.name ?? "").toLowerCase().includes("raaga");
-  const regClosed = isOnlineRegistrationClosed() && !isEsportsEvent && !isInternational && !isRaagaEvent;
+  const isVastranautEvent =
+    categorySlug.toLowerCase().includes("vastranaut") ||
+    (event?.Category?.name ?? "").toLowerCase().includes("vastranaut");
+  const isSpotOnlyEvent = isRaagaEvent || isVastranautEvent;
+  const regClosed =
+    isSpotOnlyEvent ||
+    (isOnlineRegistrationClosed() && !isEsportsEvent && !isInternational);
 
   // Lock body scroll when any modal is open
   useEffect(() => {
@@ -862,7 +868,7 @@ function EventDetailPageContent() {
                     </div>
                   </div>
                 </div>
-              ) : !isEsportsEvent && !isInternational && !isRaagaEvent ? (
+              ) : !isEsportsEvent && !isInternational && !isSpotOnlyEvent ? (
                 <div className="mt-6">
                   <button
                     disabled

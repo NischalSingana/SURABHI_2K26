@@ -216,8 +216,16 @@ export default function CompetitionsClient({
                   <div className="text-red-400 font-black text-4xl md:text-5xl mb-2 tracking-widest uppercase drop-shadow-[0_0_30px_rgba(248,113,113,0.2)]">
                     Online registrations closed
                   </div>
-                  <div className="text-zinc-400 text-sm mb-8 leading-relaxed whitespace-pre-line">
+                  <div className="text-zinc-400 text-sm leading-relaxed whitespace-pre-line">
                     {ONLINE_REG_CLOSED_MESSAGE}
+                  </div>
+                  <div className="mt-4 text-left bg-red-950/40 border border-red-800/70 rounded-xl px-4 py-3 text-xs md:text-sm text-red-100 space-y-2">
+                    <div className="font-semibold text-red-300">
+                      🚨 IMPORTANT NOTICE – SPOT &amp; VISITOR REGISTRATIONS 🚨
+                    </div>
+                    <p>⚠️ On 6th and 7th, OUTSIDERS (External Participants) are NOT allowed for Spot Registrations.</p>
+                    <p>❗ STRICTLY NO EXTERNAL PARTICIPANT will be permitted for Spot Registration on these dates.</p>
+                    <p>🚫 VISITORS are also NOT allowed on 6th and 7th.</p>
                   </div>
                   <motion.button
                     onClick={handleBrowseClick}
