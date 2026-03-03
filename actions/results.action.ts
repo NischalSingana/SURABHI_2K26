@@ -66,16 +66,8 @@ export async function getEventResults(eventSlug: string) {
             participants = groups.map(group => {
                 const members = group.members as any[]; // Array of { userId, name, ... }
 
-                // Team participantIds = leader + members (if present)
-                const participantIds = new Set<string>();
-                participantIds.add(group.user.id);
-                if (Array.isArray(members)) {
-                    members.forEach((m) => {
-                        if (m?.userId) participantIds.add(String(m.userId));
-                    });
-                }
-
-                const teamEvals = evaluations.filter((e) => participantIds.has(e.participantId));
+                // Team is evaluated once using team leader participantId.
+                const teamEvals = evaluations.filter((e) => e.participantId === group.user.id);
 
                 // Group evaluations by judge -> compute "team score per judge" as average across evaluated members
                 const byJudge = new Map<string, { judgeId: string; judgeName: string | null; scores: number[]; remarks: string[] }>();

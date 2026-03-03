@@ -8,12 +8,27 @@ function normalizeText(value?: string | null): string {
     return (value || "").trim().toLowerCase();
 }
 
+function isCinecarnicalCategory(categoryName?: string | null): boolean {
+    const category = normalizeText(categoryName);
+    return (
+        category.includes("cinecarnical") ||
+        category.includes("cine carnival") ||
+        category.includes("cinecarnival")
+    );
+}
+
 function getMaxScoreForEvent(categoryName?: string | null, eventName?: string | null): number {
     const category = normalizeText(categoryName);
     const event = normalizeText(eventName);
-    if (!category.includes("natyaka")) return 10;
-    if (event.includes("mono") && event.includes("action")) return 50;
-    if (event.includes("skit")) return 60;
+    if (category.includes("natyaka")) {
+        if (event.includes("mono") && event.includes("action")) return 50;
+        if (event.includes("skit")) return 60;
+        return 10;
+    }
+    if (isCinecarnicalCategory(categoryName)) {
+        if (event.includes("short") && event.includes("film")) return 100;
+        if (event.includes("cover") && event.includes("song")) return 100;
+    }
     return 10;
 }
 

@@ -21,28 +21,71 @@ function normalizeText(value?: string | null): string {
     return (value || "").trim().toLowerCase();
 }
 
-function getNatyakaRubric(categoryName?: string, eventName?: string): RubricCriterion[] | null {
+function isCinecarnicalCategory(categoryName?: string): boolean {
+    const category = normalizeText(categoryName);
+    return (
+        category.includes("cinecarnical") ||
+        category.includes("cine carnival") ||
+        category.includes("cinecarnival")
+    );
+}
+
+function getEventRubric(categoryName?: string, eventName?: string): RubricCriterion[] | null {
     const category = normalizeText(categoryName);
     const event = normalizeText(eventName);
-    if (!category.includes("natyaka")) return null;
 
-    if (event.includes("mono") && event.includes("action")) {
+    if (category.includes("natyaka")) {
+        if (event.includes("mono") && event.includes("action")) {
+            return [
+                { key: "dialogueDelivery", label: "Dialogue Delivery", max: 10 },
+                { key: "expressions", label: "Expressions", max: 10 },
+                { key: "bodyLanguage", label: "Body Language", max: 10 },
+                { key: "confidenceAndPresence", label: "Confidence and Stage Presence", max: 10 },
+                { key: "overallPerformance", label: "Overall Performance", max: 10 },
+            ];
+        }
+
+        if (event.includes("skit")) {
+            return [
+                { key: "dialogueDelivery", label: "Dialogue Delivery", max: 10 },
+                { key: "expressionAndActing", label: "Expression and Acting", max: 10 },
+                { key: "bodyLanguage", label: "Body Language", max: 10 },
+                { key: "teamworkAndPresence", label: "Team Work and Stage Presence", max: 15 },
+                { key: "overallPerformance", label: "Overall Performance", max: 15 },
+            ];
+        }
+
+        return null;
+    }
+
+    if (!isCinecarnicalCategory(categoryName)) return null;
+
+    if (event.includes("short") && event.includes("film")) {
         return [
-            { key: "dialogueDelivery", label: "Dialogue Delivery", max: 10 },
-            { key: "expressions", label: "Expressions", max: 10 },
-            { key: "bodyLanguage", label: "Body Language", max: 10 },
-            { key: "confidenceAndPresence", label: "Confidence and Stage Presence", max: 10 },
-            { key: "overallPerformance", label: "Overall Performance", max: 10 },
+            { key: "socialMessage", label: "Social Message", max: 10 },
+            { key: "direction", label: "Direction", max: 10 },
+            { key: "editing", label: "Editing", max: 10 },
+            { key: "cinematography", label: "Cinematography", max: 10 },
+            { key: "dialogues", label: "Dialogues", max: 5 },
+            { key: "screenplay", label: "Screenplay", max: 20 },
+            { key: "acting", label: "Acting", max: 15 },
+            { key: "sfx", label: "SFX", max: 5 },
+            { key: "aiUsage", label: "AI Usage", max: 5 },
+            { key: "inTimeLimit", label: "In Time Limit", max: 10 },
         ];
     }
 
-    if (event.includes("skit")) {
+    if (event.includes("cover") && event.includes("song")) {
         return [
-            { key: "dialogueDelivery", label: "Dialogue Delivery", max: 10 },
-            { key: "expressionAndActing", label: "Expression and Acting", max: 10 },
-            { key: "bodyLanguage", label: "Body Language", max: 10 },
-            { key: "teamworkAndPresence", label: "Team Work and Stage Presence", max: 15 },
-            { key: "overallPerformance", label: "Overall Performance", max: 15 },
+            { key: "story", label: "Story", max: 10 },
+            { key: "direction", label: "Direction", max: 10 },
+            { key: "editing", label: "Editing", max: 10 },
+            { key: "cinematography", label: "Cinematography", max: 10 },
+            { key: "screenplay", label: "Screenplay", max: 20 },
+            { key: "acting", label: "Acting", max: 15 },
+            { key: "aiUsage", label: "AI Usage", max: 5 },
+            { key: "inTimeLimit", label: "In Time Limit", max: 10 },
+            { key: "understandableForEveryone", label: "Understandable for Everyone", max: 10 },
         ];
     }
 
@@ -50,7 +93,7 @@ function getNatyakaRubric(categoryName?: string, eventName?: string): RubricCrit
 }
 
 function getEventMaxScore(categoryName?: string, eventName?: string): number {
-    const rubric = getNatyakaRubric(categoryName, eventName);
+    const rubric = getEventRubric(categoryName, eventName);
     if (!rubric) return 10;
     return rubric.reduce((sum, item) => sum + item.max, 0);
 }
@@ -130,7 +173,7 @@ export default function JudgeDashboard() {
 
     const handleEvaluationSubmit = async () => {
         if (!selectedEvent || !evaluatingParticipant) return;
-        const rubric = getNatyakaRubric(categoryName, selectedEvent.name);
+        const rubric = getEventRubric(categoryName, selectedEvent.name);
         const maxScore = getEventMaxScore(categoryName, selectedEvent.name);
         let roundedScore = 0;
 
@@ -188,7 +231,7 @@ export default function JudgeDashboard() {
     const prepareEvaluationForm = (participant: Participant, evaluation?: Evaluation) => {
         setEvaluatingParticipant(participant);
         setRemarks(evaluation?.remarks || "");
-        const rubric = selectedEvent ? getNatyakaRubric(categoryName, selectedEvent.name) : null;
+        const rubric = selectedEvent ? getEventRubric(categoryName, selectedEvent.name) : null;
         if (rubric) {
             const initialScores: Record<string, number | ""> = {};
             rubric.forEach((criterion) => {
@@ -280,40 +323,14 @@ export default function JudgeDashboard() {
                 });
             }
 
-            // Calculate Average Score for Team
-            let totalScore = 0;
-            let evaluatedMembersCount = 0;
-
-            // Check Leader Evaluation
-            if (evaluation) {
-                totalScore += evaluation.score;
-                evaluatedMembersCount++;
-            }
-
-            // Check Members Evaluations
-            if (Array.isArray(membersList)) {
-                membersList.forEach((member: any) => {
-                    const memberId = member.userId;
-                    if (memberId) {
-                        const memEval = getEvaluation(event.id, memberId);
-                        if (memEval) {
-                            totalScore += memEval.score;
-                            evaluatedMembersCount++;
-                        }
-                    }
-                });
-            }
-
-            const averageScore = evaluatedMembersCount > 0 ? parseFloat((totalScore / evaluatedMembersCount).toFixed(1)) : undefined;
-
             list.push({
                 id: `group-${reg.user.id}-${index}`,
                 type: "GROUP",
                 displayName: reg.groupName || `Team ${reg.user.name}`,
                 subtitle: `Leader: ${reg.user.name}`,
                 members: Array.isArray(membersList) ? membersList : [],
-                isEvaluated: evaluatedMembersCount > 0,
-                score: averageScore,
+                isEvaluated: !!evaluation,
+                score: evaluation?.score,
                 remarks: evaluation?.remarks,
                 actualUserId: reg.user.id
             });
@@ -440,7 +457,7 @@ export default function JudgeDashboard() {
                             <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">{selectedEvent.name}</h2>
                             <p className="text-gray-400 text-sm sm:text-base mb-4 sm:mb-6">{selectedEvent.description}</p>
                             {(() => {
-                                const rubric = getNatyakaRubric(categoryName, selectedEvent.name);
+                                const rubric = getEventRubric(categoryName, selectedEvent.name);
                                 if (!rubric) return null;
                                 return (
                                     <div className="mb-5 rounded-xl border border-red-500/30 bg-red-500/5 p-4">
@@ -466,38 +483,6 @@ export default function JudgeDashboard() {
                                 const evaluated = participants.filter(p => p.isEvaluated).length;
                                 const pending = total - evaluated;
                                 
-                                // For group events, count individual members too
-                                let totalIndividuals = total;
-                                let evaluatedIndividuals = evaluated;
-                                let pendingIndividuals = pending;
-                                
-                                if (selectedEvent.isGroupEvent) {
-                                    totalIndividuals = participants.reduce((sum, p) => {
-                                        if (p.type === "GROUP" && p.members) {
-                                            return sum + 1 + (p.members.length || 0); // leader + members
-                                        }
-                                        return sum + 1;
-                                    }, 0);
-                                    
-                                    evaluatedIndividuals = participants.reduce((sum, p) => {
-                                        if (p.type === "GROUP" && p.members) {
-                                            let count = 0;
-                                            // Check leader
-                                            if (getEvaluation(selectedEvent.id, p.actualUserId || "")) count++;
-                                            // Check members
-                                            p.members.forEach((m: any) => {
-                                                if (m.userId && getEvaluation(selectedEvent.id, m.userId)) count++;
-                                            });
-                                            return sum + count;
-                                        } else if (p.isEvaluated) {
-                                            return sum + 1;
-                                        }
-                                        return sum;
-                                    }, 0);
-                                    
-                                    pendingIndividuals = totalIndividuals - evaluatedIndividuals;
-                                }
-                                
                                 return (
                                     <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-4 sm:mb-6">
                                         <div className="bg-gradient-to-br from-blue-950/40 to-blue-900/20 p-3 sm:p-4 rounded-xl border border-blue-500/20">
@@ -505,18 +490,12 @@ export default function JudgeDashboard() {
                                                 <FiUsers className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Total {selectedEvent.isGroupEvent ? "Teams" : "Students"}
                                             </p>
                                             <p className="font-bold text-lg sm:text-2xl text-white">{total}</p>
-                                            {selectedEvent.isGroupEvent && (
-                                                <p className="text-[10px] sm:text-xs text-blue-300/70 mt-1">{totalIndividuals} individuals</p>
-                                            )}
                                         </div>
                                         <div className="bg-gradient-to-br from-green-950/40 to-green-900/20 p-3 sm:p-4 rounded-xl border border-green-500/20">
                                             <p className="text-green-400 mb-1 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium">
                                                 <FiCheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Evaluated
                                             </p>
                                             <p className="font-bold text-lg sm:text-2xl text-white">{evaluated}</p>
-                                            {selectedEvent.isGroupEvent && (
-                                                <p className="text-[10px] sm:text-xs text-green-300/70 mt-1">{evaluatedIndividuals} individuals</p>
-                                            )}
                                             {total > 0 && (
                                                 <div className="mt-2 w-full bg-black/20 rounded-full h-1.5">
                                                     <div 
@@ -531,9 +510,6 @@ export default function JudgeDashboard() {
                                                 <FiLoader className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Pending
                                             </p>
                                             <p className="font-bold text-lg sm:text-2xl text-white">{pending}</p>
-                                            {selectedEvent.isGroupEvent && (
-                                                <p className="text-[10px] sm:text-xs text-yellow-300/70 mt-1">{pendingIndividuals} individuals</p>
-                                            )}
                                             {total > 0 && (
                                                 <p className="text-[10px] sm:text-xs text-yellow-300/70 mt-1">
                                                     {Math.round((pending / total) * 100)}% remaining
@@ -662,76 +638,14 @@ export default function JudgeDashboard() {
                                                     >
                                                         <div className="px-4 sm:px-5 py-3 bg-black/10">
                                                             <div className="space-y-2">
-                                                                {/* Team Leader with Evaluate Button */}
-                                                                <div className="p-3 bg-red-950/20 rounded-lg border border-red-500/20">
-                                                                    <div className="flex items-center justify-between mb-2">
-                                                                        <div className="flex items-center gap-2 flex-1">
-                                                                            <span className="text-[10px] bg-red-600/30 text-red-300 px-2 py-0.5 rounded font-bold uppercase">Leader</span>
-                                                                            <span className="text-white font-medium text-sm">{participant.subtitle?.replace('Leader: ', '')}</span>
-                                                                        </div>
-                                                                        {participant.isEvaluated && (
-                                                                            <span className={`text-xs px-2 py-0.5 rounded border ${getScoreColor(participant.score || 0)}`}>
-                                                                                {/* If this is the group row, participant.score is average. 
-                                                                                   We need the LEADER'S individual score here.
-                                                                                   We can fetch it using getEvaluation(selectedEvent.id, participant.actualUserId)
-                                                                               */}
-                                                                                {getEvaluation(selectedEvent.id, participant.actualUserId || "")?.score}/{getEventMaxScore(categoryName, selectedEvent.name)}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            const participantData = {
-                                                                                id: participant.actualUserId || participant.id,
-                                                                                name: participant.subtitle?.replace('Leader: ', '') || participant.displayName,
-                                                                                email: "",
-                                                                                collageId: null,
-                                                                                image: null
-                                                                            };
-                                                                            const leaderEval = getEvaluation(selectedEvent.id, participant.actualUserId || "");
-                                                                            prepareEvaluationForm(participantData, leaderEval || undefined);
-                                                                        }}
-                                                                        className="w-full py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg text-xs font-semibold transition-all"
-                                                                    >
-                                                                        {getEvaluation(selectedEvent.id, participant.actualUserId || "") ? "Edit Evaluation" : "Evaluate"}
-                                                                    </button>
-                                                                </div>
-
-                                                                {/* Other Members with Evaluate Buttons */}
+                                                                {/* Team Members List (display only) */}
                                                                 {participant.members.map((m: any, idx: number) => {
-                                                                    const memberId = m.userId;
-                                                                    const memberEvaluation = memberId ? getEvaluation(selectedEvent.id, memberId) : null;
-                                                                    const isMemberEvaluated = !!memberEvaluation;
-
                                                                     return (
                                                                         <div key={idx} className="p-3 bg-white/5 rounded-lg border border-white/10">
-                                                                            <div className="flex items-center justify-between mb-2">
+                                                                            <div className="flex items-center justify-between">
                                                                                 <span className="text-gray-300 text-sm font-medium">{m.name || m}</span>
                                                                                 {m.rollNo && <span className="text-gray-500 text-xs">{m.rollNo}</span>}
-                                                                                {isMemberEvaluated && (
-                                                                                    <span className={`text-xs px-2 py-0.5 rounded border ${getScoreColor(memberEvaluation?.score || 0)}`}>
-                                                                                        {memberEvaluation?.score}/{getEventMaxScore(categoryName, selectedEvent.name)}
-                                                                                    </span>
-                                                                                )}
                                                                             </div>
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    const participantData = {
-                                                                                        id: m.userId || `member-${idx}`,
-                                                                                        name: m.name || m,
-                                                                                        email: m.email || "",
-                                                                                        collageId: m.rollNo || null,
-                                                                                        image: null
-                                                                                    };
-                                                                                    prepareEvaluationForm(participantData, memberEvaluation || undefined);
-                                                                                }}
-                                                                                className={`w-full py-2 rounded-lg text-xs font-semibold transition-all ${isMemberEvaluated
-                                                                                    ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-                                                                                    : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-                                                                                    }`}
-                                                                            >
-                                                                                {isMemberEvaluated ? "Edit Evaluation" : "Evaluate"}
-                                                                            </button>
                                                                         </div>
                                                                     );
                                                                 })}
@@ -743,27 +657,27 @@ export default function JudgeDashboard() {
                                         </div>
                                     )}
 
-                                    {/* Evaluate Button - Only for Individual Events */}
-                                    {participant.type !== "GROUP" && (
-                                        <div className="p-4 sm:p-5 border-t border-white/5">
-                                            <button
-                                                onClick={() => {
-                                                    const participantData = {
-                                                        id: participant.actualUserId || participant.id,
-                                                        name: participant.displayName,
-                                                        email: "", // Not needed for display
-                                                        collageId: null,
-                                                        image: null
-                                                    };
-                                                    const currentEvaluation = getEvaluation(selectedEvent.id, participant.actualUserId || participant.id);
-                                                    prepareEvaluationForm(participantData, currentEvaluation || undefined);
-                                                }}
-                                                className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg text-sm sm:text-base font-semibold transition-all shadow-lg hover:shadow-red-500/20"
-                                            >
-                                                {participant.isEvaluated ? "Edit Evaluation" : "Evaluate"}
-                                            </button>
-                                        </div>
-                                    )}
+                                    {/* Single Evaluate Button for Individual/Team */}
+                                    <div className="p-4 sm:p-5 border-t border-white/5">
+                                        <button
+                                            onClick={() => {
+                                                const participantData = {
+                                                    id: participant.actualUserId || participant.id,
+                                                    name: participant.displayName,
+                                                    email: "", // Not needed for display
+                                                    collageId: null,
+                                                    image: null
+                                                };
+                                                const currentEvaluation = getEvaluation(selectedEvent.id, participant.actualUserId || participant.id);
+                                                prepareEvaluationForm(participantData, currentEvaluation || undefined);
+                                            }}
+                                            className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg text-sm sm:text-base font-semibold transition-all shadow-lg hover:shadow-red-500/20"
+                                        >
+                                            {participant.isEvaluated
+                                                ? (participant.type === "GROUP" ? "Edit Team Evaluation" : "Edit Evaluation")
+                                                : (participant.type === "GROUP" ? "Evaluate Team" : "Evaluate")}
+                                        </button>
+                                    </div>
                                 </motion.div>
                             ))}
                         </div>
@@ -845,7 +759,7 @@ export default function JudgeDashboard() {
 
                             <div className="space-y-4 sm:space-y-6">
                                 {(() => {
-                                    const rubric = getNatyakaRubric(categoryName, selectedEvent?.name);
+                                    const rubric = getEventRubric(categoryName, selectedEvent?.name);
                                     if (!rubric) {
                                         const maxScore = getEventMaxScore(categoryName, selectedEvent?.name);
                                         return (
