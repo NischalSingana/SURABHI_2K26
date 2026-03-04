@@ -409,7 +409,7 @@ export async function sendCertificateToOne(
         return { success: false, error: "Unauthorized." };
     }
 
-    const [user, event] = await Promise.all([
+    const [user, event, groupReg] = await Promise.all([
         prisma.user.findUnique({
             where: { id: userId },
             select: { id: true, name: true, email: true, gender: true, collage: true, collageId: true, branch: true, certificateId: true } as any,
@@ -418,11 +418,90 @@ export async function sendCertificateToOne(
             where: { id: eventId },
             select: { id: true, name: true, slug: true, date: true },
         }),
+        prisma.groupRegistration.findFirst({
+            where: { eventId, userId, paymentStatus: "APPROVED" },
+        }),
     ]);
 
     if (!user) return { success: false, error: "User not found." };
     if (!event) return { success: false, error: "Event not found." };
+    
+    // If it's a team lead for this event, we bundle the certificates
+    if (groupReg) {
+        const teamCertificates: { name: string; pdfBuffer: Buffer; certificateId: string }[] = [];
 
+        // 1. Generate Lead Certificate
+        const leadCertData: CertificateData = {
+            name: (user as any).name || "Participant",
+            college: (user as any).collage,
+            regNo: (user as any).collageId,
+            branch: (user as any).branch,
+            eventName: event.name,
+            eventDate: event.date,
+            certificateId: (user as any).certificateId || makeCertificateId(event.slug, (user as any).id),
+        };
+
+        try {
+            const pdfBuffer = await generateCertificatePDF(leadCertData);
+            teamCertificates.push({
+                name: leadCertData.name,
+                pdfBuffer,
+                certificateId: leadCertData.certificateId,
+            });
+        } catch {
+            return { success: false, error: "Lead certificate generation failed" };
+        }
+
+        // 2. Generate Member Certificates
+        const members = (groupReg.members as unknown as GroupMemberJson[]) || [];
+        for (const member of members) {
+            if (!member.name) continue;
+            
+            const certData: CertificateData = {
+                name: member.name,
+                college: member.college || (user as any).collage,
+                regNo: member.regNo || (user as any).collageId,
+                branch: member.branch || (user as any).branch,
+                eventName: event.name,
+                eventDate: event.date,
+                certificateId: member.certificateId || makeCertificateId(event.slug, `m-${groupReg.id}-${member.name}`),
+            };
+
+            try {
+                const pdfBuffer = await generateCertificatePDF(certData);
+                teamCertificates.push({
+                    name: certData.name,
+                    pdfBuffer,
+                    certificateId: certData.certificateId,
+                });
+            } catch {
+                // We'll continue even if a member fails, to send whatever succeeds
+            }
+        }
+
+        // 3. Send Bundled Email
+        if (teamCertificates.length > 0 && (user as any).email) {
+            try {
+                const emailResult = await sendBundledCertificateEmail(
+                    { name: (user as any).name || "Participant", email: (user as any).email },
+                    { name: event.name, date: event.date },
+                    teamCertificates
+                );
+                
+                if (emailResult.success) { 
+                    return { success: true };
+                } else { 
+                    return { success: false, error: emailResult.error }; 
+                }
+            } catch {
+                return { success: false, error: "Group email sending failed" };
+            }
+        } else {
+            return { success: false, error: "No certificates generated or missing email" };
+        }
+    }
+
+    // Otherwise, just a normal individual send
     const certData: CertificateData = {
         name: (user as any).name || "Participant",
         college: (user as any).collage,
