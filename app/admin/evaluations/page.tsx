@@ -11,6 +11,7 @@ interface Evaluation {
     id: string;
     score: number;
     remarks: string | null;
+    round: number;
     participant: {
         id: string;
         name: string | null;
@@ -56,6 +57,7 @@ interface ProcessedEntry {
         judgeId: string;
         judgeName: string | null;
         score: number;
+        roundScores?: Record<number, number>;
         remarks: string | null;
     }>;
 }
@@ -158,15 +160,45 @@ export default function AdminEvaluationsPage() {
                 byParticipant.set(pid, list);
             }
 
+            const isRaaga = event.name.toLowerCase().includes("voice") && event.name.toLowerCase().includes("raaga");
+
             const entries = Array.from(byParticipant.entries()).map(([participantId, evals]) => {
-                const total = evals.reduce((sum, e) => sum + e.score, 0);
-                const avg = evals.length ? parseFloat((total / evals.length).toFixed(2)) : 0;
-                const judgeScores = evals.map((e) => ({
-                    judgeId: e.judge.id,
-                    judgeName: e.judge.name,
-                    score: parseFloat(e.score.toFixed(2)),
-                    remarks: parseStoredRemarks(e.remarks),
-                }));
+                const byJudge = new Map<string, { judgeId: string; judgeName: string | null; roundScores: Record<number, number>; remarks: string[] }>();
+
+                for (const e of evals) {
+                    const entry = byJudge.get(e.judge.id) ?? { judgeId: e.judge.id, judgeName: e.judge.name, roundScores: {}, remarks: [] };
+                    entry.roundScores[e.round] = e.score;
+                    const clean = parseStoredRemarks(e.remarks);
+                    if (clean) entry.remarks.push(clean);
+                    byJudge.set(e.judge.id, entry);
+                }
+
+                let totalParticipantScore = 0;
+                let judgeCount = 0;
+
+                const judgeScores = Array.from(byJudge.values()).map(j => {
+                    let judgeTotal = 0;
+                    if (isRaaga) {
+                        judgeTotal = (j.roundScores[1] || 0) + (j.roundScores[2] || 0) + (j.roundScores[3] || 0);
+                    } else {
+                        // For non-raaga events, just take the first round score (or average if they somehow have multiple)
+                        const scores = Object.values(j.roundScores);
+                        judgeTotal = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+                    }
+
+                    totalParticipantScore += judgeTotal;
+                    judgeCount++;
+
+                    return {
+                        judgeId: j.judgeId,
+                        judgeName: j.judgeName,
+                        score: parseFloat(judgeTotal.toFixed(2)),
+                        roundScores: j.roundScores,
+                        remarks: j.remarks.length ? j.remarks.join(" | ") : null
+                    };
+                });
+
+                const avg = judgeCount ? parseFloat((totalParticipantScore / judgeCount).toFixed(2)) : 0;
 
                 return {
                     id: participantId,

@@ -67,7 +67,7 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        const { eventId, participantId, score, remarks, criteriaScores } = body;
+        const { eventId, participantId, score, remarks, criteriaScores, round = 1 } = body;
 
         if (!eventId || !participantId || score === undefined) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -97,10 +97,11 @@ export async function POST(req: Request) {
 
         const evaluation = await prisma.evaluation.upsert({
             where: {
-                judgeId_eventId_participantId: {
+                judgeId_eventId_participantId_round: {
                     judgeId: session.user.id,
                     eventId,
-                    participantId
+                    participantId,
+                    round
                 }
             },
             update: {
@@ -111,6 +112,7 @@ export async function POST(req: Request) {
                 judgeId: session.user.id,
                 eventId,
                 participantId,
+                round,
                 score: roundedScore,
                 remarks: buildStoredRemarks(remarks, criteriaScores)
             }

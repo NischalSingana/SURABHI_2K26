@@ -56,6 +56,7 @@ export async function getAllUsers(filters?: {
                 createdAt: true,
                 isInternational: true,
                 country: true,
+                certificateId: true,
                 _count: {
                     select: {
                         individualRegistrations: true,
@@ -272,6 +273,7 @@ export async function updateUserDetailsByMaster(
         state?: string | null;
         country?: string | null;
         isInternational?: boolean;
+        certificateId?: string | null;
     }
 ) {
     try {
@@ -304,6 +306,7 @@ export async function updateUserDetailsByMaster(
                 state: details.state?.trim() || null,
                 country: details.country?.trim() || null,
                 isInternational: !!details.isInternational,
+                certificateId: details.certificateId?.trim() || null,
             },
         });
 

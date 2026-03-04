@@ -22,7 +22,11 @@ export async function getEvaluations() {
             },
             include: {
                 evaluations: {
-                    include: {
+                    select: {
+                        id: true,
+                        score: true,
+                        remarks: true,
+                        round: true,
                         participant: {
                             select: {
                                 id: true,

@@ -11,17 +11,25 @@ export async function GET() {
         });
 
         if (!session?.user || session.user.role !== "JUDGE") {
+            console.warn("Judge Data Access Denied:", session?.user?.email, "Role:", session?.user?.role);
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const eventId = session.user.assignedEventId;
+        const eventId = (session.user as any).assignedEventId;
+        console.log("Judge Data Fetch:", {
+            email: session.user.email,
+            role: session.user.role,
+            assignedEventId: eventId,
+            userId: session.user.id
+        });
 
         if (!eventId) {
-            return NextResponse.json({ error: "No event assigned to this judge" }, { status: 400 });
+            console.error("No event assigned for judge:", session.user.email);
+            return NextResponse.json({ error: "No event assigned to this judge. Please contact Master Admin." }, { status: 400 });
         }
 
         // Fetch the assigned event with all necessary data
-        const event = await prisma.event.findUnique({
+        const event = await (prisma.event as any).findUnique({
             where: {
                 id: eventId
             },
@@ -63,12 +71,6 @@ export async function GET() {
                 evaluations: {
                     where: {
                         judgeId: session.user.id
-                    },
-                    select: {
-                        id: true,
-                        score: true,
-                        remarks: true,
-                        participantId: true
                     }
                 },
                 // Include category info
@@ -77,19 +79,24 @@ export async function GET() {
         });
 
         if (!event) {
-            return NextResponse.json({ error: "Event not found" }, { status: 404 });
+            console.error("Event not found for ID:", eventId);
+            return NextResponse.json({ error: `Event not found (${eventId})` }, { status: 404 });
         }
 
         // Return as array for compatibility with frontend
-        const events = [event];
+        const safeEvent = event as any;
+        const events = [safeEvent];
 
         return NextResponse.json({
             events,
-            categoryName: event.Category?.name
+            categoryName: safeEvent.Category?.name
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error fetching judge data:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({ 
+            error: "Internal Server Error", 
+            details: error?.message || "Unknown error" 
+        }, { status: 500 });
     }
 }

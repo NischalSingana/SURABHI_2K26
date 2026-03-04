@@ -34,6 +34,7 @@ model User {
   assignedEventId          String?
   country                  String?
   isInternational          Boolean                   @default(false)
+  certificateId            String?
   accommodationBookings    AccommodationBooking[]
   accounts                 Account[]
   evaluationsGiven         Evaluation[]              @relation("JudgeEvaluations")
@@ -342,6 +343,7 @@ model Evaluation {
   id            String   @id @default(cuid())
   score         Float
   remarks       String?
+  round         Int      @default(1)
   judgeId       String
   eventId       String
   participantId String
@@ -351,7 +353,7 @@ model Evaluation {
   judge         User     @relation("JudgeEvaluations", fields: [judgeId], references: [id], onDelete: Cascade)
   participant   User     @relation("ParticipantEvaluations", fields: [participantId], references: [id], onDelete: Cascade)
 
-  @@unique([judgeId, eventId, participantId])
+  @@unique([judgeId, eventId, participantId, round])
   @@index([eventId])
   @@index([judgeId])
   @@index([participantId])
