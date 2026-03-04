@@ -76,7 +76,7 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
 
     useEffect(() => {
         loadUsers();
-    }, [filter]);
+    }, [loadUsers]);
 
     const { klUsers, internationalUsers, otherUsers } = useMemo(() => {
         const kl: User[] = [];

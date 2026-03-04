@@ -812,3 +812,108 @@ export async function sendCertificateEmail(
         ],
     });
 }
+
+/**
+ * Sends a bundled group certificates email to the team lead with all PDFs attached.
+ */
+export async function sendBundledCertificateEmail(
+    leadUser: { name: string; email: string },
+    event: { name: string; date: Date },
+    certificates: { name: string; pdfBuffer: Buffer; certificateId: string }[]
+): Promise<{ success: boolean; error?: string }> {
+    const baseUrl = "https://klusurabhi.in";
+    const klLogoUrl = `${baseUrl}/images/kl_logo_white_text.png`;
+    const surabhiLogoUrl = `${baseUrl}/images/surabhi1.png`;
+
+    const dateStr = event.date.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    });
+
+    const membersListHtml = certificates
+        .map(cert => `<li style="margin-bottom: 8px;"><strong>${cert.name}</strong> - ID: <span style="color: #dc2626;">${cert.certificateId}</span></li>`)
+        .join("");
+
+    const htmlBody = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>Team Certificates of Participation – Surabhi 2026</title>
+        <style>
+            body { margin: 0; padding: 0; background-color: #000000; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+            .container { max-width: 600px; margin: 0 auto; background-color: #0a0a0a; border: 1px solid #333; }
+            .content { padding: 40px 30px; color: #ffffff; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #000000; border-bottom: 3px solid #dc2626;">
+                <tr>
+                    <td align="left" style="padding: 20px;"><img src="${klLogoUrl}" alt="KL University" width="130" style="display:block;"></td>
+                    <td align="right" style="padding: 20px;"><img src="${surabhiLogoUrl}" alt="Surabhi 2026" width="110" style="display:block;"></td>
+                </tr>
+            </table>
+
+            <div class="content">
+                <div style="font-size: 20px; color: #dc2626; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Surabhi 2026</div>
+                <div style="font-size: 28px; color: #ffffff; font-weight: 800; margin-bottom: 20px; line-height: 1.2;">🎓 Team Certificates of Participation</div>
+
+                <p style="color: #d4d4d8; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                    Dear <strong style="color: #ffffff;">${leadUser.name}</strong>,
+                </p>
+
+                <p style="color: #d4d4d8; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                    Congratulations to you and your team on your participation in <strong style="color: #dc2626;">${event.name}</strong> at
+                    <strong style="color: #ffffff;">Surabhi 2026 – International Cultural Fest</strong>,
+                    held on <strong style="color: #ffffff;">${dateStr}</strong> at KL University.
+                </p>
+
+                <div style="background-color: rgba(220,38,38,0.1); border-left: 4px solid #dc2626; padding: 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
+                    <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 0 0 8px 0;">📄 Group Certificates Attached</p>
+                    <p style="color: #d4d4d8; font-size: 14px; margin: 0; line-height: 1.6;">
+                        Please find the official <strong>Certificates of Participation</strong> for your team attached to this email as PDFs. 
+                        You can distribute these to your team members.
+                    </p>
+                </div>
+
+                <div style="background-color: #18181b; border: 1px solid #333; border-radius: 8px; padding: 25px; margin: 25px 0;">
+                    <h3 style="color: #ffffff; font-size: 16px; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 8px;">Certificates Included:</h3>
+                    <ul style="color: #d4d4d8; font-size: 14px; padding-left: 20px; margin-bottom: 0;">
+                        ${membersListHtml}
+                    </ul>
+                </div>
+
+                <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; margin-top: 30px; font-style: italic;">
+                    "Thank you for being a part of Surabhi 2026. Your team's talent and enthusiasm made this fest truly memorable!"
+                </p>
+                <p style="color: #52525b; font-size: 12px; margin-top: 10px;">Ignite Your Passion • Surabhi 2026</p>
+                <p style="color: #52525b; font-size: 12px; margin-top: 8px;">For queries: <a href="mailto:surabhi@kluniversity.in" style="color: #dc2626;">surabhi@kluniversity.in</a></p>
+            </div>
+
+            <div style="background-color: #18181b; padding: 30px; text-align: center; color: #52525b; font-size: 12px; border-top: 1px solid #333;">
+                <p>© 2026 KL University. All rights reserved.</p>
+                <p>Koneru Lakshmaiah Education Foundation, Vijayawada, Andhra Pradesh.</p>
+            </div>
+        </div>
+    </body>
+    </html>`;
+
+    const attachments = certificates.map((cert) => {
+        const safeName = cert.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "");
+        const safeEvent = event.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "");
+        return {
+            content: cert.pdfBuffer.toString("base64"),
+            mime_type: "application/pdf",
+            name: `Surabhi_2026_Certificate_${safeEvent}_${safeName}.pdf`,
+        };
+    });
+
+    return sendZeptoMail({
+        to: [{ email: leadUser.email, name: leadUser.name }],
+        subject: `Team Certificates of Participation – ${event.name} | Surabhi 2026`,
+        htmlBody,
+        attachments,
+    });
+}

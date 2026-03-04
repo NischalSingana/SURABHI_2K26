@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getEvaluations, toggleResultRelease } from "@/actions/evaluation.action";
 import Loader from "@/components/ui/Loader";
-import { FiChevronDown, FiChevronUp, FiAward, FiUsers, FiX, FiCheckCircle, FiGlobe, FiLock } from "react-icons/fi";
+import { FiChevronDown, FiChevronUp, FiAward, FiUsers, FiX, FiGlobe, FiLock } from "react-icons/fi";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -31,7 +31,7 @@ interface GroupRegistration {
         name: string | null;
     };
     groupName: string | null;
-    members: any;
+    members: unknown;
 }
 
 interface EventData {
@@ -51,7 +51,7 @@ interface ProcessedEntry {
     subtitle: string | null;
     score: number | string; // Average or specific score
     evaluationsCount: number; // Number of evaluations (1 for individual, N for group)
-    members?: any[]; // For groups
+    members?: Record<string, unknown>[]; // For groups
     individualEvaluations?: Evaluation[]; // For deeper view
     judgeScores?: Array<{
         judgeId: string;
@@ -225,22 +225,24 @@ export default function AdminEvaluationsPage() {
             const memberIds = new Set<string>();
             memberIds.add(reg.user.id); // Leader
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let membersList: any[] = [];
             try {
                 if (typeof reg.members === 'string') {
                     membersList = JSON.parse(reg.members);
                 } else {
-                    membersList = reg.members;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    membersList = reg.members as any[];
                 }
                 // Handle nested 'members' object logic if consistent with judge view
                 if (!Array.isArray(membersList) && membersList && typeof membersList === 'object' && 'members' in membersList) {
-                    // @ts-ignore
+                    // @ts-expect-error - nested members shape
                     membersList = membersList.members;
                 }
             } catch (e) { console.error(e); }
 
             if (Array.isArray(membersList)) {
-                membersList.forEach((m: any) => { if (m.userId) memberIds.add(m.userId); });
+                membersList.forEach((m) => { if (m.userId) memberIds.add(String(m.userId)); });
             }
 
             // Team is evaluated once using the team leader participant ID.
@@ -324,7 +326,7 @@ export default function AdminEvaluationsPage() {
                     <div className="text-center py-20 bg-zinc-900 rounded-2xl border border-zinc-800">
                         <FiAward className="mx-auto text-4xl text-gray-600 mb-4" />
                         <h3 className="text-xl font-bold text-gray-400">No evaluations found</h3>
-                        <p className="text-gray-500">Judges haven't submitted any scores yet.</p>
+                        <p className="text-gray-500">Judges haven&apos;t submitted any scores yet.</p>
                     </div>
                 ) : (
                     <div className="space-y-6">
@@ -602,7 +604,7 @@ export default function AdminEvaluationsPage() {
                                             <div>
                                                 <p className="font-bold text-base text-white">{ev.participant.name}</p>
                                                 <p className="text-sm text-gray-400">{ev.participant.collageId || "No ID"}</p>
-                                                {parseStoredRemarks(ev.remarks) && <p className="text-xs text-gray-400 mt-2 italic">"{parseStoredRemarks(ev.remarks)}"</p>}
+                                                {parseStoredRemarks(ev.remarks) && <p className="text-xs text-gray-400 mt-2 italic">&quot;{parseStoredRemarks(ev.remarks)}&quot;</p>}
                                                 <p className="text-[10px] text-gray-600 mt-1">Judge: {ev.judge.name}</p>
                                             </div>
                                             <div className="text-right">

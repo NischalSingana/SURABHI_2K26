@@ -144,8 +144,7 @@ export default function MyEventsPage() {
     }, []);
 
     useEffect(() => {
-        // eslint-disable-next-line
-        fetchMyEvents();
+        void fetchMyEvents();
     }, [fetchMyEvents]);
 
     const getSubmissionForEvent = (eventId: string) => {

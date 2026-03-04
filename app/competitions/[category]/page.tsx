@@ -199,7 +199,6 @@ function CategoryPageContent() {
   const [categoryImage, setCategoryImage] = useState<string | null>(null);
   const [categorySlug, setCategorySlug] = useState<string>("");
   const [categoryDisplayName, setCategoryDisplayName] = useState<string>("");
-  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [showPaymentStep, setShowPaymentStep] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState({
     screenshot: null as File | null,
@@ -267,9 +266,6 @@ function CategoryPageContent() {
           if (regResult.registeredEventIds) {
             setRegisteredEvents(new Set(regResult.registeredEventIds));
           }
-          if (regResult.email) {
-            setUserEmail(regResult.email);
-          }
         }
       }
     } else {
@@ -280,7 +276,8 @@ function CategoryPageContent() {
   }, [categoryParam]);
 
   useEffect(() => {
-    fetchEvents();
+    const id = setTimeout(() => { void fetchEvents(); }, 0);
+    return () => clearTimeout(id);
   }, [fetchEvents]);
 
   const handleEventClick = (eventId: string) => {

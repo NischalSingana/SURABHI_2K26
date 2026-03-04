@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Role } from "@prisma/client";
 import { headers } from "next/headers";
 import { generateCertificatePDF, type CertificateData } from "@/lib/certificate-generator";
-import { sendCertificateEmail } from "@/lib/zeptomail";
+import { sendCertificateEmail, sendBundledCertificateEmail } from "@/lib/zeptomail";
 
 
 interface GroupMemberJson {
@@ -14,6 +14,10 @@ interface GroupMemberJson {
     gender?: string;
     inGameName?: string;
     inGameId?: string;
+    college?: string;
+    regNo?: string;
+    branch?: string;
+    certificateId?: string;
 }
 
 function makeCertificateId(eventSlug: string, userId: string): string {
@@ -174,44 +178,83 @@ export async function sendCertificatesForEvent(eventId: string): Promise<{ succe
     for (const reg of (groupRegs as any[])) {
         // Team lead
         const lead = reg.user;
+        if (!lead.email) continue;
+        if (sentEmails.has(lead.email)) continue;
 
-        // Send to lead
-        if (lead.email && !sentEmails.has(lead.email)) {
+        // Collect all certificates for this team
+        const teamCertificates: { name: string; pdfBuffer: Buffer; certificateId: string }[] = [];
+
+        // 1. Generate Lead Certificate
+        const leadCertData: CertificateData = {
+            name: lead.name || "Participant",
+            college: lead.collage,
+            regNo: lead.collageId,
+            branch: lead.branch,
+            eventName: event.name,
+            eventDate: event.date,
+            certificateId: lead.certificateId || makeCertificateId(event.slug, lead.id),
+        };
+
+        try {
+            const pdfBuffer = await generateCertificatePDF(leadCertData);
+            teamCertificates.push({
+                name: leadCertData.name,
+                pdfBuffer,
+                certificateId: leadCertData.certificateId,
+            });
+        } catch (err) {
+            result.failed++;
+            result.errors.push(`${lead.email} (Lead): ${err instanceof Error ? err.message : "Generation failed"}`);
+        }
+
+        // 2. Generate Member Certificates
+        const members = (reg.members as unknown as GroupMemberJson[]) || [];
+        for (const member of members) {
+            if (!member.name) continue;
+            
             const certData: CertificateData = {
-                name: lead.name || "Participant",
-                college: lead.collage,
-                regNo: lead.collageId,
-                branch: lead.branch,
+                name: member.name,
+                college: member.college || lead.collage,
+                regNo: member.regNo || lead.collageId,
+                branch: member.branch || lead.branch,
                 eventName: event.name,
                 eventDate: event.date,
-                certificateId: lead.certificateId || makeCertificateId(event.slug, lead.id),
+                certificateId: member.certificateId || makeCertificateId(event.slug, `m-${reg.id}-${member.name}`),
             };
 
             try {
                 const pdfBuffer = await generateCertificatePDF(certData);
-                const emailResult = await sendCertificateEmail(
-                    { name: lead.name || "Participant", email: lead.email },
-                    { name: event.name, date: event.date },
-                    certData.certificateId,
-                    pdfBuffer
-                );
-                if (emailResult.success) { sentEmails.add(lead.email); result.sent++; }
-                else { result.failed++; result.errors.push(`${lead.email}: ${emailResult.error}`); }
+                teamCertificates.push({
+                    name: certData.name,
+                    pdfBuffer,
+                    certificateId: certData.certificateId,
+                });
             } catch (err) {
                 result.failed++;
-                result.errors.push(`${lead.email}: ${err instanceof Error ? err.message : "Generation failed"}`);
+                result.errors.push(`${lead.email} (for ${member.name}): ${err instanceof Error ? err.message : "Generation failed"}`);
             }
         }
 
-        // Send to each group member  
-        // Members are stored as JSON: [{ name, phone, gender, ... }]
-        // Group members typically don't have individual email stored — so we generate a cert
-        // referencing the team's college/data but use the lead's email with a note, OR skip
-        // if no individual email. Here we generate per-member with same college data (best effort).
-        const members = (reg.members as unknown as GroupMemberJson[]) || [];
-        for (const member of members) {
-            if (!member.name) continue;
-            // Group members don't always have email
+        // 3. Send Bundled Email if any certificates generated
+        if (teamCertificates.length > 0) {
+            try {
+                const emailResult = await sendBundledCertificateEmail(
+                    { name: lead.name || "Participant", email: lead.email },
+                    { name: event.name, date: event.date },
+                    teamCertificates
+                );
+                
+                if (emailResult.success) { 
+                    sentEmails.add(lead.email); 
+                    result.sent += teamCertificates.length; 
+                } else { 
+                    result.failed += teamCertificates.length; 
+                    result.errors.push(`${lead.email} (Team): ${emailResult.error}`); 
+                }
+            } catch (err) {
+                result.failed += teamCertificates.length;
+                result.errors.push(`${lead.email} (Team Email): ${err instanceof Error ? err.message : "Email sending failed"}`);
+            }
         }
     }
 
@@ -225,7 +268,7 @@ export async function sendCertificatesForEvent(eventId: string): Promise<{ succe
 export interface ParticipantRecord {
     userId: string;
     registrationId: string;
-    type: "INDIVIDUAL" | "GROUP";
+    type: "INDIVIDUAL" | "GROUP" | "MEMBER";
     name: string;
     email: string;
 
@@ -234,6 +277,8 @@ export interface ParticipantRecord {
     branch: string | null;
     certificateId: string;
     missingFields: string[];
+    
+    memberIndex?: number;
 }
 
 /**
@@ -317,6 +362,34 @@ export async function getParticipantsForEvent(eventId: string): Promise<{
             seenUserIds.add(reg.user.id);
             participants.push(toRecord(reg.user, reg.id, "GROUP"));
         }
+        
+        const members = (reg.members as unknown as GroupMemberJson[]) || [];
+        members.forEach((member, index) => {
+            if (!member.name) return;
+            
+            // For members, we don't naturally have a user ID. So we can use a composite or dummy UUID.
+            // The action will use registrationId and memberIndex anyway.
+            const certId = member.certificateId || "";
+            const missing: string[] = [];
+            if (!member.name) missing.push("Name");
+            if (!member.college) missing.push("College");
+            if (!member.regNo) missing.push("Reg. No.");
+            if (!member.branch) missing.push("Department");
+            
+            participants.push({
+                userId: `member-${reg.id}-${index}`, // Dummy userId for keying
+                registrationId: reg.id,
+                type: "MEMBER",
+                name: member.name,
+                email: "", // Members don't have emails
+                college: member.college || null,
+                regNo: member.regNo || null,
+                branch: member.branch || null,
+                certificateId: certId,
+                missingFields: missing,
+                memberIndex: index,
+            });
+        });
     }
 
     return { success: true, data: { event, participants } };
@@ -387,6 +460,46 @@ export async function generateCertificatePreview(
         return { success: false, error: "Unauthorized." };
     }
 
+    if (userId.startsWith("member-")) {
+        const [, regId, idxStr] = userId.split("-");
+        const memberIndex = parseInt(idxStr, 10);
+
+        const [groupReg, event] = await Promise.all([
+            prisma.groupRegistration.findUnique({
+                where: { id: regId },
+                include: { user: { select: { collage: true, collageId: true, branch: true } } }
+            }),
+            prisma.event.findUnique({
+                where: { id: eventId },
+                select: { id: true, name: true, slug: true, date: true },
+            }),
+        ]);
+
+        if (!groupReg || !event) return { success: false, error: "Record not found." };
+
+        const members = (groupReg.members as unknown as GroupMemberJson[]) || [];
+        const member = members[memberIndex];
+        if (!member) return { success: false, error: "Member not found." };
+        if (!member.name) return { success: false, error: "Member name is missing." };
+
+        const certData: CertificateData = {
+            name: member.name,
+            college: member.college || (groupReg.user as any).collage,
+            regNo: member.regNo || (groupReg.user as any).collageId,
+            branch: member.branch || (groupReg.user as any).branch,
+            eventName: event.name,
+            eventDate: event.date,
+            certificateId: member.certificateId || makeCertificateId(event.slug, `m-${regId}-${member.name}`),
+        };
+
+        try {
+            const pdfBuffer = await generateCertificatePDF(certData);
+            return { success: true, base64: pdfBuffer.toString("base64") };
+        } catch (err) {
+            return { success: false, error: err instanceof Error ? err.message : "Preview generation failed" };
+        }
+    }
+
     const [user, event] = await Promise.all([
         prisma.user.findUnique({
             where: { id: userId },
@@ -450,6 +563,58 @@ export async function updateParticipantCertDetails(
                 ...(data.certificateId !== undefined && { certificateId: data.certificateId }),
             },
         } as any);
+        return { success: true };
+    } catch (err) {
+        return { success: false, error: err instanceof Error ? err.message : "Update failed" };
+    }
+}
+
+/**
+ * Updates only the certificate-relevant fields on a group member.
+ */
+export async function updateGroupMemberCertDetails(
+    registrationId: string,
+    memberIndex: number,
+    data: {
+        name?: string;
+        college?: string;
+        regNo?: string;
+        branch?: string;
+        certificateId?: string;
+    },
+): Promise<{ success: boolean; error?: string }> {
+    const headersList = await headers();
+    const session = await auth.api.getSession({ headers: headersList });
+
+    if (!session || (session.user.role !== Role.MASTER && session.user.role !== Role.ADMIN)) {
+        return { success: false, error: "Unauthorized." };
+    }
+
+    try {
+        const reg = await prisma.groupRegistration.findUnique({
+            where: { id: registrationId },
+            select: { members: true },
+        });
+
+        if (!reg) return { success: false, error: "Registration not found." };
+
+        const members = (reg.members as unknown as GroupMemberJson[]) || [];
+        if (memberIndex < 0 || memberIndex >= members.length) {
+            return { success: false, error: "Member not found." };
+        }
+
+        const member = members[memberIndex];
+        if (data.name !== undefined) member.name = data.name;
+        if (data.college !== undefined) member.college = data.college;
+        if (data.regNo !== undefined) member.regNo = data.regNo;
+        if (data.branch !== undefined) member.branch = data.branch;
+        if (data.certificateId !== undefined) member.certificateId = data.certificateId;
+
+        await prisma.groupRegistration.update({
+            where: { id: registrationId },
+            data: { members: members as unknown as any },
+        });
+
         return { success: true };
     } catch (err) {
         return { success: false, error: err instanceof Error ? err.message : "Update failed" };
@@ -524,28 +689,50 @@ export async function autoAssignCertificateIds(): Promise<{ success: boolean; as
             assigned++;
         }
 
-        // Fetch group registrations without a cert ID yet
+        // Fetch group registrations
         const grpRegs = await (prisma.groupRegistration as any).findMany({
             where: {
                 eventId: event.id,
                 paymentStatus: "APPROVED",
-                user: { certificateId: null },
             },
             include: {
                 user: { select: { id: true, certificateId: true } as any },
             },
             orderBy: { createdAt: "asc" },
-        }) as Array<{ user: { id: string; certificateId: string | null } }>;
+        }) as Array<{ id: string; members: any; user: { id: string; certificateId: string | null } }>;
 
         for (const reg of grpRegs) {
-            if (reg.user.certificateId) continue;
-            maxSeq++;
-            const certId = `SUR-${String(maxSeq).padStart(4, "0")}`;
-            await (prisma.user as any).update({
-                where: { id: reg.user.id },
-                data: { certificateId: certId } as any,
-            });
-            assigned++;
+            let updatedMembers = false;
+            
+            // Assign to lead
+            if (!reg.user.certificateId) {
+                maxSeq++;
+                const certId = `SUR-${String(maxSeq).padStart(4, "0")}`;
+                await (prisma.user as any).update({
+                    where: { id: reg.user.id },
+                    data: { certificateId: certId } as any,
+                });
+                assigned++;
+            }
+            
+            // Assign to members
+            const members = (reg.members as unknown as GroupMemberJson[]) || [];
+            for (const member of members) {
+                if (member.name && !member.certificateId) {
+                    maxSeq++;
+                    const certId = `SUR-${String(maxSeq).padStart(4, "0")}`;
+                    member.certificateId = certId;
+                    updatedMembers = true;
+                    assigned++;
+                }
+            }
+            
+            if (updatedMembers) {
+                await (prisma.groupRegistration as any).update({
+                    where: { id: reg.id },
+                    data: { members: members as unknown as any },
+                });
+            }
         }
     }
 

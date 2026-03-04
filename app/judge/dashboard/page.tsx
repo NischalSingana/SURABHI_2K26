@@ -174,7 +174,7 @@ interface Event {
     endTime: string | null;
     isGroupEvent: boolean;
     individualRegistrations: { user: Participant }[];
-    groupRegistrations: { user: Participant; groupName: string | null; members: any }[];
+    groupRegistrations: { user: Participant; groupName: string | null; members: unknown }[];
     evaluations: Evaluation[];
 }
 
@@ -280,7 +280,7 @@ export default function JudgeDashboard() {
                 const err = await res.json();
                 toast.error(err.error || "Submission failed");
             }
-        } catch (error) {
+        } catch {
             toast.error("Network error");
         } finally {
             setSubmitting(false);
@@ -315,19 +315,7 @@ export default function JudgeDashboard() {
     };
 
     // Helper to safely parse dates
-    const formatDate = (dateValue: any): string => {
-        try {
-            const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
-            if (date && !isNaN(date.getTime())) {
-                return date.toLocaleString();
-            }
-            return 'Invalid Date';
-        } catch {
-            return 'Invalid Date';
-        }
-    };
-
-    const formatDateShort = (dateValue: any): string => {
+    const formatDateShort = (dateValue: string | Date): string => {
         try {
             const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
             if (date && !isNaN(date.getTime())) {
@@ -344,7 +332,7 @@ export default function JudgeDashboard() {
         type: "INDIVIDUAL" | "GROUP";
         displayName: string | null;
         subtitle: string | null;
-        members?: any[];
+        members?: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
         isEvaluated: boolean;
         score?: number;
         roundScores?: Record<number, number>;
@@ -362,16 +350,19 @@ export default function JudgeDashboard() {
             groupMemberIds.add(reg.user.id);
 
             // Parse members if it's a string, though it should be JSON object from Prisma
-            let membersList: any = [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let membersList: any[] = [];
             try {
                 if (typeof reg.members === 'string') {
-                    membersList = JSON.parse(reg.members);
+                    membersList = JSON.parse(reg.members) as Record<string, unknown>[];
                 } else {
-                    membersList = reg.members; // Already object/array
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    membersList = (reg.members || []) as any[]; // Already object/array
                 }
                 // If nested in 'members' key (common in some form builders)
                 if (!Array.isArray(membersList) && membersList && typeof membersList === 'object' && 'members' in membersList) {
-                    membersList = membersList.members;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    membersList = ((membersList as { members: any[] }).members);
                 }
             } catch (e) {
                 console.error("Error parsing members", e);
@@ -379,9 +370,9 @@ export default function JudgeDashboard() {
 
             // Add all team member IDs to the set (if they have userId field)
             if (Array.isArray(membersList)) {
-                membersList.forEach((member: any) => {
+                membersList.forEach((member) => {
                     if (member.userId) {
-                        groupMemberIds.add(member.userId);
+                        groupMemberIds.add(String(member.userId));
                     }
                 });
             }
@@ -447,7 +438,7 @@ export default function JudgeDashboard() {
                 // Search in subtitle (college ID, leader name, etc.)
                 const matchesSubtitle = (p.subtitle || "").toLowerCase().includes(query);
                 // Search in team members
-                const matchesMembers = p.members?.some((m: any) => {
+                const matchesMembers = p.members?.some((m) => {
                     const memberName = (m.name || m || "").toLowerCase();
                     const memberId = (m.rollNo || m.collageId || "").toLowerCase();
                     const memberEmail = (m.email || "").toLowerCase();
@@ -640,7 +631,7 @@ export default function JudgeDashboard() {
                         </div>
 
                         <div className="space-y-3">
-                            {getDisplayParticipants(selectedEvent).map((participant, index) => (
+                            {getDisplayParticipants(selectedEvent).map((participant) => (
                                 <motion.div
                                     key={participant.id}
                                     layout
@@ -723,6 +714,7 @@ export default function JudgeDashboard() {
                                                         <div className="px-4 sm:px-5 py-3 bg-black/10">
                                                             <div className="space-y-2">
                                                                 {/* Team Members List (display only) */}
+                                                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                                                 {participant.members.map((m: any, idx: number) => {
                                                                     return (
                                                                         <div key={idx} className="p-3 bg-white/5 rounded-lg border border-white/10">

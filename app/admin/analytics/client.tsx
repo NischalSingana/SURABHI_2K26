@@ -239,7 +239,6 @@ export default function AnalyticsPage() {
     }, []);
 
     useEffect(() => {
-        // eslint-disable-next-line
         void loadStats();
     }, [loadStats]);
 

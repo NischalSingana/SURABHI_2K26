@@ -45,6 +45,7 @@ interface Event {
   createdAt?: Date;
   updatedAt?: Date;
   individualRegistrations?: Array<{
+    id: string;
     paymentStatus?: string;
     isVirtual?: boolean;
     user: {
@@ -78,7 +79,7 @@ interface Event {
     groupName: string | null;
     mentorName: string | null;
     mentorPhone: string | null;
-    members: any[]; // key-value JSON or array
+    members: Record<string, unknown>[]; // key-value JSON or array
     registrationDetails?: Record<string, unknown> | null;
     paymentStatus?: string;
     isVirtual?: boolean;
@@ -157,6 +158,7 @@ export default function EventsManagement() {
   );
 
   // Student Details Modal State
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [selectedIndividualRegId, setSelectedIndividualRegId] = useState<string | null>(null);
   const [showStudentDetailsModal, setShowStudentDetailsModal] = useState(false);
@@ -165,6 +167,7 @@ export default function EventsManagement() {
   const [savingStudent, setSavingStudent] = useState(false);
 
   // Group Details Modal State
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const [showGroupDetailsModal, setShowGroupDetailsModal] = useState(false);
   const [isEditingGroup, setIsEditingGroup] = useState(false);
@@ -180,6 +183,7 @@ export default function EventsManagement() {
   const [expandedSubmissionId, setExpandedSubmissionId] = useState<string | null>(null);
 
   const submissionsByUserId = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const map = new Map<string, any>();
     if (!selectedEventForRegistrations?.submissions) return map;
     for (const submission of selectedEventForRegistrations.submissions) {
@@ -281,6 +285,7 @@ export default function EventsManagement() {
         setSelectedStudent(null);
         setSelectedIndividualRegId(null);
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setSelectedStudent((prev: any) => ({ ...prev, ...editStudentForm }));
       }
     } else {
@@ -305,6 +310,7 @@ export default function EventsManagement() {
         setShowGroupDetailsModal(false);
         setSelectedGroup(null);
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setSelectedGroup((prev: any) => {
           const next = { ...prev };
           if (editGroupForm.teamLead) next.user = { ...prev.user, ...editGroupForm.teamLead };
@@ -1306,7 +1312,7 @@ export default function EventsManagement() {
                             </p>
                           </div>
                           <div className="grid grid-cols-1 gap-4">
-                            {groupsForTab.map((group: any, index: number) => {
+                            {groupsForTab.map((group, index: number) => {
                               const isVirtual = !!group.isVirtual || !!group.user?.isInternational;
                               return (
                                 <div
@@ -1396,7 +1402,7 @@ export default function EventsManagement() {
                             </p>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {soloForTab.map((reg: any, index: number) => {
+                            {soloForTab.map((reg, index: number) => {
                               const student = reg.user;
                               const isVirtual = !!reg.isVirtual || !!student.isInternational;
                               return (
@@ -1543,10 +1549,10 @@ export default function EventsManagement() {
                       </h3>
                     </div>
                     <div className="grid grid-cols-1 gap-3">
-                      {submissions.map((sub: any, index: number) => {
+                      {submissions.map((sub, index: number) => {
                         const participant = sub.user;
                         const groupReg = selectedEventForSubmissions.groupRegistrations?.find(
-                          (g: any) => g.user.id === sub.userId
+                          (g) => g.user.id === sub.userId
                         );
                         const isTeamSubmission = !!groupReg;
                         const memberList = groupReg?.members

@@ -8,6 +8,7 @@ import {
     sendCertificateToOne,
     generateCertificatePreview,
     updateParticipantCertDetails,
+    updateGroupMemberCertDetails,
     autoAssignCertificateIds,
     type ParticipantRecord,
 } from "@/actions/admin/certificate.action";
@@ -49,13 +50,21 @@ function EditModal({
 
     const handleSave = async () => {
         setSaving(true);
-        const res = await updateParticipantCertDetails(participant.userId, {
+        let res;
+        
+        const updates = {
             name: form.name || undefined,
             college: form.college || undefined,
             regNo: form.regNo || undefined,
             branch: form.branch || undefined,
             certificateId: form.certificateId ? `SUR-${form.certificateId.trim()}` : undefined,
-        });
+        };
+
+        if (participant.type === "MEMBER") {
+            res = await updateGroupMemberCertDetails(participant.registrationId, participant.memberIndex as number, updates);
+        } else {
+            res = await updateParticipantCertDetails(participant.userId, updates);
+        }
         setSaving(false);
         if (res.success) {
             const finalCertId = form.certificateId ? `SUR-${form.certificateId.trim()}` : "";
@@ -156,7 +165,7 @@ function ParticipantRow({
                 const blob = await fetchRes.blob();
                 const url = URL.createObjectURL(blob);
                 window.open(url, "_blank");
-            } catch (err) {
+            } catch {
                 toast.error("Failed to render PDF preview");
             }
         } else {
@@ -184,8 +193,13 @@ function ParticipantRow({
             <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
                     <div>
-                        <p className="text-white text-sm font-medium leading-tight">{participant.name || <span className="text-red-400 italic">No name</span>}</p>
-                        <p className="text-zinc-500 text-xs">{participant.email}</p>
+                        <div className="flex items-center gap-2">
+                            <p className="text-white text-sm font-medium leading-tight">{participant.name || <span className="text-red-400 italic">No name</span>}</p>
+                            {participant.type === "MEMBER" && (
+                                <span className="text-[10px] bg-blue-900/40 text-blue-400 border border-blue-800 px-1.5 py-0 rounded-full font-medium">MEMBER</span>
+                            )}
+                        </div>
+                        <p className="text-zinc-500 text-xs">{participant.type === "MEMBER" ? <span className="italic">No direct email</span> : participant.email}</p>
                     </div>
                     {hasMissing && (
                         <span title={`Missing: ${participant.missingFields.join(", ")}`}
@@ -210,7 +224,7 @@ function ParticipantRow({
             {/* Actions */}
             <td className="px-4 py-3">
                 <div className="flex items-center gap-1.5">
-                    {/* Preview */}
+                    {/* Preview (For Everyone) */}
                     <button
                         onClick={handlePreview}
                         disabled={previewing}
@@ -220,18 +234,20 @@ function ParticipantRow({
                         {previewing ? "…" : "👁 Preview"}
                     </button>
 
-                    {/* Send */}
-                    <button
-                        onClick={handleSend}
-                        disabled={sending || sentOk}
-                        title="Send certificate email"
-                        className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap
-                            ${sentOk
-                                ? "bg-emerald-800/50 text-emerald-400 cursor-default"
-                                : "bg-red-700 hover:bg-red-600 text-white disabled:opacity-50"}`}
-                    >
-                        {sending ? "…" : sentOk ? "✓ Sent" : "✉ Send"}
-                    </button>
+                    {/* Send (Only for Team Leads / Individual) */}
+                    {participant.type !== "MEMBER" && (
+                        <button
+                            onClick={handleSend}
+                            disabled={sending || sentOk}
+                            title="Send certificate email"
+                            className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap
+                                ${sentOk
+                                    ? "bg-emerald-800/50 text-emerald-400 cursor-default"
+                                    : "bg-red-700 hover:bg-red-600 text-white disabled:opacity-50"}`}
+                        >
+                            {sending ? "…" : sentOk ? "✓ Sent" : "✉ Send"}
+                        </button>
+                    )}
 
                     {/* Edit */}
                     <button
