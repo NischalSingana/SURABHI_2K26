@@ -1172,16 +1172,12 @@ export default function ProfileClient({
                         )}
 
                         {/* View Results Button */}
-                        {!isPhotographyEvaluationEvent(event) && (
+                        {!isPhotographyEvaluationEvent(event) && event.isResultPublished && (
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => {
-                              if (event.isResultPublished) {
-                                router.push(`/results?category=${event.Category.id}&event=${event.slug}`);
-                              } else {
-                                toast.info("Evaluations not released yet");
-                              }
+                              router.push(`/results?category=${event.Category.id}&event=${event.slug}`);
                             }}
                             className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
                           >
