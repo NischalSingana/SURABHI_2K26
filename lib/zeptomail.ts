@@ -34,26 +34,6 @@ interface ZeptoMailOptions {
 const ZEPTO_API_URL = process.env.ZEPTO_API_URL || "https://api.zeptomail.in/v1.1/email"; // Default to India DC
 const SENDER_EMAIL = "noreply@klusurabhi.in"; // Updated to match user domain
 const SENDER_NAME = "Surabhi 2026 Team";
-const MANDATORY_COLLEGE_ID_TEXT = "Attendees must carry their Physical College ID Card. It is mandatory for identity verification.";
-
-function addMandatoryCollegeIdNotice(html: string): string {
-    if (MANDATORY_COLLEGE_ID_TEXT.toLowerCase() && html.toLowerCase().includes(MANDATORY_COLLEGE_ID_TEXT.toLowerCase())) {
-        return html;
-    }
-
-    const noticeBlock = `
-<div style="margin: 24px 0; padding: 14px 16px; border: 2px solid #dc2626; border-radius: 10px; background-color: rgba(220, 38, 38, 0.12);">
-  <p style="margin: 0; color: #ffffff; font-size: 14px; line-height: 1.6; font-weight: 700;">
-    ⚠️ ${MANDATORY_COLLEGE_ID_TEXT}
-  </p>
-</div>`;
-
-    if (html.includes("</body>")) {
-        return html.replace("</body>", `${noticeBlock}\n</body>`);
-    }
-    return `${html}\n${noticeBlock}`;
-}
-
 export async function sendZeptoMail(options: ZeptoMailOptions) {
     const apiKey = process.env.ZEPTO_MAIL_TOKEN;
 
@@ -74,7 +54,7 @@ export async function sendZeptoMail(options: ZeptoMailOptions) {
             }
         })),
         subject: options.subject,
-        htmlbody: addMandatoryCollegeIdNotice(options.htmlBody),
+        htmlbody: options.htmlBody,
         attachments: options.attachments,
         inline_images: options.inlineImages,
     };
