@@ -94,7 +94,7 @@ export async function createJudgeAccount(eventId: string, passwordPlain: string 
                     create: {
                         id: crypto.randomUUID(),
                         accountId: email,
-                        providerId: "credential",
+                        providerId: "email",
                         password: hashedPassword,
                         accessToken: crypto.randomUUID(),
                     }
@@ -135,7 +135,7 @@ export async function updateJudgePassword(judgeId: string, newPasswordPlain: str
         const judge = await prisma.user.findUnique({ where: { id: judgeId } });
         if (judge) {
             const account = await prisma.account.findFirst({
-                where: { userId: judgeId, providerId: 'credential' }
+                where: { userId: judgeId, providerId: 'email' }
             });
             if (account) {
                 await prisma.account.update({

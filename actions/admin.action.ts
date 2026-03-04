@@ -10,12 +10,14 @@ import { approveBookingInternal } from "@/actions/admin/accommodation.action";
 
 interface GroupMember {
     name: string;
-  phone?: string;
+    phone?: string;
     gender: string;
     inGameName?: string;
     inGameId?: string;
     riotId?: string;
+    [key: string]: unknown;
 }
+
 
 function getManualContactEmail(registrationDetails: Prisma.JsonValue | null | undefined): string | null {
     if (!registrationDetails || typeof registrationDetails !== "object" || Array.isArray(registrationDetails)) return null;

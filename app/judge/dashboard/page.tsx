@@ -160,6 +160,7 @@ interface Evaluation {
     id: string;
     score: number;
     remarks: string | null;
+    round: number;
     participantId: string;
 }
 
@@ -187,6 +188,7 @@ export default function JudgeDashboard() {
     const [evaluatingParticipant, setEvaluatingParticipant] = useState<Participant | null>(null);
     const [score, setScore] = useState<number | "">("");
     const [remarks, setRemarks] = useState("");
+    const [selectedRound, setSelectedRound] = useState<number>(1);
     const [submitting, setSubmitting] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
@@ -257,6 +259,7 @@ export default function JudgeDashboard() {
                     participantId: evaluatingParticipant.id,
                     score: roundedScore,
                     remarks,
+                    round: selectedRound,
                     criteriaScores: rubric
                         ? rubric.reduce<Record<string, number>>((acc, criterion) => {
                             acc[criterion.key] = Number(criteriaScores[criterion.key] || 0);
@@ -284,8 +287,11 @@ export default function JudgeDashboard() {
         }
     };
 
-    const prepareEvaluationForm = (participant: Participant, evaluation?: Evaluation) => {
+    const prepareEvaluationForm = (participant: Participant, event: Event, roundToLoad: number = 1) => {
         setEvaluatingParticipant(participant);
+        setSelectedRound(roundToLoad);
+        const evaluation = getEvaluation(event.id, participant.id, roundToLoad);
+        
         const parsed = parseStoredRemarks(evaluation?.remarks);
         setRemarks(parsed.judgeRemarks || "");
         const rubric = selectedEvent ? getEventRubric(categoryName, selectedEvent.name) : null;
@@ -303,9 +309,9 @@ export default function JudgeDashboard() {
         setScore(evaluation ? evaluation.score : "");
     };
 
-    // Helper to find existing evaluation for a participant
-    const getEvaluation = (eventId: string, participantId: string) => {
-        return events.find(e => e.id === eventId)?.evaluations.find(ev => ev.participantId === participantId);
+    // Helper to find existing evaluation for a participant and round
+    const getEvaluation = (eventId: string, participantId: string, round: number = 1) => {
+        return events.find(e => e.id === eventId)?.evaluations.find(ev => ev.participantId === participantId && ev.round === round);
     };
 
     // Helper to safely parse dates
@@ -341,6 +347,7 @@ export default function JudgeDashboard() {
         members?: any[];
         isEvaluated: boolean;
         score?: number;
+        roundScores?: Record<number, number>;
         remarks?: string | null;
         actualUserId?: string; // The real user ID for evaluation
     }
@@ -354,9 +361,8 @@ export default function JudgeDashboard() {
             // Add group leader to the set
             groupMemberIds.add(reg.user.id);
 
-            const evaluation = getEvaluation(event.id, reg.user.id);
             // Parse members if it's a string, though it should be JSON object from Prisma
-            let membersList = [];
+            let membersList: any = [];
             try {
                 if (typeof reg.members === 'string') {
                     membersList = JSON.parse(reg.members);
@@ -365,7 +371,6 @@ export default function JudgeDashboard() {
                 }
                 // If nested in 'members' key (common in some form builders)
                 if (!Array.isArray(membersList) && membersList && typeof membersList === 'object' && 'members' in membersList) {
-                    // @ts-ignore
                     membersList = membersList.members;
                 }
             } catch (e) {
@@ -381,15 +386,22 @@ export default function JudgeDashboard() {
                 });
             }
 
+            const evaluations = events.find(e => e.id === event.id)?.evaluations.filter(ev => ev.participantId === reg.user.id) || [];
+            // Calculate an average of all scores for this participant (accross rounds if any)
+            const sumScore = evaluations.reduce((acc, ev) => acc + ev.score, 0);
+            const avgScore = evaluations.length > 0 ? sumScore / evaluations.length : undefined;
+            const roundScores = evaluations.reduce((acc, ev) => ({ ...acc, [ev.round]: ev.score }), {} as Record<number, number>);
+
             list.push({
                 id: `group-${reg.user.id}-${index}`,
                 type: "GROUP",
                 displayName: reg.groupName || `Team ${reg.user.name}`,
                 subtitle: `Leader: ${reg.user.name}`,
                 members: Array.isArray(membersList) ? membersList : [],
-                isEvaluated: !!evaluation,
-                score: evaluation?.score,
-                remarks: evaluation?.remarks,
+                isEvaluated: evaluations.length > 0,
+                score: avgScore,
+                roundScores,
+                remarks: evaluations.length > 0 ? evaluations[evaluations.length - 1].remarks : undefined,
                 actualUserId: reg.user.id
             });
         });
@@ -400,16 +412,21 @@ export default function JudgeDashboard() {
             // Skip if this user is part of any group (leader or member)
             if (groupMemberIds.has(user.id)) return;
 
-            const evaluation = getEvaluation(event.id, user.id);
+            const evaluations = events.find(e => e.id === event.id)?.evaluations.filter(ev => ev.participantId === user.id) || [];
+            const sumScore = evaluations.reduce((acc, ev) => acc + ev.score, 0);
+            const avgScore = evaluations.length > 0 ? sumScore / evaluations.length : undefined;
+            const roundScores = evaluations.reduce((acc, ev) => ({ ...acc, [ev.round]: ev.score }), {} as Record<number, number>);
+
             list.push({
                 id: `individual-${user.id}`,
                 type: "INDIVIDUAL",
                 displayName: user.name || "Unknown User",
                 subtitle: user.collageId || "No ID",
                 members: undefined,
-                isEvaluated: !!evaluation,
-                score: evaluation?.score,
-                remarks: evaluation?.remarks,
+                isEvaluated: evaluations.length > 0,
+                score: avgScore,
+                roundScores,
+                remarks: evaluations.length > 0 ? evaluations[evaluations.length - 1].remarks : undefined,
                 actualUserId: user.id // For evaluation purposes
             });
         });
@@ -649,9 +666,18 @@ export default function JudgeDashboard() {
                                             {/* Status Badge */}
                                             <div className="shrink-0">
                                                 {participant.isEvaluated ? (
-                                                    <span className={`text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 font-medium border ${getScoreColor(participant.score || 0)}`}>
-                                                        <FiCheckCircle size={14} /> {participant.type === 'GROUP' ? 'Avg: ' : ''}{participant.score}/{getEventMaxScore(categoryName, selectedEvent.name)}
-                                                    </span>
+                                                    <div className="flex flex-col items-end gap-1">
+                                                        <span className={`text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 font-medium border ${getScoreColor(participant.score || 0)}`}>
+                                                            <FiCheckCircle size={14} /> Total/Avg: {Number(participant.score?.toFixed(1))}/{getEventMaxScore(categoryName, selectedEvent.name)}
+                                                        </span>
+                                                        {selectedEvent.name.toLowerCase().includes("voice") && selectedEvent.name.toLowerCase().includes("raaga") && participant.roundScores && (
+                                                            <div className="flex gap-1">
+                                                                {[1, 2].map(r => participant.roundScores?.[r] !== undefined && (
+                                                                    <span key={r} className="text-[10px] bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded">R{r}: {participant.roundScores[r]}</span>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 ) : (
                                                     <span className="bg-yellow-500/20 text-yellow-400 text-xs px-3 py-1.5 rounded-full font-medium border border-yellow-500/30">
                                                         Pending
@@ -726,13 +752,13 @@ export default function JudgeDashboard() {
                                                     collageId: null,
                                                     image: null
                                                 };
-                                                const currentEvaluation = getEvaluation(selectedEvent.id, participant.actualUserId || participant.id);
-                                                prepareEvaluationForm(participantData, currentEvaluation || undefined);
+                                                // Load round 1 by default, UI lets them toggle
+                                                prepareEvaluationForm(participantData, selectedEvent, 1);
                                             }}
                                             className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg text-sm sm:text-base font-semibold transition-all shadow-lg hover:shadow-red-500/20"
                                         >
                                             {participant.isEvaluated
-                                                ? (participant.type === "GROUP" ? "Edit Team Evaluation" : "Edit Evaluation")
+                                                ? (participant.type === "GROUP" ? "Edit Team Evaluation" : "Manage Evaluation")
                                                 : (participant.type === "GROUP" ? "Evaluate Team" : "Evaluate")}
                                         </button>
                                     </div>
@@ -814,6 +840,32 @@ export default function JudgeDashboard() {
                             </div>
                             <h3 className="text-xl sm:text-2xl font-bold mb-1">Evaluate {evaluatingParticipant.name}</h3>
                             <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6">{selectedEvent?.name}</p>
+
+                            {selectedEvent?.name.toLowerCase().includes("voice") && selectedEvent?.name.toLowerCase().includes("raaga") && (
+                                <div className="mb-6">
+                                    <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">Evaluation Round</label>
+                                    <div className="flex gap-2">
+                                        {[1, 2].map((roundNum) => {
+                                            const hasScore = !!getEvaluation(selectedEvent.id, evaluatingParticipant.id, roundNum);
+                                            return (
+                                                <button
+                                                    key={roundNum}
+                                                    onClick={() => prepareEvaluationForm(evaluatingParticipant, selectedEvent, roundNum)}
+                                                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-all ${
+                                                        selectedRound === roundNum
+                                                            ? "bg-red-600 text-white border-red-500"
+                                                            : hasScore
+                                                                ? "bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700"
+                                                                : "bg-black text-gray-400 border-zinc-800 hover:border-zinc-700"
+                                                    }`}
+                                                >
+                                                    Round {roundNum} {hasScore && <FiCheckCircle className="inline ml-1 mb-0.5" size={12} />}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="space-y-4 sm:space-y-6">
                                 {(() => {

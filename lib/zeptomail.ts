@@ -1,7 +1,14 @@
-import { generateTicketPDF } from "./pdf-generator";
-import path from "path";
-import fs from "fs";
 import { COMPETITIONS_SCHEDULE_IMAGE_URL } from "./schedule";
+
+interface GroupMemberItem {
+    name?: string;
+    phone?: string;
+    gender?: string;
+    inGameName?: string;
+    inGameId?: string;
+    riotId?: string;
+    [key: string]: unknown;
+}
 
 interface EmailRecipient {
     email: string;
@@ -97,26 +104,6 @@ export async function sendZeptoMail(options: ZeptoMailOptions) {
     }
 }
 
-// Helper to get base64 of public assets
-function getPublicAssetBase64(filename: string): string | null {
-    try {
-        const filePath = path.join(process.cwd(), 'public', filename);
-        // Special check for images in subfolders if filename doesn't start with /
-        // Just rely on full path logic if we know where things are.
-        // The user paths were: public/images/kl_logo_white_text.png, public/images/surabhi.png
-
-        // Let's assume filename passed is relative to public
-        const fullPath = path.join(process.cwd(), 'public', filename);
-
-        if (fs.existsSync(fullPath)) {
-            return fs.readFileSync(fullPath).toString('base64');
-        }
-        return null;
-    } catch (e) {
-        console.error(`Error reading asset ${filename}:`, e);
-        return null;
-    }
-}
 
 async function getRemoteAssetBase64(url: string): Promise<{ content: string; mimeType: string } | null> {
     try {
@@ -139,7 +126,7 @@ export async function sendEventConfirmationEmail(
     event: { name: string; date: Date; venue: string; startTime?: string; endTime?: string },
     pdfBuffer: Buffer | null,
     registrationType: "INDIVIDUAL" | "GROUP" | "VISITOR",
-    teamDetails?: { groupName: string; members: any[] },
+    teamDetails?: { groupName: string; members: GroupMemberItem[] },
     eventDetails?: { description?: string; termsAndConditions?: string; virtualTermsAndConditions?: string | null; whatsappLink?: string | null },
     isInternational?: boolean,
     /** For virtual/international competition participants: no PDF, virtual-only content, Meet link shared before event */
@@ -152,8 +139,8 @@ export async function sendEventConfirmationEmail(
     const klLogoUrl = `${baseUrl}/images/kl_logo_white_text.png`;
     const surabhiLogoUrl = `${baseUrl}/images/surabhi1.png`;
 
-    // No inline images to prevent attachments
-    const inlineImages: any[] = [];
+    // No inline images to prevent extra attachments
+    const inlineImages: { cid: string; content: string; mime_type: string }[] = [];
 
     // 2. HTML Template
 
@@ -170,22 +157,19 @@ export async function sendEventConfirmationEmail(
     // Virtual participants (competitions): no PDF, virtual-only content, Meet link shared before event
     const useVirtualTemplate = !!isVirtualParticipant;
 
-    let headingTitle = "You are IN!";
     let welcomeMessage = `Congratulations! your registration for <strong class="highlight">${event.name}</strong> has been confirmed.`;
 
     // Subject Line Logic
     let subjectLine = `Registration Confirmed: ${event.name} - Surabhi 2026`;
 
     if (registrationType === "VISITOR") {
-        headingTitle = "Visitor Pass Confirmed";
+
         welcomeMessage = `Your Visitor Pass for <strong class="highlight">Surabhi 2026</strong> is confirmed. Get ready to witness the grand celebration!`;
         subjectLine = `Your Ticket for Visitor Pass - Surabhi 2026`;
     } else if (useVirtualTemplate) {
-        headingTitle = "Virtual Participation – You're Registered!";
         welcomeMessage = `We are delighted to confirm your <strong class="highlight">virtual participation</strong> for <strong class="highlight">${event.name}</strong>. The Google Meet link will be shared with you via <strong class="highlight">email and WhatsApp</strong> before the event. Thank you for being part of Surabhi International Cultural Fest 2026.`;
         subjectLine = `Registration Confirmed (Virtual): ${event.name} - Surabhi 2026`;
     } else if (isInternational) {
-        headingTitle = "Virtual Participation – You're Registered!";
         welcomeMessage = `We are delighted to confirm your <strong class="highlight">virtual participation</strong> for <strong class="highlight">${event.name}</strong>. The Google Meet link will be shared with you via <strong class="highlight">email and WhatsApp</strong> before the event. Thank you for being part of Surabhi International Cultural Fest 2026.`;
         subjectLine = `Registration Confirmed (Virtual): ${event.name} - Surabhi 2026`;
     }
@@ -726,5 +710,105 @@ export async function sendWelcomeEmail(
         subject: `Welcome to Surabhi 2026 – Your Entry for ${dayLabel}`,
         htmlBody,
         attachments,
+    });
+}
+
+/**
+ * Sends a participation certificate as a PDF attachment.
+ */
+export async function sendCertificateEmail(
+    user: { name: string; email: string },
+    event: { name: string; date: Date },
+    certificateId: string,
+    certificatePdfBuffer: Buffer
+): Promise<{ success: boolean; error?: string }> {
+    const baseUrl = "https://klusurabhi.in";
+    const klLogoUrl = `${baseUrl}/images/kl_logo_white_text.png`;
+    const surabhiLogoUrl = `${baseUrl}/images/surabhi1.png`;
+
+    const dateStr = event.date.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    });
+
+    const htmlBody = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>Certificate of Participation – Surabhi 2026</title>
+        <style>
+            body { margin: 0; padding: 0; background-color: #000000; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+            .container { max-width: 600px; margin: 0 auto; background-color: #0a0a0a; border: 1px solid #333; }
+            .content { padding: 40px 30px; color: #ffffff; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #000000; border-bottom: 3px solid #dc2626;">
+                <tr>
+                    <td align="left" style="padding: 20px;"><img src="${klLogoUrl}" alt="KL University" width="130" style="display:block;"></td>
+                    <td align="right" style="padding: 20px;"><img src="${surabhiLogoUrl}" alt="Surabhi 2026" width="110" style="display:block;"></td>
+                </tr>
+            </table>
+
+            <div class="content">
+                <div style="font-size: 20px; color: #dc2626; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Surabhi 2026</div>
+                <div style="font-size: 28px; color: #ffffff; font-weight: 800; margin-bottom: 20px; line-height: 1.2;">🎓 Your Certificate of Participation</div>
+
+                <p style="color: #d4d4d8; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                    Dear <strong style="color: #ffffff;">${user.name}</strong>,
+                </p>
+
+                <p style="color: #d4d4d8; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                    Congratulations on your participation in <strong style="color: #dc2626;">${event.name}</strong> at
+                    <strong style="color: #ffffff;">Surabhi 2026 – International Cultural Fest</strong>,
+                    held on <strong style="color: #ffffff;">${dateStr}</strong> at KL University.
+                </p>
+
+                <div style="background-color: #18181b; border: 1px solid #333; border-radius: 8px; padding: 25px; margin: 25px 0; text-align: center;">
+                    <p style="color: #a1a1aa; font-size: 13px; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 1px;">Event</p>
+                    <p style="color: #ffffff; font-size: 20px; font-weight: bold; margin: 0 0 12px 0; text-transform: uppercase;">${event.name}</p>
+                    <p style="color: #a1a1aa; font-size: 12px; margin: 0;">Certificate ID: <span style="color: #dc2626; font-weight: 600;">${certificateId}</span></p>
+                </div>
+
+                <div style="background-color: rgba(220,38,38,0.1); border-left: 4px solid #dc2626; padding: 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
+                    <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 0 0 8px 0;">📄 Your Certificate is Attached</p>
+                    <p style="color: #d4d4d8; font-size: 14px; margin: 0; line-height: 1.6;">
+                        Please find your official <strong>Certificate of Participation</strong> attached to this email as a PDF. 
+                        You can download, print, or save it digitally.
+                    </p>
+                </div>
+
+                <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; margin-top: 30px; font-style: italic;">
+                    "Thank you for being a part of Surabhi 2026. Your talent and enthusiasm made this fest truly memorable!"
+                </p>
+                <p style="color: #52525b; font-size: 12px; margin-top: 10px;">Ignite Your Passion • Surabhi 2026</p>
+                <p style="color: #52525b; font-size: 12px; margin-top: 8px;">For queries: <a href="mailto:surabhi@kluniversity.in" style="color: #dc2626;">surabhi@kluniversity.in</a></p>
+            </div>
+
+            <div style="background-color: #18181b; padding: 30px; text-align: center; color: #52525b; font-size: 12px; border-top: 1px solid #333;">
+                <p>© 2026 KL University. All rights reserved.</p>
+                <p>Koneru Lakshmaiah Education Foundation, Vijayawada, Andhra Pradesh.</p>
+            </div>
+        </div>
+    </body>
+    </html>`;
+
+    const safeName = user.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "");
+    const safeEvent = event.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, "");
+
+    return sendZeptoMail({
+        to: [{ email: user.email, name: user.name }],
+        subject: `Certificate of Participation – ${event.name} | Surabhi 2026`,
+        htmlBody,
+        attachments: [
+            {
+                content: certificatePdfBuffer.toString("base64"),
+                mime_type: "application/pdf",
+                name: `Surabhi_2026_Certificate_${safeEvent}_${safeName}.pdf`,
+            },
+        ],
     });
 }

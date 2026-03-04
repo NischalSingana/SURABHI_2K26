@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, startTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,7 +13,7 @@ export default function AdminLayoutWrapper({
   session,
 }: {
   children: React.ReactNode;
-  session: any;
+  session: { user?: { name?: string; email?: string; role?: string } } | null;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -21,7 +21,7 @@ export default function AdminLayoutWrapper({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    startTransition(() => setMounted(true));
   }, []);
 
   const handleLogout = async () => {
@@ -32,7 +32,7 @@ export default function AdminLayoutWrapper({
 
   // Close mobile menu when route changes
   useEffect(() => {
-    setIsMobileMenuOpen(false);
+    startTransition(() => setIsMobileMenuOpen(false));
   }, [pathname]);
 
   if (!mounted) {
@@ -55,6 +55,7 @@ export default function AdminLayoutWrapper({
     { href: "/admin/logs", label: "Logs", roles: ["MASTER"] },
     { href: "/admin/approval", label: "Approval", roles: ["MASTER"] },
     { href: "/admin/welcome-emails", label: "Welcome Emails", roles: ["MASTER"] },
+    { href: "/admin/certificates", label: "Certificates", roles: ["ADMIN", "MASTER"] },
   ];
 
   const userRole = session?.user?.role as string | undefined;

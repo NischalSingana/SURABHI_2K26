@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getAllUsers, approveUser, rejectUser, updatePaymentStatus, updateUserRole, updateUserDetailsByMaster } from "@/actions/admin/users.action";
 import { PaymentStatus, Role } from "@prisma/client";
@@ -25,6 +25,7 @@ type User = {
     role: Role;
     isInternational?: boolean;
     country?: string | null;
+    certificateId?: string | null;
     _count?: {
         individualRegistrations: number;
         groupRegistrations: number;
@@ -59,13 +60,10 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
         state: "",
         country: "",
         isInternational: false,
+        certificateId: "",
     });
 
-    useEffect(() => {
-        loadUsers();
-    }, [filter]);
-
-    const loadUsers = async () => {
+    const loadUsers = useCallback(async () => {
         setLoading(true);
         const result = await getAllUsers(filter);
         if (result.success) {
@@ -74,7 +72,11 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
             toast.error(result.error || "Failed to load users");
         }
         setLoading(false);
-    };
+    }, [filter]);
+
+    useEffect(() => {
+        loadUsers();
+    }, [filter]);
 
     const { klUsers, internationalUsers, otherUsers } = useMemo(() => {
         const kl: User[] = [];
@@ -179,6 +181,7 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
             state: user.state || "",
             country: user.country || "",
             isInternational: !!user.isInternational,
+            certificateId: user.certificateId?.startsWith("SUR-") ? user.certificateId.replace("SUR-", "") : user.certificateId || "",
         });
     };
 
@@ -203,6 +206,7 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
             state: editForm.state || null,
             country: editForm.country || null,
             isInternational: editForm.isInternational,
+            certificateId: editForm.certificateId.trim() ? `SUR-${editForm.certificateId.trim()}` : null,
         });
 
         if (result.success) {
@@ -213,155 +217,6 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
             toast.error(result.error);
         }
     };
-
-    const UserTable = ({ users, isKL, isInternationalTab }: { users: User[], isKL: boolean; isInternationalTab?: boolean }) => (
-        <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-            <div className="overflow-x-auto">
-                <table className="w-full">
-                    <thead className="bg-gray-900">
-                        <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                Name
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                Email
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                {isInternationalTab ? "Country" : "College"}
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                Full Details
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                Competitions
-                            </th>
-                            {(!isKL || isInternationalTab) && (
-                                <>
-                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                        Payment Status
-                                    </th>
-                                </>
-                            )}
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                Approval
-                            </th>
-                            {isMaster && (
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                    Role
-                                </th>
-                            )}
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-700">
-                        {users.map((user) => (
-                            <tr key={user.id} className="hover:bg-gray-700/50">
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-white">
-                                    {user.name || "N/A"}
-                                </td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
-                                    {user.email}
-                                </td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
-                                    {isInternationalTab ? (user.country || "N/A") : (user.collage || "N/A")}
-                                </td>
-                                <td className="px-4 py-4 text-xs text-gray-300 min-w-[220px]">
-                                    <div>Phone: {user.phone || "N/A"}</div>
-                                    <div>College ID: {user.collageId || "N/A"}</div>
-                                    <div>Branch: {user.branch || "N/A"} {user.year ? `• Year ${user.year}` : ""}</div>
-                                    <div>Gender: {user.gender || "N/A"}</div>
-                                    <div>Location: {[user.city, user.state].filter(Boolean).join(", ") || "N/A"}</div>
-                                    <div>Country: {user.country || "India"}</div>
-                                </td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
-                                    {(user._count?.individualRegistrations || 0) + (user._count?.groupRegistrations || 0)}
-                                </td>
-                                {(!isKL || isInternationalTab) && (
-                                    <>
-                                        <td className="px-4 py-4 whitespace-nowrap">
-                                            <select
-                                                value={user.paymentStatus}
-                                                onChange={(e) =>
-                                                    handlePaymentStatusChange(user.id, e.target.value as PaymentStatus)
-                                                }
-                                                className={`text-xs px-2 py-1 rounded-full border ${user.paymentStatus === "APPROVED"
-                                                    ? "bg-green-900/20 text-green-400 border-green-700"
-                                                    : user.paymentStatus === "REJECTED"
-                                                        ? "bg-red-900/20 text-red-400 border-red-700"
-                                                        : "bg-yellow-900/20 text-yellow-400 border-yellow-700"
-                                                    }`}
-                                            >
-                                                <option value="PENDING">Pending</option>
-                                                <option value="APPROVED">Approved</option>
-                                                <option value="REJECTED">Rejected</option>
-                                            </select>
-                                        </td>
-                                    </>
-                                )}
-                                <td className="px-4 py-4 whitespace-nowrap">
-                                    <span
-                                        className={`inline-flex text-xs px-2 py-1 rounded-full ${user.isApproved
-                                            ? "bg-green-900/20 text-green-400"
-                                            : "bg-red-900/20 text-red-400"
-                                            }`}
-                                    >
-                                        {user.isApproved ? "Approved" : "Not Approved"}
-                                    </span>
-                                </td>
-                                {isMaster && (
-                                    <td className="px-4 py-4 whitespace-nowrap">
-                                        <select
-                                            value={user.role}
-                                            onChange={(e) => handleRoleChange(user.id, e.target.value as Role)}
-                                            className="bg-gray-700 text-white text-xs px-2 py-1 rounded border border-gray-600"
-                                        >
-                                            <option value="USER">User</option>
-                                            <option value="MANAGER">Manager</option>
-                                            <option value="ADMIN">Admin</option>
-                                            <option value="MASTER">Master</option>
-                                            <option value="RNC">R&amp;C</option>
-                                            <option value="JUDGE">Judge</option>
-                                            <option value="GOD">GOD</option>
-                                        </select>
-                                    </td>
-                                )}
-                                <td className="px-4 py-4 whitespace-nowrap text-sm">
-                                    <div className="flex gap-2">
-                                        {!user.isApproved && (
-                                            <button
-                                                onClick={() => handleApprove(user.id)}
-                                                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition-colors"
-                                            >
-                                                Approve
-                                            </button>
-                                        )}
-                                        {user.isApproved && (
-                                            <button
-                                                onClick={() => handleReject(user.id)}
-                                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors"
-                                            >
-                                                Reject
-                                            </button>
-                                        )}
-                                        {isMaster && (
-                                            <button
-                                                onClick={() => openEditModal(user)}
-                                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs transition-colors"
-                                            >
-                                                Edit Details
-                                            </button>
-                                        )}
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div >
-    );
 
     return (
         <div className="px-4 py-6">
@@ -495,7 +350,16 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
                     </div>
                 ) : (
                     <>
-                        <UserTable users={filteredKLUsers} isKL={true} />
+                        <UserTable 
+                            users={filteredKLUsers} 
+                            isKL={true} 
+                            isMaster={isMaster}
+                            handleApprove={handleApprove}
+                            handleReject={handleReject}
+                            handlePaymentStatusChange={handlePaymentStatusChange}
+                            handleRoleChange={handleRoleChange}
+                            openEditModal={openEditModal}
+                        />
                         <div className="mt-4 text-sm text-gray-400">
                             Showing {filteredKLUsers.length} of {klUsers.length} KL University students
                         </div>
@@ -508,7 +372,17 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
                     </div>
                 ) : (
                     <>
-                        <UserTable users={filteredInternationalUsers} isKL={false} isInternationalTab={true} />
+                        <UserTable 
+                            users={filteredInternationalUsers} 
+                            isKL={false} 
+                            isInternationalTab={true} 
+                            isMaster={isMaster}
+                            handleApprove={handleApprove}
+                            handleReject={handleReject}
+                            handlePaymentStatusChange={handlePaymentStatusChange}
+                            handleRoleChange={handleRoleChange}
+                            openEditModal={openEditModal}
+                        />
                         <div className="mt-4 text-sm text-gray-400">
                             Showing {filteredInternationalUsers.length} of {internationalUsers.length} international students
                         </div>
@@ -521,7 +395,16 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
                     </div>
                 ) : (
                     <>
-                        <UserTable users={filteredOtherUsers} isKL={false} />
+                        <UserTable 
+                            users={filteredOtherUsers} 
+                            isKL={false} 
+                            isMaster={isMaster}
+                            handleApprove={handleApprove}
+                            handleReject={handleReject}
+                            handlePaymentStatusChange={handlePaymentStatusChange}
+                            handleRoleChange={handleRoleChange}
+                            openEditModal={openEditModal}
+                        />
                         <div className="mt-4 text-sm text-gray-400">
                             Showing {filteredOtherUsers.length} of {otherUsers.length} other college students
                         </div>
@@ -549,6 +432,15 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
                                 <input type="checkbox" checked={editForm.isInternational} onChange={(e) => setEditForm((f) => ({ ...f, isInternational: e.target.checked }))} />
                                 International Student
                             </label>
+                            <div className="md:col-span-2 flex items-center gap-2">
+                                <span className="bg-gray-800 border border-gray-700 rounded-l px-3 py-2 text-zinc-400 border-r-0">SUR-</span>
+                                <input 
+                                    className="bg-gray-800 border border-gray-700 rounded-r px-3 py-2 text-white flex-1 focus:outline-none focus:border-red-600" 
+                                    placeholder="Serial Number (e.g. 001)" 
+                                    value={editForm.certificateId} 
+                                    onChange={(e) => setEditForm((f) => ({ ...f, certificateId: e.target.value }))} 
+                                />
+                            </div>
                         </div>
                         <div className="mt-5 flex justify-end gap-2">
                             <button onClick={() => setEditingUser(null)} className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 text-white text-sm">Cancel</button>
@@ -560,3 +452,173 @@ export default function UsersPage({ currentRole, currentUserId }: { currentRole:
         </div>
     );
 }
+
+const UserTable = ({ 
+    users, 
+    isKL, 
+    isInternationalTab, 
+    isMaster, 
+    handleApprove, 
+    handleReject, 
+    handlePaymentStatusChange, 
+    handleRoleChange, 
+    openEditModal 
+}: { 
+    users: User[], 
+    isKL: boolean; 
+    isInternationalTab?: boolean;
+    isMaster: boolean;
+    handleApprove: (id: string) => void;
+    handleReject: (id: string) => void;
+    handlePaymentStatusChange: (id: string, s: PaymentStatus) => void;
+    handleRoleChange: (id: string, r: Role) => void;
+    openEditModal: (u: User) => void;
+}) => (
+    <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+        <div className="overflow-x-auto">
+            <table className="w-full">
+                <thead className="bg-gray-900">
+                    <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                            Name
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                            Email
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                            {isInternationalTab ? "Country" : "College"}
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                            Full Details
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                            Competitions
+                        </th>
+                        {(!isKL || isInternationalTab) && (
+                            <>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                    Payment Status
+                                </th>
+                            </>
+                        )}
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                            Approval
+                        </th>
+                        {isMaster && (
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                Role
+                            </th>
+                        )}
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-700">
+                    {users.map((user) => (
+                        <tr key={user.id} className="hover:bg-gray-700/50">
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-white">
+                                {user.name || "N/A"}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
+                                {user.email}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
+                                {isInternationalTab ? (user.country || "N/A") : (user.collage || "N/A")}
+                            </td>
+                            <td className="px-4 py-4 text-xs text-gray-300 min-w-[220px]">
+                                <div>Phone: {user.phone || "N/A"}</div>
+                                <div>College ID: {user.collageId || "N/A"}</div>
+                                <div>Branch: {user.branch || "N/A"} {user.year ? `• Year ${user.year}` : ""}</div>
+                                <div>Gender: {user.gender || "N/A"}</div>
+                                <div>Location: {[user.city, user.state].filter(Boolean).join(", ") || "N/A"}</div>
+                                <div>Country: {user.country || "India"}</div>
+                                <div className="text-emerald-400 font-semibold mt-1">Cert ID: {user.certificateId || "N/A"}</div>
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
+                                {(user._count?.individualRegistrations || 0) + (user._count?.groupRegistrations || 0)}
+                            </td>
+                            {(!isKL || isInternationalTab) && (
+                                <>
+                                    <td className="px-4 py-4 whitespace-nowrap">
+                                        <select
+                                            value={user.paymentStatus}
+                                            onChange={(e) =>
+                                                handlePaymentStatusChange(user.id, e.target.value as PaymentStatus)
+                                            }
+                                            className={`text-xs px-2 py-1 rounded-full border ${user.paymentStatus === "APPROVED"
+                                                ? "bg-green-900/20 text-green-400 border-green-700"
+                                                : user.paymentStatus === "REJECTED"
+                                                    ? "bg-red-900/20 text-red-400 border-red-700"
+                                                    : "bg-yellow-900/20 text-yellow-400 border-yellow-700"
+                                                }`}
+                                        >
+                                            <option value="PENDING">Pending</option>
+                                            <option value="APPROVED">Approved</option>
+                                            <option value="REJECTED">Rejected</option>
+                                        </select>
+                                    </td>
+                                </>
+                            )}
+                            <td className="px-4 py-4 whitespace-nowrap">
+                                <span
+                                    className={`inline-flex text-xs px-2 py-1 rounded-full ${user.isApproved
+                                        ? "bg-green-900/20 text-green-400"
+                                        : "bg-red-900/20 text-red-400"
+                                        }`}
+                                >
+                                    {user.isApproved ? "Approved" : "Not Approved"}
+                                </span>
+                            </td>
+                            {isMaster && (
+                                <td className="px-4 py-4 whitespace-nowrap">
+                                    <select
+                                        value={user.role}
+                                        onChange={(e) => handleRoleChange(user.id, e.target.value as Role)}
+                                        className="bg-gray-700 text-white text-xs px-2 py-1 rounded border border-gray-600"
+                                    >
+                                        <option value="USER">User</option>
+                                        <option value="MANAGER">Manager</option>
+                                        <option value="ADMIN">Admin</option>
+                                        <option value="MASTER">Master</option>
+                                        <option value="RNC">R&amp;C</option>
+                                        <option value="JUDGE">Judge</option>
+                                        <option value="GOD">GOD</option>
+                                    </select>
+                                </td>
+                            )}
+                            <td className="px-4 py-4 whitespace-nowrap text-sm">
+                                <div className="flex gap-2">
+                                    {!user.isApproved && (
+                                        <button
+                                            onClick={() => handleApprove(user.id)}
+                                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition-colors"
+                                        >
+                                            Approve
+                                        </button>
+                                    )}
+                                    {user.isApproved && (
+                                        <button
+                                            onClick={() => handleReject(user.id)}
+                                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors"
+                                        >
+                                            Reject
+                                        </button>
+                                    )}
+                                    {isMaster && (
+                                        <button
+                                            onClick={() => openEditModal(user)}
+                                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs transition-colors"
+                                        >
+                                            Edit Details
+                                        </button>
+                                    )}
+                                </div>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    </div>
+);
