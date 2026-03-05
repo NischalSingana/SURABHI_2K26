@@ -52,6 +52,7 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
   const [teamMembers, setTeamMembers] = useState<{ name: string; gender: string }[]>([]);
   const [memberName, setMemberName] = useState("");
   const [memberGender, setMemberGender] = useState("");
+  const [vastranautTheme, setVastranautTheme] = useState("");
   const [userNotFound, setUserNotFound] = useState(false);
   const [manualName, setManualName] = useState("");
   const [manualPhone, setManualPhone] = useState("");
@@ -163,6 +164,17 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
   const events = categories.find((c) => c.id === selectedCategory)?.Event || [];
   const selectedEventDetails = events.find((e) => e.id === selectedEvent);
   const isGroupEvent = !!selectedEventDetails?.isGroupEvent;
+  const isVastranautEvent = !!(selectedEventDetails?.name?.toLowerCase().includes("vastranaut") ||
+    categories.find((c) => c.id === selectedCategory)?.name?.toLowerCase().includes("vastranaut"));
+  const VASTRANAUT_STYLE_DNA_OPTIONS = [
+    "Street Rebel",
+    "Luxe Minimalist",
+    "Futuristic Nomad",
+    "Tech Couture",
+    "Gothic Renaissance",
+    "Culture Remix",
+    "Indie Royal",
+  ];
   const minTeamSize = selectedEventDetails?.minTeamSize ?? 1;
   const maxTeamSize = selectedEventDetails?.maxTeamSize ?? 1;
   const leadProfile = fetchedUser || {
@@ -381,6 +393,7 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
     setTeamSizeInput("1");
     setTeamSize(1);
     setGroupName("");
+    setVastranautTheme("");
     setManualName("");
     setManualPhone("");
     setManualGender("");
@@ -453,6 +466,11 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
         toast.error(`Add exactly ${required} team member(s)`);
         return;
       }
+    }
+
+    if (isVastranautEvent && !vastranautTheme) {
+      toast.error("Please select a Style DNA theme for Vastranaut");
+      return;
     }
 
     let accommodationDrafts: AccommodationBookingDraft[] = [];
@@ -535,6 +553,7 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
               ? manualGender
               : (editDetails.gender as "MALE" | "FEMALE" | "OTHER") || undefined,
           manualCollegeName: !didCreateUser && userNotFound ? manualCollege.trim() : undefined,
+          ...(isVastranautEvent && vastranautTheme ? { styleDNA: vastranautTheme } : {}),
         },
         accommodationRequired
           ? {
@@ -969,6 +988,33 @@ export default function SpotRegisterForm({ categories }: { categories: CategoryW
                   </ul>
                 )}
               </div>
+            </div>
+          )}
+          {/* Vastranaut Style DNA */}
+          {isVastranautEvent && selectedEvent && (
+            <div className="pt-4 border-t border-zinc-700">
+              <label className="block text-sm font-semibold text-white mb-3">
+                Style DNA Theme <span className="text-red-400">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {VASTRANAUT_STYLE_DNA_OPTIONS.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => setVastranautTheme(option)}
+                    className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-center border ${
+                      vastranautTheme === option
+                        ? "bg-red-600 border-red-500 text-white shadow-lg shadow-red-900/20"
+                        : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700 hover:text-white"
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+              {!vastranautTheme && (
+                <p className="text-zinc-500 text-xs mt-2">Please select one Style DNA option.</p>
+              )}
             </div>
           )}
         </div>
