@@ -15,6 +15,7 @@ type RubricCriterion = {
     key: string;
     label: string;
     max: number;
+    description?: string;
 };
 
 const CRITERIA_REMARKS_PREFIX = "__CRITERIA__:";
@@ -69,6 +70,48 @@ function getEventRubric(categoryName?: string, eventName?: string): RubricCriter
             return nrithyaRubric;
         }
         return nrithyaRubric; // Default for all Nrithya events
+    }
+
+    if (category.includes("parliament") || category.includes("mock parliament") || event.includes("parliament")) {
+        // National Mock Parliament rubric – 100 points total
+        return [
+            {
+                key: "parliamentaryCommunication",
+                label: "Parliamentary Communication",
+                description: "Confidence, clarity, persuasion",
+                max: 20,
+            },
+            {
+                key: "strengthOfArguments",
+                label: "Strength of Arguments",
+                description: "Logical Reasoning, evidence, relevance",
+                max: 15,
+            },
+            {
+                key: "understandingOfBill",
+                label: "Understanding of Bill / Policy",
+                description: "Policy Knowledge, Realism",
+                max: 15,
+            },
+            {
+                key: "rebuttalPresenceOfMind",
+                label: "Rebuttal & Presence of Mind",
+                description: "Counter arguments, quick thinking",
+                max: 10,
+            },
+            {
+                key: "parliamentaryHouse",
+                label: "Parliamentary House",
+                description: "Taking Initiative, discussion",
+                max: 10,
+            },
+            {
+                key: "leadershipAndInitiative",
+                label: "Leadership & Initiative",
+                description: "Taking Initiative, discussion",
+                max: 30,
+            },
+        ];
     }
 
     if (category.includes("raaga")) {

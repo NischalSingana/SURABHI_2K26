@@ -57,6 +57,8 @@ function getMaxScorePerJudge(categoryName?: string, eventName?: string): number 
 
     if (category.includes("nrithya")) return 50;
 
+    if (category.includes("parliament") || category.includes("mock parliament") || event.includes("parliament")) return 100;
+
     if (category.includes("natyaka")) {
         if (event.includes("mono") && event.includes("action")) return 50;
         if (event.includes("skit")) return 60;
