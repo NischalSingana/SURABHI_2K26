@@ -558,6 +558,9 @@ export default function JudgeDashboard() {
                 const matchesName = (p.displayName || "").toLowerCase().includes(query);
                 // Search in subtitle (college ID, leader name, etc.)
                 const matchesSubtitle = (p.subtitle || "").toLowerCase().includes(query);
+                // Search by Parliament role (case-insensitive)
+                const mpRole = getMockParliamentRole(p.displayName);
+                const matchesRole = !!mpRole && mpRole.role.toLowerCase().includes(query);
                 // Search in team members
                 const matchesMembers = p.members?.some((m) => {
                     const memberName = (m.name || m || "").toLowerCase();
@@ -576,7 +579,7 @@ export default function JudgeDashboard() {
                     (query === "medium" && p.score >= 4 && p.score < 7)
                 );
                 
-                return matchesName || matchesSubtitle || matchesMembers || matchesStatus || matchesEvaluated || matchesScore;
+                return matchesName || matchesSubtitle || matchesRole || matchesMembers || matchesStatus || matchesEvaluated || matchesScore;
             });
         }
 
@@ -962,6 +965,16 @@ export default function JudgeDashboard() {
                                 </button>
                             </div>
                             <h3 className="text-xl sm:text-2xl font-bold mb-1">Evaluate {evaluatingParticipant.name}</h3>
+                            {/* Show Parliament role in evaluate header */}
+                            {selectedEvent?.name.toLowerCase().includes("parliament") && (() => {
+                                const mp = getMockParliamentRole(evaluatingParticipant.name);
+                                if (!mp) return null;
+                                return (
+                                    <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full border mb-2 ${mp.color}`}>
+                                        🏛️ {mp.role}
+                                    </span>
+                                );
+                            })()}
                             <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6">{selectedEvent?.name}</p>
 
                             {selectedEvent?.name.toLowerCase().includes("voice") && selectedEvent?.name.toLowerCase().includes("raaga") && (
