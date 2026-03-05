@@ -20,6 +20,63 @@ type RubricCriterion = {
 
 const CRITERIA_REMARKS_PREFIX = "__CRITERIA__:";
 
+// Mock Parliament participant roles — keyed by normalised name
+const MOCK_PARLIAMENT_ROLES: Record<string, { role: string; color: string }> = {
+    "hrudayavari rakesh reddy":              { role: "Leader of Opposition",              color: "text-blue-300 bg-blue-900/40 border-blue-500/40" },
+    "kodiboyina v s n surya ram pritham":    { role: "Minister of Finance",               color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
+    "pavan sri kalyan":                      { role: "Deputy Leader of Opposition",       color: "text-blue-200 bg-blue-900/30 border-blue-400/30" },
+    "bandi sai durga pavan":                 { role: "Minister of Home Affairs",          color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
+    "ishan prashant muley":                  { role: "Chief Opposition Whip",             color: "text-blue-200 bg-blue-900/30 border-blue-400/30" },
+    "atla nikhil sai":                       { role: "Minister of Law & Justice",         color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
+    "aaryan sharma":                         { role: "Shadow Minister of Finance",        color: "text-teal-300 bg-teal-900/40 border-teal-500/40" },
+    "harsha srinivas budaga":                { role: "Minister of Parliamentary Affairs", color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
+    "k.d sohan saai":                        { role: "Shadow Minister of Home Affairs",   color: "text-teal-300 bg-teal-900/40 border-teal-500/40" },
+    "prabhav sinha":                         { role: "Minister of Defence",               color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
+    "venna venkata jayanth reddy":           { role: "Shadow Minister of Law & Justice",  color: "text-teal-300 bg-teal-900/40 border-teal-500/40" },
+    "tharunraj kavi":                        { role: "Minister of Education",             color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
+    "vikram shanbhag":                       { role: "Shadow Minister of Education",      color: "text-teal-300 bg-teal-900/40 border-teal-500/40" },
+    "k madhuri":                             { role: "Minister of Health & Family Welfare",color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
+    "srilakshmi kantham":                    { role: "Shadow Minister of Health",         color: "text-teal-300 bg-teal-900/40 border-teal-500/40" },
+    "anjani mudiganti":                      { role: "Minister of IT & Digital Affairs",  color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
+    "vidit aswani":                          { role: "Shadow Minister of IT & Digital Affairs", color: "text-teal-300 bg-teal-900/40 border-teal-500/40" },
+    "abhijit santosh kondpalliwar":          { role: "Minister of Environment",           color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
+    "tarun kakani":                          { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
+    "snehitha":                              { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
+    "bhuwin rag cheekati":                   { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
+    "gandreati jivika":                      { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
+    "goli devisriprasad":                    { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
+    "aadarsita maddi":                       { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
+    "husna shaik":                           { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
+    "vyshnavi.b":                            { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
+    "hadassa rani chakrala":                 { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
+    "teju jonnalagadda":                     { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
+    "balaji srinivas":                       { role: "Civil Society Representative",      color: "text-purple-300 bg-purple-900/40 border-purple-500/40" },
+    "shaik sameerunnisa":                    { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
+    "uday reddy":                            { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
+    "abhi tinku":                            { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
+    "gangireddy rameshwar reddy":            { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
+    "rashmi":                                { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
+    "yandamuri karunya abhirami":            { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
+    "ramu chowdary":                         { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
+    "d methun":                              { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
+    "doddapaneni revanth":                   { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
+    "debolina bhattacharya":                 { role: "Investigative Journalist",          color: "text-pink-300 bg-pink-900/40 border-pink-500/40" },
+    "md junaid faisal":                      { role: "Policy Analyst",                    color: "text-pink-300 bg-pink-900/40 border-pink-500/40" },
+    "khandavilli venkata sai karthikeya":    { role: "Prime Minister",                    color: "text-yellow-200 bg-yellow-700/40 border-yellow-400/50" },
+    "syed abdul sami hussaini":              { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
+};
+
+function getMockParliamentRole(name?: string | null): { role: string; color: string } | null {
+    if (!name) return null;
+    const normalized = name.trim().toLowerCase();
+    // Try exact match first
+    if (MOCK_PARLIAMENT_ROLES[normalized]) return MOCK_PARLIAMENT_ROLES[normalized];
+    // Try partial match (first + last name)
+    const key = Object.keys(MOCK_PARLIAMENT_ROLES).find(k => normalized.includes(k) || k.includes(normalized));
+    return key ? MOCK_PARLIAMENT_ROLES[key] : null;
+}
+
+
 function parseStoredRemarks(remarks?: string | null): {
     judgeRemarks: string;
     criteriaScores: Record<string, number>;
@@ -712,6 +769,16 @@ export default function JudgeDashboard() {
                                                     <h3 className="font-bold truncate text-base sm:text-lg" title={participant.displayName || ""}>
                                                         {participant.displayName}
                                                     </h3>
+                                                    {/* Mock Parliament role badge */}
+                                                    {selectedEvent && (selectedEvent.name.toLowerCase().includes("parliament")) && (() => {
+                                                        const mp = getMockParliamentRole(participant.displayName);
+                                                        if (!mp) return null;
+                                                        return (
+                                                            <span className={`inline-block text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full border mt-0.5 ${mp.color}`}>
+                                                                🏛️ {mp.role}
+                                                            </span>
+                                                        );
+                                                    })()}
                                                     <p className="text-xs sm:text-sm text-gray-400 truncate">
                                                         {participant.subtitle}
                                                     </p>
