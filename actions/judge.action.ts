@@ -65,49 +65,59 @@ export async function createJudgeAccount(eventId: string, passwordPlain: string 
             return { success: false, error: "Event not found" };
         }
 
-        // Generate auto-email
-        const randomSuffix = Math.floor(1000 + Math.random() * 9000); // 4 digit random
-        const email = `judge.${event.slug}.${randomSuffix}@klusurabhi.in`;
+        // Generate auto-email — retry up to 5 times if collision
+        let email = "";
+        let randomSuffix = 0;
+        let emailTaken = true;
+        for (let i = 0; i < 5 && emailTaken; i++) {
+            randomSuffix = Math.floor(1000 + Math.random() * 9000);
+            email = `judge.${event.slug}.${randomSuffix}@klusurabhi.in`;
+            const existing = await prisma.user.findUnique({ where: { email } });
+            emailTaken = !!existing;
+        }
+        if (emailTaken) return { success: false, error: "Could not generate unique email. Try again." };
+
         const name = `Judge - ${event.name} (${randomSuffix})`;
 
-        // Determine password
-        // If MASTER provided one, use it.
-        // If ADMIN creating (passwordPlain null), generate a random secure one that no one knows (they must be reset by MASTER later theoretically, or just used purely for existence)
-        // But user said "MASTER WILL SET password". This implies initially it might not have a known password? 
-        // Or I can generate a random one.
         const effectivePasswordPlain = passwordPlain || crypto.randomUUID();
         const hashedPassword = await hash(effectivePasswordPlain, 10);
-        const storedJudgePassword = passwordPlain ? passwordPlain : null; // Only store if explicitly set by Master
+        const storedJudgePassword = passwordPlain ? passwordPlain : null;
 
-        // Create new user
-        await prisma.user.create({
-            data: {
-                id: crypto.randomUUID(),
-                email,
-                name,
-                role: "JUDGE",
-                assignedEventId: eventId,
-                password: hashedPassword,
-                judgePassword: storedJudgePassword,
-                emailVerified: true,
-                accounts: {
-                    create: {
-                        id: crypto.randomUUID(),
-                        accountId: email,
-                        providerId: "email",
-                        password: hashedPassword,
-                        accessToken: crypto.randomUUID(),
-                    }
+        const userId = crypto.randomUUID();
+
+        // Use a transaction to create user + account atomically
+        await prisma.$transaction([
+            prisma.user.create({
+                data: {
+                    id: userId,
+                    email,
+                    name,
+                    role: "JUDGE",
+                    assignedEventId: eventId,
+                    password: hashedPassword,
+                    judgePassword: storedJudgePassword,
+                    emailVerified: true,
                 }
-            }
-        });
+            }),
+            prisma.account.create({
+                data: {
+                    id: crypto.randomUUID(),
+                    userId,
+                    accountId: email,
+                    providerId: "email",
+                    password: hashedPassword,
+                    accessToken: crypto.randomUUID(),
+                }
+            }),
+        ]);
 
         revalidatePath("/admin/judges");
         return { success: true, email };
 
     } catch (error) {
         console.error("Error creating judge:", error);
-        return { success: false, error: "Failed to create judge account" };
+        const msg = error instanceof Error ? error.message : String(error);
+        return { success: false, error: `Failed to create judge: ${msg}` };
     }
 }
 
