@@ -155,6 +155,7 @@ export const auth = betterAuth({
                 MASTER: defaultRoles.admin,
                 MANAGER: defaultRoles.admin,
                 RNC: defaultRoles.admin,
+                JUDGE: defaultRoles.user,
                 USER: defaultRoles.user,
             },
         }),

@@ -123,7 +123,8 @@ export async function updateJudgePassword(judgeId: string, newPasswordPlain: str
 
         const hashedPassword = await hash(newPasswordPlain, 10);
 
-        await prisma.user.update({
+        // Update the user's password field
+        const judge = await prisma.user.update({
             where: { id: judgeId },
             data: {
                 password: hashedPassword,
@@ -131,18 +132,28 @@ export async function updateJudgePassword(judgeId: string, newPasswordPlain: str
             }
         });
 
-        // Update account too
-        const judge = await prisma.user.findUnique({ where: { id: judgeId } });
-        if (judge) {
-            const account = await prisma.account.findFirst({
-                where: { userId: judgeId, providerId: 'email' }
+        // Upsert the account password — this is what better-auth actually verifies on sign-in
+        const existingAccount = await prisma.account.findFirst({
+            where: { userId: judgeId, providerId: "email" }
+        });
+
+        if (existingAccount) {
+            await prisma.account.update({
+                where: { id: existingAccount.id },
+                data: { password: hashedPassword }
             });
-            if (account) {
-                await prisma.account.update({
-                    where: { id: account.id },
-                    data: { password: hashedPassword }
-                });
-            }
+        } else {
+            // Create the account record if missing (edge case)
+            await prisma.account.create({
+                data: {
+                    id: crypto.randomUUID(),
+                    userId: judgeId,
+                    accountId: judge.email,
+                    providerId: "email",
+                    password: hashedPassword,
+                    accessToken: crypto.randomUUID(),
+                }
+            });
         }
 
         revalidatePath("/admin/judges");
