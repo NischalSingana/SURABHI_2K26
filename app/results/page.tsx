@@ -55,6 +55,8 @@ function getMaxScorePerJudge(categoryName?: string, eventName?: string): number 
     const category = normalizeText(categoryName);
     const event = normalizeText(eventName);
 
+    if (category.includes("nrithya")) return 50;
+
     if (category.includes("natyaka")) {
         if (event.includes("mono") && event.includes("action")) return 50;
         if (event.includes("skit")) return 60;
@@ -307,33 +309,59 @@ export default function ResultsPage() {
                                                 </div>
                                             )}
 
-                                            {/* Criteria-wise breakdown */}
+                                            {/* Criteria-wise breakdown - shown in a collapsible dropdown */}
                                             {!!result.criteriaBreakdown?.length && (
                                                 <div className="pt-4 border-t border-white/10">
-                                                    <p className="text-sm text-gray-300 font-medium mb-2">Evaluation Criteria</p>
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                        {result.criteriaBreakdown.map((c) => (
-                                                            <div
-                                                                key={c.key}
-                                                                className="bg-black/30 border border-white/10 rounded-lg px-3 py-2 flex items-center justify-between gap-3"
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const next = new Set(expandedIds);
+                                                            const criteriaKey = `criteria-${result.id}`;
+                                                            if (next.has(criteriaKey)) next.delete(criteriaKey);
+                                                            else next.add(criteriaKey);
+                                                            setExpandedIds(next);
+                                                        }}
+                                                        className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors font-medium flex items-center gap-2"
+                                                    >
+                                                        <span>{expandedIds.has(`criteria-${result.id}`) ? "▲" : "▼"}</span>
+                                                        {expandedIds.has(`criteria-${result.id}`) ? "Hide parameter scores" : "Show parameter-wise scores"}
+                                                    </button>
+
+                                                    <AnimatePresence>
+                                                        {expandedIds.has(`criteria-${result.id}`) && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, height: 0 }}
+                                                                animate={{ opacity: 1, height: "auto" }}
+                                                                exit={{ opacity: 0, height: 0 }}
+                                                                className="overflow-hidden"
                                                             >
-                                                                <div className="text-xs text-gray-300">{c.label}</div>
-                                                                <div className="text-sm font-bold text-white">
-                                                                    {c.score}/{c.max}
+                                                                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                                    {result.criteriaBreakdown.map((c) => (
+                                                                        <div
+                                                                            key={c.key}
+                                                                            className="bg-black/30 border border-white/10 rounded-lg px-3 py-2 flex items-center justify-between gap-3"
+                                                                        >
+                                                                            <div className="text-xs text-gray-300">{c.label}</div>
+                                                                            <div className="text-sm font-bold text-white">
+                                                                                {c.score}/{c.max}
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
                                                                 </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                    <div className="mt-2 text-xs text-gray-400">
-                                                        Total from criteria:{" "}
-                                                        <span className="text-white font-semibold">
-                                                            {parseFloat(
-                                                                result.criteriaBreakdown
-                                                                    .reduce((sum, c) => sum + c.score, 0)
-                                                                    .toFixed(2)
-                                                            )}
-                                                        </span>
-                                                    </div>
+                                                                <div className="mt-2 text-xs text-gray-400">
+                                                                    Total from criteria:{" "}
+                                                                    <span className="text-white font-semibold">
+                                                                        {parseFloat(
+                                                                            result.criteriaBreakdown
+                                                                                .reduce((sum, c) => sum + c.score, 0)
+                                                                                .toFixed(2)
+                                                                        )}
+                                                                    </span>
+                                                                    /{result.criteriaBreakdown.reduce((sum, c) => sum + c.max, 0)}
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
                                                 </div>
                                             )}
 

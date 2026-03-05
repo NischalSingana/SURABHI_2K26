@@ -56,6 +56,21 @@ function getEventRubric(categoryName?: string, eventName?: string): RubricCriter
     const category = normalizeText(categoryName);
     const event = normalizeText(eventName);
 
+    if (category.includes("nrithya")) {
+        // Nrithya rubric: Choreography, Coordination, Expression, Costume, Stage Usage
+        const nrithyaRubric: RubricCriterion[] = [
+            { key: "choreography", label: "Choreography", max: 10 },
+            { key: "coordination", label: "Coordination", max: 10 },
+            { key: "expression", label: "Expression", max: 10 },
+            { key: "costume", label: "Costume", max: 10 },
+            { key: "stageUsage", label: "Stage Usage", max: 10 },
+        ];
+        if (event.includes("solo") || event.includes("group") || event.includes("dance") || event.includes("nrithya")) {
+            return nrithyaRubric;
+        }
+        return nrithyaRubric; // Default for all Nrithya events
+    }
+
     if (category.includes("raaga")) {
         if (event.includes("voice") && event.includes("raaga")) {
             return [
