@@ -100,16 +100,27 @@ export default function ResultsPage() {
                 slug: res.data?.event?.slug,
                 Category: res.data?.event?.Category ? { name: res.data.event.Category.name } : null
             });
-            const evaluated: ParticipantResult[] = (res.data?.participants || [])
-                .filter((p: any) => p.isEvaluated && p.score > 0)
-                .map((p: any) => ({
+            interface RawParticipant {
+                id: string;
+                name?: string | null;
+                type?: string | null;
+                collageId?: string | null;
+                score?: number | null;
+                isEvaluated?: boolean | null;
+                remarks?: string | null;
+                judgeScores?: ParticipantResult["judgeScores"];
+                criteriaBreakdown?: ParticipantResult["criteriaBreakdown"];
+            }
+            const evaluated: ParticipantResult[] = ((res.data?.participants || []) as RawParticipant[])
+                .filter((p) => p.isEvaluated && (p.score ?? 0) > 0)
+                .map((p) => ({
                     id: p.id,
                     name: p.name || "Unknown",
-                    type: p.type as "GROUP" | "INDIVIDUAL",
-                    collageId: p.collageId,
-                    score: p.score,
-                    isEvaluated: p.isEvaluated,
-                    remarks: p.remarks || null,
+                    type: (p.type ?? "INDIVIDUAL") as "GROUP" | "INDIVIDUAL",
+                    collageId: p.collageId ?? null,
+                    score: p.score ?? 0,
+                    isEvaluated: !!p.isEvaluated,
+                    remarks: p.remarks ?? null,
                     judgeScores: Array.isArray(p.judgeScores) ? p.judgeScores : [],
                     criteriaBreakdown: Array.isArray(p.criteriaBreakdown) ? p.criteriaBreakdown : null,
                 }));
@@ -148,8 +159,11 @@ export default function ResultsPage() {
 
 
     useEffect(() => {
-        loadEventResults(selectedEvent);
-    }, [searchParams]);
+        const fetchResults = async () => {
+            await loadEventResults(selectedEvent);
+        };
+        fetchResults();
+    }, [searchParams, selectedEvent]);
 
     if (loading) return <Loader />;
 
