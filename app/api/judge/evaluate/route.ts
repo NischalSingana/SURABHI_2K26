@@ -19,25 +19,136 @@ function isCinecarnicalCategory(categoryName?: string | null): boolean {
     );
 }
 
-function getMaxScoreForEvent(categoryName?: string | null, eventName?: string | null): number {
+type RubricCriterion = {
+    key: string;
+    label: string;
+    max: number;
+    description?: string;
+};
+
+function getEventRubric(categoryName?: string | null, eventName?: string | null): RubricCriterion[] | null {
     const category = normalizeText(categoryName);
     const event = normalizeText(eventName);
+
+    if (category.includes("nrithya")) {
+        if (event.includes("solo")) {
+            return [
+                { key: "choreography", label: "Choreography", max: 10 },
+                { key: "confidence", label: "Confidence", max: 10 },
+                { key: "expression", label: "Expression", max: 10 },
+                { key: "costume", label: "Costume", max: 10 },
+                { key: "stageUsage", label: "Stage Usage", max: 10 },
+            ];
+        }
+        return [
+            { key: "choreography", label: "Choreography", max: 10 },
+            { key: "coordination", label: "Coordination", max: 10 },
+            { key: "expression", label: "Expression", max: 10 },
+            { key: "costume", label: "Costume", max: 10 },
+            { key: "stageUsage", label: "Stage Usage", max: 10 },
+        ];
+    }
+
+    if (category.includes("parliament") || category.includes("mock parliament") || event.includes("parliament")) {
+        return [
+            { key: "parliamentaryCommunication", label: "Parliamentary Communication", description: "Confidence, clarity, persuasion", max: 20 },
+            { key: "strengthOfArguments", label: "Strength of Arguments", description: "Logical Reasoning, evidence, relevance", max: 15 },
+            { key: "understandingOfBill", label: "Understanding of Bill / Policy", description: "Policy Knowledge, Realism", max: 15 },
+            { key: "rebuttalPresenceOfMind", label: "Rebuttal & Presence of Mind", description: "Counter arguments, quick thinking", max: 10 },
+            { key: "parliamentaryHouse", label: "Parliamentary House", description: "Taking Initiative, discussion", max: 10 },
+            { key: "leadershipAndInitiative", label: "Leadership & Initiative", description: "Taking Initiative, discussion", max: 30 },
+        ];
+    }
+
     if (category.includes("raaga")) {
-        if (event.includes("voice") && event.includes("raaga")) return 40;
-        if (event.includes("instrumental")) return 40;
-        if (event.includes("battle") && event.includes("band")) return 50;
-        return 10;
+        if (event.includes("voice") && event.includes("raaga")) {
+            return [
+                { key: "scale", label: "Scale", max: 10 },
+                { key: "tempo", label: "Tempo", max: 10 },
+                { key: "stagePresence", label: "Stage Presence", max: 10 },
+                { key: "dynamics", label: "Dynamics", max: 10 },
+            ];
+        }
+        if (event.includes("instrumental")) {
+            return [
+                { key: "scale", label: "Scale", max: 10 },
+                { key: "tempo", label: "Tempo", max: 10 },
+                { key: "stagePresence", label: "Stage Presence", max: 10 },
+                { key: "dynamics", label: "Dynamics", max: 10 },
+            ];
+        }
+        if (event.includes("battle") && event.includes("band")) {
+            return [
+                { key: "coordination", label: "Co-ordination", max: 10 },
+                { key: "scale", label: "Scale", max: 10 },
+                { key: "tempo", label: "Tempo", max: 10 },
+                { key: "stagePresence", label: "Stage Presence", max: 10 },
+                { key: "dynamics", label: "Dynamics", max: 10 },
+            ];
+        }
     }
+
     if (category.includes("natyaka")) {
-        if (event.includes("mono") && event.includes("action")) return 50;
-        if (event.includes("skit")) return 60;
-        return 10;
+        if (event.includes("mono") && event.includes("action")) {
+            return [
+                { key: "dialogueDelivery", label: "Dialogue Delivery", max: 10 },
+                { key: "expressions", label: "Expressions", max: 10 },
+                { key: "bodyLanguage", label: "Body Language", max: 10 },
+                { key: "confidenceAndPresence", label: "Confidence and Stage Presence", max: 10 },
+                { key: "overallPerformance", label: "Overall Performance", max: 10 },
+            ];
+        }
+
+        if (event.includes("skit")) {
+            return [
+                { key: "dialogueDelivery", label: "Dialogue Delivery", max: 10 },
+                { key: "expressionAndActing", label: "Expression and Acting", max: 10 },
+                { key: "bodyLanguage", label: "Body Language", max: 10 },
+                { key: "teamworkAndPresence", label: "Team Work and Stage Presence", max: 15 },
+                { key: "overallPerformance", label: "Overall Performance", max: 15 },
+            ];
+        }
+        return null;
     }
-    if (isCinecarnicalCategory(categoryName)) {
-        if (event.includes("short") && event.includes("film")) return 100;
-        if (event.includes("cover") && event.includes("song")) return 100;
+
+    if (!isCinecarnicalCategory(categoryName)) return null;
+
+    if (event.includes("short") && event.includes("film")) {
+        return [
+            { key: "socialMessage", label: "Social Message", max: 10 },
+            { key: "direction", label: "Direction", max: 10 },
+            { key: "editing", label: "Editing", max: 10 },
+            { key: "cinematography", label: "Cinematography", max: 10 },
+            { key: "dialogues", label: "Dialogues", max: 5 },
+            { key: "screenplay", label: "Screenplay", max: 20 },
+            { key: "acting", label: "Acting", max: 15 },
+            { key: "sfx", label: "SFX", max: 5 },
+            { key: "aiUsage", label: "AI Usage", max: 5 },
+            { key: "inTimeLimit", label: "In Time Limit", max: 10 },
+        ];
     }
-    return 10;
+
+    if (event.includes("cover") && event.includes("song")) {
+        return [
+            { key: "story", label: "Story", max: 10 },
+            { key: "direction", label: "Direction", max: 10 },
+            { key: "editing", label: "Editing", max: 10 },
+            { key: "cinematography", label: "Cinematography", max: 10 },
+            { key: "screenplay", label: "Screenplay", max: 20 },
+            { key: "acting", label: "Acting", max: 15 },
+            { key: "aiUsage", label: "AI Usage", max: 5 },
+            { key: "inTimeLimit", label: "In Time Limit", max: 10 },
+            { key: "understandableForEveryone", label: "Understandable for Everyone", max: 10 },
+        ];
+    }
+
+    return null;
+}
+
+function getEventMaxScore(categoryName?: string | null, eventName?: string | null): number {
+    const rubric = getEventRubric(categoryName, eventName);
+    if (!rubric) return 10;
+    return rubric.reduce((sum, item) => sum + item.max, 0);
 }
 
 function buildStoredRemarks(
@@ -84,7 +195,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Event not found" }, { status: 404 });
         }
 
-        const maxScore = getMaxScoreForEvent(event.Category?.name, event.name);
+        const maxScore = getEventMaxScore(event.Category?.name, event.name);
 
         // Ensure score is within valid range, can be decimal
         const scoreNum = typeof score === 'number' ? score : parseFloat(score);
