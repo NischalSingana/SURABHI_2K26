@@ -58,18 +58,24 @@ function getEventRubric(categoryName?: string, eventName?: string): RubricCriter
     const event = normalizeText(eventName);
 
     if (category.includes("nrithya")) {
-        // Nrithya rubric: Choreography, Coordination, Expression, Costume, Stage Usage
-        const nrithyaRubric: RubricCriterion[] = [
+        // Solo dance: Confidence replaces Coordination
+        if (event.includes("solo")) {
+            return [
+                { key: "choreography", label: "Choreography", max: 10 },
+                { key: "confidence", label: "Confidence", max: 10 },
+                { key: "expression", label: "Expression", max: 10 },
+                { key: "costume", label: "Costume", max: 10 },
+                { key: "stageUsage", label: "Stage Usage", max: 10 },
+            ];
+        }
+        // Group dance (and all other Nrithya events): original rubric with Coordination
+        return [
             { key: "choreography", label: "Choreography", max: 10 },
             { key: "coordination", label: "Coordination", max: 10 },
             { key: "expression", label: "Expression", max: 10 },
             { key: "costume", label: "Costume", max: 10 },
             { key: "stageUsage", label: "Stage Usage", max: 10 },
         ];
-        if (event.includes("solo") || event.includes("group") || event.includes("dance") || event.includes("nrithya")) {
-            return nrithyaRubric;
-        }
-        return nrithyaRubric; // Default for all Nrithya events
     }
 
     if (category.includes("parliament") || category.includes("mock parliament") || event.includes("parliament")) {
