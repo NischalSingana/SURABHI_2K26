@@ -104,7 +104,7 @@ export async function createJudgeAccount(eventId: string, passwordPlain: string 
                     id: crypto.randomUUID(),
                     userId,
                     accountId: email,
-                    providerId: "email",
+                    providerId: "credential",
                     password: hashedPassword,
                     accessToken: crypto.randomUUID(),
                 }
@@ -142,9 +142,9 @@ export async function updateJudgePassword(judgeId: string, newPasswordPlain: str
             }
         });
 
-        // Upsert the account password — this is what better-auth actually verifies on sign-in
+        // Upsert the account password — better-auth uses providerId 'credential' for email+password sign-in
         const existingAccount = await prisma.account.findFirst({
-            where: { userId: judgeId, providerId: "email" }
+            where: { userId: judgeId, providerId: "credential" }
         });
 
         if (existingAccount) {
@@ -159,7 +159,7 @@ export async function updateJudgePassword(judgeId: string, newPasswordPlain: str
                     id: crypto.randomUUID(),
                     userId: judgeId,
                     accountId: judge.email,
-                    providerId: "email",
+                    providerId: "credential",
                     password: hashedPassword,
                     accessToken: crypto.randomUUID(),
                 }

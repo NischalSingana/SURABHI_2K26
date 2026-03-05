@@ -1,6 +1,6 @@
 // Run from project root: npx tsx scripts/fix-judge-passwords.ts
 import { PrismaClient } from "@prisma/client";
-import { hash, compare } from "bcryptjs";
+import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -13,49 +13,57 @@ async function main() {
     console.log(`\nFound ${judges.length} judge account(s)`);
 
     for (const j of judges) {
-        const acc = j.accounts.find(a => a.providerId === "email");
-        console.log(`\n=== Judge: ${j.email}`);
-        console.log(`  user.password   : ${j.password ? "✅ exists" : "❌ missing"}`);
-        console.log(`  account record  : ${acc ? "✅ exists" : "❌ missing"}`);
-        console.log(`  account.password: ${acc?.password ? "✅ exists" : "❌ missing"}`);
-        console.log(`  judgePassword   : ${j.judgePassword ? `"${j.judgePassword}"` : "null (not stored)"}`);
+        // Find existing accounts
+        const credentialAcc = j.accounts.find(a => a.providerId === "credential");
+        const emailAcc = j.accounts.find(a => a.providerId === "email");
 
-        if (j.judgePassword && acc?.password) {
-            const ok = await compare(j.judgePassword, acc.password);
-            console.log(`  bcrypt verify   : ${ok ? "✅ match" : "❌ MISMATCH"}`);
-        }
+        console.log(`\n=== ${j.email}`);
+        console.log(`  credential account: ${credentialAcc ? "✅" : "❌"}`);
+        console.log(`  email account     : ${emailAcc ? "⚠️  wrong providerId" : "none"}`);
+        console.log(`  judgePassword     : ${j.judgePassword ?? "null"}`);
 
         if (j.judgePassword) {
             const newHash = await hash(j.judgePassword, 10);
-            await prisma.user.update({
-                where: { id: j.id },
-                data: { password: newHash }
-            });
-            if (acc) {
+
+            if (credentialAcc) {
+                // Already correct — just re-sync password
                 await prisma.account.update({
-                    where: { id: acc.id },
+                    where: { id: credentialAcc.id },
                     data: { password: newHash }
                 });
-                console.log("  ✅ Re-synced account.password");
+                console.log("  ✅ Refreshed credential account password");
+            } else if (emailAcc) {
+                // Wrong providerId — fix it
+                await prisma.account.update({
+                    where: { id: emailAcc.id },
+                    data: { providerId: "credential", password: newHash }
+                });
+                console.log("  ✅ Fixed providerId: email → credential");
             } else {
+                // No account at all — create with correct providerId
                 await prisma.account.create({
                     data: {
                         id: crypto.randomUUID(),
                         userId: j.id,
                         accountId: j.email,
-                        providerId: "email",
+                        providerId: "credential",
                         password: newHash,
                         accessToken: crypto.randomUUID(),
                     }
                 });
-                console.log("  ✅ Created missing email account record");
+                console.log("  ✅ Created missing credential account");
             }
+
+            await prisma.user.update({
+                where: { id: j.id },
+                data: { password: newHash }
+            });
         } else {
-            console.log("  ⚠️  No judgePassword stored — reset via admin panel then re-run this script");
+            console.log("  ⚠️  No judgePassword stored — set via admin panel");
         }
     }
 
-    console.log("\nDone.");
+    console.log("\nDone. All judges should now be able to log in.");
 }
 
 main().catch(console.error).finally(() => prisma.$disconnect());
