@@ -27,13 +27,13 @@ export default function CompetitionsClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [imagesLoaded, setImagesLoaded] = useState(0);
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
   const [hasChosenToBrowse, setHasChosenToBrowse] = useState(false);
   const minLoadTime = 1200;
-  const startTimeRef = useRef<number>(Date.now());
-
+  const startTimeRef = useRef<number>(0);
   // Preload images and manage loading state
   useEffect(() => {
+    startTimeRef.current = Date.now();
     const imagesToPreload = Math.min(6, initialCategories.length); // Preload first 6 priority images
     
     if (imagesToPreload === 0) {
@@ -69,22 +69,6 @@ export default function CompetitionsClient({
 
   const regClosed = isOnlineRegistrationClosed();
 
-  useEffect(() => {
-    const tick = () => {
-      const now = new Date();
-      const deadline = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 17, 0, 0, 0);
-      const diff = Math.max(0, deadline.getTime() - now.getTime());
-      setTimeLeft({
-        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((diff / (1000 * 60)) % 60),
-        seconds: Math.floor((diff / 1000) % 60),
-      });
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
 
   useEffect(() => {
     try {
@@ -141,43 +125,7 @@ export default function CompetitionsClient({
       >
         {/* Subtle dot grid for depth */}
         <div className="absolute inset-0 competitions-bg-dots pointer-events-none" aria-hidden />
-      {/* Registration Notice Marquee */}
-      <div className="fixed top-[72px] left-0 right-0 z-40 bg-gradient-to-r from-red-950 via-red-900 to-red-950 border-b border-red-800/60 shadow-lg shadow-black/40 flex items-center">
-        <div className="flex-1 overflow-hidden">
-          <div className="marquee-track whitespace-nowrap py-2">
-            {[...Array(4)].map((_, i) => (
-              <span key={i} className="mx-10 text-sm md:text-base font-medium text-red-100/90 inline-flex items-center gap-3 font-[family-name:var(--font-Lexend)]">
-                <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                Online registrations are closed.
-                <span className="text-red-700">|</span>
-                <span className="text-amber-300 font-semibold">Spot registrations: 8:00 AM to 10:00 AM at the venue. Visit campus on the competition day with your physical college ID card for verification.</span>
-                <span className="text-red-700">|</span>
-                <span className="text-emerald-300 font-semibold">Important Note: On 7th March, only virtual competitions will be conducted. Students from other colleges will not be permitted to enter the campus on that day.</span>
-                <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              </span>
-            ))}
-          </div>
-        </div>
-        <div className="shrink-0 flex items-center gap-1.5 px-3 md:px-4 py-2 bg-black/50 border-l border-red-800/50 font-[family-name:var(--font-Lexend)]">
-          {regClosed ? (
-            <span className="text-xs md:text-sm font-semibold text-red-300">Online Registration Closed!</span>
-          ) : (
-            <>
-              <svg className="w-3.5 h-3.5 text-red-400 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <span className="text-[10px] sm:text-xs text-red-200/90 hidden sm:inline">Online reg closes 5 PM</span>
-              <div className="flex items-center gap-1 text-xs md:text-sm font-semibold tabular-nums">
-                <span className="bg-red-950 text-white px-1.5 py-0.5 rounded border border-red-900/60">{String(timeLeft.days).padStart(2, "0")}d</span>
-                <span className="text-red-600">:</span>
-                <span className="bg-red-950 text-white px-1.5 py-0.5 rounded border border-red-900/60">{String(timeLeft.hours).padStart(2, "0")}h</span>
-                <span className="text-red-600">:</span>
-                <span className="bg-red-950 text-white px-1.5 py-0.5 rounded border border-red-900/60">{String(timeLeft.minutes).padStart(2, "0")}m</span>
-                <span className="text-red-600">:</span>
-                <span className="bg-red-950 text-white px-1.5 py-0.5 rounded border border-red-900/60">{String(timeLeft.seconds).padStart(2, "0")}s</span>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+
 
       {/* Closed overlay when online reg closed (after 5 PM IST) */}
       <AnimatePresence>
