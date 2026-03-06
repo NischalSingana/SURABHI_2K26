@@ -13,17 +13,8 @@ async function sendCancellations() {
   console.log("Starting script to send cancellation emails...");
 
   try {
-    const startDate = new Date('2026-03-02T00:00:00+05:30');
-    const endDate = new Date('2026-03-05T23:59:59+05:30');
-
     // Fetch individual registrations
     const individualRegs = await prisma.individualRegistration.findMany({
-      where: {
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
       include: {
         user: true,
       },
@@ -31,12 +22,6 @@ async function sendCancellations() {
 
     // Fetch group registrations
     const groupRegs = await prisma.groupRegistration.findMany({
-      where: {
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
       include: {
         user: true,
       },
@@ -44,12 +29,6 @@ async function sendCancellations() {
 
     // Fetch visitor pass registrations
     const visitorRegs = await prisma.visitorPassRegistration.findMany({
-      where: {
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
       include: {
         user: true,
       },
@@ -92,7 +71,7 @@ async function sendCancellations() {
     });
 
     const usersToEmail = Array.from(userMap.values());
-    console.log(`Found ${usersToEmail.length} unique users registered between March 2nd and 5th.`);
+    console.log(`Found ${usersToEmail.length} unique users registered overall.`);
 
     if (usersToEmail.length === 0) {
       console.log("No users found. Exiting.");
