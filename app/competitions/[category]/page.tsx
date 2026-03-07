@@ -12,7 +12,6 @@ import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
 import { formatTime } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
-import { isOnlineRegistrationClosed } from "@/lib/registration-deadline";
 
 interface Event {
   id: string;
@@ -284,24 +283,7 @@ function CategoryPageContent() {
     setExpandedEventId(expandedEventId === eventId ? null : eventId);
   };
 
-  const isEsportsCategory = categorySlug.toLowerCase().includes("kurukshetra");
-  const isRaagaCategory = categorySlug.toLowerCase().includes("raaga");
-  const isVastranautCategory = categorySlug.toLowerCase().includes("vastranaut");
-  const regClosed =
-    isRaagaCategory ||
-    isVastranautCategory ||
-    (isOnlineRegistrationClosed() && !isEsportsCategory && !isInternational);
 
-  const handleRegisterClick = (event: Event, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (regClosed) {
-      toast.error("Online registrations closed. Spot registrations: 8:00 AM to 10:00 AM at the venue. Carry your college ID card.");
-      return;
-    }
-    toast.info("Redirecting to registration page...");
-    const eventIdentifier = event.slug || event.id;
-    router.push(`/competitions/${categorySlug}/${eventIdentifier}`);
-  };
 
   const handleRegistrationSubmit = async () => {
     if (!acceptedTerms) {
@@ -698,29 +680,14 @@ function CategoryPageContent() {
                                   >
                                     Event Full
                                   </button>
-                                ) : !isEsportsCategory ? (
-                                  <Link
-                                    href={`/competitions/${categorySlug}/${event.slug || event.id}`}
-                                    className="inline-flex items-center gap-2 bg-red-600/80 hover:bg-red-600 text-white px-6 py-2 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-600/30"
-                                  >
-                                    <FiInfo size={16} />
-                                    View Full Details
-                                  </Link>
-                                ) : regClosed ? (
-                                  <Link
-                                    href={`/competitions/${categorySlug}/${event.slug || event.id}`}
-                                    className="inline-flex items-center gap-2 bg-red-600/80 hover:bg-red-600 text-white px-6 py-2 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-600/30"
-                                  >
-                                    <FiInfo size={16} />
-                                    View Full Details
-                                  </Link>
                                 ) : (
-                                  <button
-                                    onClick={(e) => handleRegisterClick(event, e)}
-                                    className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-600/50"
+                                  <Link
+                                    href={`/competitions/${categorySlug}/${event.slug || event.id}`}
+                                    className="inline-flex items-center gap-2 bg-red-600/80 hover:bg-red-600 text-white px-6 py-2 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-600/30"
                                   >
-                                    Register Now
-                                  </button>
+                                    <FiInfo size={16} />
+                                    View Full Details
+                                  </Link>
                                 )}
                               </div>
                             </div>

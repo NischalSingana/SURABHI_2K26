@@ -93,12 +93,7 @@ export default function RootLayout({
         {/* Speed up hero video fetch */}
         <link
           rel="preconnect"
-          href="https://surabhi-images.sgp1.cdn.digitaloceanspaces.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          rel="preconnect"
-          href="https://surabhi-images.sgp1.digitaloceanspaces.com"
+          href="https://pub-2172d3960f064d32b43c4d6ba9a3135d.r2.dev"
           crossOrigin="anonymous"
         />
       </head>

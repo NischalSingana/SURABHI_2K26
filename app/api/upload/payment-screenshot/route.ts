@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { uploadToDOSpaces, isValidPaymentImageType, generateUniqueFilename } from "@/lib/do-spaces";
+import { uploadToR2, generateUniqueFilename } from "@/lib/r2";
 
 export async function POST(request: Request) {
   try {
@@ -21,9 +21,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "No file provided" }, { status: 400 });
     }
 
-    if (!isValidPaymentImageType(file.type)) {
+    if (typeof file.type !== "string" || !file.type.startsWith("image/")) {
       return NextResponse.json(
-        { success: false, error: "Invalid file type. Only images are allowed (JPEG, PNG, WebP, GIF, BMP, TIFF)." },
+        { success: false, error: "Invalid file type. Only images are allowed." },
         { status: 400 }
       );
     }
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const filename = `payments-screenshots/${generateUniqueFilename(file.name)}`;
-    const result = await uploadToDOSpaces(buffer, filename, file.type);
+    const result = await uploadToR2(buffer, filename, file.type);
 
     if (!result.success || !result.url) {
       return NextResponse.json(

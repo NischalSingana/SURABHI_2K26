@@ -318,7 +318,7 @@ function EventDetailPageContent() {
   const isSpotOnlyEvent = isRaagaEvent || isVastranautEvent;
   const regClosed =
     isSpotOnlyEvent ||
-    (isOnlineRegistrationClosed() && !isEsportsEvent && !isInternational);
+    isOnlineRegistrationClosed();
 
   // Lock body scroll when any modal is open
   useEffect(() => {

@@ -19,9 +19,9 @@ const ScheduleTimeline = dynamic(() => import('@/components/ui/ScheduleTimeline'
 import CountUp from '@/components/ui/CountUp';
 import { FiAward, FiUsers, FiFeather, FiVolume2, FiVolumeX } from "react-icons/fi";
 
-// Hero video: CDN first; Chrome often needs direct Spaces URL (Range/206), Safari works with CDN
-const HERO_VIDEO_CDN = "https://surabhi-images.sgp1.cdn.digitaloceanspaces.com/SURABHI-VID.mp4";
-const HERO_VIDEO_DIRECT = "https://surabhi-images.sgp1.digitaloceanspaces.com/SURABHI-VID.mp4";
+// Hero video: Using R2 URL
+const HERO_VIDEO_CDN = "https://pub-2172d3960f064d32b43c4d6ba9a3135d.r2.dev/SURABHI-VID.mp4";
+const HERO_VIDEO_DIRECT = "https://pub-2172d3960f064d32b43c4d6ba9a3135d.r2.dev/SURABHI-VID.mp4";
 
 // Particles for fiery background (stable positions for SSR/hydration)
 const PARTICLES = Array.from({ length: 24 }, (_, i) => ({

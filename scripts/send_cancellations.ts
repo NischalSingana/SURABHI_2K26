@@ -50,7 +50,7 @@ async function sendCancellations() {
       // Also extract team members from group registrations if they have emails
       if (reg.members) {
         try {
-          const membersArray = reg.members as any[];
+          const membersArray = reg.members as Array<{ email?: string; name?: string }>;
           if (Array.isArray(membersArray)) {
             membersArray.forEach(member => {
               if (member.email) {
@@ -58,7 +58,7 @@ async function sendCancellations() {
               }
             });
           }
-        } catch (e) {
+        } catch {
           console.warn("Could not parse members for group reg", reg.id);
         }
       }

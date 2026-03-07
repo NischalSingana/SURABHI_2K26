@@ -4,9 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { FiCalendar, FiClock, FiSearch } from "react-icons/fi";
+import { FiCalendar, FiClock } from "react-icons/fi";
 import Loader from "@/components/ui/Loader";
-import { isOnlineRegistrationClosed, ONLINE_REG_CLOSED_MESSAGE } from "@/lib/registration-deadline";
 import { COMPETITIONS_SCHEDULE_IMAGE_URL } from "@/lib/schedule";
 
 export interface CategoryData {
@@ -28,7 +27,6 @@ export default function CompetitionsClient({
   const [isLoading, setIsLoading] = useState(true);
   const [imagesLoaded, setImagesLoaded] = useState(0);
 
-  const [hasChosenToBrowse, setHasChosenToBrowse] = useState(false);
   const minLoadTime = 1200;
   const startTimeRef = useRef<number>(0);
   // Preload images and manage loading state
@@ -67,20 +65,11 @@ export default function CompetitionsClient({
     checkComplete();
   }, [imagesLoaded, initialCategories.length]);
 
-  const regClosed = isOnlineRegistrationClosed();
-
-
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem("surabhi_competitions_browsed");
-      if (stored === "1") setHasChosenToBrowse(true);
-    } catch { /* ignore */ }
+    // Keep it here to maintain useEffect hook call order or just remove if we don't need it.
+    // Given the component structure, it's safer to just remove it securely.
+    // Wait, let me just remove it entirely.
   }, []);
-
-  const handleBrowseClick = () => {
-    try { sessionStorage.setItem("surabhi_competitions_browsed", "1"); } catch { /* ignore */ }
-    setHasChosenToBrowse(true);
-  };
 
   const handleImageLoad = () => {
     setImagesLoaded((prev) => prev + 1);
@@ -128,77 +117,7 @@ export default function CompetitionsClient({
 
 
       {/* Closed overlay when online reg closed (after 5 PM IST) */}
-      <AnimatePresence>
-        {regClosed && !hasChosenToBrowse && (
-          <motion.div
-            key="reg-closed-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="fixed inset-0 z-30 pt-[72px] flex flex-col items-center justify-center overflow-hidden bg-[#080a0a]"
-          >
-            {/* Premium layered background */}
-            <div className="absolute inset-0 reg-closed-overlay-bg" />
-            <div className="absolute inset-0 reg-closed-overlay-mesh" />
-            <div className="absolute inset-0 reg-closed-overlay-rays" />
-            {/* Soft vignette */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: "radial-gradient(ellipse 80% 70% at 50% 50%, transparent 40%, rgba(0,0,0,0.6) 100%)",
-              }}
-            />
 
-            <div className="relative z-10 max-w-xl mx-auto px-6 text-center">
-              <motion.div
-                initial={{ scale: 0.9, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                className="relative bg-zinc-950/90 backdrop-blur-2xl border border-red-900/50 px-8 py-10 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden"
-              >
-                {/* Premium inner glow & gradient */}
-                <div className="absolute inset-0 bg-gradient-to-b from-red-950/15 via-transparent to-black/30 pointer-events-none" />
-                <div className="absolute inset-0 ring-1 ring-inset ring-red-500/10 pointer-events-none rounded-2xl" />
-                <div className="relative">
-                  <div className="text-red-400 font-black text-4xl md:text-5xl mb-2 tracking-widest uppercase drop-shadow-[0_0_30px_rgba(248,113,113,0.2)]">
-                    Online registrations closed
-                  </div>
-                  <div className="text-zinc-400 text-sm leading-relaxed whitespace-pre-line">
-                    {ONLINE_REG_CLOSED_MESSAGE}
-                  </div>
-                  <div className="mt-4 text-left bg-red-950/40 border border-red-800/70 rounded-xl px-4 py-3 text-xs md:text-sm text-red-100 space-y-2">
-                    <div className="font-semibold text-red-300">
-                      🚨 IMPORTANT NOTICE – SPOT &amp; VISITOR REGISTRATIONS 🚨
-                    </div>
-                    <p>⚠️ On 6th and 7th, OUTSIDERS (External Participants) are NOT allowed for Spot Registrations.</p>
-                    <p>❗ STRICTLY NO EXTERNAL PARTICIPANT will be permitted for Spot Registration on these dates.</p>
-                    <p>🚫 VISITORS are also NOT allowed on 6th and 7th.</p>
-                  </div>
-                  <motion.button
-                    onClick={handleBrowseClick}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="relative inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-4 rounded-xl transition-all shadow-lg shadow-red-950/50 hover:shadow-red-600/30 hover:shadow-xl"
-                  >
-                    <FiSearch size={22} />
-                    Browse competition details
-                  </motion.button>
-                  <motion.button
-                    onClick={() => router.push("/schedule")}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="relative mt-4 inline-flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold px-8 py-3 rounded-xl transition-all border border-zinc-700"
-                  >
-                    <FiClock size={20} />
-                    View Schedule
-                  </motion.button>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <div className="relative max-w-7xl mx-auto">
         <div className="text-center mb-6 sm:mb-8 md:mb-10 mt-32 sm:mt-28 md:mt-28">

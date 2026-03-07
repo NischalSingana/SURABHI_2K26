@@ -159,6 +159,7 @@ type CompetitionRegistrationPayload = {
     isGroupEvent: boolean;
     groupName?: string;
     members?: GroupMember[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     registrationDetails?: any;
     paymentDetails?: {
         paymentScreenshot: string;
@@ -299,17 +300,6 @@ export default function EventRegistrationPage() {
     });
 
     // Validation Functions
-    const validatePhone = (phone: string): { valid: boolean; error?: string } => {
-        if (!phone || !phone.trim()) {
-            return { valid: false, error: "Phone number is required" };
-        }
-        const cleaned = phone.trim().replace(/\s+/g, '');
-        if (!/^\d{10}$/.test(cleaned)) {
-            return { valid: false, error: "Phone number must be exactly 10 digits" };
-        }
-        return { valid: true };
-    };
-
     const validateGroupName = (name: string): { valid: boolean; error?: string } => {
         if (!name || !name.trim()) {
             return { valid: false, error: "Group name is required" };
@@ -734,7 +724,6 @@ export default function EventRegistrationPage() {
     const isKLStudent = !!session?.user?.email?.toLowerCase().endsWith("@kluniversity.in") || userCollege === "kl university";
     const eventCategoryName = event.Category?.name?.toLowerCase() ?? "";
     const isKurukshetraEvent = categorySlug.toLowerCase().includes("kurukshetra") || eventCategoryName.includes("kurukshetra");
-    const isRaagaEvent = categorySlug.toLowerCase().includes("raaga") || eventCategoryName.includes("raaga");
     const isKurukshetraOtherCollegeVirtualOnly = isKurukshetraEvent && !isKLStudent;
     const isKurukshetraKLPhysicalOnly = isKurukshetraEvent && isKLStudent;
     const effectiveIsVirtual = isInternational
@@ -751,7 +740,7 @@ export default function EventRegistrationPage() {
     const feePerPerson = isInternational ? 0 : getRegistrationFee(effectiveIsVirtual);
     const totalFee = memberCount * feePerPerson;
 
-    if (!isInternational && isOnlineRegistrationClosed() && !isKurukshetraEvent && !isRaagaEvent) {
+    if (isOnlineRegistrationClosed()) {
         return (
             <div className="min-h-screen bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-xl mx-auto">
@@ -775,28 +764,6 @@ export default function EventRegistrationPage() {
                         >
                             Back to Event
                         </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (!isInternational && !isKurukshetraEvent && !isRaagaEvent) {
-        return (
-            <div className="min-h-screen bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-xl mx-auto">
-                    <button
-                        onClick={() => router.push(`/competitions/${categorySlug}/${slug}`)}
-                        className="flex items-center text-zinc-400 hover:text-white mb-8 transition-colors"
-                    >
-                        <FiChevronLeft className="mr-2" />
-                        Back to Event
-                    </button>
-                    <div className="bg-zinc-900 border border-red-500/40 rounded-2xl p-8 shadow-xl">
-                        <h1 className="text-2xl font-bold text-red-400 mb-3">Registrations Restricted</h1>
-                        <p className="text-zinc-300 text-sm leading-relaxed">
-                            Website registrations are currently open only for eSports competitions (Kurukshetra).
-                        </p>
                     </div>
                 </div>
             </div>
