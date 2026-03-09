@@ -46,3 +46,19 @@ next-env.d.ts
 
 # prisma
 prisma/migrations/
+
+# Secrets and Credentials
+.env*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+*.p8
+*.p12
+*.pfx
+credentials.json
+client_secret*.json
+service-account*.json
+secrets.json
+aws-credentials.csv
