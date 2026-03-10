@@ -11,6 +11,7 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
 ## 🌟 Features
 
 ### 🎭 Event Management
+
 - **Dynamic Event Catalog**: Browse competitions across multiple categories (Dance, Music, Theatre, Fine Arts, etc.)
 - **Individual & Group Registration**: Support for both solo and team-based events
 - **College Types**: KL University, Other College (India), International Student flows (KL and other colleges: ₹350 per member)
@@ -19,28 +20,42 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
 - **Terms & Conditions**: Mandatory scroll-through acceptance for registrations
 
 ### 🔐 Authentication & Authorization
+
 - **Multi-Provider Auth**: Google OAuth and Email/Password login via Better Auth
 - **Role-Based Access Control**: USER, ADMIN, JUDGE, MANAGER, and MASTER roles
 - **Email Verification**: Secure email verification system
 - **Session Management**: Secure session handling with token-based authentication
 
-### 🎫 Ticketing System
+### 🎫 Ticketing & Registration
+
 - **QR Code Generation**: Automated ticket generation with unique QR codes
 - **Pass Management**: Digital passes with expiration and usage tracking
 - **Ticket Scanning**: Admin interface for scanning and validating tickets
+- **Spot Registration**: Streamlined on-site registration workflows with instant account creation and automated schedule email attachments
+- **Policy Enforcement**: Dedicated flows for handling specific registration rules (e.g., eSports policies, Vastranaut Style theme selection)
+
+### 🎓 Certificate Management
+
+- **Auto-Generated IDs**: Sequential chronologically assigned ID tags (e.g., SUR-0001) for all participants
+- **PDF Generation**: Dynamic participant certificate templates with individual and team previews
+- **Bundled Delivery**: Automated email distribution bundling group member certificates directly to team leads
 
 ### 🏨 Accommodation Booking
+
 - **Individual & Group Bookings**: Support for solo and group accommodation
 - **Gender-Segregated Rooms**: Separate booking flows for male/female participants
 - **Booking Management**: Admin dashboard for managing accommodation requests
 
 ### 👨‍⚖️ Judging System
-- **Judge Dashboard**: Dedicated interface for event judges
+
+- **Judge Dashboard**: Dedicated interface for event judges with real-time UI features like Parliament role badges
 - **Score Submission**: Real-time evaluation and scoring system
-- **Participant Tracking**: View and evaluate registered participants
-- **Remarks & Feedback**: Detailed feedback mechanism for participants
+- **Event-Specific Rubrics**: Customized, collapsible evaluation criteria for specialized events (Dance, Mock Parliament, Film, Music, etc.)
+- **Participant Tracking**: View and evaluate registered participants seamlessly
+- **Remarks & Feedback**: Detailed feedback mechanism for participants with public breakdown visibility on results pages
 
 ### 🎨 Interactive UI/UX
+
 - **Circular Gallery**: 3D circular poster gallery with scroll-based navigation (GSAP)
 - **Smooth Animations**: Framer Motion animations throughout
 - **Responsive Design**: Mobile-first design with Tailwind CSS
@@ -48,17 +63,20 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
 - **Lenis Smooth Scroll**: Buttery smooth scrolling experience
 
 ### 📊 Admin Dashboard
-- **User Management**: Approve/reject registrations and manage user roles
+
+- **User Management**: Approve/reject registrations and manage expanded user roles (including R&C)
 - **Event CRUD**: Create, update, and delete events and categories
+- **Certificate Management**: Automated tools to generate, assign IDs, and distribute bundled certificates
 - **Sponsor Management**: Manage festival sponsors with custom branding
 - **Gallery Management**: Upload and organize gallery images by year
-- **Contact Coordinators**: Manage contact categories and coordinator information (email only)
+- **Contact & Communications**: Manage coordinator information and send automated mass updates/cancellations
 - **Schedule Management**: Upload and manage event schedules
 - **Registration Approvals**: KL University / Other College sub-pages for Individual & Group (Pending + History)
-- **XLSX Export**: Export registrations (International, Individual, Group, Visitor Pass) with filters and auto-filter in Excel
+- **XLSX Export**: Export registrations with filters and advanced team-member-level formatting
 - **Column Filters**: Filter by User, Event, Payment Details, Status, Approved By, Actions
 
 ### 🤖 AI Chatbot
+
 - **AI-Powered Assistant**: Natural language responses based on trained fest knowledge (Groq/OpenRouter/Bytez)
 - **Trained on Full Website Data**: Events, competitions, registration, accommodation, contact coordinators, sponsors
 - **Plain Text Responses**: No markdown clutter; conversational, synthesized answers
@@ -66,6 +84,7 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
 - **Rate Limited**: Spam protection and cooldown for fair usage
 
 ### 📱 Additional Features
+
 - **Poster Gallery**: Automated poster gallery from R2 storage
 - **Results Page**: Display competition results and winners
 - **Sponsors Showcase**: Dynamic sponsor cards with custom gradients
@@ -78,6 +97,7 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - **Framework**: Next.js 16.1.1 (App Router)
 - **UI Library**: React 19.2.3
 - **Styling**: Tailwind CSS 4.0
@@ -88,6 +108,7 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
 - **QR Codes**: QRCode 1.5.4, html5-qrcode 2.3.8
 
 ### Backend
+
 - **Runtime**: Node.js
 - **Database**: PostgreSQL (via Prisma ORM 5.22.0)
 - **Authentication**: Better Auth 1.4.10
@@ -95,20 +116,22 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
 - **Email**: Nodemailer 7.0.11
 
 ### Cloud Services
+
 - **Object Storage**: AWS S3 (Cloudflare R2)
 - **Email Service**: AWS SES
 - **PDF Generation**: @react-pdf/renderer 4.3.2
 
 ### Development
+
 - **Language**: TypeScript 5.9.3
 - **Linting**: ESLint 9
 - **Code Analysis**: Knip 5.80.0
 - **Compiler**: Babel React Compiler 1.0.0
 
-
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 20.x or higher
 - PostgreSQL database
 - AWS S3 (or Cloudflare R2) bucket
@@ -117,45 +140,48 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd SurabhiWebsite-2026-
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
-   
+
    Create a `.env` file in the root directory:
+
    ```env
    # Database
    DATABASE_URL="postgresql://user:password@localhost:5432/surabhi"
-   
+
    # Better Auth
    BETTER_AUTH_SECRET="your-secret-key"
    BETTER_AUTH_URL="http://localhost:3000"
-   
+
    # Google OAuth
    GOOGLE_CLIENT_ID="your-google-client-id"
    GOOGLE_CLIENT_SECRET="your-google-client-secret"
-   
+
    # AWS S3 / Cloudflare R2
    AWS_ACCESS_KEY_ID="your-access-key"
    AWS_SECRET_ACCESS_KEY="your-secret-key"
    AWS_REGION="auto"
    AWS_ENDPOINT="your-r2-endpoint"
    AWS_BUCKET_NAME="your-bucket-name"
-   
+
    # AWS SES
    SES_REGION="your-ses-region"
    SES_FROM_EMAIL="noreply@yourdomain.com"
-   
+
    # App Configuration
    NEXT_PUBLIC_APP_URL="http://localhost:3000"
-   
+
    # AI Chatbot (at least one required: Groq, OpenRouter, or Bytez)
    GROQ_API_KEY="optional-groq-api-key"
    OPENROUTER_API_KEY="optional-openrouter-api-key"
@@ -163,6 +189,7 @@ Official website for **Surabhi 2026**, the flagship international cultural festi
    ```
 
 4. **Set up the database**
+
    ```bash
    npx prisma generate
    npx prisma db push
@@ -203,27 +230,30 @@ See [`prisma/schema.prisma`](./prisma/schema.prisma) for the complete schema.
 
 ## 🔑 User Roles
 
-| Role | Permissions |
-|------|-------------|
-| **USER** | Register for events, book accommodation, view profile |
-| **ADMIN** | Manage events, users, sponsors, gallery, and all content |
-| **JUDGE** | Evaluate participants and submit scores |
-| **MANAGER** | Moderate content and manage specific sections |
-| **MASTER** | Full system access with all administrative privileges |
+| Role        | Permissions                                              |
+| ----------- | -------------------------------------------------------- |
+| **USER**    | Register for events, book accommodation, view profile    |
+| **ADMIN**   | Manage events, users, sponsors, gallery, and all content |
+| **JUDGE**   | Evaluate participants and submit scores                  |
+| **MANAGER** | Moderate content and manage specific sections            |
+| **MASTER**  | Full system access with all administrative privileges    |
 
 ## 🎨 Design System
 
 ### Color Palette
+
 - **Primary**: Red (#dc2626, #b91c1c)
 - **Background**: Dark gradients (#0a0000, #1a0000, #4a0000)
 - **Text**: White, Zinc shades
 - **Accents**: Orange, Rose, various vibrant colors for clubs
 
 ### Typography
+
 - **Primary Font**: Lexend (via CSS variables)
 - **Monospace**: Martian Mono (via CSS variables)
 
 ### Key Design Features
+
 - Glassmorphism effects
 - Gradient overlays
 - Smooth animations and transitions
@@ -241,4 +271,3 @@ docker build -t surabhi-2026 .
 # Run the container
 docker run -p 3000:3000 --env-file .env surabhi-2026
 ```
-
