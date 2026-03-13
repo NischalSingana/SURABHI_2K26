@@ -526,3 +526,14 @@ enum BookingStatus {
   CANCELLED
   REJECTED
 }
+
+model AnonymousFeedback {
+  id              String   @id @default(cuid())
+  competitionName String
+  overallRating   Int
+  ratings         Json
+  suggestions     String
+  createdAt       DateTime @default(now())
+
+  @@map("anonymous_feedbacks")
+}

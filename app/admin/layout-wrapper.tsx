@@ -46,6 +46,7 @@ export default function AdminLayoutWrapper({
     { href: "/admin/accommodation", label: "Stay", roles: ["ADMIN", "MASTER", "RNC"] },
     { href: "/admin/analytics", label: "Analytics", roles: ["ADMIN", "MASTER", "RNC"] },
     { href: "/admin/feedback", label: "Feedback", roles: ["ADMIN", "MASTER"] },
+    { href: "/admin/feedback-analytics", label: "Feedback Analytics", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/registration-analytics", label: "Registration Analytics", roles: ["GOD", "RNC"] },
     { href: "/admin/accommodation-analytics", label: "Accommodation Analytics", roles: ["GOD", "RNC"] },
     { href: "/admin/judges", label: "Judges", roles: ["ADMIN", "MASTER"] },

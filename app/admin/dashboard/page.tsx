@@ -159,9 +159,29 @@ const page = async () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                 </svg>
                             </div>
-                            <h2 className="text-lg sm:text-xl font-semibold text-white">Feedback</h2>
+                            <h2 className="text-lg sm:text-xl font-semibold text-white">Competition Feedback</h2>
                             <p className="text-gray-400 text-center text-xs sm:text-sm">
                                 Release feedback collection, view responses, download reports
+                            </p>
+                        </div>
+                    </Link>
+                )}
+
+                {isAdmin && (
+                    <Link
+                        href="/admin/feedback-analytics"
+                        className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
+                    >
+                        <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-600/20">
+                                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                                </svg>
+                            </div>
+                            <h2 className="text-lg sm:text-xl font-semibold text-white">Feedback Analytics</h2>
+                            <p className="text-gray-400 text-center text-xs sm:text-sm">
+                                View general anonymous feedback, ratings, and download reports
                             </p>
                         </div>
                     </Link>
