@@ -897,3 +897,95 @@ export async function sendBundledCertificateEmail(
         attachments,
     });
 }
+
+/**
+ * Sends a professional Thank You email with a request to submit anonymous feedback.
+ */
+export async function sendThankYouAndFeedbackEmail(
+    user: { name: string; email: string }
+): Promise<{ success: boolean; error?: string }> {
+    const baseUrl = "https://klusurabhi.in";
+    const klLogoUrl = `${baseUrl}/images/kl_logo_white_text.png`;
+    const surabhiLogoUrl = `${baseUrl}/images/surabhi1.png`;
+
+    const htmlBody = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>Thank You for Making Surabhi 2026 a Success!</title>
+        <style>
+            body { margin: 0; padding: 0; background-color: #000000; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+            .container { max-width: 600px; margin: 0 auto; background-color: #0c0c0c; border: 1px solid #333; }
+            .content { padding: 40px 30px; color: #ffffff; }
+            .btn { display: inline-block; background-color: #dc2626; color: #ffffff !important; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; margin: 30px 0; text-align: center; box-shadow: 0 4px 14px 0 rgba(220, 38, 38, 0.39); }
+            .btn:hover { background-color: #b91c1c; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #000000; border-bottom: 3px solid #dc2626;">
+                <tr>
+                    <td align="left" style="padding: 20px;"><img src="${klLogoUrl}" alt="KL University" width="130" style="display:block;"></td>
+                    <td align="right" style="padding: 20px;"><img src="${surabhiLogoUrl}" alt="Surabhi 2026" width="110" style="display:block;"></td>
+                </tr>
+            </table>
+
+            <div class="content">
+                <div style="font-size: 20px; color: #dc2626; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Surabhi 2026</div>
+                <div style="font-size: 28px; color: #ffffff; font-weight: 800; margin-bottom: 25px; line-height: 1.2;">Thank You For Making It Grand! 🎉</div>
+
+                <p style="color: #d4d4d8; font-size: 16px; line-height: 1.7; margin-bottom: 20px;">
+                    Dear <strong style="color: #ffffff;">${user.name}</strong>,
+                </p>
+
+                <p style="color: #d4d4d8; font-size: 16px; line-height: 1.7; margin-bottom: 20px;">
+                    As the curtains fall on <strong style="color: #ffffff;">Surabhi International Cultural Fest 2026</strong>, we are absolutely overwhelmed with gratitude. 
+                    Your participation, boundless energy, and spirited enthusiasm truly brought our historic campus to life and made this fest an incredible success!
+                </p>
+
+                <p style="color: #d4d4d8; font-size: 16px; line-height: 1.7; margin-bottom: 20px;">
+                    Whether you captivated audiences on stage, showcased your unique talents in our competitive events, or simply cheered alongside thousands of fellow students during the spectacular concerts, <strong style="color: #dc2626; font-weight: 600;">you were the heartbeat of this festival.</strong> 
+                    Months of tireless planning by our core team and volunteers would have meant nothing without incredible participants like you stepping up to make the magic happen.
+                </p>
+
+                <p style="color: #d4d4d8; font-size: 16px; line-height: 1.7; margin-bottom: 20px;">
+                    Surabhi isn't just an event—it's a celebration of diversity, creativity, and the unapologetic passion of youth. Thank you for contributing your spark to our legacy.
+                </p>
+
+                <div style="background-color: #18181b; border: 1px solid #333; border-radius: 8px; padding: 25px; margin: 30px 0;">
+                    <p style="color: #ffffff; font-size: 18px; font-weight: bold; margin: 0 0 15px 0;">Help Us Improve! 🗣️</p>
+                    <p style="color: #a1a1aa; font-size: 15px; margin: 0 0 20px 0; line-height: 1.6;">
+                        We are continually striving to make Surabhi bigger and better every year. We would love to hear about your experience. 
+                        <strong>Please note that this feedback is 100% anonymous</strong> and will solely be used to improve future fests.
+                    </p>
+                    <div style="text-align: center;">
+                        <a href="https://klusurabhi.in/feedback-surabhi2k26" class="btn">Share Your Anonymous Feedback</a>
+                    </div>
+                </div>
+
+                <p style="color: #d4d4d8; font-size: 16px; line-height: 1.7; margin-bottom: 30px;">
+                    Thank you once again for your remarkable talent and spirit. We hope to see you again next year for an even bigger celebration!
+                </p>
+
+                <p style="color: #d4d4d8; font-size: 14px; line-height: 1.6; margin-top: 40px; font-style: italic; text-align: center;">
+                    "Igniting passion, celebrating culture." <br>
+                    — The Surabhi 2026 Core Team
+                </p>
+                <p style="color: #52525b; font-size: 12px; margin-top: 15px; text-align: center;">For queries: <a href="mailto:surabhi@kluniversity.in" style="color: #dc2626;">surabhi@kluniversity.in</a></p>
+            </div>
+
+            <div style="background-color: #18181b; padding: 30px; text-align: center; color: #52525b; font-size: 12px; border-top: 1px solid #333;">
+                <p>© 2026 KL University. All rights reserved.</p>
+                <p>Koneru Lakshmaiah Education Foundation, Vijayawada, Andhra Pradesh.</p>
+            </div>
+        </div>
+    </body>
+    </html>`;
+
+    return sendZeptoMail({
+        to: [{ email: user.email, name: user.name }],
+        subject: `Thank you for being part of Surabhi 2026! 🎉`,
+        htmlBody,
+    });
+}
