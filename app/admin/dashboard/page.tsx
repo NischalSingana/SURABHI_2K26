@@ -378,6 +378,25 @@ const page = async () => {
                     </Link>
                 )}
 
+                {isAdmin && (
+                    <Link
+                        href="/admin/thankyou-emails"
+                        className="bg-gray-800 hover:bg-gray-700 transition-colors rounded-lg p-5 sm:p-6 border border-gray-700 active:scale-95 transform duration-100"
+                    >
+                        <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-600/20">
+                                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <h2 className="text-lg sm:text-xl font-semibold text-white">Thank You Emails</h2>
+                            <p className="text-gray-400 text-center text-xs sm:text-sm">
+                                Send post-event appreciation emails and ask for feedback
+                            </p>
+                        </div>
+                    </Link>
+                )}
+
                 {session?.user?.role === "MASTER" && (
                     <Link
                         href="/admin/approval"

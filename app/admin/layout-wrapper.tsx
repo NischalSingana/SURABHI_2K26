@@ -56,6 +56,7 @@ export default function AdminLayoutWrapper({
     { href: "/admin/logs", label: "Logs", roles: ["MASTER"] },
     { href: "/admin/approval", label: "Approval", roles: ["MASTER"] },
     { href: "/admin/welcome-emails", label: "Welcome Emails", roles: ["MASTER"] },
+    { href: "/admin/thankyou-emails", label: "Thank You Emails", roles: ["MASTER", "ADMIN"] },
     { href: "/admin/certificates", label: "Certificates", roles: ["ADMIN", "MASTER"] },
   ];
 

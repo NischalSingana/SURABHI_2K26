@@ -21,6 +21,7 @@ model User {
   branch                   String?
   year                     Int?
   isApproved               Boolean                   @default(false)
+  hasReceivedThankYouEmail Boolean                   @default(false)
   paymentStatus            PaymentStatus             @default(PENDING)
   phone                    String?
   password                 String?
