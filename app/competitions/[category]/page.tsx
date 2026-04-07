@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, Suspense, useCallback } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { getPublicEvents, registerForEvent, getUserRegistrations, getCategories } from "@/actions/events.action";
-import { FiArrowLeft, FiCalendar, FiMapPin, FiClock, FiFileText, FiInfo } from "react-icons/fi";
-import Link from "next/link";
-
+import { FiArrowLeft, FiCalendar, FiMapPin, FiClock, FiUsers, FiFileText } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
+import SubmissionModal from "@/components/ui/SubmissionModal";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
 import { formatTime } from "@/lib/utils";
@@ -36,21 +36,11 @@ interface Event {
     groupRegistrations: number;
   };
   isGroupEvent: boolean;
-  slug?: string;
-}
-
-interface CategoryData {
-  id: string;
-  name: string;
-  slug: string;
-  image: string | null;
-  video: string | null;
-  Event: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 // Fallback poster paths when event has no image
 const CATEGORY_POSTER_FALLBACK: Record<string, string> = {
-  "chitrakala": "/poster-gallery/CHITRAKALA.jpg",
+  "chitrakala": "/poster-gallery/CHITRAKALA.png",
   "sahitya": "/poster-gallery/SAHITYA.jpg",
   "cine carnival": "/poster-gallery/CINE CARNIVAL.png",
   "national parliamentary simulation": "/poster-gallery/MOCK PARLIAMENT.jpg",
@@ -69,112 +59,6 @@ function getEventPosterSrc(event: Event, categoryImage: string | null): string {
   return fallback?.[1] || "https://via.placeholder.com/350x500/27272a/71717a?text=Poster+coming+soon";
 }
 
-function getEffectiveParticipantLimit(event: Pick<Event, "name" | "participantLimit">): number {
-  if (event.name.toLowerCase().includes("national mock parliament")) {
-    return 150;
-  }
-  return event.participantLimit;
-}
-
-function isLikelyStaleClientError(message: string): boolean {
-  const msg = message.toLowerCase();
-  return (
-    msg.includes("failed to fetch") ||
-    msg.includes("load failed") ||
-    msg.includes("fetch failed") ||
-    msg.includes("loading chunk") ||
-    msg.includes("chunkloaderror") ||
-    msg.includes("unexpected response was received from the server") ||
-    msg.includes("failed to execute 'json' on 'response'")
-  );
-}
-
-async function uploadPaymentScreenshotWithFallback(file: File): Promise<{ success: boolean; url?: string; error?: string }> {
-  const makeFormData = () => {
-    const fd = new FormData();
-    fd.append("file", file);
-    return fd;
-  };
-
-  try {
-    const { uploadPaymentScreenshot } = await import("@/actions/upload.action");
-    const actionResult = await uploadPaymentScreenshot(makeFormData());
-    if (actionResult.success && actionResult.url) {
-      return { success: true, url: actionResult.url };
-    }
-  } catch {
-    // Continue to API fallback.
-  }
-
-  try {
-    const response = await fetch("/api/upload/payment-screenshot", {
-      method: "POST",
-      body: makeFormData(),
-      cache: "no-store",
-      headers: { "cache-control": "no-cache" },
-    });
-    const data = await response.json().catch(() => ({ success: false, error: "Upload response parsing failed" }));
-    if (response.ok && data?.success && data?.url) {
-      return { success: true, url: data.url as string };
-    }
-    return { success: false, error: (data?.error as string) || "Failed to upload payment screenshot" };
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    return { success: false, error: msg || "Failed to upload payment screenshot" };
-  }
-}
-
-function redirectToMyCompetitions(router: ReturnType<typeof useRouter>) {
-  const target = `/profile/competitions?registered=1&t=${Date.now()}`;
-  if (typeof window !== "undefined") {
-    window.location.assign(target);
-    return;
-  }
-  router.replace(target);
-}
-
-async function submitSingleRegistrationWithFallback(payload: {
-  eventId: string;
-  paymentDetails?: {
-    paymentScreenshot: string;
-    utrId: string;
-    payeeName: string;
-  };
-}): Promise<{ success: boolean; error?: string; message?: string }> {
-  try {
-    const actionResult = await registerForEvent(payload.eventId, undefined, payload.paymentDetails);
-    if (actionResult.success) return actionResult;
-    if (!isLikelyStaleClientError(actionResult.error || "")) return actionResult;
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    if (!isLikelyStaleClientError(msg)) {
-      return { success: false, error: msg || "Failed to register for event" };
-    }
-  }
-
-  try {
-    const response = await fetch("/api/registrations/competition", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "cache-control": "no-cache" },
-      cache: "no-store",
-      body: JSON.stringify({
-        eventId: payload.eventId,
-        isGroupEvent: false,
-        paymentDetails: payload.paymentDetails,
-      }),
-    });
-    const data = await response.json().catch(() => ({ success: false, error: "Registration response parsing failed" }));
-    return {
-      success: !!data?.success,
-      error: data?.error as string | undefined,
-      message: data?.message as string | undefined,
-    };
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    return { success: false, error: msg || "Failed to register for event" };
-  }
-}
-
 function CategoryPageContent() {
   const params = useParams();
   const router = useRouter();
@@ -185,7 +69,8 @@ function CategoryPageContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
   const [showRegisterPopup, setShowRegisterPopup] = useState(false);
-  
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [registrationStatus, setRegistrationStatus] = useState({
@@ -198,6 +83,7 @@ function CategoryPageContent() {
   const [categoryImage, setCategoryImage] = useState<string | null>(null);
   const [categorySlug, setCategorySlug] = useState<string>("");
   const [categoryDisplayName, setCategoryDisplayName] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [showPaymentStep, setShowPaymentStep] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState({
     screenshot: null as File | null,
@@ -208,6 +94,10 @@ function CategoryPageContent() {
 
   const { data: session } = useSession();
   const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
+
+  useEffect(() => {
+    fetchEvents();
+  }, [categoryParam]);
 
   const getEmbedUrl = (url: string) => {
     if (!url) return null;
@@ -230,15 +120,14 @@ function CategoryPageContent() {
     return url;
   };
 
-  const fetchEvents = useCallback(async () => {
+  const fetchEvents = async () => {
     const categoryResult = await getCategories(false);
     let resolvedCategory: { slug: string; name: string } | null = null;
 
     if (categoryResult.success && categoryResult.data) {
       const decoded = decodeURIComponent(categoryParam);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const currentCategory = (categoryResult.data as any[]).find(
-        (c: CategoryData) => c.slug === categoryParam || c.name.toLowerCase() === decoded.toLowerCase()
+      const currentCategory = (categoryResult.data as Array<{ id: string; name: string; slug: string; image: string | null; video: string | null; Event: any[] }>).find(
+        (c: { id: string; name: string; slug: string; image: string | null; video: string | null; Event: any[] }) => c.slug === categoryParam || c.name.toLowerCase() === decoded.toLowerCase()
       );
       if (currentCategory) {
         resolvedCategory = { slug: currentCategory.slug, name: currentCategory.name };
@@ -265,6 +154,9 @@ function CategoryPageContent() {
           if (regResult.registeredEventIds) {
             setRegisteredEvents(new Set(regResult.registeredEventIds));
           }
+          if (regResult.email) {
+            setUserEmail(regResult.email);
+          }
         }
       }
     } else {
@@ -272,18 +164,19 @@ function CategoryPageContent() {
       toast.error("Failed to load events: " + result.error);
     }
     setLoading(false);
-  }, [categoryParam]);
-
-  useEffect(() => {
-    const id = setTimeout(() => { void fetchEvents(); }, 0);
-    return () => clearTimeout(id);
-  }, [fetchEvents]);
+  };
 
   const handleEventClick = (eventId: string) => {
     setExpandedEventId(expandedEventId === eventId ? null : eventId);
   };
 
+  const handleRegisterClick = (event: Event, e: React.MouseEvent) => {
+    e.stopPropagation();
 
+    toast.info("Redirecting to registration page...");
+    const eventIdentifier = (event as any).slug || event.id;
+    router.push(`/competitions/${categorySlug}/${eventIdentifier}`);
+  };
 
   const handleRegistrationSubmit = async () => {
     if (!acceptedTerms) {
@@ -297,8 +190,10 @@ function CategoryPageContent() {
 
     if (!selectedEvent) return;
 
-    // Payment required for all domestic students (KL and other colleges) - Rs 350 per member. International (virtual) is free.
-    if (!isInternational && !showPaymentStep) {
+    // Check for Manual Payment Requirement (Non-KL Users)
+    const isKLStudent = userEmail?.endsWith("@kluniversity.in");
+
+    if (!isKLStudent && !showPaymentStep) {
       setShowPaymentStep(true);
       return;
     }
@@ -321,7 +216,12 @@ function CategoryPageContent() {
 
       if (showPaymentStep && paymentDetails.screenshot) {
         setUploadingPayment(true);
-        const uploadResult = await uploadPaymentScreenshotWithFallback(paymentDetails.screenshot);
+        const formData = new FormData();
+        formData.append("file", paymentDetails.screenshot);
+
+        // Dynamically import upload action to avoid server-client issues if any
+        const { uploadPaymentScreenshot } = await import("@/actions/upload.action");
+        const uploadResult = await uploadPaymentScreenshot(formData);
 
         if (!uploadResult.success || !uploadResult.url) {
           setRegistrationStatus({
@@ -336,41 +236,36 @@ function CategoryPageContent() {
         setUploadingPayment(false);
       }
 
-      const result = await submitSingleRegistrationWithFallback({
-        eventId: selectedEvent.id,
-        paymentDetails: showPaymentStep
-          ? {
-              paymentScreenshot: uploadedScreenshotUrl,
-              utrId: paymentDetails.utrId,
-              payeeName: paymentDetails.payeeName,
-            }
-          : undefined,
-      });
+      const result = await registerForEvent(selectedEvent.id, undefined,
+        showPaymentStep ? {
+          paymentScreenshot: uploadedScreenshotUrl,
+          utrId: paymentDetails.utrId,
+          payeeName: paymentDetails.payeeName
+        } : undefined
+      );
 
       if (result.success) {
         setRegistrationStatus({ loading: false, error: null, success: true });
         setShowRegisterPopup(false);
+        setShowSuccessPopup(true);
+        // Keep selectedEvent for submission modal
         setAcceptedTerms(false);
-        setShowPaymentStep(false);
-        setPaymentDetails({ screenshot: null, utrId: "", payeeName: "" });
+        setShowPaymentStep(false); // Reset
+        setPaymentDetails({ screenshot: null, utrId: "", payeeName: "" }); // Reset
+
+        // Update registered events
         setRegisteredEvents(prev => new Set(prev).add(selectedEvent.id));
 
-        toast.success("Registration submitted! Redirecting to My Competitions...");
-        redirectToMyCompetitions(router);
+        // Refresh events to get updated counts
+        fetchEvents();
       } else {
-        const errorText = result.error || "Failed to register for event";
-        if (errorText.toLowerCase().includes("already registered")) {
-          toast.success("You are already registered. Opening My Competitions...");
-          redirectToMyCompetitions(router);
-          return;
-        }
         setRegistrationStatus({
           loading: false,
-          error: errorText,
+          error: result.error || "Failed to register for event",
           success: false,
         });
       }
-    } catch {
+    } catch (error) {
       setRegistrationStatus({
         loading: false,
         error: "An unexpected error occurred",
@@ -399,6 +294,7 @@ function CategoryPageContent() {
     event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.venue.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
   return (
     <div className="min-h-screen bg-black py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
@@ -673,7 +569,7 @@ function CategoryPageContent() {
                                   >
                                     Already Registered
                                   </button>
-                                ) : (event._count.individualRegistrations + event._count.groupRegistrations) >= getEffectiveParticipantLimit(event) ? (
+                                ) : (event._count.individualRegistrations + event._count.groupRegistrations) >= event.participantLimit ? (
                                   <button
                                     disabled
                                     className="bg-zinc-700 text-zinc-400 px-6 py-2 rounded-md cursor-not-allowed"
@@ -681,13 +577,12 @@ function CategoryPageContent() {
                                     Event Full
                                   </button>
                                 ) : (
-                                  <Link
-                                    href={`/competitions/${categorySlug}/${event.slug || event.id}`}
-                                    className="inline-flex items-center gap-2 bg-red-600/80 hover:bg-red-600 text-white px-6 py-2 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-600/30"
+                                  <button
+                                    onClick={(e) => handleRegisterClick(event, e)}
+                                    className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-600/50"
                                   >
-                                    <FiInfo size={16} />
-                                    View Full Details
-                                  </Link>
+                                    Register Now
+                                  </button>
                                 )}
                               </div>
                             </div>
@@ -749,7 +644,7 @@ function CategoryPageContent() {
                 </div>
               </div>
 
-              {!showPaymentStep && !isInternational && (
+              {!showPaymentStep && !userEmail?.endsWith("@kluniversity.in") && (
                 <div className="mb-6 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700">
                   <h4 className="text-sm font-semibold text-white mb-2">Includes (₹350):</h4>
                   <ul className="space-y-1 text-xs text-zinc-300">
@@ -834,7 +729,7 @@ function CategoryPageContent() {
                 >
                   <h4 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
                     Payment Verification
-                    <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded">₹350 per member</span>
+                    <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded">Required for Non-KL</span>
                   </h4>
 
                   {/* ID Card Mandatory Warning */}
@@ -880,8 +775,8 @@ function CategoryPageContent() {
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            if (file.size > 4 * 1024 * 1024) {
-                              toast.error("File size exceeds 4MB limit");
+                            if (file.size > 5 * 1024 * 1024) {
+                              toast.error("File size exceeds 5MB limit");
                               e.target.value = "";
                               return;
                             }
@@ -893,7 +788,7 @@ function CategoryPageContent() {
                     </div>
 
                     <div>
-                      <label className="block text-xs text-zinc-400 mb-1">UTR ID</label>
+                      <label className="block text-xs text-zinc-400 mb-1">UTR / Transaction ID</label>
                       <input
                         type="text"
                         value={paymentDetails.utrId}
@@ -943,7 +838,7 @@ function CategoryPageContent() {
                 >
                   {registrationStatus.loading || uploadingPayment ?
                     (uploadingPayment ? "Uploading Proof..." : "Registering...") :
-                    (showPaymentStep ? "Submit & Pay" : "Proceed to Payment")
+                    (showPaymentStep ? "Submit & Pay" : (userEmail?.endsWith("@kluniversity.in") ? "Confirm Registration" : "Proceed to Payment"))
                   }
                 </button>
                 <button
@@ -958,7 +853,71 @@ function CategoryPageContent() {
         )}
       </AnimatePresence>
 
-      {/* Success → redirects to /profile/competitions */}
+      {/* Success Popup */}
+      <AnimatePresence>
+        {showSuccessPopup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[1000000] p-4"
+            onClick={() => {
+              setShowSuccessPopup(false);
+              setSelectedEvent(null);
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className="bg-zinc-900 p-8 rounded-xl max-w-md w-full border border-green-500/50"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-green-500 mb-2">Success!</h3>
+                <p className="text-zinc-300 mb-6">
+                  {userEmail?.endsWith("@kluniversity.in")
+                    ? "Successfully registered for the event!"
+                    : "Your registration is submitted! Please wait for admin approval (2-3 business days). You will receive an email with your ticket once approved."}
+                </p>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={() => {
+                      setShowSuccessPopup(false);
+                      setShowSubmissionModal(true);
+                    }}
+                    className="w-full bg-red-600 text-white px-6 py-2.5 rounded-md hover:bg-red-700 transition-all duration-300 font-semibold"
+                  >
+                    Submit Your Work
+                  </button>
+                  <button
+                    onClick={() => router.push("/profile/competitions")}
+                    className="w-full bg-zinc-800 text-white px-6 py-2.5 rounded-md hover:bg-zinc-700 transition-all duration-300 border border-zinc-700"
+                  >
+                    View My Events
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSuccessPopup(false);
+                      setSelectedEvent(null);
+                    }}
+                    className="w-full text-zinc-400 px-6 py-2 rounded-md hover:text-white transition-all duration-300"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Hidden Image Preloader to speed up open interaction */}
       <div className="hidden" aria-hidden="true">
@@ -976,7 +935,22 @@ function CategoryPageContent() {
         ))}
       </div>
 
-      {/* Submission is handled on /profile/competitions page */}
+      {/* Submission Modal */}
+      {
+        selectedEvent && (
+          <SubmissionModal
+            event={selectedEvent}
+            isOpen={showSubmissionModal}
+            onClose={() => {
+              setShowSubmissionModal(false);
+              setSelectedEvent(null);
+            }}
+            onSuccess={() => {
+              fetchEvents();
+            }}
+          />
+        )
+      }
     </div >
   );
 }

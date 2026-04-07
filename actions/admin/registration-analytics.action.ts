@@ -33,13 +33,12 @@ export async function getRegistrationStatsByCollege() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.GOD && session.user.role !== Role.RNC)) {
-            throw new Error("Unauthorized - GOD or R&C role required");
+        if (!session || session.user.role !== Role.GOD) {
+            throw new Error("Unauthorized - GOD role required");
         }
 
-        // Get all approved individual registrations with user data
+        // Get all individual registrations with user data
         const individualRegistrations = await prisma.individualRegistration.findMany({
-            where: { paymentStatus: "APPROVED" },
             select: {
                 id: true,
                 user: {
@@ -54,9 +53,8 @@ export async function getRegistrationStatsByCollege() {
             },
         });
 
-        // Get all approved group registrations with user data and members
+        // Get all group registrations with user data and members
         const groupRegistrations = await prisma.groupRegistration.findMany({
-            where: { paymentStatus: "APPROVED" },
             select: {
                 id: true,
                 members: true,
@@ -108,13 +106,11 @@ export async function getRegistrationStatsByCollege() {
             const members = reg.members as Record<string, any> | null;
             const memberCount = members ? Object.keys(members).length : 0;
             const isKL = isKLUniversity(reg.user);
-            const leaderGender = reg.user.gender?.toUpperCase();
 
             if (isKL) {
                 klTeams++;
-                klTeamMembers += memberCount + 1;
-                if (leaderGender === "MALE") klTeamMale++;
-                else if (leaderGender === "FEMALE") klTeamFemale++;
+                klTeamMembers += memberCount;
+                // Count genders in team members
                 if (members) {
                     Object.values(members).forEach((member: any) => {
                         const memberGender = member.gender?.toUpperCase();
@@ -124,9 +120,8 @@ export async function getRegistrationStatsByCollege() {
                 }
             } else {
                 otherTeams++;
-                otherTeamMembers += memberCount + 1;
-                if (leaderGender === "MALE") otherTeamMale++;
-                else if (leaderGender === "FEMALE") otherTeamFemale++;
+                otherTeamMembers += memberCount;
+                // Count genders in team members
                 if (members) {
                     Object.values(members).forEach((member: any) => {
                         const memberGender = member.gender?.toUpperCase();
@@ -232,8 +227,8 @@ export async function getCategoryWiseAnalytics() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.GOD && session.user.role !== Role.RNC)) {
-            throw new Error("Unauthorized - GOD or R&C role required");
+        if (!session || session.user.role !== Role.GOD) {
+            throw new Error("Unauthorized - GOD role required");
         }
 
         // Get categories with their events
@@ -241,13 +236,12 @@ export async function getCategoryWiseAnalytics() {
             select: {
                 id: true,
                 name: true,
-                    Event: {
+                Event: {
                     select: {
                         id: true,
                         name: true,
                         isGroupEvent: true,
                         individualRegistrations: {
-                            where: { paymentStatus: "APPROVED" },
                             select: {
                                 id: true,
                                 createdAt: true,
@@ -268,7 +262,6 @@ export async function getCategoryWiseAnalytics() {
                             },
                         },
                         groupRegistrations: {
-                            where: { paymentStatus: "APPROVED" },
                             select: {
                                 id: true,
                                 groupName: true,
@@ -412,21 +405,12 @@ export async function getCategoryWiseAnalytics() {
                     const members = reg.members as Record<string, any> | null;
                     const memberCount = members ? Object.keys(members).length : 0;
                     const isKL = isKLUniversity(reg.user);
-                    const leaderGender = reg.user.gender?.toUpperCase();
-                    const participantCount = memberCount + 1;
 
                     if (isKL) {
                         klTeams++;
                         categoryKlTeams++;
-                        klTeamMembers += participantCount;
-                        categoryKlTeamMembers += participantCount;
-                        if (leaderGender === "MALE") {
-                            klTeamMale++;
-                            categoryKlTeamMale++;
-                        } else if (leaderGender === "FEMALE") {
-                            klTeamFemale++;
-                            categoryKlTeamFemale++;
-                        }
+                        klTeamMembers += memberCount;
+                        categoryKlTeamMembers += memberCount;
                         if (members) {
                             Object.values(members).forEach((member: any) => {
                                 const memberGender = member.gender?.toUpperCase();
@@ -442,15 +426,8 @@ export async function getCategoryWiseAnalytics() {
                     } else {
                         otherTeams++;
                         categoryOtherTeams++;
-                        otherTeamMembers += participantCount;
-                        categoryOtherTeamMembers += participantCount;
-                        if (leaderGender === "MALE") {
-                            otherTeamMale++;
-                            categoryOtherTeamMale++;
-                        } else if (leaderGender === "FEMALE") {
-                            otherTeamFemale++;
-                            categoryOtherTeamFemale++;
-                        }
+                        otherTeamMembers += memberCount;
+                        categoryOtherTeamMembers += memberCount;
                         if (members) {
                             Object.values(members).forEach((member: any) => {
                                 const memberGender = member.gender?.toUpperCase();

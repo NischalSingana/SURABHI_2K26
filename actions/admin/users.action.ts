@@ -47,16 +47,12 @@ export async function getAllUsers(filters?: {
                 branch: true,
                 year: true,
                 phone: true,
-                gender: true,
-                city: true,
-                state: true,
                 isApproved: true,
                 paymentStatus: true,
                 role: true,
                 createdAt: true,
                 isInternational: true,
                 country: true,
-                certificateId: true,
                 _count: {
                     select: {
                         individualRegistrations: true,
@@ -88,7 +84,7 @@ export async function approveUser(userId: string) {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER && session.user.role !== Role.MANAGER)) {
+        if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
             throw new Error("Unauthorized");
         }
 
@@ -254,68 +250,6 @@ export async function updateUserRole(userId: string, role: Role) {
         revalidatePath("/admin/users");
         return { success: true, message: "User role updated successfully" };
     } catch (error) {
-        return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
-    }
-}
-
-export async function updateUserDetailsByMaster(
-    userId: string,
-    details: {
-        name?: string | null;
-        email?: string;
-        phone?: string | null;
-        collage?: string | null;
-        collageId?: string | null;
-        branch?: string | null;
-        year?: number | null;
-        gender?: string | null;
-        city?: string | null;
-        state?: string | null;
-        country?: string | null;
-        isInternational?: boolean;
-        certificateId?: string | null;
-    }
-) {
-    try {
-        const headersList = await headers();
-        const session = await auth.api.getSession({
-            headers: headersList,
-        });
-
-        if (!session || session.user.role !== Role.MASTER) {
-            throw new Error("Unauthorized. Only MASTER can edit full user details.");
-        }
-
-        const normalizedEmail = (details.email || "").trim().toLowerCase();
-        if (!normalizedEmail) {
-            throw new Error("Email is required.");
-        }
-
-        await prisma.user.update({
-            where: { id: userId },
-            data: {
-                name: details.name?.trim() || null,
-                email: normalizedEmail,
-                phone: details.phone?.trim() || null,
-                collage: details.collage?.trim() || null,
-                collageId: details.collageId?.trim() || null,
-                branch: details.branch?.trim() || null,
-                year: details.year ?? null,
-                gender: details.gender?.trim() || null,
-                city: details.city?.trim() || null,
-                state: details.state?.trim() || null,
-                country: details.country?.trim() || null,
-                isInternational: !!details.isInternational,
-                certificateId: details.certificateId?.trim() || null,
-            },
-        });
-
-        revalidatePath("/admin/users");
-        return { success: true, message: "User details updated successfully." };
-    } catch (error: unknown) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-            return { success: false, error: "Email already exists for another user." };
-        }
         return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
     }
 }

@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState, startTransition } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,7 +14,7 @@ export default function AdminLayoutWrapper({
   session,
 }: {
   children: React.ReactNode;
-  session: { user?: { name?: string; email?: string; role?: string } } | null;
+  session: any;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -21,18 +22,18 @@ export default function AdminLayoutWrapper({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    startTransition(() => setMounted(true));
+    setTimeout(() => setMounted(true), 0);
   }, []);
 
   const handleLogout = async () => {
     await signOut();
-    router.push("/");
+    router.push(session?.user?.role === "GOD" ? "/" : "/auth/login");
     toast.success("Logged out successfully");
   };
 
   // Close mobile menu when route changes
   useEffect(() => {
-    startTransition(() => setIsMobileMenuOpen(false));
+    setTimeout(() => setIsMobileMenuOpen(false), 0);
   }, [pathname]);
 
   if (!mounted) {
@@ -40,28 +41,21 @@ export default function AdminLayoutWrapper({
   }
 
   const allNavLinks = [
-    { href: "/admin/dashboard", label: "Dashboard", roles: ["ADMIN", "MANAGER", "MASTER", "RNC"] },
+    { href: "/admin/dashboard", label: "Dashboard", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/competitions", label: "Competitions", roles: ["ADMIN", "MANAGER", "MASTER"] },
     { href: "/admin/users", label: "Users", roles: ["ADMIN", "MASTER"] },
-    { href: "/admin/accommodation", label: "Stay", roles: ["ADMIN", "MASTER", "RNC"] },
-    { href: "/admin/analytics", label: "Analytics", roles: ["ADMIN", "MASTER", "RNC"] },
-    { href: "/admin/feedback", label: "Feedback", roles: ["ADMIN", "MASTER"] },
-    { href: "/admin/feedback-analytics", label: "Feedback Analytics", roles: ["ADMIN", "MASTER"] },
-    { href: "/admin/registration-analytics", label: "Registration Analytics", roles: ["GOD", "RNC"] },
-    { href: "/admin/accommodation-analytics", label: "Accommodation Analytics", roles: ["GOD", "RNC"] },
+    { href: "/admin/accommodation", label: "Stay", roles: ["ADMIN", "MASTER"] },
+    { href: "/admin/analytics", label: "Analytics", roles: ["ADMIN", "MASTER"] },
+    { href: "/admin/registration-analytics", label: "Registration Analytics", roles: ["GOD"] },
+    { href: "/admin/accommodation-analytics", label: "Accommodation Analytics", roles: ["GOD"] },
     { href: "/admin/judges", label: "Judges", roles: ["ADMIN", "MASTER"] },
     { href: "/admin/evaluations", label: "Evaluations", roles: ["ADMIN", "MANAGER", "MASTER"] },
-    { href: "/admin/registrations/approvals", label: "Registrations", roles: ["ADMIN", "MASTER", "RNC"] },
-    { href: "/admin/spot-register", label: "Spot Register", roles: ["MASTER", "RNC"] },
+    { href: "/admin/registrations/approvals", label: "Registrations", roles: ["ADMIN", "MANAGER", "MASTER"] },
     { href: "/admin/logs", label: "Logs", roles: ["MASTER"] },
     { href: "/admin/approval", label: "Approval", roles: ["MASTER"] },
-    { href: "/admin/welcome-emails", label: "Welcome Emails", roles: ["MASTER"] },
-    { href: "/admin/thankyou-emails", label: "Thank You Emails", roles: ["MASTER", "ADMIN"] },
-    { href: "/admin/certificates", label: "Certificates", roles: ["ADMIN", "MASTER"] },
   ];
 
-  const userRole = session?.user?.role as string | undefined;
-  const navLinks = allNavLinks.filter(link => userRole ? link.roles.includes(userRole) : false);
+  const navLinks = allNavLinks.filter(link => link.roles.includes(session?.user?.role));
 
   return (
     <div className="min-h-screen bg-black">
@@ -69,17 +63,15 @@ export default function AdminLayoutWrapper({
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-12 sm:h-14 gap-2 sm:gap-4">
             <Link
-              href={userRole === "GOD" ? "/admin/registration-analytics" : "/admin/dashboard"}
+              href={session?.user?.role === "GOD" ? "/admin/registration-analytics" : "/admin/dashboard"}
               className="text-white font-bold text-xl shrink-0 hidden sm:block"
             >
-              {userRole === "MASTER"
+              {session?.user?.role === "MASTER"
                 ? "Master Panel"
-                : userRole === "GOD"
+                : session?.user?.role === "GOD"
                   ? "Registration Analytics"
-                  : userRole === "MANAGER"
+                  : session?.user?.role === "MANAGER"
                     ? "Manager Panel"
-                    : userRole === "RNC"
-                      ? "R&C Panel"
                     : "Admin Panel"}
             </Link>
 

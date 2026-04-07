@@ -66,7 +66,7 @@ function findEventSlug(
 }
 
 const CATEGORY_IMAGES: Record<string, string> = {
-  "CHITRAKALA - Painting": "/poster-gallery/CHITRAKALA.jpg",
+  "CHITRAKALA - Painting": "/poster-gallery/CHITRAKALA.png",
   "SAHITYA - Literature": "/poster-gallery/SAHITYA.jpg",
   "CINE CARNIVAL - Short Films": "/poster-gallery/CINE CARNIVAL.png",
   "National Parliamentary Simulation": "/poster-gallery/MOCK PARLIAMENT.jpg",
@@ -89,6 +89,7 @@ const SCHEDULE_DATA = [
     date: "March 3, 2026",
     categories: [
       { name: "CINE CARNIVAL - Short Films", events: ["Short Film", "Photography", "Cover songs"] },
+      { name: "National Parliamentary Simulation", events: ["National Mock Parliament"] },
       { name: "NATYAKA - Dramatics", events: ["Skit", "Mono Action"] },
     ],
   },
@@ -101,7 +102,6 @@ const SCHEDULE_DATA = [
   {
     date: "March 5, 2026",
     categories: [
-      { name: "National Parliamentary Simulation", events: ["National Mock Parliament"] },
       { name: "NRITHYA - Dance", events: ["Group (Classical, Western, Folk)", "Solo (Classical, Western, Folk)"] },
     ],
   },
@@ -114,7 +114,7 @@ const SCHEDULE_DATA = [
   {
     date: "March 7, 2026",
     categories: [
-      { name: "KURUKSHETRA - eSports", events: ["Free Fire", "Tekken 8"] },
+      { name: "KURUKSHETRA - eSports", events: ["Free Fire", "BGMI Tournament", "Valorant"] },
     ],
   },
 ];

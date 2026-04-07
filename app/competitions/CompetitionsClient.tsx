@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { FiCalendar, FiClock } from "react-icons/fi";
 import Loader from "@/components/ui/Loader";
-import { COMPETITIONS_SCHEDULE_IMAGE_URL } from "@/lib/schedule";
 
 export interface CategoryData {
   name: string;
@@ -26,12 +25,11 @@ export default function CompetitionsClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [imagesLoaded, setImagesLoaded] = useState(0);
+  const minLoadTime = 1200; // 1.2 seconds minimum
+  const startTimeRef = useRef<number>(Date.now());
 
-  const minLoadTime = 1200;
-  const startTimeRef = useRef<number>(0);
   // Preload images and manage loading state
   useEffect(() => {
-    startTimeRef.current = Date.now();
     const imagesToPreload = Math.min(6, initialCategories.length); // Preload first 6 priority images
     
     if (imagesToPreload === 0) {
@@ -65,21 +63,8 @@ export default function CompetitionsClient({
     checkComplete();
   }, [imagesLoaded, initialCategories.length]);
 
-  useEffect(() => {
-    // Keep it here to maintain useEffect hook call order or just remove if we don't need it.
-    // Given the component structure, it's safer to just remove it securely.
-    // Wait, let me just remove it entirely.
-  }, []);
-
   const handleImageLoad = () => {
     setImagesLoaded((prev) => prev + 1);
-  };
-
-  const handleScheduleDownload = () => {
-    const downloadUrl = `/api/schedule/download?url=${encodeURIComponent(
-      COMPETITIONS_SCHEDULE_IMAGE_URL
-    )}&filename=${encodeURIComponent("surabhi-2026-competitions-schedule")}`;
-    window.location.href = downloadUrl;
   };
 
   const filteredCategories = initialCategories.filter((category) =>
@@ -110,17 +95,10 @@ export default function CompetitionsClient({
         initial={{ opacity: 0 }}
         animate={{ opacity: isLoading ? 0 : 1 }}
         transition={{ duration: 0.3 }}
-        className="min-h-screen competitions-bg py-8 sm:py-10 md:py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
+        className="min-h-screen bg-black py-8 sm:py-10 md:py-12 px-4 sm:px-6 lg:px-8"
       >
-        {/* Subtle dot grid for depth */}
-        <div className="absolute inset-0 competitions-bg-dots pointer-events-none" aria-hidden />
-
-
-      {/* Closed overlay when online reg closed (after 5 PM IST) */}
-
-
-      <div className="relative max-w-7xl mx-auto">
-        <div className="text-center mb-6 sm:mb-8 md:mb-10 mt-32 sm:mt-28 md:mt-28">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-8 sm:mb-10 md:mb-12 mt-20 sm:mt-14 md:mt-16">
           <div className="flex justify-center items-center gap-4 mb-6">
             <motion.h1
               initial={{ opacity: 0, y: -20 }}
@@ -138,50 +116,26 @@ export default function CompetitionsClient({
           >
             Choose a category to explore competitions
           </motion.p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              onClick={() => router.push("/profile/competitions")}
-              className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-600/50"
-            >
-              <FiCalendar size={20} />
-              My Competitions
-            </motion.button>
-            <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              onClick={() => router.push("/schedule")}
-              className="inline-flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-zinc-800/50 border border-zinc-700"
-            >
-              <FiClock size={20} />
-              View Schedule
-            </motion.button>
-            <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-              onClick={handleScheduleDownload}
-              className="inline-flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 border border-zinc-700"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                />
-              </svg>
-              Download Schedule
-            </motion.button>
-          </div>
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            onClick={() => router.push("/profile/competitions")}
+            className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-600/50"
+          >
+            <FiCalendar size={20} />
+            My Competitions
+          </motion.button>
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            onClick={() => router.push("/schedule")}
+            className="inline-flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-zinc-800/50 border border-zinc-700"
+          >
+            <FiClock size={20} />
+            Schedule
+          </motion.button>
         </div>
 
         <motion.div
@@ -287,7 +241,6 @@ export default function CompetitionsClient({
                       className="object-cover transition-transform duration-500 hover:scale-110"
                       priority={index < 6}
                       quality={70}
-                      unoptimized
                       loading={index < 6 ? "eager" : "lazy"}
                       onLoad={index < 6 ? handleImageLoad : undefined}
                       placeholder="blur"

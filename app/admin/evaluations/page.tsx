@@ -1,9 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useEffect, useState } from "react";
 import { getEvaluations, toggleResultRelease } from "@/actions/evaluation.action";
 import Loader from "@/components/ui/Loader";
-import { FiChevronDown, FiChevronUp, FiAward, FiUsers, FiX, FiGlobe, FiLock } from "react-icons/fi";
+import { FiChevronDown, FiChevronUp, FiAward, FiUsers, FiX, FiCheckCircle, FiGlobe, FiLock } from "react-icons/fi";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -11,7 +15,6 @@ interface Evaluation {
     id: string;
     score: number;
     remarks: string | null;
-    round: number;
     participant: {
         id: string;
         name: string | null;
@@ -31,7 +34,7 @@ interface GroupRegistration {
         name: string | null;
     };
     groupName: string | null;
-    members: unknown;
+    members: any;
 }
 
 interface EventData {
@@ -51,115 +54,14 @@ interface ProcessedEntry {
     subtitle: string | null;
     score: number | string; // Average or specific score
     evaluationsCount: number; // Number of evaluations (1 for individual, N for group)
-    members?: Record<string, unknown>[]; // For groups
+    members?: any[]; // For groups
     individualEvaluations?: Evaluation[]; // For deeper view
     judgeScores?: Array<{
         judgeId: string;
         judgeName: string | null;
         score: number;
-        roundScores?: Record<number, number>;
         remarks: string | null;
     }>;
-}
-
-function normalizeText(value?: string | null): string {
-    return (value || "").trim().toLowerCase();
-}
-
-// Mock Parliament participant roles — shared lookup
-const MOCK_PARLIAMENT_ROLES: Record<string, { role: string; color: string }> = {
-    "hrudayavari rakesh reddy":              { role: "Leader of Opposition",              color: "text-blue-300 bg-blue-900/40 border-blue-500/40" },
-    "kodiboyina v s n surya ram pritham":    { role: "Minister of Finance",               color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
-    "pavan sri kalyan":                      { role: "Deputy Leader of Opposition",       color: "text-blue-200 bg-blue-900/30 border-blue-400/30" },
-    "bandi sai durga pavan":                 { role: "Minister of Home Affairs",          color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
-    "ishan prashant muley":                  { role: "Chief Opposition Whip",             color: "text-blue-200 bg-blue-900/30 border-blue-400/30" },
-    "atla nikhil sai":                       { role: "Minister of Law & Justice",         color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
-    "aaryan sharma":                         { role: "Shadow Minister of Finance",        color: "text-teal-300 bg-teal-900/40 border-teal-500/40" },
-    "harsha srinivas budaga":                { role: "Minister of Parliamentary Affairs", color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
-    "k.d sohan saai":                        { role: "Shadow Minister of Home Affairs",   color: "text-teal-300 bg-teal-900/40 border-teal-500/40" },
-    "prabhav sinha":                         { role: "Minister of Defence",               color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
-    "venna venkata jayanth reddy":           { role: "Shadow Minister of Law & Justice",  color: "text-teal-300 bg-teal-900/40 border-teal-500/40" },
-    "tharunraj kavi":                        { role: "Minister of Education",             color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
-    "vikram shanbhag":                       { role: "Shadow Minister of Education",      color: "text-teal-300 bg-teal-900/40 border-teal-500/40" },
-    "k madhuri":                             { role: "Minister of Health & Family Welfare",color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
-    "srilakshmi kantham":                    { role: "Shadow Minister of Health",         color: "text-teal-300 bg-teal-900/40 border-teal-500/40" },
-    "anjani mudiganti":                      { role: "Minister of IT & Digital Affairs",  color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
-    "vidit aswani":                          { role: "Shadow Minister of IT & Digital Affairs", color: "text-teal-300 bg-teal-900/40 border-teal-500/40" },
-    "abhijit santosh kondpalliwar":          { role: "Minister of Environment",           color: "text-emerald-300 bg-emerald-900/40 border-emerald-500/40" },
-    "tarun kakani":                          { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
-    "snehitha":                              { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
-    "bhuwin rag cheekati":                   { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
-    "gandreati jivika":                      { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
-    "goli devisriprasad":                    { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
-    "aadarsita maddi":                       { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
-    "husna shaik":                           { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
-    "vyshnavi.b":                            { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
-    "hadassa rani chakrala":                 { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
-    "teju jonnalagadda":                     { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
-    "balaji srinivas":                       { role: "Civil Society Representative",      color: "text-purple-300 bg-purple-900/40 border-purple-500/40" },
-    "shaik sameerunnisa":                    { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
-    "uday reddy":                            { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
-    "abhi tinku":                            { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
-    "gangireddy rameshwar reddy":            { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
-    "rashmi":                                { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
-    "yandamuri karunya abhirami":            { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
-    "ramu chowdary":                         { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
-    "d methun":                              { role: "MP – Opposition",                   color: "text-gray-300 bg-gray-800/60 border-gray-600/40" },
-    "doddapaneni revanth":                   { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
-    "debolina bhattacharya":                 { role: "Investigative Journalist",          color: "text-pink-300 bg-pink-900/40 border-pink-500/40" },
-    "md junaid faisal":                      { role: "Policy Analyst",                    color: "text-pink-300 bg-pink-900/40 border-pink-500/40" },
-    "khandavilli venkata sai karthikeya":    { role: "Prime Minister",                    color: "text-yellow-200 bg-yellow-700/40 border-yellow-400/50" },
-    "syed abdul sami hussaini":              { role: "MP – Ruling Party",                 color: "text-orange-300 bg-orange-900/40 border-orange-500/40" },
-};
-
-function getMockParliamentRole(name?: string | null): { role: string; color: string } | null {
-    if (!name) return null;
-    const normalized = name.trim().toLowerCase();
-    if (MOCK_PARLIAMENT_ROLES[normalized]) return MOCK_PARLIAMENT_ROLES[normalized];
-    const key = Object.keys(MOCK_PARLIAMENT_ROLES).find(k => normalized.includes(k) || k.includes(normalized));
-    return key ? MOCK_PARLIAMENT_ROLES[key] : null;
-}
-
-function isCinecarnicalCategory(categoryName?: string): boolean {
-    const category = normalizeText(categoryName);
-    return (
-        category.includes("cinecarnical") ||
-        category.includes("cine carnival") ||
-        category.includes("cinecarnival")
-    );
-}
-
-function getMaxScorePerJudge(categoryName?: string, eventName?: string): number {
-    const category = normalizeText(categoryName);
-    const event = normalizeText(eventName);
-
-    if (category.includes("natyaka")) {
-        if (event.includes("mono") && event.includes("action")) return 50;
-        if (event.includes("skit")) return 60;
-        return 10;
-    }
-
-    if (isCinecarnicalCategory(categoryName)) {
-        if (event.includes("short") && event.includes("film")) return 100;
-        if (event.includes("cover") && event.includes("song")) return 100;
-        return 10;
-    }
-
-    return 10;
-}
-
-const CRITERIA_REMARKS_PREFIX = "__CRITERIA__:";
-
-function parseStoredRemarks(remarks?: string | null): string | null {
-    if (!remarks) return null;
-    if (!remarks.startsWith(CRITERIA_REMARKS_PREFIX)) return remarks;
-    try {
-        const raw = remarks.slice(CRITERIA_REMARKS_PREFIX.length);
-        const parsed = JSON.parse(raw) as { judgeRemarks?: string | null };
-        return parsed?.judgeRemarks ?? null;
-    } catch {
-        return null;
-    }
 }
 
 export default function AdminEvaluationsPage() {
@@ -168,11 +70,8 @@ export default function AdminEvaluationsPage() {
     const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
     const [selectedTeam, setSelectedTeam] = useState<ProcessedEntry | null>(null);
 
-    useEffect(() => {
-        loadEvaluations();
-    }, []);
-
     const loadEvaluations = async () => {
+        setTimeout(() => setLoading(true), 0);
         const res = await getEvaluations();
         if (res.success) {
             setEvents(res.data || []);
@@ -181,6 +80,10 @@ export default function AdminEvaluationsPage() {
         }
         setLoading(false);
     };
+
+    useEffect(() => {
+        loadEvaluations();
+    }, []);
 
     const toggleEvent = (id: string) => {
         const newSet = new Set(expandedEvents);
@@ -214,45 +117,15 @@ export default function AdminEvaluationsPage() {
                 byParticipant.set(pid, list);
             }
 
-            const isRaaga = event.name.toLowerCase().includes("voice") && event.name.toLowerCase().includes("raaga");
-
             const entries = Array.from(byParticipant.entries()).map(([participantId, evals]) => {
-                const byJudge = new Map<string, { judgeId: string; judgeName: string | null; roundScores: Record<number, number>; remarks: string[] }>();
-
-                for (const e of evals) {
-                    const entry = byJudge.get(e.judge.id) ?? { judgeId: e.judge.id, judgeName: e.judge.name, roundScores: {}, remarks: [] };
-                    entry.roundScores[e.round] = e.score;
-                    const clean = parseStoredRemarks(e.remarks);
-                    if (clean) entry.remarks.push(clean);
-                    byJudge.set(e.judge.id, entry);
-                }
-
-                let totalParticipantScore = 0;
-                let judgeCount = 0;
-
-                const judgeScores = Array.from(byJudge.values()).map(j => {
-                    let judgeTotal = 0;
-                    if (isRaaga) {
-                        judgeTotal = (j.roundScores[1] || 0) + (j.roundScores[2] || 0) + (j.roundScores[3] || 0);
-                    } else {
-                        // For non-raaga events, just take the first round score (or average if they somehow have multiple)
-                        const scores = Object.values(j.roundScores);
-                        judgeTotal = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
-                    }
-
-                    totalParticipantScore += judgeTotal;
-                    judgeCount++;
-
-                    return {
-                        judgeId: j.judgeId,
-                        judgeName: j.judgeName,
-                        score: parseFloat(judgeTotal.toFixed(2)),
-                        roundScores: j.roundScores,
-                        remarks: j.remarks.length ? j.remarks.join(" | ") : null
-                    };
-                });
-
-                const avg = judgeCount ? parseFloat((totalParticipantScore / judgeCount).toFixed(2)) : 0;
+                const total = evals.reduce((sum, e) => sum + e.score, 0);
+                const avg = evals.length ? parseFloat((total / evals.length).toFixed(2)) : 0;
+                const judgeScores = evals.map((e) => ({
+                    judgeId: e.judge.id,
+                    judgeName: e.judge.name,
+                    score: parseFloat(e.score.toFixed(2)),
+                    remarks: e.remarks ?? null,
+                }));
 
                 return {
                     id: participantId,
@@ -279,28 +152,26 @@ export default function AdminEvaluationsPage() {
             const memberIds = new Set<string>();
             memberIds.add(reg.user.id); // Leader
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let membersList: any[] = [];
             try {
                 if (typeof reg.members === 'string') {
                     membersList = JSON.parse(reg.members);
                 } else {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    membersList = reg.members as any[];
+                    membersList = reg.members;
                 }
                 // Handle nested 'members' object logic if consistent with judge view
                 if (!Array.isArray(membersList) && membersList && typeof membersList === 'object' && 'members' in membersList) {
-                    // @ts-expect-error - nested members shape
+                    // @ts-ignore
                     membersList = membersList.members;
                 }
             } catch (e) { console.error(e); }
 
             if (Array.isArray(membersList)) {
-                membersList.forEach((m) => { if (m.userId) memberIds.add(String(m.userId)); });
+                membersList.forEach((m: any) => { if (m.userId) memberIds.add(m.userId); });
             }
 
-            // Team is evaluated once using the team leader participant ID.
-            const teamEvaluations = event.evaluations.filter(ev => ev.participant.id === reg.user.id);
+            // Collect all evaluations for this team
+            const teamEvaluations = event.evaluations.filter(ev => memberIds.has(ev.participant.id));
 
             if (teamEvaluations.length > 0) {
                 // Per-judge team score = avg across evaluated members; overall team score = avg of judge avgs
@@ -310,8 +181,7 @@ export default function AdminEvaluationsPage() {
                     const jname = ev.judge.name ?? null;
                     const entry = byJudge.get(jid) ?? { judgeId: jid, judgeName: jname, scores: [], remarks: [] };
                     entry.scores.push(ev.score);
-                    const cleanRemarks = parseStoredRemarks(ev.remarks);
-                    if (cleanRemarks) entry.remarks.push(cleanRemarks);
+                    if (ev.remarks) entry.remarks.push(ev.remarks);
                     byJudge.set(jid, entry);
                 }
 
@@ -341,8 +211,8 @@ export default function AdminEvaluationsPage() {
                     judgeScores,
                 });
 
-                // Mark leader as processed.
-                processedUserIds.add(reg.user.id);
+                // Mark these users as processed so we don't double count if logic is loose
+                memberIds.forEach(id => processedUserIds.add(id));
             }
         });
 
@@ -380,13 +250,12 @@ export default function AdminEvaluationsPage() {
                     <div className="text-center py-20 bg-zinc-900 rounded-2xl border border-zinc-800">
                         <FiAward className="mx-auto text-4xl text-gray-600 mb-4" />
                         <h3 className="text-xl font-bold text-gray-400">No evaluations found</h3>
-                        <p className="text-gray-500">Judges haven&apos;t submitted any scores yet.</p>
+                        <p className="text-gray-500">Judges haven't submitted any scores yet.</p>
                     </div>
                 ) : (
                     <div className="space-y-6">
                         {events.map((event) => {
                             const processedEntries = processEventData(event);
-                            const maxScorePerJudge = getMaxScorePerJudge(event.Category?.name, event.name);
 
                             return (
                                 <motion.div
@@ -502,41 +371,20 @@ export default function AdminEvaluationsPage() {
                                                                         </td>
                                                                         <td className="py-4">
                                                                             <div className="font-bold text-xl text-white">{entry.name}</div>
-                                                                            {/* Parliament role badge */}
-                                                                            {event.name.toLowerCase().includes("parliament") && (() => {
-                                                                                const mp = getMockParliamentRole(entry.name);
-                                                                                if (!mp) return null;
-                                                                                return (
-                                                                                    <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full border mt-1 ${mp.color}`}>
-                                                                                        🏛️ {mp.role}
-                                                                                    </span>
-                                                                                );
-                                                                            })()}
                                                                             <div className="text-base font-medium text-gray-400 mt-1">{entry.subtitle}</div>
                                                                         </td>
                                                                         <td className="py-4 font-bold text-3xl text-red-500">
-                                                                            {(() => {
-                                                                                const judgeCount = entry.judgeScores?.length || 0;
-                                                                                const totalScore = judgeCount > 0
-                                                                                    ? entry.judgeScores!.reduce((sum, j) => sum + (j.score || 0), 0)
-                                                                                    : (typeof entry.score === "number" ? entry.score : 0);
-                                                                                const totalMax = maxScorePerJudge * (judgeCount || 1);
-                                                                                return (
-                                                                                    <>
-                                                                                        {parseFloat(totalScore.toFixed(2))}
-                                                                                        <span className="text-sm text-gray-600 font-normal ml-1">/{totalMax}</span>
-                                                                                    </>
-                                                                                );
-                                                                            })()}
+                                                                            {entry.score}
+                                                                            <span className="text-sm text-gray-600 font-normal ml-1">/10</span>
                                                                             {entry.judgeScores?.length ? (
                                                                                 <div className="text-[10px] text-gray-500 font-normal mt-1">
-                                                                                    Avg of {entry.judgeScores.length} judge{entry.judgeScores.length === 1 ? "" : "s"}: {entry.score}/{maxScorePerJudge}
+                                                                                    Avg of {entry.judgeScores.length} judge{entry.judgeScores.length === 1 ? "" : "s"}
                                                                                 </div>
                                                                             ) : null}
                                                                         </td>
                                                                         {event.isGroupEvent && (
                                                                             <td className="py-4 text-gray-400 text-base">
-                                                                                {entry.evaluationsCount} Evaluation{entry.evaluationsCount === 1 ? "" : "s"}
+                                                                                {entry.evaluationsCount} Members Evaluated
                                                                             </td>
                                                                         )}
                                                                         <td className="py-4">
@@ -563,7 +411,7 @@ export default function AdminEvaluationsPage() {
                                                                                                             <span className="truncate max-w-[180px]">
                                                                                                                 {j.judgeName || "Judge"}
                                                                                                             </span>
-                                                                                                            <span className="font-bold text-gray-200">{j.score}/{maxScorePerJudge}</span>
+                                                                                                            <span className="font-bold text-gray-200">{j.score}/10</span>
                                                                                                         </div>
                                                                                                     ))}
                                                                                             </div>
@@ -610,25 +458,7 @@ export default function AdminEvaluationsPage() {
                             <div className="flex justify-between items-start mb-6">
                                 <div>
                                     <h3 className="text-2xl font-bold mb-1">{selectedTeam.name}</h3>
-                                    <p className="text-gray-400 text-sm">
-                                        {(() => {
-                                            const selectedEvent = events.find((e) => e.id === selectedTeam.id || processEventData(e).some((entry) => entry.id === selectedTeam.id));
-                                            const maxScorePerJudge = getMaxScorePerJudge(selectedEvent?.Category?.name, selectedEvent?.name);
-                                            const judgeCount = selectedTeam.judgeScores?.length || 0;
-                                            const totalScore = judgeCount > 0
-                                                ? selectedTeam.judgeScores!.reduce((sum, j) => sum + (j.score || 0), 0)
-                                                : (typeof selectedTeam.score === "number" ? selectedTeam.score : 0);
-                                            const totalMax = maxScorePerJudge * (judgeCount || 1);
-                                            return (
-                                                <>
-                                                    Team Total Score: <span className="text-red-500 font-bold">{parseFloat(totalScore.toFixed(2))}/{totalMax}</span>
-                                                    {!!judgeCount && (
-                                                        <span className="ml-2 text-zinc-500">| Avg: {selectedTeam.score}/{maxScorePerJudge}</span>
-                                                    )}
-                                                </>
-                                            );
-                                        })()}
-                                    </p>
+                                    <p className="text-gray-400 text-sm">Team Average Score: <span className="text-red-500 font-bold">{selectedTeam.score}/10</span></p>
                                 </div>
                                 <button onClick={() => setSelectedTeam(null)} className="p-2 hover:bg-zinc-800 rounded-full transition-colors">
                                     <FiX size={20} />
@@ -649,37 +479,25 @@ export default function AdminEvaluationsPage() {
                                                             <div className="text-sm text-gray-200 truncate">{j.judgeName || "Judge"}</div>
                                                             {j.remarks && <div className="text-xs text-gray-500 truncate">{j.remarks}</div>}
                                                         </div>
-                                                        <div className="text-sm font-bold text-white">
-                                                            {(() => {
-                                                                const selectedEvent = events.find((e) => e.id === selectedTeam.id || processEventData(e).some((entry) => entry.id === selectedTeam.id));
-                                                                const maxScorePerJudge = getMaxScorePerJudge(selectedEvent?.Category?.name, selectedEvent?.name);
-                                                                return `${j.score}/${maxScorePerJudge}`;
-                                                            })()}
-                                                        </div>
+                                                        <div className="text-sm font-bold text-white">{j.score}/10</div>
                                                     </div>
                                                 ))}
                                         </div>
                                     </div>
                                 )}
-                                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Evaluation Records</h4>
+                                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Member Evaluations</h4>
                                 <div className="space-y-3">
                                     {selectedTeam.individualEvaluations?.map((ev, idx) => (
                                         <div key={idx} className="bg-black/40 border border-zinc-800 rounded-xl p-4 flex justify-between items-center">
                                             <div>
                                                 <p className="font-bold text-base text-white">{ev.participant.name}</p>
                                                 <p className="text-sm text-gray-400">{ev.participant.collageId || "No ID"}</p>
-                                                {parseStoredRemarks(ev.remarks) && <p className="text-xs text-gray-400 mt-2 italic">&quot;{parseStoredRemarks(ev.remarks)}&quot;</p>}
+                                                {ev.remarks && <p className="text-xs text-gray-400 mt-2 italic">"{ev.remarks}"</p>}
                                                 <p className="text-[10px] text-gray-600 mt-1">Judge: {ev.judge.name}</p>
                                             </div>
                                             <div className="text-right">
                                                 <span className="text-xl font-bold text-green-500">{ev.score}</span>
-                                                <span className="text-xs text-gray-600">
-                                                    {(() => {
-                                                        const selectedEvent = events.find((e) => e.id === selectedTeam.id || processEventData(e).some((entry) => entry.id === selectedTeam.id));
-                                                        const maxScorePerJudge = getMaxScorePerJudge(selectedEvent?.Category?.name, selectedEvent?.name);
-                                                        return `/${maxScorePerJudge}`;
-                                                    })()}
-                                                </span>
+                                                <span className="text-xs text-gray-600">/10</span>
                                             </div>
                                         </div>
                                     ))}

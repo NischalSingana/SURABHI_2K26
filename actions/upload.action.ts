@@ -1,6 +1,6 @@
 "use server";
 
-import { uploadToR2, isValidImageType, generateUniqueFilename, compressImage } from "@/lib/r2";
+import { uploadToR2, isValidImageType, generateUniqueFilename } from "@/lib/r2";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { Role } from "@prisma/client";
@@ -20,31 +20,33 @@ export async function uploadEventImage(formData: FormData) {
       return { success: false, error: "No file provided" };
     }
 
+    // Validate file type
     if (!isValidImageType(file.type)) {
       return { success: false, error: "Invalid file type. Only images are allowed." };
     }
 
-    const maxSize = 10 * 1024 * 1024;
+    // Validate file size (10MB max)
+    const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       return { success: false, error: "File size too large. Maximum size is 10MB." };
     }
 
+    // Convert file to buffer
     const bytes = await file.arrayBuffer();
-    const rawBuffer = Buffer.from(bytes);
+    const buffer = Buffer.from(bytes);
 
-    const { buffer, contentType, extension } = await compressImage(rawBuffer, file.type);
+    // Generate unique filename
+    const filename = `events/${generateUniqueFilename(file.name)}`;
 
-    const baseName = file.name.replace(/\.[^.]+$/, "") + extension;
-    const filename = `events/${generateUniqueFilename(baseName)}`;
-
-    const result = await uploadToR2(buffer, filename, contentType);
+    // Upload to R2
+    const result = await uploadToR2(buffer, filename, file.type);
 
     if (result.success) {
       await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
         action: "UPLOAD_EVENT_IMAGE",
         entityType: "EVENT_IMAGE",
         entityName: file.name,
-        details: { url: result.url, originalSize: file.size, compressedSize: buffer.length },
+        details: { url: result.url },
       });
     }
 
@@ -69,31 +71,33 @@ export async function uploadCategoryImage(formData: FormData) {
       return { success: false, error: "No file provided" };
     }
 
+    // Validate file type
     if (!isValidImageType(file.type)) {
       return { success: false, error: "Invalid file type. Only images are allowed." };
     }
 
-    const maxSize = 10 * 1024 * 1024;
+    // Validate file size (10MB max)
+    const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       return { success: false, error: "File size too large. Maximum size is 10MB." };
     }
 
+    // Convert file to buffer
     const bytes = await file.arrayBuffer();
-    const rawBuffer = Buffer.from(bytes);
+    const buffer = Buffer.from(bytes);
 
-    const { buffer, contentType, extension } = await compressImage(rawBuffer, file.type);
+    // Generate unique filename
+    const filename = `categories/${generateUniqueFilename(file.name)}`;
 
-    const baseName = file.name.replace(/\.[^.]+$/, "") + extension;
-    const filename = `categories/${generateUniqueFilename(baseName)}`;
-
-    const result = await uploadToR2(buffer, filename, contentType);
+    // Upload to R2
+    const result = await uploadToR2(buffer, filename, file.type);
 
     if (result.success) {
       await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
         action: "UPLOAD_CATEGORY_IMAGE",
         entityType: "CATEGORY_IMAGE",
         entityName: file.name,
-        details: { url: result.url, originalSize: file.size, compressedSize: buffer.length },
+        details: { url: result.url },
       });
     }
 
@@ -118,24 +122,26 @@ export async function uploadGalleryImage(formData: FormData) {
       return { success: false, error: "No file provided" };
     }
 
+    // Validate file type
     if (!isValidImageType(file.type)) {
       return { success: false, error: "Invalid file type. Only images are allowed." };
     }
 
-    const maxSize = 10 * 1024 * 1024;
+    // Validate file size (10MB max for gallery)
+    const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       return { success: false, error: "File size too large. Maximum size is 10MB." };
     }
 
+    // Convert file to buffer
     const bytes = await file.arrayBuffer();
-    const rawBuffer = Buffer.from(bytes);
+    const buffer = Buffer.from(bytes);
 
-    const { buffer, contentType, extension } = await compressImage(rawBuffer, file.type);
+    // Generate unique filename
+    const filename = `gallery/${generateUniqueFilename(file.name)}`;
 
-    const baseName = file.name.replace(/\.[^.]+$/, "") + extension;
-    const filename = `gallery/${generateUniqueFilename(baseName)}`;
-
-    const result = await uploadToR2(buffer, filename, contentType);
+    // Upload to R2
+    const result = await uploadToR2(buffer, filename, file.type);
 
     return result;
   } catch (error) {
@@ -160,11 +166,11 @@ export async function uploadPaymentScreenshot(formData: FormData) {
       return { success: false, error: "No file provided" };
     }
 
-    const { uploadToR2, generateUniqueFilename } = await import("@/lib/r2");
+    const { uploadToDOSpaces, isValidPaymentImageType, generateUniqueFilename } = await import("@/lib/do-spaces");
 
     // Validate file type – allow all image formats
-    if (typeof file.type !== "string" || !file.type.startsWith("image/")) {
-      return { success: false, error: "Invalid file type. Only images are allowed." };
+    if (!isValidPaymentImageType(file.type)) {
+      return { success: false, error: "Invalid file type. Only images are allowed (e.g. JPEG, PNG, WebP, GIF, BMP, TIFF)." };
     }
 
     // Validate file size (5MB max)
@@ -177,9 +183,9 @@ export async function uploadPaymentScreenshot(formData: FormData) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Upload to R2 – payments-screenshots folder (visitor pass + competition payments)
+    // Upload to DO Spaces – payments-screenshots folder (visitor pass + competition payments)
     const filename = `payments-screenshots/${generateUniqueFilename(file.name)}`;
-    const result = await uploadToR2(buffer, filename, file.type);
+    const result = await uploadToDOSpaces(buffer, filename, file.type);
 
     return result;
   } catch (error) {

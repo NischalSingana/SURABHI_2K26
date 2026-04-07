@@ -9,20 +9,19 @@ import LenisProvider from "@/components/providers/LenisProvider";
 import ConditionalNavbar from "./ConditionalNavbar";
 import ClickSpark from "@/components/ui/ClickSpark";
 import ChatWidget from "@/components/chat/ChatWidget";
-import { getAppVersion } from "@/lib/app-version";
 
 const schibstedGrotesk = Schibsted_Grotesk({
-  variable: "--font-schibsted-grotesk",
+  variable: "--font-Schibsted_Grotesk",
   subsets: ["latin"],
 });
 
 const martianMono = Martian_Mono({
-  variable: "--font-martian-mono",
+  variable: "--font-Martian_Mono",
   subsets: ["latin"],
 });
 
 const lexend = Lexend({
-  variable: "--font-lexend",
+  variable: "--font-Lexend",
   subsets: ["latin"],
 });
 
@@ -86,14 +85,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const appVersion = getAppVersion();
   return (
     <html lang="en" className="bg-[#030303]" suppressHydrationWarning>
       <head>
         {/* Speed up hero video fetch */}
         <link
           rel="preconnect"
-          href="https://pub-2172d3960f064d32b43c4d6ba9a3135d.r2.dev"
+          href="https://surabhi-images.sgp1.cdn.digitaloceanspaces.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preconnect"
+          href="https://surabhi-images.sgp1.digitaloceanspaces.com"
           crossOrigin="anonymous"
         />
       </head>
@@ -108,21 +111,6 @@ export default function RootLayout({
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: "document.documentElement.style.backgroundColor='#030303';document.body.style.backgroundColor='#030303';",
-          }}
-        />
-        <Script
-          id="app-version-init"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `window.__APP_VERSION__=${JSON.stringify(appVersion)};`,
-          }}
-        />
-        {/* Auto-reload on chunk load failures (happens after new deployments) */}
-        <Script
-          id="chunk-error-handler"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var onceKey="surabhi_chunk_reload_once";window.addEventListener("error",function(e){var m=(e&&e.message||"")+(e&&e.filename||"");var isChunk=m.indexOf("Loading chunk")!==-1||m.indexOf("ChunkLoadError")!==-1||m.indexOf("/_next/static/chunks/")!==-1;if(!isChunk)return;try{if(sessionStorage.getItem(onceKey)==="1"){return;}sessionStorage.setItem(onceKey,"1");}catch(_e){}window.location.reload();},true)})();`,
           }}
         />
         <style

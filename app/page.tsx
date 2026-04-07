@@ -1,8 +1,8 @@
 "use client";
 
-
+import Link from 'next/link';
 import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
-
+import Image from "next/image";
 import dynamic from 'next/dynamic';
 const CircularGallery = dynamic(() => import("@/components/ui/CircularGallery"), {
     ssr: false,
@@ -17,11 +17,11 @@ const ScheduleTimeline = dynamic(() => import('@/components/ui/ScheduleTimeline'
     loading: () => <div className="min-h-screen flex items-center justify-center text-zinc-500 bg-[#030303]">Loading schedule...</div>,
 });
 import CountUp from '@/components/ui/CountUp';
-import { FiAward, FiUsers, FiFeather, FiVolume2, FiVolumeX } from "react-icons/fi";
+import { FiGlobe, FiAward, FiUsers, FiFeather, FiHeart, FiTrendingUp, FiVolume2, FiVolumeX } from "react-icons/fi";
 
-// Hero video: Using R2 URL
-const HERO_VIDEO_CDN = "https://pub-2172d3960f064d32b43c4d6ba9a3135d.r2.dev/SURABHI-VID.mp4";
-const HERO_VIDEO_DIRECT = "https://pub-2172d3960f064d32b43c4d6ba9a3135d.r2.dev/SURABHI-VID.mp4";
+// Hero video: CDN first; Chrome often needs direct Spaces URL (Range/206), Safari works with CDN
+const HERO_VIDEO_CDN = "https://surabhi-images.sgp1.cdn.digitaloceanspaces.com/SURABHI-PROMO.MP4";
+const HERO_VIDEO_DIRECT = "https://surabhi-images.sgp1.digitaloceanspaces.com/SURABHI-PROMO.MP4";
 
 // Particles for fiery background (stable positions for SSR/hydration)
 const PARTICLES = Array.from({ length: 24 }, (_, i) => ({
@@ -52,7 +52,7 @@ const HomePage = () => {
     // Guard: true while we're doing the initial play attempt (prevents onPause from interfering)
     const initialPlayRef = useRef(false);
 
-    // Register one-time listeners to auto-unmute on first real user interaction
+    // Register one-time listeners to auto-unmute on first user interaction
     const registerAutoUnmute = () => {
         if (autoUnmuteRegisteredRef.current) return;
         autoUnmuteRegisteredRef.current = true;
@@ -63,6 +63,7 @@ const HomePage = () => {
                 v.muted = false;
                 setIsMuted(false);
                 setShowSoundHint(false);
+                v.play().catch(() => {});
             }
             cleanup();
         };
@@ -70,9 +71,13 @@ const HomePage = () => {
             autoUnmuteRegisteredRef.current = false;
             document.removeEventListener("click", autoUnmute, true);
             document.removeEventListener("touchstart", autoUnmute, true);
+            document.removeEventListener("keydown", autoUnmute, true);
+            document.removeEventListener("scroll", autoUnmute, true);
         };
         document.addEventListener("click", autoUnmute, true);
         document.addEventListener("touchstart", autoUnmute, true);
+        document.addEventListener("keydown", autoUnmute, true);
+        document.addEventListener("scroll", autoUnmute, true);
     };
 
     // Drive ALL playback from this effect — no autoPlay attribute on the video element.
@@ -102,28 +107,8 @@ const HomePage = () => {
                     setShowSoundHint(true);
                     registerAutoUnmute();
                 } catch {
-                    // Both failed — browser blocks all autoplay until user gesture.
-                    // Keep muted so the first tap/click can start playback.
-                    v.muted = true;
-                    setIsMuted(true);
-                    setShowSoundHint(true);
-
-                    if (v.readyState >= 3) setIsVideoReady(true);
-
-                    const playOnGesture = () => {
-                        const el = videoRef.current;
-                        if (!el) return;
-                        el.play()
-                            .then(() => {
-                                setIsVideoReady(true);
-                                registerAutoUnmute();
-                            })
-                            .catch(() => {});
-                        document.removeEventListener("click", playOnGesture, true);
-                        document.removeEventListener("touchstart", playOnGesture, true);
-                    };
-                    document.addEventListener("click", playOnGesture, true);
-                    document.addEventListener("touchstart", playOnGesture, true);
+                    // Even muted play failed (very rare) — wait for canplay
+                    console.error("Both unmuted and muted autoplay failed");
                 }
             }
             initialPlayRef.current = false;
@@ -153,13 +138,18 @@ const HomePage = () => {
     };
 
     const handleToggleMute = () => {
-        userToggledRef.current = true;
+        userToggledRef.current = true; // User explicitly chose — stop auto-unmute
         const video = videoRef.current;
         if (video) {
-            const next = !video.muted;
+            const next = !isMuted;
             video.muted = next;
             setIsMuted(next);
+            if (!next) {
+                video.play().catch(() => {});
+            }
             setShowSoundHint(false);
+        } else {
+            setIsMuted((m) => !m);
         }
     };
 
@@ -304,15 +294,13 @@ const HomePage = () => {
                         onCanPlayThrough={handleCanPlay}
                         onPause={() => {
                             const v = videoRef.current;
-                            if (!v || v.ended || initialPlayRef.current) return;
+                            if (!v) return;
                             if (document.visibilityState !== "visible") return;
-                            // Only auto-resume if the video element is still in viewport
-                            // Use a longer delay to avoid fighting with browser media controls
-                            window.setTimeout(() => {
-                                if (v.paused && document.visibilityState === "visible" && !v.ended) {
-                                    v.play().catch(() => {});
-                                }
-                            }, 500);
+                            if (v.ended) return;
+                            // Don't interfere with our initial play attempt
+                            if (initialPlayRef.current) return;
+                            // Resume playback — keep current muted state
+                            window.setTimeout(() => v.play().catch(() => {}), 150);
                         }}
                         onError={handleVideoError}
                         className={[
@@ -348,13 +336,11 @@ const HomePage = () => {
                     )}
 
                     <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 md:pb-10 px-4 z-40 pointer-events-none">
-                        <h1
-                            className="font-extrabold text-3xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight drop-shadow-lg text-center font-[family-name:var(--font-Lexend)] bg-gradient-to-r from-white via-red-200 to-white bg-clip-text text-transparent [filter:drop-shadow(0_2px_20px_rgba(0,0,0,0.8))]"
-                        >
-                            SURABHI<span className="font-light">-</span>2K26
+                        <h1 className="text-white font-bold text-3xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight drop-shadow-lg text-center [text-shadow:0_2px_20px_rgba(0,0,0,0.8)]">
+                            SURABHI<b>-2K26</b>
                         </h1>
-                        <p className="text-xs sm:text-base md:text-lg mt-1 md:mt-2 tracking-[0.2em] md:tracking-[0.4em] uppercase font-medium font-[family-name:var(--font-Martian_Mono)] bg-gradient-to-r from-white/60 via-white to-white/60 bg-clip-text text-transparent [filter:drop-shadow(0_2px_12px_rgba(0,0,0,0.8))]">
-                            — INTERNATIONAL CULTURAL FEST —
+                        <p className="text-white/90 text-xs sm:text-base md:text-lg mt-0 md:mt-2 tracking-[0.2em] md:tracking-[0.4em] uppercase font-medium [text-shadow:0_2px_12px_rgba(0,0,0,0.8)]">
+                            — international cultural fest
                         </p>
                     </div>
                 </motion.div>
@@ -472,7 +458,6 @@ const HomePage = () => {
                                     { name: "Esports", type: "Gaming", color: "bg-blue-500" },
                                     { name: "Vastraa", type: "Fashion", color: "bg-purple-500" },
                                     { name: "Abhinaya", type: "Dramatics", color: "bg-pink-500" },
-                                    { name: "Chitrakala", type: "Painting", color: "bg-amber-500" },
                                 ].map((club, idx) => (
                                     <div key={idx} className="flex items-center gap-2 md:gap-3 group/item">
                                         <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${club.color} group-hover/item:scale-125 transition-transform`} />

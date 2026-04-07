@@ -1,6 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
@@ -11,11 +16,6 @@ import {
   deleteCategory,
   deleteEvent,
   deleteRegistration,
-  resetRegistrationToPending,
-  updateIndividualParticipantDetails,
-  updateGroupParticipantDetails,
-  type IndividualParticipantEdit,
-  type GroupParticipantEdit,
 } from "@/actions/events.action";
 import { uploadCategoryImage } from "@/actions/upload.action";
 import { useSession } from "@/lib/auth-client";
@@ -45,7 +45,6 @@ interface Event {
   createdAt?: Date;
   updatedAt?: Date;
   individualRegistrations?: Array<{
-    id: string;
     paymentStatus?: string;
     isVirtual?: boolean;
     user: {
@@ -79,8 +78,8 @@ interface Event {
     groupName: string | null;
     mentorName: string | null;
     mentorPhone: string | null;
-    members: Record<string, unknown>[]; // key-value JSON or array
-    registrationDetails?: Record<string, unknown> | null;
+    members: any; // key-value JSON
+    registrationDetails?: Record<string, any> | null;
     paymentStatus?: string;
     isVirtual?: boolean;
     user: {
@@ -115,7 +114,7 @@ interface Schedule {
 
 export default function EventsManagement() {
   const { data: session } = useSession();
-  // statusMessage removed as it was unused
+  const [statusMessage, setStatusMessage] = useState<string>("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -158,21 +157,12 @@ export default function EventsManagement() {
   );
 
   // Student Details Modal State
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
-  const [selectedIndividualRegId, setSelectedIndividualRegId] = useState<string | null>(null);
   const [showStudentDetailsModal, setShowStudentDetailsModal] = useState(false);
-  const [isEditingStudent, setIsEditingStudent] = useState(false);
-  const [editStudentForm, setEditStudentForm] = useState<IndividualParticipantEdit>({});
-  const [savingStudent, setSavingStudent] = useState(false);
 
   // Group Details Modal State
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const [showGroupDetailsModal, setShowGroupDetailsModal] = useState(false);
-  const [isEditingGroup, setIsEditingGroup] = useState(false);
-  const [editGroupForm, setEditGroupForm] = useState<GroupParticipantEdit>({});
-  const [savingGroup, setSavingGroup] = useState(false);
 
   // Event Registrations modal tab: KL University | Other College | International
   const [registrationsTab, setRegistrationsTab] = useState<"kl" | "other" | "international">("kl");
@@ -182,30 +172,22 @@ export default function EventsManagement() {
   const [selectedEventForSubmissions, setSelectedEventForSubmissions] = useState<Event | null>(null);
   const [expandedSubmissionId, setExpandedSubmissionId] = useState<string | null>(null);
 
-  const submissionsByUserId = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const map = new Map<string, any>();
-    if (!selectedEventForRegistrations?.submissions) return map;
-    for (const submission of selectedEventForRegistrations.submissions) {
-      if (submission.userId && !map.has(submission.userId)) {
-        map.set(submission.userId, submission);
-      }
-    }
-    return map;
-  }, [selectedEventForRegistrations?.submissions]);
-
-  const getSubmissionForStudent = (studentId: string) => submissionsByUserId.get(studentId) ?? null;
+  const getSubmissionForStudent = (studentId: string) => {
+    if (!selectedEventForRegistrations?.submissions) return null;
+    return selectedEventForRegistrations.submissions.find(
+      (s) => s.userId === studentId
+    );
+  };
 
   useEffect(() => {
     fetchCategoriesWithEvents();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (showRegistrationsModal && selectedEventForRegistrations) {
       setRegistrationsTab("kl");
     }
-  }, [showRegistrationsModal, selectedEventForRegistrations]);
+  }, [showRegistrationsModal, selectedEventForRegistrations?.id]);
 
   const fetchCategoriesWithEvents = async () => {
     setLoading(true);
@@ -248,124 +230,6 @@ export default function EventsManagement() {
     } else {
       toast.error(result.error || "Failed to delete");
     }
-  };
-
-  const handleResetToPending = async (id: string, type: "INDIVIDUAL" | "GROUP") => {
-    if (!confirm("Reset this registration to Pending? It will appear in Registrations > Approvals for re-approval. When approved again, the participant will receive a confirmation email.")) return;
-
-    toast.loading("Resetting to pending...");
-    const result = await resetRegistrationToPending(id, type);
-    toast.dismiss();
-
-    if (result.success) {
-      toast.success(result.message);
-      fetchCategoriesWithEvents();
-    } else {
-      toast.error(result.error || "Failed to reset");
-    }
-  };
-
-  const canEditParticipant = session?.user?.role === "ADMIN" || session?.user?.role === "MASTER";
-
-  const handleSaveIndividual = async (resetAfterSave = false) => {
-    if (!selectedStudent?.id || Object.keys(editStudentForm).length === 0) return;
-    setSavingStudent(true);
-    toast.loading("Saving...");
-    const result = await updateIndividualParticipantDetails(selectedStudent.id, editStudentForm);
-    toast.dismiss();
-    setSavingStudent(false);
-    if (result.success) {
-      toast.success(result.message);
-      setEditStudentForm({});
-      setIsEditingStudent(false);
-      fetchCategoriesWithEvents();
-      if (resetAfterSave && selectedIndividualRegId) {
-        await handleResetToPending(selectedIndividualRegId, "INDIVIDUAL");
-        setShowStudentDetailsModal(false);
-        setSelectedStudent(null);
-        setSelectedIndividualRegId(null);
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setSelectedStudent((prev: any) => ({ ...prev, ...editStudentForm }));
-      }
-    } else {
-      toast.error(result.error || "Failed to save");
-    }
-  };
-
-  const handleSaveGroup = async (resetAfterSave = false) => {
-    if (!selectedGroup?.id || Object.keys(editGroupForm).length === 0) return;
-    setSavingGroup(true);
-    toast.loading("Saving...");
-    const result = await updateGroupParticipantDetails(selectedGroup.id, editGroupForm);
-    toast.dismiss();
-    setSavingGroup(false);
-    if (result.success) {
-      toast.success(result.message);
-      setEditGroupForm({});
-      setIsEditingGroup(false);
-      fetchCategoriesWithEvents();
-      if (resetAfterSave) {
-        await handleResetToPending(selectedGroup.id, "GROUP");
-        setShowGroupDetailsModal(false);
-        setSelectedGroup(null);
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setSelectedGroup((prev: any) => {
-          const next = { ...prev };
-          if (editGroupForm.teamLead) next.user = { ...prev.user, ...editGroupForm.teamLead };
-          if (editGroupForm.groupName !== undefined) next.groupName = editGroupForm.groupName;
-          if (editGroupForm.mentorName !== undefined) next.mentorName = editGroupForm.mentorName;
-          if (editGroupForm.mentorPhone !== undefined) next.mentorPhone = editGroupForm.mentorPhone;
-          if (editGroupForm.members !== undefined) next.members = editGroupForm.members;
-          return next;
-        });
-      }
-    } else {
-      toast.error(result.error || "Failed to save");
-    }
-  };
-
-  const startEditingStudent = () => {
-    setEditStudentForm({
-      name: selectedStudent?.name ?? "",
-      email: selectedStudent?.email ?? "",
-      phone: selectedStudent?.phone ?? "",
-      collage: selectedStudent?.collage ?? "",
-      collageId: selectedStudent?.collageId ?? "",
-      branch: selectedStudent?.branch ?? "",
-      year: selectedStudent?.year ?? null,
-      city: selectedStudent?.city ?? "",
-      state: selectedStudent?.state ?? "",
-      gender: selectedStudent?.gender ?? "",
-      country: selectedStudent?.country ?? "",
-    });
-    setIsEditingStudent(true);
-  };
-
-  const startEditingGroup = () => {
-    const raw = selectedGroup?.members;
-    const memberList = Array.isArray(raw) ? raw : (raw && typeof raw === "object" ? Object.values(raw) : []);
-    setEditGroupForm({
-      groupName: selectedGroup?.groupName ?? "",
-      mentorName: selectedGroup?.mentorName ?? "",
-      mentorPhone: selectedGroup?.mentorPhone ?? "",
-      teamLead: {
-        name: selectedGroup?.user?.name ?? "",
-        email: selectedGroup?.user?.email ?? "",
-        phone: selectedGroup?.user?.phone ?? "",
-        collage: selectedGroup?.user?.collage ?? "",
-        collageId: selectedGroup?.user?.collageId ?? "",
-        branch: selectedGroup?.user?.branch ?? "",
-        year: selectedGroup?.user?.year ?? null,
-        city: selectedGroup?.user?.city ?? "",
-        state: selectedGroup?.user?.state ?? "",
-        gender: selectedGroup?.user?.gender ?? "",
-        country: selectedGroup?.user?.country ?? "",
-      },
-      members: memberList.length > 0 ? memberList : undefined,
-    });
-    setIsEditingGroup(true);
   };
 
   const fetchSchedules = async () => {
@@ -432,7 +296,7 @@ export default function EventsManagement() {
     if (!scheduleImage) return;
 
     setUploadingSchedule(true);
-    // setStatusMessage("Uploading to Storage...");
+    setStatusMessage("Uploading to Storage...");
     try {
       const formData = new FormData();
       formData.append("file", scheduleImage);
@@ -441,11 +305,11 @@ export default function EventsManagement() {
       if (!uploadResult.success || !uploadResult.url) {
         toast.error(uploadResult.error || "Failed to upload image");
         setUploadingSchedule(false);
-        // setStatusMessage("");
+        setStatusMessage("");
         return;
       }
 
-      // setStatusMessage("Saving to Database...");
+      setStatusMessage("Saving to Database...");
       const result = await createSchedule(uploadResult.url);
       if (result.success) {
         toast.success("Schedule uploaded successfully");
@@ -456,11 +320,10 @@ export default function EventsManagement() {
         toast.error(result.error || "Failed to create schedule entry");
       }
     } catch (error) {
-      console.error(error);
       toast.error("An error occurred while uploading schedule");
     } finally {
       setUploadingSchedule(false);
-      // setStatusMessage("");
+      setStatusMessage("");
     }
   };
 
@@ -549,7 +412,6 @@ export default function EventsManagement() {
         toast.error(result.error || `Failed to ${editingCategory ? "update" : "create"} category`);
       }
     } catch (error) {
-      console.error(error);
       toast.error(`An error occurred while ${editingCategory ? "updating" : "creating"} category`);
       setUploadingCategory(false);
     }
@@ -947,7 +809,7 @@ export default function EventsManagement() {
         {categories.length === 0 && (
           <div className="text-center py-12 bg-zinc-900 rounded-xl border border-zinc-800">
             <p className="text-zinc-400 text-lg">
-              No categories yet. Click &quot;Add Category&quot; to get started.
+              No categories yet. Click "Add Category" to get started.
             </p>
           </div>
         )}
@@ -1003,12 +865,10 @@ export default function EventsManagement() {
                 />
                 {categoryImagePreview && (
                   <div className="mt-3 relative w-full h-32 bg-zinc-950 rounded-lg overflow-hidden border border-zinc-700">
-                    <Image
+                    <img
                       src={categoryImagePreview}
                       alt="Preview"
-                      fill
-                      className="object-cover"
-                      unoptimized
+                      className="w-full h-full object-cover"
                     />
                     <button
                       type="button"
@@ -1078,7 +938,7 @@ export default function EventsManagement() {
             <p className="text-zinc-300 mb-6">
               Are you sure you want to delete the category{" "}
               <span className="font-semibold text-white">
-                &quot;{categoryToDelete.name}&quot;
+                "{categoryToDelete.name}"
               </span>
               ?
               {categoryToDelete.Event.length > 0 && (
@@ -1125,7 +985,7 @@ export default function EventsManagement() {
             <p className="text-zinc-300 mb-6">
               Are you sure you want to delete the event{" "}
               <span className="font-semibold text-white">
-                &quot;{eventToDelete.name}&quot;
+                "{eventToDelete.name}"
               </span>
               ?
               <span className="block mt-2 text-zinc-400 text-sm">
@@ -1234,18 +1094,15 @@ export default function EventsManagement() {
                 // Only show registrations that have been approved (payment approved in Registrations Management)
                 const allGroupRegs = selectedEventForRegistrations.groupRegistrations || [];
                 const allIndividualRegs = selectedEventForRegistrations.individualRegistrations || [];
-                const groupRegistrations = allGroupRegs.filter((g) => g.paymentStatus === "APPROVED");
-                const individualRegistrations = allIndividualRegs.filter((r) => r.paymentStatus === "APPROVED");
+                const groupRegistrations = allGroupRegs.filter((g: any) => g.paymentStatus === "APPROVED");
+                const individualRegistrations = allIndividualRegs.filter((r: any) => r.paymentStatus === "APPROVED");
 
                 // Filter out students who are team leads (already in groupRegistrations)
                 const teamLeadIds = new Set(groupRegistrations.map(g => g.user.id));
                 const soloStudents = individualRegistrations.filter(reg => !teamLeadIds.has(reg.user.id));
 
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const isInternational = (user: any) => !!user?.isInternational;
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const isKLStudent = (user: any) => {
-                  if (!user) return false;
                   return (
                     user.email?.toLowerCase().endsWith("@kluniversity.in") ||
                     user.collage?.toLowerCase().includes("kl university") ||
@@ -1312,7 +1169,7 @@ export default function EventsManagement() {
                             </p>
                           </div>
                           <div className="grid grid-cols-1 gap-4">
-                            {groupsForTab.map((group, index: number) => {
+                            {groupsForTab.map((group: any, index: number) => {
                               const isVirtual = !!group.isVirtual || !!group.user?.isInternational;
                               return (
                                 <div
@@ -1345,40 +1202,25 @@ export default function EventsManagement() {
                                             </span>
                                           )}
                                           <span className="text-zinc-500">•</span>
-                                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                           <span>{group.members ? (group.members as any[]).length + 1 : 1} Members</span>
                                         </p>
                                       </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-4">
                                       <span className="text-red-500 text-sm group-hover:underline">View Details &rarr;</span>
                                       {session?.user.role === "MASTER" && (
-                                        <>
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleResetToPending(group.id, "GROUP");
-                                            }}
-                                            className="text-zinc-500 hover:text-amber-400 p-2 rounded-full hover:bg-amber-500/10 transition-colors"
-                                            title="Reset to Pending (re-appear in Approvals for re-approval + email)"
-                                          >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                          </button>
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleDeleteRegistration(group.id, "GROUP");
-                                            }}
-                                            className="text-zinc-500 hover:text-red-500 p-2 rounded-full hover:bg-red-500/10 transition-colors"
-                                            title="Delete Registration"
-                                          >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                          </button>
-                                        </>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteRegistration(group.id, "GROUP");
+                                          }}
+                                          className="text-zinc-500 hover:text-red-500 p-2 rounded-full hover:bg-red-500/10 transition-colors"
+                                          title="Delete Registration"
+                                        >
+                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                          </svg>
+                                        </button>
                                       )}
                                     </div>
                                   </div>
@@ -1402,15 +1244,14 @@ export default function EventsManagement() {
                             </p>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {soloForTab.map((reg, index: number) => {
+                            {soloForTab.map((reg: any, index: number) => {
                               const student = reg.user;
                               const isVirtual = !!reg.isVirtual || !!student.isInternational;
                               return (
                                 <div
-                                  key={reg.id}
+                                  key={student.id}
                                   onClick={() => {
                                     setSelectedStudent(student);
-                                    setSelectedIndividualRegId(reg.id);
                                     setShowStudentDetailsModal(true);
                                   }}
                                   className="bg-zinc-800 rounded-lg p-4 border border-zinc-700 hover:border-red-600/50 transition-all cursor-pointer group"
@@ -1441,32 +1282,18 @@ export default function EventsManagement() {
                                       )}
                                     </div>
                                     {session?.user.role === "MASTER" && (
-                                      <div className="flex items-center gap-1">
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleResetToPending(reg.id, "INDIVIDUAL");
-                                          }}
-                                          className="text-zinc-500 hover:text-amber-400 p-2 rounded-full hover:bg-amber-500/10 transition-colors"
-                                          title="Reset to Pending (re-appear in Approvals for re-approval + email)"
-                                        >
-                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                          </svg>
-                                        </button>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteRegistration(reg.id, "INDIVIDUAL");
-                                          }}
-                                          className="text-zinc-500 hover:text-red-500 p-2 rounded-full hover:bg-red-500/10 transition-colors"
-                                          title="Delete Registration"
-                                        >
-                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                          </svg>
-                                        </button>
-                                      </div>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteRegistration(reg.id, "INDIVIDUAL");
+                                        }}
+                                        className="text-zinc-500 hover:text-red-500 p-2 rounded-full hover:bg-red-500/10 transition-colors"
+                                        title="Delete Registration"
+                                      >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                      </button>
                                     )}
                                   </div>
                                 </div>
@@ -1549,14 +1376,14 @@ export default function EventsManagement() {
                       </h3>
                     </div>
                     <div className="grid grid-cols-1 gap-3">
-                      {submissions.map((sub, index: number) => {
+                      {submissions.map((sub: any, index: number) => {
                         const participant = sub.user;
                         const groupReg = selectedEventForSubmissions.groupRegistrations?.find(
-                          (g) => g.user.id === sub.userId
+                          (g: any) => g.user.id === sub.userId
                         );
                         const isTeamSubmission = !!groupReg;
                         const memberList = groupReg?.members
-                          ? (Array.isArray(groupReg.members) ? groupReg.members : Object.values(groupReg.members || {}))
+                          ? (Array.isArray(groupReg.members) ? groupReg.members : Object.values(groupReg.members))
                           : [];
                         const totalMembers = memberList.length + 1; // +1 for lead
                         const isExpanded = expandedSubmissionId === sub.id;
@@ -1669,8 +1496,7 @@ export default function EventsManagement() {
                                               <p className="text-xs text-zinc-400">{participant?.email}</p>
                                             </div>
                                           </div>
-                                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                      {memberList.map((member: any, idx: number) => (
+                                          {memberList.map((member: any, idx: number) => (
                                             <div key={idx} className="bg-zinc-900/50 p-3 rounded-lg border border-zinc-700 flex items-center gap-3">
                                               <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 font-bold text-sm shrink-0">{idx + 2}</div>
                                               <div>
@@ -1766,13 +1592,7 @@ export default function EventsManagement() {
                     </div>
                     {scheduleImagePreview && (
                       <div className="mt-4 w-full h-48 bg-zinc-950 rounded-lg overflow-hidden border border-zinc-700 relative">
-                        <Image
-                          src={scheduleImagePreview}
-                          alt="Preview"
-                          fill
-                          className="object-contain"
-                          unoptimized
-                        />
+                        <img src={scheduleImagePreview} alt="Preview" className="w-full h-full object-contain" />
                       </div>
                     )}
                   </form>
@@ -1839,9 +1659,6 @@ export default function EventsManagement() {
                   onClick={() => {
                     setShowStudentDetailsModal(false);
                     setSelectedStudent(null);
-                    setSelectedIndividualRegId(null);
-                    setIsEditingStudent(false);
-                    setEditStudentForm({});
                   }}
                   className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
                 >
@@ -1854,158 +1671,38 @@ export default function EventsManagement() {
               <div className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0 overscroll-contain" data-lenis-prevent>
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-16 h-16 rounded-full bg-red-600/20 flex items-center justify-center text-red-500 text-2xl font-bold border border-red-500/30">
-                    {(isEditingStudent ? editStudentForm.name : selectedStudent.name)?.charAt(0)?.toUpperCase() || "?"}
+                    {selectedStudent.name ? selectedStudent.name.charAt(0).toUpperCase() : '?'}
                   </div>
-                  <div className="flex-1">
-                    {isEditingStudent ? (
-                      <div className="space-y-2">
-                        <input
-                          value={editStudentForm.name ?? ""}
-                          onChange={(e) => setEditStudentForm((f) => ({ ...f, name: e.target.value }))}
-                          placeholder="Name"
-                          className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
-                        />
-                        <input
-                          type="email"
-                          value={editStudentForm.email ?? ""}
-                          onChange={(e) => setEditStudentForm((f) => ({ ...f, email: e.target.value }))}
-                          placeholder="Email"
-                          className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
-                        />
-                      </div>
-                    ) : (
-                      <>
-                        <h3 className="text-xl font-bold text-white">{selectedStudent.name || "No name"}</h3>
-                        <p className="text-zinc-400">{selectedStudent.email}</p>
-                      </>
-                    )}
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{selectedStudent.name || "No name"}</h3>
+                    <p className="text-zinc-400">{selectedStudent.email}</p>
                   </div>
-                  {canEditParticipant && !isEditingStudent && (
-                    <button
-                      onClick={startEditingStudent}
-                      className="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg text-sm font-medium"
-                    >
-                      Edit
-                    </button>
-                  )}
                 </div>
 
                 <div className="space-y-3">
-                  <div className="grid grid-cols-3 gap-2 text-sm items-center">
+                  <div className="grid grid-cols-3 gap-2 text-sm">
                     <span className="text-zinc-500">Phone:</span>
-                    {isEditingStudent ? (
-                      <input
-                        value={editStudentForm.phone ?? ""}
-                        onChange={(e) => setEditStudentForm((f) => ({ ...f, phone: e.target.value }))}
-                        placeholder="Phone"
-                        className="col-span-2 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
-                      />
-                    ) : (
-                      <span className="text-white col-span-2 font-medium">{selectedStudent.phone || "N/A"}</span>
-                    )}
+                    <span className="text-white col-span-2 font-medium">{selectedStudent.phone || "N/A"}</span>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 text-sm items-center">
+                  <div className="grid grid-cols-3 gap-2 text-sm">
                     <span className="text-zinc-500">College:</span>
-                    {isEditingStudent ? (
-                      <input
-                        value={editStudentForm.collage ?? ""}
-                        onChange={(e) => setEditStudentForm((f) => ({ ...f, collage: e.target.value }))}
-                        placeholder="College"
-                        className="col-span-2 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
-                      />
-                    ) : (
-                      <span className="text-white col-span-2 font-medium">{selectedStudent.collage || "N/A"}</span>
-                    )}
+                    <span className="text-white col-span-2 font-medium">{selectedStudent.collage || "N/A"}</span>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 text-sm items-center">
+                  <div className="grid grid-cols-3 gap-2 text-sm">
                     <span className="text-zinc-500">Branch:</span>
-                    {isEditingStudent ? (
-                      <input
-                        value={editStudentForm.branch ?? ""}
-                        onChange={(e) => setEditStudentForm((f) => ({ ...f, branch: e.target.value }))}
-                        placeholder="Branch"
-                        className="col-span-2 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
-                      />
-                    ) : (
-                      <span className="text-white col-span-2 font-medium">{selectedStudent.branch || "N/A"}</span>
-                    )}
+                    <span className="text-white col-span-2 font-medium">{selectedStudent.branch || "N/A"}</span>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 text-sm items-center">
+                  <div className="grid grid-cols-3 gap-2 text-sm">
                     <span className="text-zinc-500">Year:</span>
-                    {isEditingStudent ? (
-                      <input
-                        type="number"
-                        value={editStudentForm.year ?? ""}
-                        onChange={(e) => setEditStudentForm((f) => ({ ...f, year: e.target.value ? parseInt(e.target.value, 10) : null }))}
-                        placeholder="Year"
-                        className="col-span-2 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
-                      />
-                    ) : (
-                      <span className="text-white col-span-2 font-medium">{selectedStudent.year || "N/A"}</span>
-                    )}
+                    <span className="text-white col-span-2 font-medium">{selectedStudent.year || "N/A"}</span>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 text-sm items-center">
+                  <div className="grid grid-cols-3 gap-2 text-sm">
                     <span className="text-zinc-500">College ID:</span>
-                    {isEditingStudent ? (
-                      <input
-                        value={editStudentForm.collageId ?? ""}
-                        onChange={(e) => setEditStudentForm((f) => ({ ...f, collageId: e.target.value }))}
-                        placeholder="College ID"
-                        className="col-span-2 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white font-mono placeholder-zinc-500"
-                      />
-                    ) : (
-                      <span className="text-white col-span-2 font-medium font-mono bg-zinc-800 px-2 py-0.5 rounded w-fit">{selectedStudent.collageId || "N/A"}</span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 text-sm items-center">
-                    <span className="text-zinc-500">City:</span>
-                    {isEditingStudent ? (
-                      <input
-                        value={editStudentForm.city ?? ""}
-                        onChange={(e) => setEditStudentForm((f) => ({ ...f, city: e.target.value }))}
-                        placeholder="City"
-                        className="col-span-2 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
-                      />
-                    ) : (
-                      <span className="text-white col-span-2 font-medium">{selectedStudent.city || "N/A"}</span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 text-sm items-center">
-                    <span className="text-zinc-500">State:</span>
-                    {isEditingStudent ? (
-                      <input
-                        value={editStudentForm.state ?? ""}
-                        onChange={(e) => setEditStudentForm((f) => ({ ...f, state: e.target.value }))}
-                        placeholder="State"
-                        className="col-span-2 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
-                      />
-                    ) : (
-                      <span className="text-white col-span-2 font-medium">{selectedStudent.state || "N/A"}</span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 text-sm items-center">
-                    <span className="text-zinc-500">Gender:</span>
-                    {isEditingStudent ? (
-                      <select
-                        value={editStudentForm.gender ?? ""}
-                        onChange={(e) => setEditStudentForm((f) => ({ ...f, gender: e.target.value }))}
-                        className="col-span-2 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
-                      >
-                        <option value="">Select</option>
-                        <option value="MALE">Male</option>
-                        <option value="FEMALE">Female</option>
-                        <option value="OTHER">Other</option>
-                      </select>
-                    ) : (
-                      <span className="text-white col-span-2 font-medium">{selectedStudent.gender || "N/A"}</span>
-                    )}
+                    <span className="text-white col-span-2 font-medium font-mono bg-zinc-800 px-2 py-0.5 rounded w-fit">{selectedStudent.collageId || "N/A"}</span>
                   </div>
 
                   {getSubmissionForStudent(selectedStudent.id) && (
@@ -2043,58 +1740,11 @@ export default function EventsManagement() {
                 </div>
               </div>
 
-              <div className="px-6 py-4 bg-zinc-950/50 border-t border-zinc-800 flex justify-between items-center flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  {isEditingStudent ? (
-                    <>
-                      <button
-                        onClick={() => handleSaveIndividual(false)}
-                        disabled={savingStudent || Object.keys(editStudentForm).length === 0}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
-                      >
-                        {savingStudent ? "Saving..." : "Save"}
-                      </button>
-                      {session?.user.role === "MASTER" && selectedIndividualRegId && (
-                        <button
-                          onClick={() => handleSaveIndividual(true)}
-                          disabled={savingStudent || Object.keys(editStudentForm).length === 0}
-                          className="px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
-                        >
-                          Save & Reset to Pending
-                        </button>
-                      )}
-                      <button
-                        onClick={() => { setIsEditingStudent(false); setEditStudentForm({}); }}
-                        className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg text-sm font-medium"
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      {session?.user.role === "MASTER" && selectedIndividualRegId && (
-                        <button
-                          onClick={async () => {
-                            await handleResetToPending(selectedIndividualRegId, "INDIVIDUAL");
-                            setShowStudentDetailsModal(false);
-                            setSelectedStudent(null);
-                            setSelectedIndividualRegId(null);
-                          }}
-                          className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium transition-colors"
-                        >
-                          Reset to Pending
-                        </button>
-                      )}
-                    </>
-                  )}
-                </div>
+              <div className="px-6 py-4 bg-zinc-950/50 border-t border-zinc-800 flex justify-end">
                 <button
                   onClick={() => {
                     setShowStudentDetailsModal(false);
                     setSelectedStudent(null);
-                    setSelectedIndividualRegId(null);
-                    setIsEditingStudent(false);
-                    setEditStudentForm({});
                   }}
                   className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium transition-colors"
                 >
@@ -2115,35 +1765,22 @@ export default function EventsManagement() {
               onWheel={(e) => e.stopPropagation()}
               className="bg-zinc-900 rounded-xl w-full max-w-2xl border border-zinc-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
             >
-              <div className="px-6 py-4 border-b border-zinc-800 flex justify-between shrink-0">
-                <div className="flex-1">
-                  {isEditingGroup ? (
-                    <input
-                      value={editGroupForm.groupName ?? ""}
-                      onChange={(e) => setEditGroupForm((f) => ({ ...f, groupName: e.target.value }))}
-                      placeholder="Group Name"
-                      className="text-xl font-bold bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1 text-white placeholder-zinc-500 w-full max-w-md"
-                    />
-                  ) : (
-                    <h2 className="text-xl font-bold text-white">{selectedGroup.groupName}</h2>
-                  )}
+              <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between shrink-0">
+                <div>
+                  <h2 className="text-xl font-bold text-white">{selectedGroup.groupName}</h2>
                   <p className="text-zinc-400 text-sm">Group Details</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  {canEditParticipant && !isEditingGroup && (
-                    <button onClick={startEditingGroup} className="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg text-sm font-medium">
-                      Edit
-                    </button>
-                  )}
-                  <button
-                    onClick={() => { setShowGroupDetailsModal(false); setSelectedGroup(null); setIsEditingGroup(false); setEditGroupForm({}); }}
-                    className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
+                <button
+                  onClick={() => {
+                    setShowGroupDetailsModal(false);
+                    setSelectedGroup(null);
+                  }}
+                  className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
 
               <div className="p-6 overflow-y-auto flex-1 min-h-0 overscroll-contain" data-lenis-prevent>
@@ -2152,33 +1789,19 @@ export default function EventsManagement() {
                     <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">Team Lead</h3>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500 font-bold border border-blue-500/30">
-                        {(isEditingGroup ? editGroupForm.teamLead?.name : selectedGroup.user.name)?.charAt(0)?.toUpperCase() || "L"}
+                        {selectedGroup.user.name ? selectedGroup.user.name.charAt(0).toUpperCase() : 'L'}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        {isEditingGroup && editGroupForm.teamLead ? (
-                          <div className="space-y-2">
-                            <input value={editGroupForm.teamLead.name ?? ""} onChange={(e) => setEditGroupForm((f) => ({ ...f, teamLead: { ...f.teamLead!, name: e.target.value } }))} placeholder="Name" className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500" />
-                            <input type="email" value={editGroupForm.teamLead.email ?? ""} onChange={(e) => setEditGroupForm((f) => ({ ...f, teamLead: { ...f.teamLead!, email: e.target.value } }))} placeholder="Email" className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500" />
-                            <input value={editGroupForm.teamLead.phone ?? ""} onChange={(e) => setEditGroupForm((f) => ({ ...f, teamLead: { ...f.teamLead!, phone: e.target.value } }))} placeholder="Phone" className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500" />
-                            <input value={editGroupForm.teamLead.collage ?? ""} onChange={(e) => setEditGroupForm((f) => ({ ...f, teamLead: { ...f.teamLead!, collage: e.target.value } }))} placeholder="College" className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500" />
-                            <input value={editGroupForm.teamLead.collageId ?? ""} onChange={(e) => setEditGroupForm((f) => ({ ...f, teamLead: { ...f.teamLead!, collageId: e.target.value } }))} placeholder="College ID" className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm font-mono placeholder-zinc-500" />
-                          </div>
-                        ) : (
-                          <>
-                            <p className="text-white font-medium">{selectedGroup.user.name}</p>
-                            <p className="text-sm text-zinc-400">{selectedGroup.user.email}</p>
-                            <p className="text-xs text-zinc-500 mt-1">{selectedGroup.user.phone || "No Phone"}</p>
-                          </>
-                        )}
+                      <div>
+                        <p className="text-white font-medium">{selectedGroup.user.name}</p>
+                        <p className="text-sm text-zinc-400">{selectedGroup.user.email}</p>
+                        <p className="text-xs text-zinc-500 mt-1">{selectedGroup.user.phone || "No Phone"}</p>
                       </div>
                     </div>
-                    {!isEditingGroup && (
                     <div className="mt-3 text-xs text-zinc-500 space-y-1">
                       <p>College: {selectedGroup.user.collage || "N/A"}</p>
                       <p>ID: {selectedGroup.user.collageId || "N/A"}</p>
                       <p>Location: {[selectedGroup.user.city, selectedGroup.user.state].filter(Boolean).join(", ") || "N/A"}</p>
                       {(() => {
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         const rd = (selectedGroup as any).registrationDetails as Record<string, any> | null;
                         const ign = rd?.teamLeadInGameName;
                         if (!ign) return null;
@@ -2193,17 +1816,11 @@ export default function EventsManagement() {
                         );
                       })()}
                     </div>
-                    )}
                   </div>
 
                   <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700">
                     <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">Mentor / Coordinator</h3>
-                    {isEditingGroup ? (
-                      <div className="space-y-2">
-                        <input value={editGroupForm.mentorName ?? ""} onChange={(e) => setEditGroupForm((f) => ({ ...f, mentorName: e.target.value }))} placeholder="Mentor Name" className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500" />
-                        <input value={editGroupForm.mentorPhone ?? ""} onChange={(e) => setEditGroupForm((f) => ({ ...f, mentorPhone: e.target.value }))} placeholder="Mentor Phone" className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500" />
-                      </div>
-                    ) : selectedGroup.mentorName ? (
+                    {selectedGroup.mentorName ? (
                       <>
                         <p className="text-white font-medium">{selectedGroup.mentorName}</p>
                         <p className="text-sm text-zinc-400">{selectedGroup.mentorPhone || "No Phone"}</p>
@@ -2221,43 +1838,30 @@ export default function EventsManagement() {
 
                 <div className="space-y-3">
                   {(() => {
-                    interface GroupMember { name: string; gender: string; phone: string; inGameName?: string; inGameId?: string; riotId?: string }
-                    const raw = isEditingGroup ? editGroupForm.members : selectedGroup.members;
-                    const memberList: GroupMember[] = Array.isArray(raw) ? raw : (raw && typeof raw === "object" ? Object.values(raw) : []);
+                    const raw = selectedGroup.members;
+                    const memberList = Array.isArray(raw) ? raw : (raw && typeof raw === "object" ? Object.values(raw) : []);
                     return memberList.length > 0 ? (
-                      memberList.map((member: GroupMember, idx: number) => (
+                      memberList.map((member: any, idx: number) => (
                         <div key={idx} className="bg-zinc-800 p-4 rounded-lg border border-zinc-700 flex items-center justify-between">
-                          <div className="flex items-center gap-4 flex-1">
-                            <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 font-bold text-sm shrink-0">
+                          <div className="flex items-center gap-4">
+                            <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 font-bold text-sm">
                               {idx + 1}
                             </div>
-                            {isEditingGroup ? (
-                              <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <input value={member.name ?? ""} onChange={(e) => { const m = Array.isArray(editGroupForm.members) ? editGroupForm.members.map((x, i) => i === idx ? { ...(typeof x === "object" && x !== null ? x : {}), name: e.target.value } : x) : []; setEditGroupForm((f) => ({ ...f, members: m })); }} placeholder="Name" className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500" />
-                                <input value={member.phone ?? ""} onChange={(e) => { const m = Array.isArray(editGroupForm.members) ? editGroupForm.members.map((x, i) => i === idx ? { ...(typeof x === "object" && x !== null ? x : {}), phone: e.target.value } : x) : []; setEditGroupForm((f) => ({ ...f, members: m })); }} placeholder="Phone" className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500" />
-                                <select value={member.gender ?? ""} onChange={(e) => { const m = Array.isArray(editGroupForm.members) ? editGroupForm.members.map((x, i) => i === idx ? { ...(typeof x === "object" && x !== null ? x : {}), gender: e.target.value } : x) : []; setEditGroupForm((f) => ({ ...f, members: m })); }} className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm">
-                                  <option value="">Gender</option>
-                                  <option value="MALE">Male</option>
-                                  <option value="FEMALE">Female</option>
-                                </select>
+                            <div>
+                              <p className="text-white font-medium">{member.name}</p>
+                              <div className="flex items-center gap-2 text-xs text-zinc-400 mt-0.5">
+                                <span>{member.gender}</span>
+                                <span>•</span>
+                                <span>{member.phone}</span>
                               </div>
-                            ) : (
-                              <div>
-                                <p className="text-white font-medium">{member.name}</p>
-                                <div className="flex items-center gap-2 text-xs text-zinc-400 mt-0.5">
-                                  <span>{member.gender}</span>
-                                  <span>•</span>
-                                  <span>{member.phone}</span>
+                              {(member.inGameName || member.inGameId || member.riotId) && (
+                                <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-amber-400/90 mt-1.5">
+                                  {member.inGameName && <span>IGN: {member.inGameName}</span>}
+                                  {member.inGameId && <span>ID: {member.inGameId}</span>}
+                                  {member.riotId && <span>Riot: {member.riotId}</span>}
                                 </div>
-                                {(member.inGameName || member.inGameId || member.riotId) && (
-                                  <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-amber-400/90 mt-1.5">
-                                    {member.inGameName && <span>IGN: {member.inGameName}</span>}
-                                    {member.inGameId && <span>ID: {member.inGameId}</span>}
-                                    {member.riotId && <span>Riot: {member.riotId}</span>}
-                                  </div>
-                                )}
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))
@@ -2268,31 +1872,14 @@ export default function EventsManagement() {
                 </div>
               </div>
 
-              <div className="px-6 py-4 bg-zinc-950/50 border-t border-zinc-800 flex justify-between items-center flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  {isEditingGroup ? (
-                    <>
-                      <button onClick={() => handleSaveGroup(false)} disabled={savingGroup} className="px-4 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium">
-                        {savingGroup ? "Saving..." : "Save"}
-                      </button>
-                      {session?.user.role === "MASTER" && (
-                        <button onClick={() => handleSaveGroup(true)} disabled={savingGroup} className="px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium">
-                          Save & Reset to Pending
-                        </button>
-                      )}
-                      <button onClick={() => { setIsEditingGroup(false); setEditGroupForm({}); }} className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg text-sm font-medium">
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    session?.user.role === "MASTER" && selectedGroup?.id && (
-                      <button onClick={async () => { await handleResetToPending(selectedGroup.id, "GROUP"); setShowGroupDetailsModal(false); setSelectedGroup(null); }} className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium">
-                        Reset to Pending
-                      </button>
-                    )
-                  )}
-                </div>
-                <button onClick={() => { setShowGroupDetailsModal(false); setSelectedGroup(null); setIsEditingGroup(false); setEditGroupForm({}); }} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium">
+              <div className="px-6 py-4 bg-zinc-950/50 border-t border-zinc-800 flex justify-end">
+                <button
+                  onClick={() => {
+                    setShowGroupDetailsModal(false);
+                    setSelectedGroup(null);
+                  }}
+                  className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium transition-colors"
+                >
                   Close
                 </button>
               </div>

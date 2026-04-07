@@ -86,6 +86,7 @@ export async function createAccommodationBooking(
           where: { paymentStatus: { not: "REJECTED" } },
           select: { id: true, isVirtual: true },
         },
+        visitorPassRegistrations: { select: { id: true } },
       },
     });
 
@@ -93,7 +94,19 @@ export async function createAccommodationBooking(
       return { success: false, error: "User not found" };
     }
 
-    // Restriction 1: International (virtual) participants cannot book accommodation
+    // Restriction 1: KL University Vaddeswaram campus students cannot book accommodation
+    const isVaddeswaramCampus = 
+      userData.email.endsWith("@kluniversity.in") ||
+      (userData.collage && userData.collage.toLowerCase().includes("vaddeswaram"));
+    
+    if (isVaddeswaramCampus) {
+      return {
+        success: false,
+        error: "KL University Vaddeswaram campus students are not eligible for accommodation booking.",
+      };
+    }
+
+    // Restriction 2: International (virtual) participants cannot book accommodation
     const isInternational = !!(userData as { isInternational?: boolean }).isInternational;
     if (isInternational) {
       return {
@@ -102,7 +115,15 @@ export async function createAccommodationBooking(
       };
     }
 
-    // Restriction 3: Must have PHYSICAL (non-virtual) competition registration
+    // Restriction 3: Visitor pass holders are NOT eligible
+    if (userData.visitorPassRegistrations.length > 0) {
+      return {
+        success: false,
+        error: "Visitor pass holders cannot book accommodation. Only competition participants are eligible.",
+      };
+    }
+
+    // Restriction 4: Must have PHYSICAL (non-virtual) competition registration
     const physicalIndividualRegs = userData.individualRegistrations.filter(
       (r: { isVirtual?: boolean }) => !r.isVirtual
     );
@@ -202,6 +223,18 @@ export async function getCompetitionDataForAccommodation() {
     });
 
     if (!user) return { success: false, error: "User not found" };
+
+    // Block KL University Vaddeswaram campus students
+    const isVaddeswaramCampus = 
+      user.email.endsWith("@kluniversity.in") ||
+      (user.collage && user.collage.toLowerCase().includes("vaddeswaram"));
+    
+    if (isVaddeswaramCampus) {
+      return {
+        success: false,
+        error: "KL University Vaddeswaram campus students are not eligible for accommodation booking.",
+      };
+    }
 
     // Block international (virtual)
     if (user.isInternational) {

@@ -2,12 +2,14 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
+// Enable caching: 1 hour for CDN, 24 hours stale-while-revalidate
 export const revalidate = 3600; // 1 hour
 
 export async function GET() {
     try {
         const galleryDir = path.join(process.cwd(), 'public', 'poster-gallery');
 
+        // Check if directory exists
         if (!fs.existsSync(galleryDir)) {
             try {
                 fs.mkdirSync(galleryDir, { recursive: true });
@@ -17,12 +19,14 @@ export async function GET() {
             }
         }
 
+        // Read files from directory
         const files = fs.readdirSync(galleryDir);
 
         if (files.length === 0) {
             return NextResponse.json({ items: [] });
         }
 
+        // Filter for image files
         const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.JPG', '.JPEG', '.PNG', '.WEBP', '.GIF'];
 
         const items = files
@@ -31,10 +35,13 @@ export async function GET() {
                 return imageExtensions.includes(ext);
             })
             .map(file => {
+                // Extract poster name from filename (remove extension)
                 const nameWithoutExt = path.parse(file).name
                     .replace(/[-_]/g, ' ')
                     .trim();
 
+                // Use Next.js Image Optimization API
+                // We construct a URL that points to /_next/image with parameters
                 const rawUrl = `/poster-gallery/${file}`;
                 const optimizedUrl = `/_next/image?url=${encodeURIComponent(rawUrl)}&w=1080&q=75`;
 
@@ -57,9 +64,9 @@ export async function GET() {
             }
         );
     } catch (error) {
-        console.error("Error serving poster gallery:", error);
+        console.error("Error serving local poster gallery:", error);
         return NextResponse.json(
-            { error: "Failed to fetch poster gallery", items: [], details: error instanceof Error ? error.message : String(error) },
+            { error: "Failed to fetch local poster gallery", items: [], details: error instanceof Error ? error.message : String(error) },
             { status: 500 }
         );
     }

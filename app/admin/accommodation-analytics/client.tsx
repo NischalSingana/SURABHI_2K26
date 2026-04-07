@@ -17,8 +17,6 @@ import {
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 interface Stats {
   totalBookings: number;
@@ -31,16 +29,7 @@ interface Stats {
     CANCELLED: number;
     REJECTED: number;
   };
-  byCollege: { name: string; bookings: number; male: number; female: number; guests: number }[];
-}
-
-interface AccommodationBookingItem {
-  primaryName: string;
-  totalMembers: number;
-  gender: string;
-  status: string;
-  competitions?: string[];
-  user?: { collage?: string | null } | null;
+  byCollege: { name: string; bookings: number; guests: number }[];
 }
 
 export default function AccommodationAnalyticsClient() {
@@ -48,97 +37,6 @@ export default function AccommodationAnalyticsClient() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewingMembers, setViewingMembers] = useState<any | null>(null);
-
-  const handleDownloadAccommodationReportPdf = () => {
-    if (!stats) return;
-
-    try {
-      const doc = new jsPDF("l", "mm", "a4");
-      const typedBookings = bookings as AccommodationBookingItem[];
-      const timestamp = new Date().toLocaleString("en-GB", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
-      }).toUpperCase();
-
-      doc.setFontSize(16);
-      doc.text("Accommodation Analytics Report", 14, 15);
-      doc.setFontSize(10);
-      doc.text(`Generated on: ${timestamp}`, 14, 22);
-
-      autoTable(doc, {
-        startY: 28,
-        head: [["Metric", "Count"]],
-        body: [
-          ["Total Bookings", String(stats.totalBookings)],
-          ["Total Guests", String(stats.totalGuests)],
-          ["Male Bookings", String(stats.byGender.MALE)],
-          ["Female Bookings", String(stats.byGender.FEMALE)],
-          ["Pending", String(stats.byStatus.PENDING)],
-          ["Confirmed", String(stats.byStatus.CONFIRMED)],
-        ],
-        theme: "grid",
-        headStyles: { fillColor: [52, 73, 94], textColor: 255, fontStyle: "bold" },
-        styles: { fontSize: 9, cellPadding: 2.5, fontStyle: "bold" },
-        margin: { left: 14, right: 14 },
-        columnStyles: { 1: { halign: "right" } },
-      });
-
-      let currentY = ((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? 28) + 6;
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.text("College-wise Summary", 14, currentY);
-      currentY += 2;
-
-      autoTable(doc, {
-        startY: currentY,
-        head: [["College", "Bookings", "Male", "Female", "Total Guests"]],
-        body: stats.byCollege.map((c) => [c.name, String(c.bookings), String(c.male), String(c.female), String(c.guests)]),
-        theme: "grid",
-        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
-        styles: { fontSize: 8.5, cellPadding: 2.2, fontStyle: "bold" },
-        margin: { left: 14, right: 14 },
-      });
-
-      currentY = ((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? currentY) + 6;
-      if (currentY > 235) {
-        doc.addPage();
-        currentY = 20;
-      }
-      doc.setFontSize(12);
-      doc.text("Guest-wise Competition Details", 14, currentY);
-      currentY += 2;
-
-      autoTable(doc, {
-        startY: currentY,
-        head: [["Name", "College", "Gender", "Guests", "Status", "Competitions"]],
-        body: typedBookings.map((b) => [
-          b.primaryName || "—",
-          (b.user?.collage || "Unknown").toString(),
-          (b.gender || "—").toString(),
-          String(b.totalMembers || 0),
-          (b.status || "—").toString(),
-          Array.isArray(b.competitions) && b.competitions.length > 0
-            ? b.competitions.join(", ")
-            : "No active physical competition",
-        ]),
-        theme: "grid",
-        headStyles: { fillColor: [142, 68, 173], textColor: 255, fontStyle: "bold" },
-        styles: { fontSize: 8, cellPadding: 2, fontStyle: "bold" },
-        margin: { left: 14, right: 14 },
-      });
-
-      doc.save(`Accommodation_Report_${new Date().toISOString().split("T")[0]}.pdf`);
-      toast.success("Accommodation analytics PDF downloaded");
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to generate accommodation report PDF");
-    }
-  };
 
   useEffect(() => {
     const load = async () => {
@@ -234,21 +132,13 @@ export default function AccommodationAnalyticsClient() {
   return (
     <div className="min-h-screen bg-[#030303] text-white">
       <div className="p-4 sm:p-6 max-w-7xl mx-auto">
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">
-            Accommodation Analytics
-          </h1>
-          <p className="text-gray-400 text-sm mt-1">
-            Other colleges physical participants only (KL, international & virtual excluded)
-          </p>
-        </div>
-        <button
-          onClick={handleDownloadAccommodationReportPdf}
-          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-semibold transition-colors"
-        >
-          Accommodation PDF
-        </button>
+      <div className="mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">
+          Accommodation Analytics
+        </h1>
+        <p className="text-gray-400 text-sm mt-1">
+          Other colleges physical participants only (KL, international & virtual excluded)
+        </p>
       </div>
 
       {/* Stats Grid */}
@@ -295,8 +185,6 @@ export default function AccommodationAnalyticsClient() {
                 <tr className="border-b border-white/10">
                   <th className="text-left py-3 px-4 text-gray-400 font-medium">College</th>
                   <th className="text-right py-3 px-4 text-gray-400 font-medium">Bookings</th>
-                  <th className="text-right py-3 px-4 text-gray-400 font-medium">Male</th>
-                  <th className="text-right py-3 px-4 text-gray-400 font-medium">Female</th>
                   <th className="text-right py-3 px-4 text-gray-400 font-medium">Guests</th>
                 </tr>
               </thead>
@@ -305,8 +193,6 @@ export default function AccommodationAnalyticsClient() {
                   <tr key={c.name} className="border-b border-white/5 hover:bg-white/5">
                     <td className="py-3 px-4 text-white">{c.name}</td>
                     <td className="py-3 px-4 text-right text-gray-300">{c.bookings}</td>
-                    <td className="py-3 px-4 text-right text-blue-300">{c.male}</td>
-                    <td className="py-3 px-4 text-right text-pink-300">{c.female}</td>
                     <td className="py-3 px-4 text-right text-gray-300">{c.guests}</td>
                   </tr>
                 ))}

@@ -55,7 +55,7 @@ export async function GET(req: Request) {
         // Fetch Event Details
         const event = await prisma.event.findUnique({
             where: { id: eventId },
-            select: { name: true, isGroupEvent: true, id: true, venue: true, startTime: true, endTime: true }
+            select: { name: true, isGroupEvent: true, id: true }
         });
 
         if (!event) {
@@ -75,9 +75,6 @@ export async function GET(req: Request) {
             eventName: event.name,
             eventId: event.id,
             isGroupEvent: event.isGroupEvent,
-            venue: event.venue ?? undefined,
-            startTime: event.startTime ?? undefined,
-            endTime: event.endTime ?? undefined,
             paymentStatus: 'CONFIRMED',
             isApproved: true,
             isInternational: !!user.isInternational,
@@ -113,7 +110,7 @@ export async function GET(req: Request) {
             if (groupReg.members && Array.isArray(groupReg.members)) {
                 members = groupReg.members.map((m: any) => ({
                     name: m.name || "Unknown",
-                    phone: ticketData.phone || m.phone || "-",
+                    phone: m.phone || "-",
                     gender: m.gender || "-"
                 }));
             }

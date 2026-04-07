@@ -11,25 +11,17 @@ export async function GET() {
         });
 
         if (!session?.user || session.user.role !== "JUDGE") {
-            console.warn("Judge Data Access Denied:", session?.user?.email, "Role:", session?.user?.role);
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const eventId = (session.user as any).assignedEventId;
-        console.log("Judge Data Fetch:", {
-            email: session.user.email,
-            role: session.user.role,
-            assignedEventId: eventId,
-            userId: session.user.id
-        });
+        const eventId = session.user.assignedEventId;
 
         if (!eventId) {
-            console.error("No event assigned for judge:", session.user.email);
-            return NextResponse.json({ error: "No event assigned to this judge. Please contact Master Admin." }, { status: 400 });
+            return NextResponse.json({ error: "No event assigned to this judge" }, { status: 400 });
         }
 
         // Fetch the assigned event with all necessary data
-        const event = await (prisma.event as any).findUnique({
+        const event = await prisma.event.findUnique({
             where: {
                 id: eventId
             },
@@ -79,24 +71,19 @@ export async function GET() {
         });
 
         if (!event) {
-            console.error("Event not found for ID:", eventId);
-            return NextResponse.json({ error: `Event not found (${eventId})` }, { status: 404 });
+            return NextResponse.json({ error: "Event not found" }, { status: 404 });
         }
 
         // Return as array for compatibility with frontend
-        const safeEvent = event as any;
-        const events = [safeEvent];
+        const events = [event];
 
         return NextResponse.json({
             events,
-            categoryName: safeEvent.Category?.name
+            categoryName: event.Category?.name
         });
 
-    } catch (error: any) {
+    } catch (error) {
         console.error("Error fetching judge data:", error);
-        return NextResponse.json({ 
-            error: "Internal Server Error", 
-            details: error?.message || "Unknown error" 
-        }, { status: 500 });
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

@@ -21,26 +21,6 @@ export interface EmailOptions {
   }>;
 }
 
-const MANDATORY_COLLEGE_ID_TEXT = "Attendees must carry their Physical College ID Card. It is mandatory for identity verification.";
-
-function addMandatoryCollegeIdNotice(html: string): string {
-  if (html.toLowerCase().includes(MANDATORY_COLLEGE_ID_TEXT.toLowerCase())) {
-    return html;
-  }
-
-  const noticeBlock = `
-<div style="margin:24px 0;padding:14px 16px;border:2px solid #dc2626;border-radius:10px;background-color:rgba(220,38,38,0.12);">
-  <p style="margin:0;color:#ffffff;font-size:14px;line-height:1.6;font-weight:700;">
-    ⚠️ ${MANDATORY_COLLEGE_ID_TEXT}
-  </p>
-</div>`;
-
-  if (html.includes("</body>")) {
-    return html.replace("</body>", `${noticeBlock}\n</body>`);
-  }
-  return `${html}\n${noticeBlock}`;
-}
-
 export async function sendEmail({ to, subject, html, text, attachments }: EmailOptions) {
   try {
     // Create transporter dynamically to ensure env vars are loaded
@@ -49,13 +29,12 @@ export async function sendEmail({ to, subject, html, text, attachments }: EmailO
       SES: { ses, aws: { SendRawEmailCommand } },
     } as any);
 
-    const htmlWithNotice = addMandatoryCollegeIdNotice(html);
     const info = await transporter.sendMail({
       from: `"Surabhi 2026" <${process.env.EMAIL_FROM}>`,
       to,
       subject,
-      html: htmlWithNotice,
-      text: text || htmlWithNotice.replace(/<[^>]*>/g, ""), // Strip HTML for text version
+      html,
+      text: text || html.replace(/<[^>]*>/g, ""), // Strip HTML for text version
       attachments: attachments || [],
     });
 

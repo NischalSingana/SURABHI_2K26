@@ -5,7 +5,7 @@
 
 const FALLBACK_SYSTEM_PROMPT = `You are the Surabhi 2026 fest assistant. Use these facts and explain in your own words—do not copy-paste.
 - Dates: March 2nd to 7th, 2026. Venue: KL University.
-- Registration fees: KL University and other college students ₹350 per member (same for all domestic physical). Virtual (eligible Indian students from other states) ₹150. International virtual FREE. KL: no virtual option, free special lunch and accommodation. Chief guests: not yet decided.
+- Registration fees: KL University students FREE; Physical (other colleges) ₹350; Virtual (eligible Indian students from other states) ₹150; International virtual FREE. Chief guests: not yet decided.
 Answer ONLY about the fest: events, registration, accommodation, schedule, fees. Give 2–5 sentences when helpful. Respond in plain text—no asterisks or markdown (no *, **). If asked about chief guests, say not yet decided. If the question is not about the fest, reply: "I can only help with Surabhi 2026 fest. Ask about events, registration, or accommodation."`;
 
 function buildSystemPrompt(knowledgeContext: string | null): string {
@@ -21,9 +21,9 @@ ${knowledgeContext}
 Instructions:
 - Answer ONLY about Surabhi 2026: events, competitions (including rules and terms when asked), registration, accommodation, schedule, contact, sponsors, fees, virtual participation, international students.
 - Think and respond naturally based on the knowledge. Summarize and paraphrase; never dump raw text verbatim.
-- When listing events or items, use plain text: "On March 3rd: CINE CARNIVAL (Short Film, Cover Songs, Photography), NATYAKA (Skit, Mono Action). On March 5th: National Mock Parliament, NRITHYA (Dance)." Do NOT use asterisks or markdown like * or **.
+- When listing events or items, use plain text: "On March 3rd: CINE CARNIVAL (Short Film, Cover Songs, Photography), NATYAKA (Skit, Mono Action), National Mock Parliament." Do NOT use asterisks or markdown like * or **.
 - When asked about chief guests: say they are not yet decided and will be announced later.
-- When asked about registration fees: state clearly—KL University and other college students: ₹350 per member (same fee); KL: no virtual option, free lunch and accommodation; Virtual (eligible Indian students from other states) ₹150; International virtual FREE.
+- When asked about registration fees: state clearly—KL University students: free; Physical (other colleges) ₹350; Virtual (eligible Indian students from other states) ₹150; International virtual FREE.
 - Dates: March 2nd to 7th, 2026. Venue: KL University.
 - Give helpful, complete answers. Use 2–5 sentences when useful; if the user asks for steps, details, or full rules/terms, give a bit longer answers as needed.
 - Use plain text only. No markdown formatting (no *, **, #, etc.). Use line breaks and simple punctuation.
@@ -129,11 +129,6 @@ async function tryBytez(messages: Message[], systemPrompt: string): Promise<stri
   return content ?? null;
 }
 
-/** Strip model thinking tags (e.g. Qwen's <think>…</think>) from responses */
-function stripThinkingTags(text: string): string {
-  return text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
-}
-
 /** Try Groq first, then OpenRouter, then Bytez. Returns content or throws. */
 export async function getAiReply(
   messages: Message[],
@@ -143,11 +138,8 @@ export async function getAiReply(
   const errs: string[] = [];
   for (const fn of [tryGroq, tryOpenRouter, tryBytez]) {
     try {
-      const raw = await fn(messages, systemPrompt);
-      if (raw) {
-        const content = stripThinkingTags(raw);
-        if (content) return content;
-      }
+      const content = await fn(messages, systemPrompt);
+      if (content) return content;
     } catch (e) {
       errs.push(e instanceof Error ? e.message : String(e));
     }

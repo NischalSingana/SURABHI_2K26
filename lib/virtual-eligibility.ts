@@ -15,7 +15,6 @@ export function checkVirtualEligibility(user: {
   email?: string;
   state?: string | null;
   isInternational?: boolean;
-  collage?: string | null;
 }): VirtualEligibility {
   // International students are eligible for virtual participation
   if (user.isInternational) {
@@ -24,10 +23,8 @@ export function checkVirtualEligibility(user: {
     };
   }
 
-  // KL University students must attend physically — check both email domain and college name
-  const isKLStudent =
-    user.email?.toLowerCase().endsWith("@kluniversity.in") ||
-    user.collage?.toLowerCase() === "kl university";
+  // KL University students must attend physically
+  const isKLStudent = user.email?.toLowerCase().endsWith("@kluniversity.in");
   if (isKLStudent) {
     return {
       isEligible: false,
@@ -51,7 +48,7 @@ export function checkVirtualEligibility(user: {
   if (isExcludedState) {
     return {
       isEligible: false,
-      reason: `Students from Andhra Pradesh and Telangana must participate physically at KL University, Vaddeswaram Campus`,
+      reason: `Students from Andhra Pradesh and Telangana must participate physically at KL University`,
     };
   }
 

@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { FiMail, FiUser, FiSend, FiMapPin } from "react-icons/fi";
-import { FaWhatsapp } from "react-icons/fa";
 
 interface Coordinator {
     id: string;
@@ -116,21 +115,6 @@ export default function ContactClient({ categories }: ContactClientProps) {
                                                         {coordinator.email}
                                                     </span>
                                                 </a>
-                                                {coordinator.phone && coordinator.phone.trim() !== "" && (
-                                                    <a
-                                                        href={`https://wa.me/${coordinator.phone.replace(/[^0-9]/g, "")}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="flex items-center gap-3 text-zinc-400 hover:text-white transition-colors group/link p-2 bg-black/20 rounded-lg hover:bg-black/40"
-                                                    >
-                                                        <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center shrink-0 group-hover/link:bg-green-900/20 group-hover/link:text-green-400 transition-colors">
-                                                            <FaWhatsapp size={14} />
-                                                        </div>
-                                                        <span className="text-sm font-medium">
-                                                            {coordinator.phone}
-                                                        </span>
-                                                    </a>
-                                                )}
                                             </div>
                                         </div>
                                     </motion.div>

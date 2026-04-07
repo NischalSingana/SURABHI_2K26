@@ -1,108 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiChevronRight, FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiChevronRight } from "react-icons/fi";
 import SignInOAuthButton from "./signInOAuthButton";
-import { useSession, signIn } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-type College = "KL_UNIVERSITY" | "OTHER" | "INTERNATIONAL" | "SPOT_EMAIL" | "";
-
-function SpotEmailLoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmedEmail = email.trim().toLowerCase();
-    const trimmedPassword = password.trim();
-    if (!trimmedEmail || !trimmedPassword) {
-      toast.error("Enter email and password");
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      toast.error("Enter a valid email");
-      return;
-    }
-    setLoading(true);
-    try {
-      const { data, error } = await signIn.email({
-        email: trimmedEmail,
-        password: trimmedPassword,
-      });
-      if (error) {
-        toast.error(error.message || "Invalid credentials");
-        setLoading(false);
-        return;
-      }
-      toast.success("Signed in successfully!");
-      router.push("/profile/competitions");
-    } catch (err) {
-      console.error("Spot email login error:", err);
-      toast.error("Something went wrong. Please try again.");
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm text-zinc-400 mb-1">Email</label>
-          <div className="relative">
-            <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              autoComplete="email"
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg py-3 pl-10 pr-4 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500/50"
-            />
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm text-zinc-400 mb-1">Password</label>
-          <div className="relative">
-            <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-            <input
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              autoComplete="current-password"
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg py-3 pl-10 pr-12 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500/50"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <FiEyeOff /> : <FiEye />}
-            </button>
-          </div>
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 bg-white text-gray-700 rounded-lg hover:bg-gray-50 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 border border-gray-300"
-        >
-          {loading ? "Signing in..." : "Sign in"}
-        </button>
-      </form>
-      <p className="text-xs text-zinc-500 text-center">
-        For participants registered on-site. Use the email and password set during spot registration.
-      </p>
-    </div>
-  );
-}
+type College = "KL_UNIVERSITY" | "OTHER" | "INTERNATIONAL" | "";
 
 const LoginFlow = () => {
   const [step, setStep] = useState(1);
@@ -241,25 +147,6 @@ const LoginFlow = () => {
                   <FiChevronRight className="text-zinc-400 text-xl" />
                 </span>
               </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleCollegeSelect("SPOT_EMAIL")}
-                className="w-full p-6 rounded-xl border-2 border-zinc-700 bg-zinc-800/50 hover:border-red-600 hover:bg-red-600/10 transition-all text-left"
-              >
-                <span className="flex items-center justify-between w-full">
-                  <span>
-                    <span className="text-lg font-semibold text-white block">
-                      Spot-registered participant
-                    </span>
-                    <span className="text-sm text-zinc-400 mt-1 block">
-                      Sign in with email &amp; password
-                    </span>
-                  </span>
-                  <FiChevronRight className="text-zinc-400 text-xl" />
-                </span>
-              </motion.button>
             </div>
           </motion.div>
         )}
@@ -280,25 +167,9 @@ const LoginFlow = () => {
                   ? "KL University - Sign in with Microsoft"
                   : selectedCollege === "INTERNATIONAL"
                   ? "International Student - Sign in with Google"
-                  : selectedCollege === "SPOT_EMAIL"
-                  ? "Spot-registered - Sign in with email & password"
                   : "Other College - Sign in with Google"}
               </p>
             </div>
-
-            {selectedCollege === "SPOT_EMAIL" && (
-              <>
-                <SpotEmailLoginForm />
-                <p className="mt-4 text-center">
-                  <Link
-                    href="/forgot-password"
-                    className="text-sm text-zinc-400 hover:text-red-500 transition-colors"
-                  >
-                    Forgot password?
-                  </Link>
-                </p>
-              </>
-            )}
 
             {selectedCollege === "KL_UNIVERSITY" && (
               <div className="space-y-6">

@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getCategories } from "@/actions/events.action";
-import { Category, Event } from "@prisma/client";
 import ManualRegisterForm from "./form";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -33,13 +33,12 @@ export default async function ManualRegisterPage() {
   }
 
   const categoriesRes = await getCategories(true);
-  type CategoryWithEvents = Category & { Event: Event[] };
-  const categories = categoriesRes.success ? (categoriesRes.data as CategoryWithEvents[]) : [];
+  const categories = categoriesRes.success ? (categoriesRes.data as any[]) : [];
   
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-6 text-white">Manual Registration (Admin)</h1>
-      <p className="mb-6 text-gray-400">Use this form to manually register a user for an event (PENDING approval) or issue a visitor pass (auto-approved with confirmation email).</p>
+      <p className="mb-6 text-gray-400">Use this form to manually register a user for an event. The payment status will be marked as PENDING and requires approval.</p>
       <ManualRegisterForm categories={categories} />
     </div>
   );

@@ -14,14 +14,12 @@ model User {
   email                    String                    @unique
   emailVerified            Boolean                   @default(false)
   name                     String?
-  banned                   Boolean                   @default(false)
   image                    String?
   collage                  String?
   collageId                String?
   branch                   String?
   year                     Int?
   isApproved               Boolean                   @default(false)
-  hasReceivedThankYouEmail Boolean                   @default(false)
   paymentStatus            PaymentStatus             @default(PENDING)
   phone                    String?
   password                 String?
@@ -35,7 +33,6 @@ model User {
   assignedEventId          String?
   country                  String?
   isInternational          Boolean                   @default(false)
-  certificateId            String?
   accommodationBookings    AccommodationBooking[]
   accounts                 Account[]
   evaluationsGiven         Evaluation[]              @relation("JudgeEvaluations")
@@ -47,7 +44,6 @@ model User {
   sessions                 Session[]
   assignedEvent            Event?                    @relation("EventJudges", fields: [assignedEventId], references: [id])
   visitorPassRegistrations VisitorPassRegistration[]
-  competitionFeedbacks     CompetitionFeedback[]
 
   @@index([paymentStatus])
   @@index([role])
@@ -170,8 +166,6 @@ model Event {
   groupRegistrations        GroupRegistration[]
   individualRegistrations   IndividualRegistration[]
   judges                    User[]                   @relation("EventJudges")
-  feedbackReleases          FeedbackRelease[]
-  competitionFeedbacks      CompetitionFeedback[]
 
   @@index([categoryId])
   @@index([date])
@@ -206,9 +200,6 @@ model GroupRegistration {
   @@index([userId])
   @@index([isVirtual])
   @@index([paymentStatus])
-  @@index([paymentStatus, updatedAt])
-  @@index([userId, paymentStatus, isVirtual])
-  @@index([eventId, paymentStatus])
   @@index([approvedBy])
   @@map("group_registrations")
 }
@@ -238,8 +229,6 @@ model AccommodationBooking {
   @@unique([userId, gender])
   @@index([paymentStatus])
   @@index([status])
-  @@index([status, createdAt])
-  @@index([userId, status])
   @@index([passToken])
   @@map("accommodation_bookings")
 }
@@ -283,9 +272,6 @@ model IndividualRegistration {
   @@index([userId])
   @@index([isVirtual])
   @@index([paymentStatus])
-  @@index([paymentStatus, updatedAt])
-  @@index([userId, paymentStatus, isVirtual])
-  @@index([eventId, paymentStatus])
   @@index([approvedBy])
   @@map("individual_registrations")
 }
@@ -305,7 +291,6 @@ model VisitorPassRegistration {
   usedBy            String?
   approvedAt        DateTime?
   approvedBy        String?
-  isManual          Boolean       @default(false)
   user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -344,7 +329,6 @@ model Evaluation {
   id            String   @id @default(cuid())
   score         Float
   remarks       String?
-  round         Int      @default(1)
   judgeId       String
   eventId       String
   participantId String
@@ -354,7 +338,7 @@ model Evaluation {
   judge         User     @relation("JudgeEvaluations", fields: [judgeId], references: [id], onDelete: Cascade)
   participant   User     @relation("ParticipantEvaluations", fields: [participantId], references: [id], onDelete: Cascade)
 
-  @@unique([judgeId, eventId, participantId, round])
+  @@unique([judgeId, eventId, participantId])
   @@index([eventId])
   @@index([judgeId])
   @@index([participantId])
@@ -445,36 +429,6 @@ model AdminActivityLog {
   @@map("admin_activity_logs")
 }
 
-model FeedbackRelease {
-  id        String   @id @default(cuid())
-  eventId   String   @unique
-  isReleased Boolean @default(false)
-  releasedAt DateTime?
-  releasedBy String?
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  @@index([eventId])
-  @@index([isReleased])
-  @@map("feedback_releases")
-}
-
-model CompetitionFeedback {
-  id             String   @id @default(cuid())
-  userId         String
-  eventId        String
-  overallRating  Int
-  ratings        Json
-  suggestions    String?
-  createdAt      DateTime @default(now())
-  event          Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, eventId])
-  @@index([eventId])
-  @@index([userId])
-  @@map("competition_feedbacks")
-}
-
 model DeleteRequest {
   id               String    @id @default(cuid())
   requestedById    String
@@ -507,7 +461,6 @@ enum Role {
   JUDGE
   MANAGER
   MASTER
-  RNC
   GOD
 }
 
@@ -526,15 +479,4 @@ enum BookingStatus {
   CONFIRMED
   CANCELLED
   REJECTED
-}
-
-model AnonymousFeedback {
-  id              String   @id @default(cuid())
-  competitionName String
-  overallRating   Int
-  ratings         Json
-  suggestions     String
-  createdAt       DateTime @default(now())
-
-  @@map("anonymous_feedbacks")
 }

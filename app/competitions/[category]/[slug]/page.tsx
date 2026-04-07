@@ -9,24 +9,23 @@ import {
   FiCalendar,
   FiClock,
   FiMapPin,
+  FiUsers,
   FiX,
   FiCheck,
   FiShare2,
   FiLink,
   FiFileText,
   FiCopy,
-  FiAward,
 } from "react-icons/fi";
 import { FaWhatsapp, FaTelegram, FaEnvelope } from "react-icons/fa";
 import { toast } from "sonner";
 import {
+  getPublicEvents,
   checkEventRegistration,
   unregisterFromEvent,
 } from "@/actions/events.action";
 import { formatTime } from "@/lib/utils";
-import { isOnlineRegistrationClosed, ONLINE_REG_CLOSED_MESSAGE } from "@/lib/registration-deadline";
 import { useSession } from "@/lib/auth-client";
-import { PRIZE_DATA } from "@/lib/prize-data";
 
 function ShareModal({
   show,
@@ -44,7 +43,7 @@ function ShareModal({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true); // eslint-disable-line
+    setMounted(true);
     return () => setMounted(false);
   }, []);
 
@@ -95,7 +94,7 @@ function ShareModal({
         try {
           await navigator.clipboard.writeText(url);
           toast.success("Link copied to clipboard!");
-        } catch {
+        } catch (err) {
           toast.error("Failed to copy link");
         }
       },
@@ -179,7 +178,7 @@ function ImageModal({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true); // eslint-disable-line
+    setMounted(true);
     return () => setMounted(false);
   }, []);
 
@@ -208,12 +207,11 @@ function ImageModal({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Full Image */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={image}
               alt={name}
               className="w-full h-auto max-h-[85vh] object-contain rounded-lg shadow-2xl"
-              onError={(e: React.SyntheticEvent<HTMLImageElement, globalThis.Event>) => {
+              onError={(e) => {
                 e.currentTarget.src =
                   "https://via.placeholder.com/1920x1080?text=Event+Image";
               }}
@@ -261,13 +259,6 @@ interface Event {
   brochureLink?: string | null;
 }
 
-function getEffectiveParticipantLimit(event: Pick<Event, "name" | "participantLimit">): number {
-  if (event.name.toLowerCase().includes("national mock parliament")) {
-    return 150;
-  }
-  return event.participantLimit;
-}
-
 function EventDetailPageContent() {
   const params = useParams();
   const router = useRouter();
@@ -278,18 +269,17 @@ function EventDetailPageContent() {
   const [loading, setLoading] = useState(true);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isApproved, setIsApproved] = useState<boolean | undefined>(undefined);
-  /* unused: const [registrationStatus, setRegistrationStatus] = useState<string | null>(null); */
+  const [registrationStatus, setRegistrationStatus] = useState<string | null>(null);
   const [checkingRegistration, setCheckingRegistration] = useState(true);
   const [unregistering, setUnregistering] = useState(false);
   const [showUnregisterConfirm, setShowUnregisterConfirm] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showVastranautTooltip, setShowVastranautTooltip] = useState(false);
-  const [showRegClosedTooltip, setShowRegClosedTooltip] = useState(false);
-  /* unused: const [hasGoogleAccount, setHasGoogleAccount] = useState(false); */
+  const [hasGoogleAccount, setHasGoogleAccount] = useState(false);
   const [termsTab, setTermsTab] = useState<"physical" | "virtual">("physical");
   const { data: session } = useSession();
-  /* unused: const isKL = !!session?.user?.email?.endsWith("@kluniversity.in"); */
+  const isKL = !!session?.user?.email?.endsWith("@kluniversity.in");
   const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
 
 
@@ -298,27 +288,29 @@ function EventDetailPageContent() {
     if (slug) {
       fetchEvent();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   useEffect(() => {
     setTermsTab("physical");
   }, [slug]);
 
-  /* Google check removed */
-  const isEsportsEvent =
-    categorySlug.toLowerCase().includes("kurukshetra") ||
-    (event?.Category?.name ?? "").toLowerCase().includes("kurukshetra");
-  const isRaagaEvent =
-    categorySlug.toLowerCase().includes("raaga") ||
-    (event?.Category?.name ?? "").toLowerCase().includes("raaga");
-  const isVastranautEvent =
-    categorySlug.toLowerCase().includes("vastranaut") ||
-    (event?.Category?.name ?? "").toLowerCase().includes("vastranaut");
-  const isSpotOnlyEvent = isRaagaEvent || isVastranautEvent;
-  const regClosed =
-    isSpotOnlyEvent ||
-    isOnlineRegistrationClosed();
+  // Check if user has Google account
+  useEffect(() => {
+    const checkGoogleAccount = async () => {
+      if (session?.user?.id) {
+        try {
+          const response = await fetch(`/api/check-user-accounts?userId=${session.user.id}`);
+          if (response.ok) {
+            const data = await response.json();
+            setHasGoogleAccount(data.hasGoogleAccount || false);
+          }
+        } catch (error) {
+          console.error("Error checking Google account:", error);
+        }
+      }
+    };
+    checkGoogleAccount();
+  }, [session]);
 
   // Lock body scroll when any modal is open
   useEffect(() => {
@@ -341,7 +333,7 @@ function EventDetailPageContent() {
       const result = await getEventBySlug(slug);
 
       if (result.success && result.data) {
-        setEvent(result.data as unknown as Event);
+        setEvent(result.data as any);
         // Check registration with ID once we have the event
         checkRegistration(result.data.id);
       } else {
@@ -359,7 +351,7 @@ function EventDetailPageContent() {
       setIsRegistered(result.isRegistered || false);
       setIsApproved(result.isApproved);
       if (result.registrationStatus) {
-        /* setRegistrationStatus(result.registrationStatus); */
+        setRegistrationStatus(result.registrationStatus);
       }
     }
     setCheckingRegistration(false);
@@ -382,9 +374,9 @@ function EventDetailPageContent() {
         await navigator.clipboard.writeText(url);
         toast.success("Event link copied to clipboard!");
       }
-    } catch (err: unknown) {
+    } catch (err: any) {
       // Ignore AbortError (user cancelled) or InvalidStateError (share already in progress)
-      if (err instanceof Error && err.name !== 'AbortError' && err.name !== 'InvalidStateError') {
+      if (err.name !== 'AbortError' && err.name !== 'InvalidStateError') {
         console.error("Error sharing:", err);
         // Fallback to clipboard if share failed for other reasons
         try {
@@ -454,12 +446,11 @@ function EventDetailPageContent() {
           className="absolute inset-0 cursor-pointer"
           onClick={() => setShowImageModal(true)}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={event.image}
             alt={event.name}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e: React.SyntheticEvent<HTMLImageElement, globalThis.Event>) => {
+            onError={(e) => {
               e.currentTarget.src =
                 "https://via.placeholder.com/1920x1080?text=Event+Image";
             }}
@@ -577,70 +568,6 @@ function EventDetailPageContent() {
                 {event.description}
               </p>
             </motion.div>
-
-            {/* Prize Money Section - Enhanced UI */}
-            {event && PRIZE_DATA[event.name] && (
-              <div className="bg-gradient-to-br from-zinc-900/50 to-zinc-950/50 backdrop-blur-md border border-zinc-800 rounded-2xl p-6 sm:p-8 relative overflow-hidden group hover:border-zinc-700/50 transition-colors">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
-                
-                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3 relative z-10">
-                  <span className="p-2 bg-yellow-500/10 rounded-lg text-yellow-500">
-                    <FiAward size={24} />
-                  </span>
-                  Prize Money
-                </h3>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
-                  {/* 1st Prize - Gold */}
-                  <div className="bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-yellow-500/50 hover:bg-zinc-800/80 transition-all group/card">
-                    <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-yellow-400 transition-colors">1st Prize</span>
-                    <span className="text-2xl font-bold text-yellow-400 drop-shadow-sm">{PRIZE_DATA[event.name].first}</span>
-                  </div>
-                  
-                  {PRIZE_DATA[event.name].runnerUp ? (
-                     /* Runner Up - Silver */
-                    <div className="bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-zinc-400/50 hover:bg-zinc-800/80 transition-all group/card">
-                      <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-zinc-300 transition-colors">Runner Up</span>
-                      <span className="text-2xl font-bold text-zinc-300 drop-shadow-sm">{PRIZE_DATA[event.name].runnerUp}</span>
-                    </div>
-                  ) : (
-                    <>
-                      {/* 2nd Prize - Silver */}
-                      {PRIZE_DATA[event.name].second && (
-                        <div className="bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-zinc-400/50 hover:bg-zinc-800/80 transition-all group/card">
-                          <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-zinc-300 transition-colors">2nd Prize</span>
-                          <span className="text-2xl font-bold text-zinc-300 drop-shadow-sm">{PRIZE_DATA[event.name].second}</span>
-                        </div>
-                      )}
-                      
-                      {/* 3rd Prize - Bronze */}
-                      {PRIZE_DATA[event.name].third && (
-                        <div className="bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-orange-700/50 hover:bg-zinc-800/80 transition-all group/card">
-                          <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-orange-400 transition-colors">3rd Prize</span>
-                          <span className="text-2xl font-bold text-orange-400 drop-shadow-sm">{PRIZE_DATA[event.name].third}</span>
-                        </div>
-                      )}
-
-                      {PRIZE_DATA[event.name].fourth && (
-                        <div className="bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-zinc-600/50 hover:bg-zinc-800/80 transition-all group/card">
-                          <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-zinc-300 transition-colors">4th Prize</span>
-                          <span className="text-2xl font-bold text-zinc-400 drop-shadow-sm">{PRIZE_DATA[event.name].fourth}</span>
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                  {/* Special Award */}
-                  {PRIZE_DATA[event.name].special && (
-                    <div className="sm:col-span-2 bg-zinc-900/80 p-5 rounded-xl border border-zinc-800 flex flex-col justify-between hover:border-emerald-500/50 hover:bg-zinc-800/80 transition-all group/card">
-                      <span className="text-zinc-400 text-sm font-medium mb-1 group-hover/card:text-emerald-400 transition-colors">{PRIZE_DATA[event.name].special!.label}</span>
-                      <span className="text-2xl font-bold text-emerald-400 drop-shadow-sm">{PRIZE_DATA[event.name].special!.amount}</span>
-                    </div>
-                  )}
-
-                </div>
-              </div>
-            )}
 
             {/* Terms and Conditions */}
             <motion.div
@@ -813,8 +740,8 @@ function EventDetailPageContent() {
                     <FiCheck size={20} />
                     Registered
                   </div>
-                  {/* Hide unregister for other college (physical & virtual) & KL; show only for International */}
-                  {isInternational && (
+                  {/* Hide unregister for other college (physical & virtual); show only for KL and International */}
+                  {(isKL || isInternational) && (
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -868,45 +795,6 @@ function EventDetailPageContent() {
                     </div>
                   </div>
                 </div>
-              ) : !isEsportsEvent && !isInternational && !isSpotOnlyEvent ? (
-                <div className="mt-6">
-                  <button
-                    disabled
-                    className="w-full px-6 py-4 bg-zinc-700 text-zinc-400 font-bold rounded-lg cursor-not-allowed opacity-80"
-                  >
-                    Registration Closed for This Category
-                  </button>
-                  <p className="text-xs text-zinc-500 mt-2 text-center">
-                    Registrations are currently open only for eSports competitions.
-                  </p>
-                </div>
-              ) : regClosed ? (
-                // Blocked: online registration closed after 5 PM
-                <div className="relative group mt-6">
-                  <motion.button
-                    whileTap={{ scale: 0.98 }}
-                    disabled
-                    onClick={() => {
-                      setShowRegClosedTooltip(!showRegClosedTooltip);
-                      setTimeout(() => setShowRegClosedTooltip(false), 6000);
-                    }}
-                    onMouseEnter={() => setShowRegClosedTooltip(true)}
-                    onMouseLeave={() => setShowRegClosedTooltip(false)}
-                    title="Online registrations closed. Spot registrations: 8:00 AM to 10:00 AM at the venue."
-                    className="w-full px-6 py-4 bg-zinc-700 text-zinc-400 font-bold rounded-lg cursor-not-allowed opacity-80 relative"
-                  >
-                    Online Reg Closed
-                  </motion.button>
-                  <div className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-zinc-800 text-white text-sm rounded-lg shadow-xl border border-zinc-700 transition-opacity duration-200 w-80 text-center z-10 ${showRegClosedTooltip ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
-                    <div className="font-semibold mb-2 text-amber-400">Online Registration Closed</div>
-                    <div className="text-zinc-300 text-xs leading-relaxed whitespace-pre-line">
-                      {ONLINE_REG_CLOSED_MESSAGE}
-                    </div>
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                      <div className="border-8 border-transparent border-t-zinc-800"></div>
-                    </div>
-                  </div>
-                </div>
               ) : (
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -924,14 +812,14 @@ function EventDetailPageContent() {
                     router.push(`/competitions/${categorySlug}/${slug}/register`);
                   }}
                   disabled={
-                    (event._count.individualRegistrations + event._count.groupRegistrations) >= getEffectiveParticipantLimit(event) ||
+                    (event._count.individualRegistrations + event._count.groupRegistrations) >= event.participantLimit ||
                     checkingRegistration
                   }
                   className="w-full mt-6 px-6 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-red-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {checkingRegistration
                     ? "Loading..."
-                    : (event._count.individualRegistrations + event._count.groupRegistrations) >= getEffectiveParticipantLimit(event)
+                    : (event._count.individualRegistrations + event._count.groupRegistrations) >= event.participantLimit
                       ? "Event Full"
                       : "Register Now"}
                 </motion.button>

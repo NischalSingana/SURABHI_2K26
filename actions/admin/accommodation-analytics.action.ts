@@ -13,9 +13,8 @@ export async function getAccommodationAnalytics() {
   try {
     const headersList = await headers();
     const session = await auth.api.getSession({ headers: headersList });
-    const userRole = session?.user?.role as string | undefined;
 
-    if (!session || (userRole !== Role.GOD && userRole !== Role.ADMIN && userRole !== Role.MASTER && userRole !== "RNC")) {
+    if (!session || (session.user.role !== Role.GOD && session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
       return { success: false, error: "Unauthorized" };
     }
 
@@ -35,87 +34,43 @@ export async function getAccommodationAnalytics() {
       orderBy: { createdAt: "desc" },
     });
 
-    // Filter: physical participants only (KL and other colleges eligible for accommodation)
-    // Exclude: international (virtual), virtual-only participants
+    // Filter: other colleges physical participants only
+    // Exclude: KL University (@kluniversity.in, vaddeswaram), international, virtual
     const eligibleBookings = bookings.filter((b) => {
       const u = b.user;
       if (!u) return false;
+      // KL University
+      if (u.email?.toLowerCase().endsWith("@kluniversity.in")) return false;
+      if ((u.collage || "").toLowerCase().includes("vaddeswaram")) return false;
+      // International
       if (!!(u as { isInternational?: boolean }).isInternational) return false;
       return true;
     });
 
-    // Virtual check: user must have physical reg - compute in two bulk queries (avoid per-user N+1 counts)
+    // Virtual check: user must have physical reg - we verify via registration data
     const userIds = [...new Set(eligibleBookings.map((b) => b.userId))];
-    const [physicalIndividualUserRows, physicalGroupUserRows] = await Promise.all([
-      prisma.individualRegistration.findMany({
-        where: {
-          userId: { in: userIds },
-          paymentStatus: { in: ["PENDING", "APPROVED"] },
-          isVirtual: false,
-        },
-        select: { userId: true },
-        distinct: ["userId"],
-      }),
-      prisma.groupRegistration.findMany({
-        where: {
-          userId: { in: userIds },
-          paymentStatus: { in: ["PENDING", "APPROVED"] },
-          isVirtual: false,
-        },
-        select: { userId: true },
-        distinct: ["userId"],
-      }),
-    ]);
-    const physicalUserIds = new Set<string>([
-      ...physicalIndividualUserRows.map((row) => row.userId),
-      ...physicalGroupUserRows.map((row) => row.userId),
-    ]);
-
-    // Build competition list per user (physical + active regs only)
-    const [individualRegs, groupRegs] = await Promise.all([
-      prisma.individualRegistration.findMany({
-        where: {
-          userId: { in: userIds },
-          paymentStatus: { in: ["PENDING", "APPROVED"] },
-          isVirtual: false,
-        },
-        select: {
-          userId: true,
-          event: {
-            select: {
-              name: true,
-              Category: { select: { name: true } },
+    const physicalRegs = await Promise.all(
+      userIds.map(async (uid) => {
+        const [indiv, group] = await Promise.all([
+          prisma.individualRegistration.count({
+            where: {
+              userId: uid,
+              paymentStatus: { in: ["PENDING", "APPROVED"] },
+              isVirtual: false,
             },
-          },
-        },
-      }),
-      prisma.groupRegistration.findMany({
-        where: {
-          userId: { in: userIds },
-          paymentStatus: { in: ["PENDING", "APPROVED"] },
-          isVirtual: false,
-        },
-        select: {
-          userId: true,
-          event: {
-            select: {
-              name: true,
-              Category: { select: { name: true } },
+          }),
+          prisma.groupRegistration.count({
+            where: {
+              userId: uid,
+              paymentStatus: { in: ["PENDING", "APPROVED"] },
+              isVirtual: false,
             },
-          },
-        },
-      }),
-    ]);
-
-    const competitionsByUser = new Map<string, Set<string>>();
-    const addCompetition = (uid: string, category: string, eventName: string) => {
-      const label = `${category} - ${eventName}`;
-      const set = competitionsByUser.get(uid) || new Set<string>();
-      set.add(label);
-      competitionsByUser.set(uid, set);
-    };
-    individualRegs.forEach((reg) => addCompetition(reg.userId, reg.event.Category.name, reg.event.name));
-    groupRegs.forEach((reg) => addCompetition(reg.userId, reg.event.Category.name, reg.event.name));
+          }),
+        ]);
+        return { userId: uid, hasPhysical: indiv > 0 || group > 0 };
+      })
+    );
+    const physicalUserIds = new Set(physicalRegs.filter((r) => r.hasPhysical).map((r) => r.userId));
 
     const analyticsBookings = eligibleBookings.filter(
       (b) =>
@@ -142,24 +97,16 @@ export async function getAccommodationAnalytics() {
     };
 
     // By college
-    const collegeMap = new Map<string, { count: number; guests: number; male: number; female: number }>();
+    const collegeMap = new Map<string, { count: number; guests: number }>();
     for (const b of analyticsBookings) {
       const college = (b.user?.collage || "Unknown").trim() || "Unknown";
-      const curr = collegeMap.get(college) || { count: 0, guests: 0, male: 0, female: 0 };
+      const curr = collegeMap.get(college) || { count: 0, guests: 0 };
       curr.count += 1;
       curr.guests += b.totalMembers;
-      if (b.gender === "MALE") curr.male += 1;
-      if (b.gender === "FEMALE") curr.female += 1;
       collegeMap.set(college, curr);
     }
     const byCollege = Array.from(collegeMap.entries())
-      .map(([name, data]) => ({
-        name,
-        bookings: data.count,
-        male: data.male,
-        female: data.female,
-        guests: data.guests,
-      }))
+      .map(([name, data]) => ({ name, bookings: data.count, guests: data.guests }))
       .sort((a, b) => b.bookings - a.bookings);
 
     const serialized = analyticsBookings.map((b) => ({
@@ -167,7 +114,6 @@ export async function getAccommodationAnalytics() {
       amount: b.amount ? b.amount.toString() : null,
       createdAt: b.createdAt.toISOString(),
       updatedAt: b.updatedAt.toISOString(),
-      competitions: Array.from(competitionsByUser.get(b.userId) || []),
     }));
 
     return {

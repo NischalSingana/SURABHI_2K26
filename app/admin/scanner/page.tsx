@@ -8,8 +8,7 @@ export default async function ScannerPage() {
         headers: await headers(),
     });
 
-    const allowedRoles = ["ADMIN", "MASTER", "MANAGER"];
-    if (!session?.user || !allowedRoles.includes(session.user.role)) {
+    if (!session?.user || session.user.role !== "ADMIN") {
         redirect("/");
     }
 

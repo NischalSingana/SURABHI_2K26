@@ -1,29 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Role, Prisma } from "@prisma/client";
+import { Role } from "@prisma/client";
 import { headers } from "next/headers";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { logAdminActivity } from "@/lib/admin-logs";
-import { approveBookingInternal } from "@/actions/admin/accommodation.action";
-
-interface GroupMember {
-    name: string;
-    phone?: string;
-    gender: string;
-    inGameName?: string;
-    inGameId?: string;
-    riotId?: string;
-    [key: string]: unknown;
-}
-
-
-function getManualContactEmail(registrationDetails: Prisma.JsonValue | null | undefined): string | null {
-    if (!registrationDetails || typeof registrationDetails !== "object" || Array.isArray(registrationDetails)) return null;
-    const value = (registrationDetails as Record<string, unknown>).manualContactEmail;
-    return typeof value === "string" && value.trim() ? value.trim().toLowerCase() : null;
-}
 
 export async function getPendingRegistrations() {
     try {
@@ -32,8 +15,8 @@ export async function getPendingRegistrations() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.MASTER && session.user.role !== Role.ADMIN && session.user.role !== Role.RNC)) {
-            return { success: false, error: "Unauthorized. Admin, Master, or R&C only." };
+        if (!session || (session.user.role !== Role.MASTER && session.user.role !== Role.ADMIN && session.user.role !== Role.MANAGER)) {
+            return { success: false, error: "Unauthorized. Admin, Manager, or Master only." };
         }
 
         const individualRegistrations = await prisma.individualRegistration.findMany({
@@ -89,8 +72,8 @@ export async function getRegistrationHistory() {
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.MASTER && session.user.role !== Role.ADMIN && session.user.role !== Role.RNC)) {
-            return { success: false, error: "Unauthorized. Admin, Master, or R&C only." };
+        if (!session || (session.user.role !== Role.MASTER && session.user.role !== Role.ADMIN && session.user.role !== Role.MANAGER)) {
+            return { success: false, error: "Unauthorized. Admin, Manager, or Master only." };
         }
 
         const individualRegistrationsRaw = await prisma.individualRegistration.findMany({
@@ -106,6 +89,20 @@ export async function getRegistrationHistory() {
             }
         });
 
+        // Fetch approver info for individual registrations
+        const individualRegistrations = await Promise.all(
+            individualRegistrationsRaw.map(async (reg) => {
+                let approver = null;
+                if (reg.approvedBy) {
+                    approver = await prisma.user.findUnique({
+                        where: { id: reg.approvedBy },
+                        select: { id: true, name: true, email: true, role: true },
+                    });
+                }
+                return { ...reg, approver };
+            })
+        );
+
         const groupRegistrationsRaw = await prisma.groupRegistration.findMany({
             where: {
                 paymentStatus: { in: ["APPROVED", "REJECTED"] }
@@ -119,44 +116,39 @@ export async function getRegistrationHistory() {
             }
         });
 
+        // Fetch approver info for group registrations
+        const groupRegistrations = await Promise.all(
+            groupRegistrationsRaw.map(async (reg) => {
+                let approver = null;
+                if (reg.approvedBy) {
+                    approver = await prisma.user.findUnique({
+                        where: { id: reg.approvedBy },
+                        select: { id: true, name: true, email: true, role: true },
+                    });
+                }
+                return { ...reg, approver };
+            })
+        );
+
         const visitorPassesRaw = await prisma.visitorPassRegistration.findMany({
             where: { paymentStatus: { in: ["APPROVED", "REJECTED"] } },
             include: { user: true },
             orderBy: { updatedAt: "desc" },
         });
 
-        // Batch-load approvers once to avoid N+1 queries.
-        const approverIds = Array.from(
-            new Set(
-                [
-                    ...individualRegistrationsRaw.map((reg) => reg.approvedBy).filter(Boolean),
-                    ...groupRegistrationsRaw.map((reg) => reg.approvedBy).filter(Boolean),
-                    ...visitorPassesRaw.map((pass) => pass.approvedBy).filter(Boolean),
-                ] as string[]
-            )
-        );
-        const approvers = approverIds.length > 0
-            ? await prisma.user.findMany({
-                where: { id: { in: approverIds } },
-                select: { id: true, name: true, email: true, role: true },
+        // Fetch approver info for visitor passes
+        const visitorPasses = await Promise.all(
+            visitorPassesRaw.map(async (pass) => {
+                let approver = null;
+                if (pass.approvedBy) {
+                    approver = await prisma.user.findUnique({
+                        where: { id: pass.approvedBy },
+                        select: { id: true, name: true, email: true, role: true },
+                    });
+                }
+                return { ...pass, approver };
             })
-            : [];
-        const approverMap = new Map(approvers.map((user) => [user.id, user]));
-
-        const individualRegistrations = individualRegistrationsRaw.map((reg) => ({
-            ...reg,
-            approver: reg.approvedBy ? (approverMap.get(reg.approvedBy) ?? null) : null,
-        }));
-
-        const groupRegistrations = groupRegistrationsRaw.map((reg) => ({
-            ...reg,
-            approver: reg.approvedBy ? (approverMap.get(reg.approvedBy) ?? null) : null,
-        }));
-
-        const visitorPasses = visitorPassesRaw.map((pass) => ({
-            ...pass,
-            approver: pass.approvedBy ? (approverMap.get(pass.approvedBy) ?? null) : null,
-        }));
+        );
 
         return {
             success: true,
@@ -183,8 +175,8 @@ export async function updateRegistrationStatus(
             headers: headersList,
         });
 
-        if (!session || (session.user.role !== Role.MASTER && session.user.role !== Role.ADMIN && session.user.role !== Role.RNC)) {
-            return { success: false, error: "Unauthorized. Admin, Master, or R&C only." };
+        if (!session || (session.user.role !== Role.MASTER && session.user.role !== Role.ADMIN && session.user.role !== Role.MANAGER)) {
+            return { success: false, error: "Unauthorized. Admin, Manager, or Master only." };
         }
 
         if (type === "VISITOR_PASS") {
@@ -263,10 +255,9 @@ export async function updateRegistrationStatus(
                         if (!emailResult || !emailResult.success) {
                             console.error(`Failed to send visitor pass approval email to ${user.email}:`, emailResult?.error || "Unknown error");
                         }
-                    } catch (e: unknown) {
-                        const err = e as Error;
+                    } catch (e: any) {
                         console.error(`Failed to send visitor pass approval email to ${user.email}:`, e);
-                        console.error("Error details:", { message: err?.message, stack: err?.stack, name: err?.name });
+                        console.error("Error details:", { message: e?.message, stack: e?.stack, name: e?.name });
                     }
                 })();
             }
@@ -275,7 +266,6 @@ export async function updateRegistrationStatus(
             revalidatePath("/profile");
             revalidatePath("/profile/competitions");
             revalidatePath("/competitions");
-            revalidateTag("admin-analytics", "max");
             return { success: true, message: `Visitor pass ${status.toLowerCase()} successfully` };
         } else if (type === "INDIVIDUAL") {
             // Check if registration exists first
@@ -289,7 +279,7 @@ export async function updateRegistrationStatus(
 
             const registration = await prisma.individualRegistration.update({
                 where: { id },
-                data: {
+                data: { 
                     paymentStatus: status,
                     approvedBy: session.user.id,
                     approvedAt: new Date(),
@@ -347,49 +337,17 @@ export async function updateRegistrationStatus(
             }
 
             if (status === "APPROVED") {
-                try {
-                    const manualContactEmail = getManualContactEmail(registration.registrationDetails);
-                    const accommodationEmails = [registration.user.email, manualContactEmail].filter(
-                        (value): value is string => !!value
-                    );
-                    const pendingAccommodationBookings = await prisma.accommodationBooking.findMany({
-                        where: {
-                            status: "PENDING",
-                            OR: [
-                                { userId: registration.userId },
-                                ...(accommodationEmails.length > 0
-                                    ? [{ primaryEmail: { in: accommodationEmails } }]
-                                    : []),
-                            ],
-                        },
-                        select: { id: true },
-                    });
-                    for (const booking of pendingAccommodationBookings) {
-                        try {
-                            await approveBookingInternal(booking.id);
-                        } catch (bookingError) {
-                            console.error("Failed to auto-approve accommodation booking:", bookingError);
-                        }
-                    }
-                } catch (accommodationError) {
-                    console.error("Failed to auto-approve accommodation for individual approval:", accommodationError);
-                }
-
                 const userFull = await prisma.user.findUnique({
                     where: { id: registration.userId },
                     select: { id: true, name: true, email: true, phone: true, collage: true, collageId: true, gender: true, state: true, city: true, isInternational: true },
                 });
                 if (!userFull) return;
-                const manualContactEmail = getManualContactEmail(registration.registrationDetails);
-                const destinationEmail = manualContactEmail || userFull.email;
 
                 const isInternational = !!userFull.isInternational;
                 const isVirtual = !!registration.isVirtual;
                 const isVirtualParticipant = isInternational || isVirtual;
 
                 (async () => {
-
-
                     try {
                         let pdfBuffer: Buffer | null = null;
                         if (!isVirtualParticipant) {
@@ -397,7 +355,7 @@ export async function updateRegistrationStatus(
                             pdfBuffer = await generateTicketPDF({
                                 userId: userFull.id,
                                 name: userFull.name || "Participant",
-                                email: destinationEmail,
+                                email: userFull.email,
                                 phone: userFull.phone,
                                 collage: userFull.collage,
                                 collageId: userFull.collageId,
@@ -409,15 +367,11 @@ export async function updateRegistrationStatus(
                                 gender: userFull.gender,
                                 state: userFull.state,
                                 city: userFull.city,
-                                venue: registration.event.venue ?? undefined,
-                                startTime: registration.event.startTime ?? undefined,
-                                endTime: registration.event.endTime ?? undefined,
                             });
                         }
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
-                        const includeScheduleAttachment = !!manualContactEmail;
                         await sendEventConfirmationEmail(
-                            { name: userFull.name || "User", email: destinationEmail },
+                            { name: userFull.name || "User", email: userFull.email },
                             {
                                 name: registration.event.name,
                                 date: registration.event.date,
@@ -435,12 +389,10 @@ export async function updateRegistrationStatus(
                                 whatsappLink: registration.event.whatsappLink
                             },
                             isInternational,
-                            isVirtualParticipant,
-                            includeScheduleAttachment
+                            isVirtualParticipant
                         );
-                    } catch (e: unknown) {
-                        const err = e as Error;
-                        console.error("Failed to send approval email", err);
+                    } catch (e) {
+                        console.error("Failed to send approval email", e);
                     }
                 })();
             }
@@ -457,7 +409,7 @@ export async function updateRegistrationStatus(
 
             const registration = await prisma.groupRegistration.update({
                 where: { id },
-                data: {
+                data: { 
                     paymentStatus: status,
                     approvedBy: session.user.id,
                     approvedAt: new Date(),
@@ -479,7 +431,7 @@ export async function updateRegistrationStatus(
                     eventName: registration.event.name,
                     groupName: registration.groupName,
                     status: status,
-                    teamSize: Array.isArray(registration.members) ? (registration.members as Prisma.JsonArray).length + 1 : 1,
+                    teamSize: Array.isArray(registration.members) ? (registration.members as any[]).length + 1 : 1,
                 },
             });
 
@@ -515,55 +467,19 @@ export async function updateRegistrationStatus(
             }
 
             if (status === "APPROVED") {
-                try {
-                    const manualContactEmail = getManualContactEmail(registration.registrationDetails);
-                    const accommodationEmails = [registration.user.email, manualContactEmail].filter(
-                        (value): value is string => !!value
-                    );
-                    const pendingAccommodationBookings = await prisma.accommodationBooking.findMany({
-                        where: {
-                            status: "PENDING",
-                            OR: [
-                                { userId: registration.userId },
-                                ...(accommodationEmails.length > 0
-                                    ? [{ primaryEmail: { in: accommodationEmails } }]
-                                    : []),
-                            ],
-                        },
-                        select: { id: true },
-                    });
-                    for (const booking of pendingAccommodationBookings) {
-                        try {
-                            await approveBookingInternal(booking.id);
-                        } catch (bookingError) {
-                            console.error("Failed to auto-approve accommodation booking:", bookingError);
-                        }
-                    }
-                } catch (accommodationError) {
-                    console.error("Failed to auto-approve accommodation for group approval:", accommodationError);
-                }
-
                 const lead = await prisma.user.findUnique({
                     where: { id: registration.userId },
                     select: { id: true, name: true, email: true, phone: true, collage: true, collageId: true, gender: true, state: true, city: true, isInternational: true },
                 });
                 if (!lead) return;
-                const manualContactEmail = getManualContactEmail(registration.registrationDetails);
-                const destinationEmail = manualContactEmail || lead.email;
 
-                const members = (registration.members as unknown as GroupMember[]) || [];
-                const membersForTicket = members.map((member) => ({
-                    ...member,
-                    phone: lead.phone || member.phone || "-",
-                }));
+                const members = registration.members as any || [];
                 const groupName = registration.groupName || "Team";
                 const isInternational = !!lead.isInternational;
                 const isVirtual = !!registration.isVirtual;
                 const isVirtualParticipant = isInternational || isVirtual;
 
                 (async () => {
-
-
                     try {
                         let pdfBuffer: Buffer | null = null;
                         if (!isVirtualParticipant) {
@@ -571,7 +487,7 @@ export async function updateRegistrationStatus(
                             pdfBuffer = await generateTicketPDF({
                                 userId: lead.id,
                                 name: lead.name || "Team Lead",
-                                email: destinationEmail,
+                                email: lead.email,
                                 phone: lead.phone,
                                 collage: lead.collage,
                                 collageId: lead.collageId,
@@ -580,20 +496,16 @@ export async function updateRegistrationStatus(
                                 eventName: registration.event.name,
                                 isGroupEvent: true,
                                 groupName: groupName,
-                                teamMembers: membersForTicket,
+                                teamMembers: members,
                                 eventId: registration.event.id,
                                 gender: lead.gender,
                                 state: lead.state,
                                 city: lead.city,
-                                venue: registration.event.venue ?? undefined,
-                                startTime: registration.event.startTime ?? undefined,
-                                endTime: registration.event.endTime ?? undefined,
                             });
                         }
                         const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
-                        const includeScheduleAttachment = !!manualContactEmail;
                         await sendEventConfirmationEmail(
-                            { name: lead.name || "User", email: destinationEmail },
+                            { name: lead.name || "User", email: lead.email },
                             {
                                 name: registration.event.name,
                                 date: registration.event.date,
@@ -611,8 +523,7 @@ export async function updateRegistrationStatus(
                                 whatsappLink: registration.event.whatsappLink
                             },
                             isInternational,
-                            isVirtualParticipant,
-                            includeScheduleAttachment
+                            isVirtualParticipant
                         );
                     } catch (e) {
                         console.error("Failed to send group approval email", e);
@@ -625,7 +536,6 @@ export async function updateRegistrationStatus(
         revalidatePath("/profile");
         revalidatePath("/profile/competitions");
         revalidatePath("/competitions");
-        revalidateTag("admin-analytics", "max");
         return { success: true, message: `Registration ${status.toLowerCase()} successfully` };
 
     } catch (error) {

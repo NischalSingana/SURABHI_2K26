@@ -1,10 +1,8 @@
 import { betterAuth } from "better-auth";
-import { nextCookies } from "better-auth/next-js";
-import { admin } from "better-auth/plugins";
-import { defaultRoles } from "better-auth/plugins/admin/access";
+import { nextCookies } from "better-auth/next-js"
 
-import { prismaAdapter } from "better-auth/adapters/prisma";
-import { prisma } from "@/lib/prisma";
+import { prismaAdapter } from "better-auth/adapters/prisma"
+import { prisma } from "@/lib/prisma"
 
 import { Role } from "@prisma/client";
 
@@ -14,7 +12,6 @@ const baseURL = isProduction
     : "http://localhost:3000";
 
 export const auth = betterAuth({
-    basePath: "/api/auth",
     database: prismaAdapter(prisma, {
         provider: "postgresql",
 
@@ -28,7 +25,6 @@ export const auth = betterAuth({
     },
     trustedOrigins: [
         "https://klusurabhi.in",
-        "https://www.klusurabhi.in",
         "http://localhost:3000"
     ],
     baseURL,
@@ -68,11 +64,7 @@ export const auth = betterAuth({
                 const { compare } = await import("bcryptjs");
                 return compare(password, hash);
             }
-        },
-        sendResetPassword: async ({ user, url }) => {
-            const { sendPasswordResetEmail } = await import("./zeptomail");
-            await sendPasswordResetEmail(user.email, user.name || "Participant", url);
-        },
+        }
     },
     session: {
         cookieCache: {
@@ -92,7 +84,7 @@ export const auth = betterAuth({
     user: {
         additionalFields: {
             role: {
-                type: ["USER", "ADMIN", "JUDGE", "MANAGER", "MASTER", "RNC", "GOD"] as Array<Role>,
+                type: ["USER", "ADMIN", "JUDGE", "MANAGER", "MASTER", "GOD"] as Array<Role>,
                 input: false
             },
             assignedEventId: {
@@ -145,21 +137,7 @@ export const auth = betterAuth({
             }
         }
     },
-    plugins: [
-        nextCookies(),
-        admin({
-            adminRoles: ["ADMIN", "MASTER", "MANAGER", "RNC"],
-            defaultRole: "USER",
-            roles: {
-                ADMIN: defaultRoles.admin,
-                MASTER: defaultRoles.admin,
-                MANAGER: defaultRoles.admin,
-                RNC: defaultRoles.admin,
-                JUDGE: defaultRoles.user,
-                USER: defaultRoles.user,
-            },
-        }),
-    ]
+    plugins: [nextCookies()]
 
 
 });

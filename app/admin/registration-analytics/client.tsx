@@ -5,12 +5,8 @@ import {
     getRegistrationStatsByCollege,
     getCategoryWiseAnalytics,
 } from "@/actions/admin/registration-analytics.action";
-import { getDailyReportStats, getDetailedEventRegistrations } from "@/actions/admin/analytics.action";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
-import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 /**
  * Helper function to check if a user is from KL University
@@ -124,102 +120,11 @@ interface CategoryAnalytics {
     competitions: CompetitionAnalytics[];
 }
 
-interface ReportRegistrationUser {
-    id?: string | null;
-    name?: string | null;
-    email: string;
-    phone?: string | null;
-    collage: string | null;
-    gender: string | null;
-}
-
-interface ReportIndividualRegistration {
-    user: ReportRegistrationUser;
-}
-
-interface ReportGroupRegistration {
-    id?: string;
-    user: ReportRegistrationUser;
-    members?: unknown;
-}
-
-interface ReportDetailedEvent {
-    id: string;
-    name: string;
-    category: string;
-    isGroupEvent: boolean;
-    individualRegistrations: ReportIndividualRegistration[];
-    groupRegistrations: ReportGroupRegistration[];
-}
-
-interface DailyReportItem {
-    eventId: string;
-    eventName: string;
-    eventDate: string;
-    categoryName: string;
-    isGroupEvent: boolean;
-    participants: { kl: number; other: number; total: number };
-    teams: { kl: number; other: number; total: number };
-    virtualParticipants: number;
-    physicalParticipants: number;
-    totalParticipants: number;
-}
-
-function formatEventDate(dateInput: string): string {
-    const d = new Date(dateInput);
-    if (Number.isNaN(d.getTime())) return "-";
-    return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
-}
-
-function sortByDateThenTop(a: DailyReportItem, b: DailyReportItem): number {
-    const ta = new Date(a.eventDate).getTime();
-    const tb = new Date(b.eventDate).getTime();
-    if (ta !== tb) return ta - tb;
-    if (b.totalParticipants !== a.totalParticipants) return b.totalParticipants - a.totalParticipants;
-    return a.eventName.localeCompare(b.eventName);
-}
-
-function normalizePhone(value?: string | null): string {
-    return (value || "").replace(/\D/g, "");
-}
-
-function buildParticipantKeyFromUser(user?: {
-    email?: string | null;
-    id?: string | null;
-    phone?: string | null;
-    name?: string | null;
-}): string | null {
-    if (!user) return null;
-    const email = (user.email || "").trim().toLowerCase();
-    if (email) return `email:${email}`;
-    const phone = normalizePhone(user.phone);
-    if (phone) return `phone:${phone}`;
-    const id = (user.id || "").trim();
-    if (id) return `id:${id}`;
-    const name = (user.name || "").trim().toLowerCase();
-    if (name) return `name:${name}`;
-    return null;
-}
-
-function buildParticipantKeyFromMember(member: unknown, index: number): string {
-    const m = (member || {}) as { email?: string; phone?: string; name?: string; gender?: string };
-    const email = (m.email || "").trim().toLowerCase();
-    if (email) return `email:${email}`;
-    const phone = normalizePhone(m.phone);
-    if (phone) return `phone:${phone}`;
-    const name = (m.name || "").trim().toLowerCase();
-    const gender = (m.gender || "").trim().toLowerCase();
-    return `member:${name || "unknown"}:${gender || "na"}:${index}`;
-}
-
 export default function RegistrationAnalyticsClient() {
     const [collegeStats, setCollegeStats] = useState<any>(null);
     const [categories, setCategories] = useState<CategoryAnalytics[]>([]);
     const [loading, setLoading] = useState(true);
-    const [reportLoading, setReportLoading] = useState(false);
-    const [activeReport, setActiveReport] = useState<"dailyPdf" | "dailyExcel" | "headcountExcel" | null>(null);
     const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
-    const [downloadingCategoryId, setDownloadingCategoryId] = useState<string | null>(null);
     const [expandedCompetition, setExpandedCompetition] = useState<{ categoryId: string; competitionId: string | null }>({
         categoryId: "",
         competitionId: null,
@@ -256,774 +161,6 @@ export default function RegistrationAnalyticsClient() {
 
         setLoading(false);
     };
-
-    const isKLUser = (user: ReportRegistrationUser): boolean => {
-        const email = user.email?.toLowerCase() || "";
-        const collage = (user.collage || "").toLowerCase();
-        return (
-            email.endsWith("@kluniversity.in") ||
-            collage.includes("kl university") ||
-            collage.includes("koneru") ||
-            collage.includes("klef")
-        );
-    };
-
-    const fetchReportData = async () => {
-        const [dailyResult, detailedResult] = await Promise.all([
-            getDailyReportStats(),
-            getDetailedEventRegistrations(),
-        ]);
-
-        if (!dailyResult.success || !dailyResult.data) {
-            throw new Error("Failed to fetch daily report stats");
-        }
-        if (!detailedResult.success || !detailedResult.events) {
-            throw new Error("Failed to fetch detailed registration stats");
-        }
-
-        return {
-            dailyData: dailyResult.data as DailyReportItem[],
-            detailedEvents: detailedResult.events as ReportDetailedEvent[],
-        };
-    };
-
-    const buildSummary = (detailedEvents: ReportDetailedEvent[], dailyData: DailyReportItem[]) => {
-        const summary = {
-            totalParticipants: 0,
-            overallOther: 0,
-            overallKl: 0,
-            overallMale: 0,
-            overallFemale: 0,
-            individualTotal: 0,
-            individualOther: 0,
-            individualKl: 0,
-            individualMale: 0,
-            individualFemale: 0,
-            teamTotalTeams: 0,
-            teamOtherTeams: 0,
-            teamKlTeams: 0,
-            teamOtherParticipants: 0,
-            teamKlParticipants: 0,
-            teamTotalParticipants: 0,
-            teamMale: 0,
-            teamFemale: 0,
-        };
-
-        detailedEvents.forEach((event) => {
-            event.individualRegistrations.forEach((reg) => {
-                const isKL = isKLUser(reg.user);
-                const gender = (reg.user.gender || "").toUpperCase();
-                summary.individualTotal += 1;
-                summary.totalParticipants += 1;
-                if (isKL) summary.individualKl += 1;
-                else summary.individualOther += 1;
-                if (isKL) summary.overallKl += 1;
-                else summary.overallOther += 1;
-                if (gender === "MALE") {
-                    summary.individualMale += 1;
-                    summary.overallMale += 1;
-                } else if (gender === "FEMALE") {
-                    summary.individualFemale += 1;
-                    summary.overallFemale += 1;
-                }
-            });
-
-            event.groupRegistrations.forEach((reg) => {
-                const isKL = isKLUser(reg.user);
-                const leadGender = (reg.user.gender || "").toUpperCase();
-                summary.teamTotalTeams += 1;
-                if (isKL) summary.teamKlTeams += 1;
-                else summary.teamOtherTeams += 1;
-
-                summary.teamTotalParticipants += 1;
-                summary.totalParticipants += 1;
-                if (isKL) {
-                    summary.teamKlParticipants += 1;
-                    summary.overallKl += 1;
-                } else {
-                    summary.teamOtherParticipants += 1;
-                    summary.overallOther += 1;
-                }
-                if (leadGender === "MALE") {
-                    summary.teamMale += 1;
-                    summary.overallMale += 1;
-                } else if (leadGender === "FEMALE") {
-                    summary.teamFemale += 1;
-                    summary.overallFemale += 1;
-                }
-
-                const membersValue = reg.members;
-                let membersList: Array<{ gender?: string }> = [];
-                if (Array.isArray(membersValue)) {
-                    membersList = membersValue as Array<{ gender?: string }>;
-                } else if (membersValue && typeof membersValue === "object") {
-                    membersList = Object.values(membersValue as Record<string, { gender?: string }>);
-                }
-
-                membersList.forEach((member) => {
-                    const memberGender = (member?.gender || "").toUpperCase();
-                    summary.teamTotalParticipants += 1;
-                    summary.totalParticipants += 1;
-                    if (isKL) {
-                        summary.teamKlParticipants += 1;
-                        summary.overallKl += 1;
-                    } else {
-                        summary.teamOtherParticipants += 1;
-                        summary.overallOther += 1;
-                    }
-                    if (memberGender === "MALE") {
-                        summary.teamMale += 1;
-                        summary.overallMale += 1;
-                    } else if (memberGender === "FEMALE") {
-                        summary.teamFemale += 1;
-                        summary.overallFemale += 1;
-                    }
-                });
-            });
-        });
-
-        const overallVirtualParticipants = dailyData.reduce((acc, item) => acc + item.virtualParticipants, 0);
-        const overallPhysicalParticipants = dailyData.reduce((acc, item) => acc + item.physicalParticipants, 0);
-        return { summary, overallVirtualParticipants, overallPhysicalParticipants };
-    };
-
-    const handleDownloadDailyReportPdf = async () => {
-        try {
-            setActiveReport("dailyPdf");
-            setReportLoading(true);
-            const { dailyData, detailedEvents } = await fetchReportData();
-            const { summary, overallVirtualParticipants, overallPhysicalParticipants } = buildSummary(detailedEvents, dailyData);
-
-            const doc = new jsPDF("l", "mm", "a4");
-            doc.setFontSize(16);
-            doc.text("Daily Registration Report - Category Wise", 14, 15);
-            doc.setFontSize(10);
-            doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 22);
-
-            autoTable(doc, {
-                startY: 28,
-                head: [["TOTAL PARTICIPANTS", String(summary.totalParticipants)]],
-                body: [
-                    ["Other Colleges", String(summary.overallOther)],
-                    ["KL University", String(summary.overallKl)],
-                    ["Male", String(summary.overallMale)],
-                    ["Female", String(summary.overallFemale)],
-                    ["Virtual Participants", String(overallVirtualParticipants)],
-                    ["Physical Participants", String(overallPhysicalParticipants)],
-                ],
-                theme: "grid",
-                headStyles: { fillColor: [52, 73, 94], textColor: 255, fontStyle: "bold" },
-                styles: { fontSize: 9, cellPadding: 2.5, fontStyle: "bold" },
-                margin: { left: 14, right: 14 },
-                columnStyles: { 1: { halign: "right" } },
-            });
-
-            const groupedByCategory = dailyData.reduce<Record<string, DailyReportItem[]>>((acc, item) => {
-                if (!acc[item.categoryName]) acc[item.categoryName] = [];
-                acc[item.categoryName].push(item);
-                return acc;
-            }, {});
-            const categoryNames = Object.keys(groupedByCategory).sort((a, b) => a.localeCompare(b));
-
-            let currentY = ((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? 28) + 8;
-            categoryNames.forEach((categoryName, index) => {
-                const items = groupedByCategory[categoryName].sort(sortByDateThenTop);
-                const soloItems = items.filter((item) => !item.isGroupEvent);
-                const groupItems = items.filter((item) => item.isGroupEvent);
-
-                if (currentY > 250 || (index > 0 && currentY > 230)) {
-                    doc.addPage();
-                    currentY = 20;
-                }
-
-                doc.setFontSize(12);
-                doc.setFont("helvetica", "bold");
-                doc.text(`Category: ${categoryName}`, 14, currentY);
-                currentY += 5;
-
-                if (soloItems.length > 0) {
-                    if (currentY > 245) {
-                        doc.addPage();
-                        currentY = 20;
-                    }
-                    doc.setFontSize(10);
-                    doc.text("Solo Competitions", 14, currentY);
-                    currentY += 2;
-
-                    const soloRows = soloItems.map((item) => [
-                        item.eventName,
-                        formatEventDate(item.eventDate),
-                        String(item.participants.kl),
-                        String(item.participants.other),
-                        String(item.virtualParticipants),
-                        String(item.physicalParticipants),
-                        String(item.totalParticipants),
-                    ]);
-
-                    autoTable(doc, {
-                        startY: currentY,
-                        head: [["Competition", "Event Date", "KL", "Other", "Virtual", "Physical", "Total Participants"]],
-                        body: soloRows,
-                        theme: "grid",
-                        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
-                        styles: { fontSize: 8.5, cellPadding: 2.2, fontStyle: "bold" },
-                        margin: { left: 14, right: 14 },
-                    });
-                    currentY = ((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? currentY) + 6;
-                }
-
-                if (groupItems.length > 0) {
-                    if (currentY > 245) {
-                        doc.addPage();
-                        currentY = 20;
-                    }
-                    doc.setFontSize(10);
-                    doc.text("Group Competitions", 14, currentY);
-                    currentY += 2;
-
-                    const groupRows = groupItems.map((item) => [
-                        item.eventName,
-                        formatEventDate(item.eventDate),
-                        String(item.teams.total),
-                        String(item.virtualParticipants),
-                        String(item.physicalParticipants),
-                        String(item.totalParticipants),
-                        `${item.teams.total} teams = ${item.totalParticipants} participants`,
-                    ]);
-
-                    autoTable(doc, {
-                        startY: currentY,
-                        head: [[
-                            "Competition",
-                            "Event Date",
-                            "Total Teams",
-                            "Virtual Participants",
-                            "Physical Participants",
-                            "Total Participants",
-                            "Total Teams = Total Participants",
-                        ]],
-                        body: groupRows,
-                        theme: "grid",
-                        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
-                        styles: { fontSize: 8.5, cellPadding: 2.2, fontStyle: "bold" },
-                        margin: { left: 14, right: 14 },
-                    });
-                    currentY = ((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? currentY) + 8;
-                }
-            });
-
-            doc.save(`Daily_Report_${new Date().toISOString().split("T")[0]}.pdf`);
-            toast.success("Daily report PDF downloaded");
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to generate report PDF");
-        } finally {
-            setReportLoading(false);
-            setActiveReport(null);
-        }
-    };
-
-    const handleDownloadDailyReportExcel = async () => {
-        try {
-            setActiveReport("dailyExcel");
-            setReportLoading(true);
-            const { dailyData, detailedEvents } = await fetchReportData();
-            const { summary, overallVirtualParticipants, overallPhysicalParticipants } = buildSummary(detailedEvents, dailyData);
-
-            const summarySheet = [
-                { Section: "TOTAL PARTICIPANTS", Metric: "Total Participants", Value: summary.totalParticipants },
-                { Section: "TOTAL PARTICIPANTS", Metric: "Other Colleges", Value: summary.overallOther },
-                { Section: "TOTAL PARTICIPANTS", Metric: "KL University", Value: summary.overallKl },
-                { Section: "TOTAL PARTICIPANTS", Metric: "Male", Value: summary.overallMale },
-                { Section: "TOTAL PARTICIPANTS", Metric: "Female", Value: summary.overallFemale },
-                { Section: "TOTAL PARTICIPANTS", Metric: "Virtual Participants", Value: overallVirtualParticipants },
-                { Section: "TOTAL PARTICIPANTS", Metric: "Physical Participants", Value: overallPhysicalParticipants },
-            ];
-
-            const sortedData = dailyData
-                .slice()
-                .sort(sortByDateThenTop);
-
-            const soloRows = sortedData
-                .filter((item) => !item.isGroupEvent)
-                .map((item) => ({
-                    Category: item.categoryName,
-                    Competition: item.eventName,
-                    "Event Date": formatEventDate(item.eventDate),
-                    "KL Participants": item.participants.kl,
-                    "Other Participants": item.participants.other,
-                    "Virtual Participants": item.virtualParticipants,
-                    "Physical Participants": item.physicalParticipants,
-                    "Total Participants": `${item.totalParticipants} participants`,
-                }));
-
-            const groupRows = sortedData
-                .filter((item) => item.isGroupEvent)
-                .map((item) => ({
-                    Category: item.categoryName,
-                    Competition: item.eventName,
-                    "Event Date": formatEventDate(item.eventDate),
-                    "Total Teams": `${item.teams.total} teams`,
-                    "KL Participants": item.participants.kl,
-                    "Other Participants": item.participants.other,
-                    "Virtual Participants": item.virtualParticipants,
-                    "Physical Participants": item.physicalParticipants,
-                    "Total Participants": `${item.totalParticipants} participants`,
-                }));
-
-            const competitionWiseRows = sortedData.map((item) => ({
-                Category: item.categoryName,
-                Competition: item.eventName,
-                "Event Date": formatEventDate(item.eventDate),
-                "Event Type": item.isGroupEvent ? "Group" : "Solo",
-                "Total Teams": item.isGroupEvent ? `${item.teams.total} teams` : "0 teams",
-                "KL Participants": item.participants.kl,
-                "Other Participants": item.participants.other,
-                "Virtual Participants": item.virtualParticipants,
-                "Physical Participants": item.physicalParticipants,
-                "Total Participants": `${item.totalParticipants} participants`,
-            }));
-
-            const uniqueParticipantsByCategory = new Map<string, Set<string>>();
-            detailedEvents.forEach((event) => {
-                const categoryName = event.category;
-                if (!uniqueParticipantsByCategory.has(categoryName)) {
-                    uniqueParticipantsByCategory.set(categoryName, new Set<string>());
-                }
-                const participantSet = uniqueParticipantsByCategory.get(categoryName)!;
-
-                event.individualRegistrations.forEach((reg) => {
-                    const key = buildParticipantKeyFromUser(reg.user);
-                    if (key) participantSet.add(key);
-                });
-
-                event.groupRegistrations.forEach((reg) => {
-                    const leadKey = buildParticipantKeyFromUser(reg.user);
-                    if (leadKey) participantSet.add(leadKey);
-
-                    const membersValue = reg.members;
-                    let membersList: unknown[] = [];
-                    if (Array.isArray(membersValue)) {
-                        membersList = membersValue;
-                    } else if (membersValue && typeof membersValue === "object") {
-                        membersList = Object.values(membersValue as Record<string, unknown>);
-                    }
-                    membersList.forEach((member, idx) => {
-                        participantSet.add(buildParticipantKeyFromMember(member, idx));
-                    });
-                });
-            });
-
-            const categoryTotalsMap = sortedData.reduce<Record<string, {
-                    Category: string;
-                    Competitions: number;
-                    "Solo Competitions": number;
-                    "Group Competitions": number;
-                    "Total Teams": number;
-                    "Total Participants": number;
-                    "Virtual Participants": number;
-                    "Physical Participants": number;
-                }>>((acc, item) => {
-                    if (!acc[item.categoryName]) {
-                        acc[item.categoryName] = {
-                            Category: item.categoryName,
-                            Competitions: 0,
-                            "Solo Competitions": 0,
-                            "Group Competitions": 0,
-                            "Total Teams": 0,
-                            "Total Participants": 0,
-                            "Virtual Participants": 0,
-                            "Physical Participants": 0,
-                        };
-                    }
-                    acc[item.categoryName].Competitions += 1;
-                    if (item.isGroupEvent) {
-                        acc[item.categoryName]["Group Competitions"] += 1;
-                        acc[item.categoryName]["Total Teams"] += item.teams.total;
-                    } else {
-                        acc[item.categoryName]["Solo Competitions"] += 1;
-                    }
-                    acc[item.categoryName]["Total Participants"] += item.totalParticipants;
-                    acc[item.categoryName]["Virtual Participants"] += item.virtualParticipants;
-                    acc[item.categoryName]["Physical Participants"] += item.physicalParticipants;
-                    return acc;
-                }, {});
-
-            Object.entries(categoryTotalsMap).forEach(([categoryName, categoryRow]) => {
-                const uniqueCount = uniqueParticipantsByCategory.get(categoryName)?.size;
-                if (typeof uniqueCount === "number" && uniqueCount > 0) {
-                    categoryRow["Total Participants"] = uniqueCount;
-                }
-            });
-
-            const categoryTotals = Object.values(categoryTotalsMap);
-
-            const wb = XLSX.utils.book_new();
-            const wsSummary = XLSX.utils.json_to_sheet(summarySheet);
-            wsSummary["!cols"] = [{ wch: 28 }, { wch: 36 }, { wch: 14 }];
-            const wsCompetitionWise = XLSX.utils.json_to_sheet(competitionWiseRows);
-            wsCompetitionWise["!cols"] = [
-                { wch: 22 }, { wch: 28 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 },
-                { wch: 17 }, { wch: 18 }, { wch: 19 }, { wch: 17 }, { wch: 30 },
-            ];
-            const wsSolo = XLSX.utils.json_to_sheet(soloRows);
-            wsSolo["!cols"] = [
-                { wch: 22 }, { wch: 28 }, { wch: 12 }, { wch: 14 }, { wch: 17 },
-                { wch: 18 }, { wch: 19 }, { wch: 17 },
-            ];
-            const wsGroup = XLSX.utils.json_to_sheet(groupRows);
-            wsGroup["!cols"] = [
-                { wch: 22 }, { wch: 28 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 17 },
-                { wch: 18 }, { wch: 19 }, { wch: 17 }, { wch: 30 },
-            ];
-            const wsCategoryTotals = XLSX.utils.json_to_sheet(categoryTotals);
-            wsCategoryTotals["!cols"] = [
-                { wch: 24 }, { wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 12 },
-                { wch: 18 }, { wch: 18 }, { wch: 18 },
-            ];
-            XLSX.utils.book_append_sheet(wb, wsCompetitionWise, "Competition Wise Full");
-            XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
-            XLSX.utils.book_append_sheet(wb, wsSolo, "Solo Competitions");
-            XLSX.utils.book_append_sheet(wb, wsGroup, "Group Competitions");
-            XLSX.utils.book_append_sheet(wb, wsCategoryTotals, "Category Totals");
-            XLSX.writeFile(wb, `Daily_Report_${new Date().toISOString().split("T")[0]}.xlsx`);
-            toast.success("Daily report Excel downloaded");
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to generate report Excel");
-        } finally {
-            setReportLoading(false);
-            setActiveReport(null);
-        }
-    };
-
-    const handleDownloadHeadcountExcel = async () => {
-        try {
-            setActiveReport("headcountExcel");
-            setReportLoading(true);
-
-            const detailedResult = await getDetailedEventRegistrations();
-            if (!detailedResult.success || !detailedResult.events) {
-                throw new Error("Failed to fetch detailed registration stats");
-            }
-
-            const detailedEvents = detailedResult.events as ReportDetailedEvent[];
-            const uniqueUsersByCategory = new Map<string, Map<string, {
-                name: string;
-                email: string;
-                phone: string;
-                gender: string;
-                collage: string;
-                events: Set<string>;
-            }>>();
-
-            detailedEvents.forEach((event) => {
-                const categoryName = event.category || "Uncategorized";
-                if (!uniqueUsersByCategory.has(categoryName)) {
-                    uniqueUsersByCategory.set(categoryName, new Map());
-                }
-                const usersMap = uniqueUsersByCategory.get(categoryName)!;
-
-                const upsertUser = (
-                    participantKey: string,
-                    userData: {
-                        name?: string | null;
-                        email?: string | null;
-                        phone?: string | null;
-                        gender?: string | null;
-                        collage?: string | null;
-                    }
-                ) => {
-                    const existing = usersMap.get(participantKey);
-                    const normalized = {
-                        name: (userData.name || existing?.name || "").toString().trim() || "N/A",
-                        email: (userData.email || existing?.email || "").toString().trim() || "N/A",
-                        phone: (userData.phone || existing?.phone || "").toString().trim() || "N/A",
-                        gender: (userData.gender || existing?.gender || "").toString().trim() || "N/A",
-                        collage: (userData.collage || existing?.collage || "").toString().trim() || "N/A",
-                    };
-                    const events = existing?.events || new Set<string>();
-                    events.add(event.name);
-                    usersMap.set(participantKey, { ...normalized, events });
-                };
-
-                event.individualRegistrations.forEach((reg) => {
-                    const key = buildParticipantKeyFromUser(reg.user);
-                    if (key) {
-                        upsertUser(key, {
-                            name: reg.user.name,
-                            email: reg.user.email,
-                            phone: reg.user.phone,
-                            gender: reg.user.gender,
-                            collage: reg.user.collage,
-                        });
-                    }
-                });
-
-                event.groupRegistrations.forEach((reg, regIndex) => {
-                    const leadKey = buildParticipantKeyFromUser(reg.user);
-                    if (leadKey) {
-                        upsertUser(leadKey, {
-                            name: reg.user.name,
-                            email: reg.user.email,
-                            phone: reg.user.phone,
-                            gender: reg.user.gender,
-                            collage: reg.user.collage,
-                        });
-                    }
-
-                    const membersValue = reg.members;
-                    let membersList: unknown[] = [];
-                    if (Array.isArray(membersValue)) {
-                        membersList = membersValue;
-                    } else if (membersValue && typeof membersValue === "object") {
-                        membersList = Object.values(membersValue as Record<string, unknown>);
-                    }
-
-                    membersList.forEach((member, idx) => {
-                        const m = (member || {}) as {
-                            name?: string;
-                            email?: string;
-                            phone?: string;
-                            gender?: string;
-                            collage?: string;
-                            college?: string;
-                        };
-
-                        const memberKeyByIdentity = buildParticipantKeyFromMember(member, idx);
-                        const memberKey = memberKeyByIdentity.startsWith("member:")
-                            ? `member:${categoryName}:${event.id}:${reg.id || regIndex}:${idx}`
-                            : memberKeyByIdentity;
-
-                        upsertUser(memberKey, {
-                            name: m.name,
-                            email: m.email,
-                            phone: m.phone,
-                            gender: m.gender,
-                            collage: m.collage || m.college || null,
-                        });
-                    });
-                });
-            });
-
-            const categoryRows = Array.from(uniqueUsersByCategory.entries())
-                .map(([categoryName, users]) => ({
-                    Category: categoryName,
-                    "Unique Participants (No Duplicates)": users.size,
-                }))
-                .sort((a, b) => b["Unique Participants (No Duplicates)"] - a["Unique Participants (No Duplicates)"]);
-
-            const categoryUsersRows = Array.from(uniqueUsersByCategory.entries())
-                .flatMap(([categoryName, usersMap]) =>
-                    Array.from(usersMap.values()).map((user) => ({
-                        Category: categoryName,
-                        Name: user.name,
-                        Email: user.email,
-                        Phone: user.phone,
-                        Gender: user.gender,
-                        College: user.collage,
-                        "Competitions (Within Category)": Array.from(user.events).sort((a, b) => a.localeCompare(b)).join(", "),
-                        "Competitions Count": user.events.size,
-                    }))
-                )
-                .sort((a, b) => {
-                    if (a.Category !== b.Category) return a.Category.localeCompare(b.Category);
-                    return a.Name.localeCompare(b.Name);
-                });
-
-            const wb = XLSX.utils.book_new();
-            const wsHeadcount = XLSX.utils.json_to_sheet(categoryRows);
-            wsHeadcount["!cols"] = [{ wch: 34 }, { wch: 38 }];
-
-            const wsRef = XLSX.utils.decode_range(wsHeadcount["!ref"] || "A1");
-            wsHeadcount["!autofilter"] = { ref: XLSX.utils.encode_range(wsRef) };
-
-            const wsUsers = XLSX.utils.json_to_sheet(categoryUsersRows);
-            wsUsers["!cols"] = [
-                { wch: 24 },
-                { wch: 24 },
-                { wch: 32 },
-                { wch: 18 },
-                { wch: 12 },
-                { wch: 30 },
-                { wch: 58 },
-                { wch: 20 },
-            ];
-            const usersRef = XLSX.utils.decode_range(wsUsers["!ref"] || "A1");
-            wsUsers["!autofilter"] = { ref: XLSX.utils.encode_range(usersRef) };
-
-            XLSX.utils.book_append_sheet(wb, wsHeadcount, "Category Headcount");
-            XLSX.utils.book_append_sheet(wb, wsUsers, "Category Unique Users");
-            XLSX.writeFile(wb, `Category_Headcount_Unique_${new Date().toISOString().split("T")[0]}.xlsx`);
-
-            toast.success("Category-wise unique users Excel downloaded");
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to download headcount Excel");
-        } finally {
-            setReportLoading(false);
-            setActiveReport(null);
-        }
-    };
-
-    const handleDownloadSingleCategoryExcel = (category: CategoryAnalytics) => {
-        try {
-            setDownloadingCategoryId(category.id);
-
-            const uniqueUsers = new Map<string, {
-                name: string;
-                email: string;
-                phone: string;
-                gender: string;
-                collage: string;
-                competitions: Set<string>;
-            }>();
-
-            const upsertUser = (
-                key: string,
-                details: {
-                    name?: string | null;
-                    email?: string | null;
-                    phone?: string | null;
-                    gender?: string | null;
-                    collage?: string | null;
-                },
-                competitionName: string
-            ) => {
-                const existing = uniqueUsers.get(key);
-                const competitions = existing?.competitions || new Set<string>();
-                competitions.add(competitionName);
-                uniqueUsers.set(key, {
-                    name: (details.name || existing?.name || "").trim() || "N/A",
-                    email: (details.email || existing?.email || "").trim() || "N/A",
-                    phone: (details.phone || existing?.phone || "").trim() || "N/A",
-                    gender: (details.gender || existing?.gender || "").trim() || "N/A",
-                    collage: (details.collage || existing?.collage || "").trim() || "N/A",
-                    competitions,
-                });
-            };
-
-            category.competitions.forEach((competition, compIdx) => {
-                competition.individual.registrations.forEach((reg) => {
-                    const key = buildParticipantKeyFromUser(reg.user);
-                    if (!key) return;
-                    upsertUser(
-                        key,
-                        {
-                            name: reg.user?.name,
-                            email: reg.user?.email,
-                            phone: reg.user?.phone,
-                            gender: reg.user?.gender,
-                            collage: reg.user?.collage,
-                        },
-                        competition.name
-                    );
-                });
-
-                competition.team.registrations.forEach((reg, regIdx) => {
-                    const leadKey = buildParticipantKeyFromUser(reg.user);
-                    if (leadKey) {
-                        upsertUser(
-                            leadKey,
-                            {
-                                name: reg.user?.name,
-                                email: reg.user?.email,
-                                phone: reg.user?.phone,
-                                gender: reg.user?.gender,
-                                collage: reg.user?.collage,
-                            },
-                            competition.name
-                        );
-                    }
-
-                    const members = reg.members;
-                    const membersList: unknown[] = Array.isArray(members)
-                        ? members
-                        : members && typeof members === "object"
-                            ? Object.values(members as Record<string, unknown>)
-                            : [];
-
-                    membersList.forEach((member, memberIdx) => {
-                        const m = (member || {}) as {
-                            name?: string;
-                            email?: string;
-                            phone?: string;
-                            gender?: string;
-                            collage?: string;
-                            college?: string;
-                        };
-                        const rawKey = buildParticipantKeyFromMember(member, memberIdx);
-                        const stableFallbackKey = rawKey.startsWith("member:")
-                            ? `member:${category.id}:${competition.id}:${reg.id || regIdx}:${memberIdx}:${compIdx}`
-                            : rawKey;
-
-                        upsertUser(
-                            stableFallbackKey,
-                            {
-                                name: m.name,
-                                email: m.email,
-                                phone: m.phone,
-                                gender: m.gender,
-                                collage: m.collage || m.college || null,
-                            },
-                            competition.name
-                        );
-                    });
-                });
-            });
-
-            const summaryRows = [
-                { Metric: "Category", Value: category.name },
-                { Metric: "Total Competitions", Value: category.competitions.length },
-                { Metric: "Unique Users (No Duplicates)", Value: uniqueUsers.size },
-                { Metric: "Rule", Value: "Same user in multiple events in this category counted once" },
-            ];
-
-            const usersRows = Array.from(uniqueUsers.values())
-                .map((user) => ({
-                    Category: category.name,
-                    Name: user.name,
-                    Email: user.email,
-                    Phone: user.phone,
-                    Gender: user.gender,
-                    College: user.collage,
-                    Competitions: Array.from(user.competitions).sort((a, b) => a.localeCompare(b)).join(", "),
-                    "Competition Count": user.competitions.size,
-                }))
-                .sort((a, b) => a.Name.localeCompare(b.Name));
-
-            const wb = XLSX.utils.book_new();
-
-            const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
-            wsSummary["!cols"] = [{ wch: 34 }, { wch: 56 }];
-
-            const wsUsers = XLSX.utils.json_to_sheet(usersRows);
-            wsUsers["!cols"] = [
-                { wch: 24 },
-                { wch: 24 },
-                { wch: 32 },
-                { wch: 18 },
-                { wch: 12 },
-                { wch: 30 },
-                { wch: 54 },
-                { wch: 18 },
-            ];
-            const usersRef = XLSX.utils.decode_range(wsUsers["!ref"] || "A1");
-            wsUsers["!autofilter"] = { ref: XLSX.utils.encode_range(usersRef) };
-
-            XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
-            XLSX.utils.book_append_sheet(wb, wsUsers, "Unique Users");
-            XLSX.writeFile(wb, `${category.name.replace(/[^a-zA-Z0-9]+/g, "_")}_Unique_Users_${new Date().toISOString().split("T")[0]}.xlsx`);
-
-            toast.success(`${category.name} unique users Excel downloaded`);
-        } catch (error) {
-            console.error(error);
-            toast.error(`Failed to download ${category.name} Excel`);
-        } finally {
-            setDownloadingCategoryId(null);
-        }
-    };
-
 
     if (loading) {
         return (
@@ -1063,29 +200,7 @@ export default function RegistrationAnalyticsClient() {
                                             Comprehensive registration analysis and insights for higher officials. Track registrations by category, college, and demographics with detailed breakdowns.
                                         </p>
                                     </div>
-                                    <div className="flex flex-col sm:flex-row gap-2">
-                                        <button
-                                            onClick={handleDownloadDailyReportPdf}
-                                            disabled={reportLoading}
-                                            className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50"
-                                        >
-                                            {activeReport === "dailyPdf" ? "Preparing..." : "Daily PDF"}
-                                        </button>
-                                        <button
-                                            onClick={handleDownloadDailyReportExcel}
-                                            disabled={reportLoading}
-                                            className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50"
-                                        >
-                                            {activeReport === "dailyExcel" ? "Preparing..." : "Daily Excel"}
-                                        </button>
-                                        <button
-                                            onClick={handleDownloadHeadcountExcel}
-                                            disabled={reportLoading}
-                                            className="px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50"
-                                        >
-                                            {activeReport === "headcountExcel" ? "Preparing..." : "Headcount Excel"}
-                                        </button>
-                                    </div>
+                                    
                                 </div>
                                 
                                 {/* Info badges */}
@@ -1113,65 +228,234 @@ export default function RegistrationAnalyticsClient() {
                         </div>
                     </div>
 
-                {/* Daily Report - Top Summary Tables */}
+                {/* Enhanced Overall Statistics */}
                 {collegeStats && (
-                    <div className="mb-10 sm:mb-14">
-                        <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-xl sm:text-2xl font-bold text-white">Daily Report Summary</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-10 sm:mb-14">
+                        {/* Total Participants - Enhanced */}
+                        <div className="relative group bg-gradient-to-br from-[#0a0a0f] via-[#14141a] to-[#0a0a0f] border border-blue-500/20 rounded-2xl p-6 sm:p-7 shadow-xl shadow-blue-500/5 hover:shadow-2xl hover:shadow-blue-500/15 hover:border-blue-500/40 transition-all duration-500 overflow-hidden">
+                            {/* Animated gradient overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            {/* Shine effect */}
+                            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                            
+                            <div className="relative z-10">
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex-1">
+                                        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1">Total Participants</h3>
+                                        <p className="text-3xl sm:text-4xl font-extrabold text-blue-400 mb-1 leading-tight bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent">
+                                            {collegeStats.overall.total.participants.toLocaleString()}
+                                        </p>
+                                    </div>
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/30 flex items-center justify-center shadow-lg shadow-blue-500/10 group-hover:scale-110 transition-transform duration-300">
+                                        <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div className="space-y-2.5 text-sm">
+                                    {/* Other Colleges - HIGHLIGHTED FIRST */}
+                                    <div className="relative flex justify-between items-center py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600/20 via-blue-500/15 to-blue-600/20 border-2 border-blue-500/50 backdrop-blur-sm hover:border-blue-400/70 transition-all duration-200 shadow-lg shadow-blue-500/20 animate-pulse">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-transparent to-blue-500/10 rounded-xl" />
+                                        <div className="relative flex items-center gap-3">
+                                            <div className="w-3 h-3 rounded-full bg-blue-400 shadow-lg shadow-blue-400/50 animate-pulse" />
+                                            <span className="text-white font-bold text-base">Other Colleges</span>
+                                        </div>
+                                        <span className="relative text-blue-200 font-extrabold text-xl">
+                                            {collegeStats.overall.other.participants.toLocaleString()}
+                                        </span>
+                                    </div>
+                                    {/* KL University - Secondary */}
+                                    <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-gradient-to-r from-zinc-900/50 to-zinc-800/30 border border-zinc-800/50 backdrop-blur-sm hover:border-red-500/30 transition-all duration-200">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                            <span className="text-zinc-400 font-medium">KL University</span>
+                                        </div>
+                                        <span className="text-zinc-300 font-semibold text-sm">
+                                            {collegeStats.overall.kl.participants.toLocaleString()}
+                                        </span>
+                                    </div>
+                                    {collegeStats.overall.total.gender && (
+                                        <>
+                                            <div className="pt-3 mt-3 border-t border-zinc-800/50">
+                                                <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-blue-500/5 border border-blue-500/10">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-2 h-2 rounded-full bg-blue-400" />
+                                                        <span className="text-zinc-300 text-xs font-medium">Male</span>
+                                                    </div>
+                                                    <span className="text-blue-300 font-bold">
+                                                        {collegeStats.overall.total.gender.male.toLocaleString()}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-pink-500/5 border border-pink-500/10">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-pink-400" />
+                                                    <span className="text-zinc-300 text-xs font-medium">Female</span>
+                                                </div>
+                                                <span className="text-pink-300 font-bold">
+                                                    {collegeStats.overall.total.gender.female.toLocaleString()}
+                                                </span>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
                         </div>
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-                            <div className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-5 sm:p-6">
-                                <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Total Participants</h3>
-                                <p className="text-3xl font-extrabold text-blue-400 mt-1 mb-4">
-                                    {collegeStats.overall.total.participants.toLocaleString()}
-                                </p>
-                                <div className="overflow-hidden rounded-xl border border-zinc-800">
-                                    <table className="w-full text-sm">
-                                        <tbody>
-                                            <tr className="border-b border-zinc-800"><td className="px-3 py-2 text-zinc-300">Other Colleges</td><td className="px-3 py-2 text-right font-semibold text-white">{collegeStats.overall.other.participants.toLocaleString()}</td></tr>
-                                            <tr className="border-b border-zinc-800"><td className="px-3 py-2 text-zinc-300">KL University</td><td className="px-3 py-2 text-right font-semibold text-white">{collegeStats.overall.kl.participants.toLocaleString()}</td></tr>
-                                            <tr className="border-b border-zinc-800"><td className="px-3 py-2 text-zinc-300">Male</td><td className="px-3 py-2 text-right font-semibold text-white">{(collegeStats.overall.total.gender?.male ?? 0).toLocaleString()}</td></tr>
-                                            <tr><td className="px-3 py-2 text-zinc-300">Female</td><td className="px-3 py-2 text-right font-semibold text-white">{(collegeStats.overall.total.gender?.female ?? 0).toLocaleString()}</td></tr>
-                                        </tbody>
-                                    </table>
+
+                        {/* Individual Competitions - Enhanced */}
+                        <div className="relative group bg-gradient-to-br from-[#0a0a0f] via-[#14141a] to-[#0a0a0f] border border-green-500/20 rounded-2xl p-6 sm:p-7 shadow-xl shadow-green-500/5 hover:shadow-2xl hover:shadow-green-500/15 hover:border-green-500/40 transition-all duration-500 overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-green-600/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                            
+                            <div className="relative z-10">
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex-1">
+                                        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1">Individual Registrations</h3>
+                                        <p className="text-3xl sm:text-4xl font-extrabold text-green-400 mb-1 leading-tight bg-gradient-to-r from-green-400 to-emerald-300 bg-clip-text text-transparent">
+                                            {collegeStats.individual.total.toLocaleString()}
+                                        </p>
+                                    </div>
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-600/10 border border-green-500/30 flex items-center justify-center shadow-lg shadow-green-500/10 group-hover:scale-110 transition-transform duration-300">
+                                        <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div className="space-y-2.5 text-sm">
+                                    {/* Other Colleges - HIGHLIGHTED FIRST */}
+                                    <div className="relative flex justify-between items-center py-3 px-4 rounded-xl bg-gradient-to-r from-green-600/20 via-green-500/15 to-green-600/20 border-2 border-green-500/50 backdrop-blur-sm hover:border-green-400/70 transition-all duration-200 shadow-lg shadow-green-500/20 animate-pulse">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-transparent to-green-500/10 rounded-xl" />
+                                        <div className="relative flex items-center gap-3">
+                                            <div className="w-3 h-3 rounded-full bg-green-400 shadow-lg shadow-green-400/50 animate-pulse" />
+                                            <span className="text-white font-bold text-base">Other Colleges</span>
+                                        </div>
+                                        <span className="relative text-green-200 font-extrabold text-xl">
+                                            {collegeStats.individual.other.toLocaleString()}
+                                        </span>
+                                    </div>
+                                    {/* KL University - Secondary */}
+                                    <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-gradient-to-r from-zinc-900/50 to-zinc-800/30 border border-zinc-800/50 backdrop-blur-sm hover:border-red-500/30 transition-all duration-200">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                            <span className="text-zinc-400 font-medium">KL University</span>
+                                        </div>
+                                        <span className="text-zinc-300 font-semibold text-sm">
+                                            {collegeStats.individual.kl.toLocaleString()}
+                                        </span>
+                                    </div>
+                                    {collegeStats.individual.gender && (
+                                        <>
+                                            <div className="pt-3 mt-3 border-t border-zinc-800/50">
+                                                <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-green-500/5 border border-green-500/10">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-2 h-2 rounded-full bg-green-400" />
+                                                        <span className="text-zinc-300 text-xs font-medium">Male</span>
+                                                    </div>
+                                                    <span className="text-green-300 font-bold">
+                                                        {collegeStats.individual.gender.total.male.toLocaleString()}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-pink-500/5 border border-pink-500/10">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-pink-400" />
+                                                    <span className="text-zinc-300 text-xs font-medium">Female</span>
+                                                </div>
+                                                <span className="text-pink-300 font-bold">
+                                                    {collegeStats.individual.gender.total.female.toLocaleString()}
+                                                </span>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-5 sm:p-6">
-                                <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Individual Registrations</h3>
-                                <p className="text-3xl font-extrabold text-green-400 mt-1 mb-4">
-                                    {collegeStats.individual.total.toLocaleString()}
-                                </p>
-                                <div className="overflow-hidden rounded-xl border border-zinc-800">
-                                    <table className="w-full text-sm">
-                                        <tbody>
-                                            <tr className="border-b border-zinc-800"><td className="px-3 py-2 text-zinc-300">Other Colleges</td><td className="px-3 py-2 text-right font-semibold text-white">{collegeStats.individual.other.toLocaleString()}</td></tr>
-                                            <tr className="border-b border-zinc-800"><td className="px-3 py-2 text-zinc-300">KL University</td><td className="px-3 py-2 text-right font-semibold text-white">{collegeStats.individual.kl.toLocaleString()}</td></tr>
-                                            <tr className="border-b border-zinc-800"><td className="px-3 py-2 text-zinc-300">Male</td><td className="px-3 py-2 text-right font-semibold text-white">{(collegeStats.individual.gender?.total.male ?? 0).toLocaleString()}</td></tr>
-                                            <tr><td className="px-3 py-2 text-zinc-300">Female</td><td className="px-3 py-2 text-right font-semibold text-white">{(collegeStats.individual.gender?.total.female ?? 0).toLocaleString()}</td></tr>
-                                        </tbody>
-                                    </table>
+                        {/* Team Competitions - Enhanced */}
+                        <div className="relative group bg-gradient-to-br from-[#0a0a0f] via-[#14141a] to-[#0a0a0f] border border-purple-500/20 rounded-2xl p-6 sm:p-7 shadow-xl shadow-purple-500/5 hover:shadow-2xl hover:shadow-purple-500/15 hover:border-purple-500/40 transition-all duration-500 overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                            
+                            <div className="relative z-10">
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex-1">
+                                        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1">Team Registrations</h3>
+                                        <p className="text-3xl sm:text-4xl font-extrabold text-purple-400 mb-1 leading-tight bg-gradient-to-r from-purple-400 to-purple-300 bg-clip-text text-transparent">
+                                            {collegeStats.team.total.teams.toLocaleString()}
+                                        </p>
+                                        <p className="text-xs text-zinc-500 mt-1">{collegeStats.team.total.members.toLocaleString()} total members</p>
+                                    </div>
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/30 flex items-center justify-center shadow-lg shadow-purple-500/10 group-hover:scale-110 transition-transform duration-300">
+                                        <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-5 sm:p-6">
-                                <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Team Registrations</h3>
-                                <p className="text-3xl font-extrabold text-purple-400 mt-1">
-                                    {collegeStats.team.total.teams.toLocaleString()}
-                                </p>
-                                <p className="text-xs text-zinc-500 mb-4">{collegeStats.team.total.members.toLocaleString()} total participants</p>
-                                <div className="overflow-hidden rounded-xl border border-zinc-800">
-                                    <table className="w-full text-sm">
-                                        <tbody>
-                                            <tr className="border-b border-zinc-800"><td className="px-3 py-2 text-zinc-300">Other College Teams</td><td className="px-3 py-2 text-right font-semibold text-white">{collegeStats.team.other.teams.toLocaleString()}</td></tr>
-                                            <tr className="border-b border-zinc-800"><td className="px-3 py-2 text-zinc-300">KL Teams</td><td className="px-3 py-2 text-right font-semibold text-white">{collegeStats.team.kl.teams.toLocaleString()}</td></tr>
-                                            <tr className="border-b border-zinc-800"><td className="px-3 py-2 text-zinc-300">Participants (Other College)</td><td className="px-3 py-2 text-right font-semibold text-white">{collegeStats.team.other.members.toLocaleString()}</td></tr>
-                                            <tr className="border-b border-zinc-800"><td className="px-3 py-2 text-zinc-300">Participants (KL University)</td><td className="px-3 py-2 text-right font-semibold text-white">{collegeStats.team.kl.members.toLocaleString()}</td></tr>
-                                            <tr className="border-b border-zinc-800"><td className="px-3 py-2 text-zinc-300">Total Participants</td><td className="px-3 py-2 text-right font-semibold text-white">{collegeStats.team.total.members.toLocaleString()}</td></tr>
-                                            <tr className="border-b border-zinc-800"><td className="px-3 py-2 text-zinc-300">Male</td><td className="px-3 py-2 text-right font-semibold text-white">{(collegeStats.team.total.gender?.male ?? 0).toLocaleString()}</td></tr>
-                                            <tr><td className="px-3 py-2 text-zinc-300">Female</td><td className="px-3 py-2 text-right font-semibold text-white">{(collegeStats.team.total.gender?.female ?? 0).toLocaleString()}</td></tr>
-                                        </tbody>
-                                    </table>
+                                <div className="space-y-3 text-sm">
+                                    {/* Other Colleges Teams - HIGHLIGHTED FIRST */}
+                                    <div className="relative flex justify-between items-center py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600/20 via-purple-500/15 to-purple-600/20 border-2 border-purple-500/50 backdrop-blur-sm hover:border-purple-400/70 transition-all duration-200 shadow-lg shadow-purple-500/20 animate-pulse">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-transparent to-purple-500/10 rounded-xl" />
+                                        <div className="relative flex items-center gap-3">
+                                            <div className="w-3 h-3 rounded-full bg-purple-400 shadow-lg shadow-purple-400/50 animate-pulse" />
+                                            <span className="text-white font-bold text-base">Other College Teams</span>
+                                        </div>
+                                        <span className="relative text-purple-200 font-extrabold text-xl">
+                                            {collegeStats.team.other.teams.toLocaleString()}
+                                        </span>
+                                    </div>
+                                    {/* KL University Teams - Secondary */}
+                                    <div className="flex justify-between items-center py-2.5 px-3 rounded-lg bg-gradient-to-r from-zinc-900/50 to-zinc-800/30 border border-zinc-800/50 backdrop-blur-sm hover:border-red-500/30 transition-all duration-200">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                            <span className="text-zinc-400 font-medium">KL Teams</span>
+                                        </div>
+                                        <span className="text-zinc-300 font-semibold text-sm">
+                                            {collegeStats.team.kl.teams.toLocaleString()}
+                                        </span>
+                                    </div>
+                                    {/* Other Members - HIGHLIGHTED */}
+                                    <div className="pt-3 mt-3 border-t border-purple-500/30">
+                                        <div className="relative flex justify-between items-center py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600/20 via-purple-500/15 to-purple-600/20 border-2 border-purple-500/50 backdrop-blur-sm shadow-lg shadow-purple-500/20">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-purple-400 shadow-lg shadow-purple-400/50" />
+                                                <span className="text-white font-bold text-sm">Other Members</span>
+                                            </div>
+                                            <span className="text-purple-200 font-extrabold text-xl">
+                                                {collegeStats.team.other.members.toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {/* Total Members - Secondary */}
+                                    <div className="pt-2 mt-2 border-t border-zinc-800/50">
+                                        <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-zinc-800/30 border border-zinc-700/50">
+                                            <span className="text-zinc-400 text-xs font-medium">Total Members</span>
+                                            <span className="text-zinc-300 font-semibold text-sm">
+                                                {collegeStats.team.total.members.toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {collegeStats.team.total.gender && (
+                                        <>
+                                            <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-purple-500/5 border border-purple-500/10">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-purple-400" />
+                                                    <span className="text-zinc-300 text-xs font-medium">Male</span>
+                                                </div>
+                                                <span className="text-purple-300 font-bold">
+                                                    {collegeStats.team.total.gender.male.toLocaleString()}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-pink-500/5 border border-pink-500/10">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-pink-400" />
+                                                    <span className="text-zinc-300 text-xs font-medium">Female</span>
+                                                </div>
+                                                <span className="text-pink-300 font-bold">
+                                                    {collegeStats.team.total.gender.female.toLocaleString()}
+                                                </span>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -1231,24 +515,6 @@ export default function RegistrationAnalyticsClient() {
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m3 6h-3m-2 0h-2m2 0v-2m0 2v2" />
                                                     </svg>
                                                     {category.competitions.length} Competition{category.competitions.length !== 1 ? 's' : ''}
-                                                </span>
-                                                <span
-                                                    role="button"
-                                                    tabIndex={0}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDownloadSingleCategoryExcel(category);
-                                                    }}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === "Enter" || e.key === " ") {
-                                                            e.preventDefault();
-                                                            e.stopPropagation();
-                                                            handleDownloadSingleCategoryExcel(category);
-                                                        }
-                                                    }}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-600/30 to-emerald-700/20 border border-emerald-500/40 rounded-lg text-emerald-200 text-xs font-semibold backdrop-blur-sm shadow-lg shadow-emerald-500/10 hover:from-emerald-600/40 hover:to-emerald-700/30 transition-colors cursor-pointer"
-                                                >
-                                                    {downloadingCategoryId === category.id ? "Preparing..." : "Excel Download"}
                                                 </span>
                                             </div>
                                         </div>
@@ -1861,8 +1127,8 @@ export default function RegistrationAnalyticsClient() {
                                                                                         })()}
                                                                                     </div>
 
-                                                                                    {/* Show table for current competition; when no toggle is selected, show all colleges */}
-                                                                                    {expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && (
+                                                                                    {/* Show table only when a college is selected */}
+                                                                                    {expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college && (
                                                         <div className="overflow-x-auto rounded-lg border border-zinc-800/50 bg-zinc-900/30">
                                                             <table className="w-full text-sm">
                                                                 <thead className="bg-zinc-800/50 border-b border-zinc-800/50">
@@ -1881,7 +1147,6 @@ export default function RegistrationAnalyticsClient() {
                                                                     {competition.individual.registrations
                                                                         .filter((reg: any) => {
                                                                             const isKL = isKLUniversity(reg.user);
-                                                                            if (!expandedCollege.college) return true;
                                                                             return expandedCollege.college === "kl" ? isKL : !isKL;
                                                                         })
                                                                         .map((reg: any) => (
@@ -2023,13 +1288,12 @@ export default function RegistrationAnalyticsClient() {
                                                                                         })()}
                                                                                     </div>
 
-                                                                                    {/* Enhanced Team List (defaults to all colleges if no toggle selected) */}
-                                                                                    {expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && (
+                                                                                    {/* Enhanced Team List */}
+                                                                                    {expandedCollege.categoryId === category.id && expandedCollege.competitionId === competition.id && expandedCollege.college && (
                                                                                         <div className="space-y-5">
                                                                                             {competition.team.registrations
                                                                                                 .filter((reg: any) => {
                                                                                                     const isKL = isKLUniversity(reg.user);
-                                                                                                    if (!expandedCollege.college) return true;
                                                                                                     return expandedCollege.college === "kl" ? isKL : !isKL;
                                                                                                 })
                                                                                                                                 .map((reg: any, teamIdx: number) => {

@@ -27,14 +27,8 @@ function isKLUniversity(reg: { user?: { email?: string | null; collage?: string 
     );
 }
 
-function isVirtualParticipation(reg: { isVirtual?: boolean | null; user?: { isInternational?: boolean } | null }): boolean {
-    // Legacy-safe: treat international registrations as virtual even if old rows missed isVirtual.
-    return !!reg.isVirtual || !!reg.user?.isInternational;
-}
-
 type Registration = {
     id: string;
-    isVirtual?: boolean | null;
     user: {
         name: string | null;
         email: string;
@@ -74,7 +68,6 @@ export default function RegistrationApprovalsClient() {
     const [activeTab, setActiveTab] = useState<"INDIVIDUAL" | "GROUP" | "VISITOR" | "INTERNATIONAL">("INDIVIDUAL");
     const [viewMode, setViewMode] = useState<"PENDING" | "HISTORY">("PENDING");
     const [collegeFilter, setCollegeFilter] = useState<CollegeFilter>("ALL");
-    const [exportDate, setExportDate] = useState("");
     const [filters, setFilters] = useState({
         user: "",
         event: "",
@@ -84,18 +77,23 @@ export default function RegistrationApprovalsClient() {
         actions: "",
     });
 
-    const fetchRegistrations = async () => {
+    useEffect(() => {
+        fetchRegistrations();
+    }, [viewMode]);
+
+    useEffect(() => {
+        setCollegeFilter("ALL");
+    }, [activeTab, viewMode]);
+
+    async function fetchRegistrations() {
         setLoading(true);
         const result = viewMode === "PENDING"
             ? await getPendingRegistrations()
             : await getRegistrationHistory();
 
         if (result.success && result.data) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const individual = result.data.individual.map((r: any) => ({ ...r, type: "INDIVIDUAL" }));
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const group = result.data.group.map((r: any) => ({ ...r, type: "GROUP" }));
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const visitor = (result.data.visitorPasses || []).map((p: any) => ({
                 id: p.id,
                 user: p.user || { name: null, email: "", phone: null, collage: null, collageId: null },
@@ -112,8 +110,7 @@ export default function RegistrationApprovalsClient() {
             }));
 
             // Combine and sort by date desc
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const all = [...individual, ...group, ...visitor].sort((a: any, b: any) =>
+            const all = [...individual, ...group, ...visitor].sort((a, b) =>
                 new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
             );
 
@@ -122,22 +119,7 @@ export default function RegistrationApprovalsClient() {
             toast.error("Failed to fetch registrations");
         }
         setLoading(false);
-    };
-
-    useEffect(() => {
-        fetchRegistrations();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [viewMode]);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (viewMode === "PENDING") {
-                fetchRegistrations();
-            }
-        }, 20000);
-        return () => clearInterval(interval);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [viewMode]);
+    }
 
     const handleStatusUpdate = async (
         id: string,
@@ -228,24 +210,11 @@ export default function RegistrationApprovalsClient() {
         "Actions": reg.approvedAt ? format(new Date(reg.approvedAt), "dd MMM yyyy") : format(new Date(reg.createdAt), "dd MMM yyyy"),
     });
 
-    const getActionDate = (reg: Registration) =>
-        reg.approvedAt ? new Date(reg.approvedAt) : new Date(reg.createdAt);
-
-    const toLocalDateInputValue = (date: Date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-    };
-
     const exportToXlsx = () => {
-        const dateFilteredRegistrations = exportDate
-            ? filteredRegistrations.filter((reg) => toLocalDateInputValue(getActionDate(reg)) === exportDate)
-            : filteredRegistrations;
-        const toExport = dateFilteredRegistrations.map(rowToExport);
+        const toExport = filteredRegistrations.map(rowToExport);
 
         if (toExport.length === 0) {
-            toast.error(exportDate ? "No registrations found for selected date" : "No registrations to export");
+            toast.error("No registrations to export");
             return;
         }
         try {
@@ -255,8 +224,7 @@ export default function RegistrationApprovalsClient() {
             const wb = XLSX.utils.book_new();
             const sheetName = `${activeTab}_${viewMode}${collegeFilter !== "ALL" ? `_${collegeFilter === "KL_UNIVERSITY" ? "KL" : "Other"}` : ""}`.slice(0, 31);
             XLSX.utils.book_append_sheet(wb, ws, sheetName);
-            const dateSuffix = exportDate || new Date().toISOString().split("T")[0];
-            XLSX.writeFile(wb, `registrations_${viewMode}_${activeTab}_${dateSuffix}.xlsx`);
+            XLSX.writeFile(wb, `registrations_${viewMode}_${activeTab}_${new Date().toISOString().split("T")[0]}.xlsx`);
             toast.success("Exported successfully");
         } catch (e) {
             console.error(e);
@@ -264,43 +232,16 @@ export default function RegistrationApprovalsClient() {
         }
     };
 
-    if (loading) {
-        return <Loader />;
-    }
-
     return (
         <div className="px-4 py-6">
             <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
                 <h1 className="text-3xl font-bold text-white">Registration Approvals</h1>
-                <div className="flex items-center gap-2">
-                    <input
-                        type="date"
-                        value={exportDate}
-                        onChange={(e) => setExportDate(e.target.value)}
-                        className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-600"
-                        title="Export selected date"
-                    />
-                    {exportDate && (
-                        <button
-                            onClick={() => setExportDate("")}
-                            className="px-3 py-2 bg-zinc-700/40 text-zinc-300 hover:bg-zinc-700 rounded-lg text-xs font-medium transition-colors border border-zinc-600"
-                        >
-                            Clear Date
-                        </button>
-                    )}
-                    <button
-                        onClick={fetchRegistrations}
-                        className="px-4 py-2 bg-zinc-700/50 text-zinc-200 hover:bg-zinc-700 rounded-lg text-sm font-medium transition-colors border border-zinc-600"
-                    >
-                        Refresh
-                    </button>
-                    <button
-                        onClick={exportToXlsx}
-                        className="px-4 py-2 bg-green-600/20 text-green-500 hover:bg-green-600/30 rounded-lg text-sm font-medium transition-colors border border-green-500/30"
-                    >
-                        Export XLSX
-                    </button>
-                </div>
+                <button
+                    onClick={exportToXlsx}
+                    className="px-4 py-2 bg-green-600/20 text-green-500 hover:bg-green-600/30 rounded-lg text-sm font-medium transition-colors border border-green-500/30"
+                >
+                    Export XLSX
+                </button>
             </div>
 
             {/* View Mode Toggle */}
@@ -321,11 +262,6 @@ export default function RegistrationApprovalsClient() {
                         History
                     </button>
                 </div>
-                {viewMode === "PENDING" && (
-                    <p className="text-xs text-zinc-500">
-                        Auto-refresh every 20s
-                    </p>
-                )}
             </div>
 
             {/* Tabs: horizontal scroll on mobile so International + Visitor Passes always visible */}
@@ -466,11 +402,6 @@ export default function RegistrationApprovalsClient() {
                                             : showCollegeSubTabs && collegeFilter !== "ALL"
                                             ? `No ${collegeFilter === "KL_UNIVERSITY" ? "KL University" : "other college"} ${viewMode === "PENDING" ? "pending " : ""}${activeTab.toLowerCase()} registrations found.`
                                             : `No ${viewMode === "PENDING" ? "pending " : ""}${activeTab.toLowerCase().replace("_", " ")} registrations found.`}
-                                        {viewMode === "PENDING" && (
-                                            <div className="text-xs text-zinc-600 mt-2">
-                                                Switch to All Statuses or History to view already approved/rejected registrations.
-                                            </div>
-                                        )}
                                     </td>
                                 </tr>
                             ) : (
@@ -479,11 +410,6 @@ export default function RegistrationApprovalsClient() {
                                         <td className="px-6 py-4">
                                             <div className="font-medium text-white flex items-center gap-2">
                                                 {reg.user.name || "Unknown"}
-                                                {isVirtualParticipation(reg) && (
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-sky-900/30 text-sky-400 border border-sky-700/50">
-                                                        Virtual Participation
-                                                    </span>
-                                                )}
                                                 {reg.user.isInternational && (
                                                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-900/30 text-amber-400 border border-amber-700/50">
                                                         International

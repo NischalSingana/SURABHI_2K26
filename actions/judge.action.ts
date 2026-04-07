@@ -65,59 +65,49 @@ export async function createJudgeAccount(eventId: string, passwordPlain: string 
             return { success: false, error: "Event not found" };
         }
 
-        // Generate auto-email — retry up to 5 times if collision
-        let email = "";
-        let randomSuffix = 0;
-        let emailTaken = true;
-        for (let i = 0; i < 5 && emailTaken; i++) {
-            randomSuffix = Math.floor(1000 + Math.random() * 9000);
-            email = `judge.${event.slug}.${randomSuffix}@klusurabhi.in`;
-            const existing = await prisma.user.findUnique({ where: { email } });
-            emailTaken = !!existing;
-        }
-        if (emailTaken) return { success: false, error: "Could not generate unique email. Try again." };
-
+        // Generate auto-email
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000); // 4 digit random
+        const email = `judge.${event.slug}.${randomSuffix}@klusurabhi.in`;
         const name = `Judge - ${event.name} (${randomSuffix})`;
 
+        // Determine password
+        // If MASTER provided one, use it.
+        // If ADMIN creating (passwordPlain null), generate a random secure one that no one knows (they must be reset by MASTER later theoretically, or just used purely for existence)
+        // But user said "MASTER WILL SET password". This implies initially it might not have a known password? 
+        // Or I can generate a random one.
         const effectivePasswordPlain = passwordPlain || crypto.randomUUID();
         const hashedPassword = await hash(effectivePasswordPlain, 10);
-        const storedJudgePassword = passwordPlain ? passwordPlain : null;
+        const storedJudgePassword = passwordPlain ? passwordPlain : null; // Only store if explicitly set by Master
 
-        const userId = crypto.randomUUID();
-
-        // Use a transaction to create user + account atomically
-        await prisma.$transaction([
-            prisma.user.create({
-                data: {
-                    id: userId,
-                    email,
-                    name,
-                    role: "JUDGE",
-                    assignedEventId: eventId,
-                    password: hashedPassword,
-                    judgePassword: storedJudgePassword,
-                    emailVerified: true,
+        // Create new user
+        await prisma.user.create({
+            data: {
+                id: crypto.randomUUID(),
+                email,
+                name,
+                role: "JUDGE",
+                assignedEventId: eventId,
+                password: hashedPassword,
+                judgePassword: storedJudgePassword,
+                emailVerified: true,
+                accounts: {
+                    create: {
+                        id: crypto.randomUUID(),
+                        accountId: email,
+                        providerId: "credential",
+                        password: hashedPassword,
+                        accessToken: crypto.randomUUID(),
+                    }
                 }
-            }),
-            prisma.account.create({
-                data: {
-                    id: crypto.randomUUID(),
-                    userId,
-                    accountId: email,
-                    providerId: "credential",
-                    password: hashedPassword,
-                    accessToken: crypto.randomUUID(),
-                }
-            }),
-        ]);
+            }
+        });
 
         revalidatePath("/admin/judges");
         return { success: true, email };
 
     } catch (error) {
         console.error("Error creating judge:", error);
-        const msg = error instanceof Error ? error.message : String(error);
-        return { success: false, error: `Failed to create judge: ${msg}` };
+        return { success: false, error: "Failed to create judge account" };
     }
 }
 
@@ -133,8 +123,7 @@ export async function updateJudgePassword(judgeId: string, newPasswordPlain: str
 
         const hashedPassword = await hash(newPasswordPlain, 10);
 
-        // Update the user's password field
-        const judge = await prisma.user.update({
+        await prisma.user.update({
             where: { id: judgeId },
             data: {
                 password: hashedPassword,
@@ -142,28 +131,18 @@ export async function updateJudgePassword(judgeId: string, newPasswordPlain: str
             }
         });
 
-        // Upsert the account password — better-auth uses providerId 'credential' for email+password sign-in
-        const existingAccount = await prisma.account.findFirst({
-            where: { userId: judgeId, providerId: "credential" }
-        });
-
-        if (existingAccount) {
-            await prisma.account.update({
-                where: { id: existingAccount.id },
-                data: { password: hashedPassword }
+        // Update account too
+        const judge = await prisma.user.findUnique({ where: { id: judgeId } });
+        if (judge) {
+            const account = await prisma.account.findFirst({
+                where: { userId: judgeId, providerId: 'credential' }
             });
-        } else {
-            // Create the account record if missing (edge case)
-            await prisma.account.create({
-                data: {
-                    id: crypto.randomUUID(),
-                    userId: judgeId,
-                    accountId: judge.email,
-                    providerId: "credential",
-                    password: hashedPassword,
-                    accessToken: crypto.randomUUID(),
-                }
-            });
+            if (account) {
+                await prisma.account.update({
+                    where: { id: account.id },
+                    data: { password: hashedPassword }
+                });
+            }
         }
 
         revalidatePath("/admin/judges");

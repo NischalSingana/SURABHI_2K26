@@ -557,7 +557,7 @@ export default function MultiStepEventForm({
                             type="button"
                             onClick={() => {
                               const val = parseInt(formData.minTeamSize as unknown as string) || 0;
-                              setFormData({ ...formData, minTeamSize: Math.max(1, val - 1).toString() });
+                              setFormData({ ...formData, minTeamSize: Math.max(0, val - 1).toString() });
                             }}
                             className="bg-zinc-700 hover:bg-zinc-600 text-white p-3 rounded-l-lg border-y border-l border-zinc-600 transition-colors"
                           >
@@ -567,7 +567,7 @@ export default function MultiStepEventForm({
                             <FiUsers className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 z-10" />
                             <input
                               type="number"
-                              min="1"
+                              min="2"
                               value={formData.minTeamSize}
                               onChange={(e) =>
                                 setFormData({
@@ -599,7 +599,7 @@ export default function MultiStepEventForm({
                             type="button"
                             onClick={() => {
                               const val = parseInt(formData.maxTeamSize as unknown as string) || 0;
-                              setFormData({ ...formData, maxTeamSize: Math.max(1, val - 1).toString() });
+                              setFormData({ ...formData, maxTeamSize: Math.max(0, val - 1).toString() });
                             }}
                             className="bg-zinc-700 hover:bg-zinc-600 text-white p-3 rounded-l-lg border-y border-l border-zinc-600 transition-colors"
                           >

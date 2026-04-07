@@ -3,7 +3,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { checkVirtualEligibility } from "@/lib/virtual-eligibility";
-import { isOnlineRegistrationClosed, ONLINE_REG_CLOSED_MESSAGE } from "@/lib/registration-deadline";
 import { Role, Prisma, PaymentStatus } from "@prisma/client";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -24,35 +23,6 @@ function generateSlug(text: string) {
     .replace(/\-\-+/g, "-")
     .replace(/^-+/, "")
     .replace(/-+$/, "");
-}
-
-function isKLStudentProfile(user: { email?: string | null; collage?: string | null }): boolean {
-  return !!user.email?.toLowerCase().endsWith("@kluniversity.in") || user.collage?.toLowerCase() === "kl university";
-}
-
-function isKurukshetraEvent(categoryName?: string | null): boolean {
-  return (categoryName ?? "").toLowerCase().includes("kurukshetra");
-}
-
-function isEsportsCategory(categoryName?: string | null): boolean {
-  const normalized = (categoryName ?? "").toLowerCase();
-  return normalized.includes("kurukshetra") || normalized.includes("esport");
-}
-
-function isRaagaCategory(categoryName?: string | null): boolean {
-  const normalized = (categoryName ?? "").toLowerCase();
-  return normalized.includes("raaga");
-}
-
-function isNationalMockParliamentEventName(eventName?: string | null): boolean {
-  return (eventName ?? "").toLowerCase().includes("national mock parliament");
-}
-
-function getEffectiveParticipantLimit(event: { name?: string | null; participantLimit: number }): number {
-  if (isNationalMockParliamentEventName(event.name)) {
-    return 150;
-  }
-  return event.participantLimit;
 }
 
 
@@ -90,227 +60,7 @@ export async function deleteRegistration(id: string, type: 'INDIVIDUAL' | 'GROUP
     return { success: true, message: "Registration deleted successfully" };
   } catch (error) {
     console.error("Error deleting registration:", error);
-    return { success: false, error: (error as Error).message };
-  }
-}
-
-/**
- * Reset an approved registration to PENDING. Only MASTER can do this.
- * The registration will reappear in /admin/registrations/approvals for re-approval.
- * When re-approved, the confirmation email will be sent again.
- */
-export async function resetRegistrationToPending(id: string, type: "INDIVIDUAL" | "GROUP") {
-  try {
-    const headersList = await headers();
-    const session = await auth.api.getSession({
-      headers: headersList,
-    });
-
-    if (!session || session.user.role !== Role.MASTER) {
-      return { success: false, error: "Unauthorized. Only MASTER can reset registrations to pending." };
-    }
-
-    if (type === "INDIVIDUAL") {
-      const existing = await prisma.individualRegistration.findUnique({
-        where: { id },
-        select: { paymentStatus: true },
-      });
-      if (!existing || existing.paymentStatus !== "APPROVED") {
-        return { success: false, error: "Registration not found or not approved." };
-      }
-      await prisma.individualRegistration.update({
-        where: { id },
-        data: {
-          paymentStatus: PaymentStatus.PENDING,
-          approvedBy: null,
-          approvedAt: null,
-        },
-      });
-    } else {
-      const existing = await prisma.groupRegistration.findUnique({
-        where: { id },
-        select: { paymentStatus: true },
-      });
-      if (!existing || existing.paymentStatus !== "APPROVED") {
-        return { success: false, error: "Registration not found or not approved." };
-      }
-      await prisma.groupRegistration.update({
-        where: { id },
-        data: {
-          paymentStatus: PaymentStatus.PENDING,
-          approvedBy: null,
-          approvedAt: null,
-        },
-      });
-    }
-
-    revalidatePath("/admin/competitions");
-    revalidatePath("/admin/registrations/approvals");
-    revalidatePath("/admin/events");
-    revalidatePath("/profile");
-    revalidatePath("/profile/competitions");
-    revalidatePath("/competitions");
-
-    return { success: true, message: "Registration reset to pending. It will appear in Registrations > Approvals for re-approval." };
-  } catch (error) {
-    console.error("Error resetting registration to pending:", error);
-    return { success: false, error: (error as Error).message };
-  }
-}
-
-/** Editable fields for individual participant (stored in User) */
-export type IndividualParticipantEdit = {
-  name?: string;
-  email?: string;
-  phone?: string;
-  collage?: string;
-  collageId?: string;
-  branch?: string;
-  year?: number | null;
-  city?: string;
-  state?: string;
-  gender?: string;
-  country?: string;
-};
-
-/**
- * Update individual participant details (User record). Admin and Master only.
- * Use when participant provided wrong info - then reset to pending and re-approve for updated pass.
- */
-export async function updateIndividualParticipantDetails(userId: string, data: IndividualParticipantEdit) {
-  try {
-    const headersList = await headers();
-    const session = await auth.api.getSession({ headers: headersList });
-
-    if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
-      return { success: false, error: "Unauthorized. Admin or Master only." };
-    }
-
-    const updateData: Record<string, unknown> = {};
-    if (data.name !== undefined) updateData.name = data.name;
-    if (data.email !== undefined) updateData.email = data.email;
-    if (data.phone !== undefined) updateData.phone = data.phone;
-    if (data.collage !== undefined) updateData.collage = data.collage;
-    if (data.collageId !== undefined) updateData.collageId = data.collageId;
-    if (data.branch !== undefined) updateData.branch = data.branch;
-    if (data.year !== undefined) updateData.year = data.year;
-    if (data.city !== undefined) updateData.city = data.city;
-    if (data.state !== undefined) updateData.state = data.state;
-    if (data.gender !== undefined) updateData.gender = data.gender;
-    if (data.country !== undefined) updateData.country = data.country;
-
-    if (Object.keys(updateData).length === 0) {
-      return { success: false, error: "No fields to update." };
-    }
-
-    if (data.email !== undefined) {
-      const existing = await prisma.user.findFirst({
-        where: { email: data.email, id: { not: userId } },
-      });
-      if (existing) {
-        return { success: false, error: "Email already in use by another user." };
-      }
-    }
-
-    await prisma.user.update({
-      where: { id: userId },
-      data: updateData as Prisma.UserUpdateInput,
-    });
-
-    revalidatePath("/admin/competitions");
-    revalidatePath("/admin/registrations/approvals");
-    revalidatePath("/profile");
-    revalidatePath("/profile/competitions");
-    return { success: true, message: "Participant details updated. Reset to pending and re-approve to send updated pass." };
-  } catch (error) {
-    console.error("Error updating individual participant:", error);
-    return { success: false, error: (error as Error).message };
-  }
-}
-
-/** Editable fields for group - team lead (User) and group record */
-export type GroupParticipantEdit = {
-  groupName?: string;
-  mentorName?: string;
-  mentorPhone?: string;
-  teamLead?: IndividualParticipantEdit;
-  members?: Prisma.JsonValue; // Array or object of member records
-};
-
-/**
- * Update group participant details (team lead User + GroupRegistration). Admin and Master only.
- */
-export async function updateGroupParticipantDetails(
-  groupRegId: string,
-  data: GroupParticipantEdit
-) {
-  try {
-    const headersList = await headers();
-    const session = await auth.api.getSession({ headers: headersList });
-
-    if (!session || (session.user.role !== Role.ADMIN && session.user.role !== Role.MASTER)) {
-      return { success: false, error: "Unauthorized. Admin or Master only." };
-    }
-
-    const reg = await prisma.groupRegistration.findUnique({
-      where: { id: groupRegId },
-      select: { userId: true, members: true },
-    });
-    if (!reg) return { success: false, error: "Group registration not found." };
-
-    if (data.teamLead && Object.keys(data.teamLead).length > 0) {
-      const updateData: Record<string, unknown> = {};
-      const t = data.teamLead;
-      if (t.name !== undefined) updateData.name = t.name;
-      if (t.email !== undefined) updateData.email = t.email;
-      if (t.phone !== undefined) updateData.phone = t.phone;
-      if (t.collage !== undefined) updateData.collage = t.collage;
-      if (t.collageId !== undefined) updateData.collageId = t.collageId;
-      if (t.branch !== undefined) updateData.branch = t.branch;
-      if (t.year !== undefined) updateData.year = t.year;
-      if (t.city !== undefined) updateData.city = t.city;
-      if (t.state !== undefined) updateData.state = t.state;
-      if (t.gender !== undefined) updateData.gender = t.gender;
-      if (t.country !== undefined) updateData.country = t.country;
-
-      if (t.email !== undefined) {
-        const existing = await prisma.user.findFirst({
-          where: { email: t.email, id: { not: reg.userId } },
-        });
-        if (existing) {
-          return { success: false, error: "Email already in use by another user." };
-        }
-      }
-
-      if (Object.keys(updateData).length > 0) {
-        await prisma.user.update({
-          where: { id: reg.userId },
-          data: updateData as Prisma.UserUpdateInput,
-        });
-      }
-    }
-
-    const regUpdate: Record<string, unknown> = {};
-    if (data.groupName !== undefined) regUpdate.groupName = data.groupName;
-    if (data.mentorName !== undefined) regUpdate.mentorName = data.mentorName;
-    if (data.mentorPhone !== undefined) regUpdate.mentorPhone = data.mentorPhone;
-    if (data.members !== undefined) regUpdate.members = data.members;
-
-    if (Object.keys(regUpdate).length > 0) {
-      await prisma.groupRegistration.update({
-        where: { id: groupRegId },
-        data: regUpdate as Prisma.GroupRegistrationUpdateInput,
-      });
-    }
-
-    revalidatePath("/admin/competitions");
-    revalidatePath("/admin/registrations/approvals");
-    revalidatePath("/profile");
-    revalidatePath("/profile/competitions");
-    return { success: true, message: "Group details updated. Reset to pending and re-approve to send updated pass." };
-  } catch (error) {
-    console.error("Error updating group participant:", error);
-    return { success: false, error: (error as Error).message };
+    return { success: false, error: "Failed to delete registration" };
   }
 }
 
@@ -424,24 +174,7 @@ export async function getCategories(includeFullData: boolean = true): Promise<{ 
           createdAt: "desc",
         },
       });
-      const filtered = categories.map((cat) => ({
-        ...cat,
-        Event: cat.Event.map((event) => {
-          const approvedUserIds = new Set([
-            ...event.individualRegistrations
-              .filter((r) => r.paymentStatus === "APPROVED")
-              .map((r) => r.user.id),
-            ...event.groupRegistrations
-              .filter((r) => r.paymentStatus === "APPROVED")
-              .map((r) => r.user.id),
-          ]);
-          return {
-            ...event,
-            submissions: event.submissions.filter((s) => approvedUserIds.has(s.userId)),
-          };
-        }),
-      }));
-      return { success: true, data: filtered };
+      return { success: true, data: categories };
     } else {
       // Lightweight data for public pages
       const categories = await prisma.category.findMany({
@@ -906,31 +639,11 @@ export async function deleteEvent(id: string) {
 
 interface GroupMember {
   name: string;
+  phone: string;
   gender: string;
-  collage?: string | null;
-  branch?: string | null;
-  collageId?: string | null;
-  phone?: string | null;
   inGameName?: string;
   inGameId?: string;  // Free Fire, BGMI
   riotId?: string;    // Valorant
-}
-
-async function withTransactionRetry<T>(operation: () => Promise<T>, retries = 2): Promise<T> {
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      return await operation();
-    } catch (error: unknown) {
-      const isRetryable =
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        (error.code === "P2034" || error.code === "P1001");
-      if (!isRetryable || attempt === retries) {
-        throw error;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 150 * (attempt + 1)));
-    }
-  }
-  throw new Error("Unexpected transaction retry exhaustion");
 }
 
 export async function getUserByEmail(email: string) {
@@ -983,45 +696,32 @@ export async function registerGroupEvent(
       return { success: false, error: "Please login to register for events" };
     }
 
-    const userWithState = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { state: true, email: true, isInternational: true, collage: true },
-    });
-    const isInternationalStudent = !!userWithState?.isInternational;
-    const effectiveIsVirtual = isInternationalStudent ? true : !!isVirtual;
+    const isKLStudent = session.user.email.endsWith("@kluniversity.in");
+    const isInternational = !!(session.user as { isInternational?: boolean }).isInternational;
 
-    if (!paymentDetails && !isInternationalStudent) {
-      return { success: false, error: "Payment details are required." };
+    if (!isKLStudent && !isInternational && !paymentDetails) {
+      return { success: false, error: "Payment details are required for non-KL and non-international students." };
     }
-    const eventMeta = await prisma.event.findUnique({
-      where: { id: eventId },
-      select: { name: true, Category: { select: { name: true } } },
-    });
-    const isRaaga = isRaagaCategory(eventMeta?.Category?.name);
-    if (!isInternationalStudent && !isEsportsCategory(eventMeta?.Category?.name) && !isRaaga) {
-      return { success: false, error: "Registrations are currently open only for eSports competitions." };
-    }
-    const kurukshetraEvent = isKurukshetraEvent(eventMeta?.Category?.name);
-    if (!isInternationalStudent && isOnlineRegistrationClosed() && !kurukshetraEvent && !isRaaga) {
-      return { success: false, error: ONLINE_REG_CLOSED_MESSAGE };
-    }
-    const isKLStudent = isKLStudentProfile({
-      email: userWithState?.email ?? session.user.email,
-      collage: userWithState?.collage ?? null,
-    });
 
-    if (!isInternationalStudent && kurukshetraEvent) {
-      if (isKLStudent && effectiveIsVirtual) {
-        return { success: false, error: "Kurukshetra: KL students must register in physical mode only (₹350 per member)." };
-      }
-      if (!isKLStudent && !effectiveIsVirtual) {
-        return { success: false, error: "Kurukshetra: Other college/international participants must register in virtual mode only (₹150 per member)." };
+    // Validate virtual eligibility for AP/Telangana - must be physical
+    if (isVirtual && !isKLStudent && !isInternational) {
+      const userWithState = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { state: true, email: true, isInternational: true },
+      });
+      const eligibility = checkVirtualEligibility({
+        email: userWithState?.email,
+        state: userWithState?.state ?? undefined,
+        isInternational: userWithState?.isInternational ?? false,
+      });
+      if (!eligibility.isEligible) {
+        return { success: false, error: eligibility.reason ?? "You are not eligible for virtual participation." };
       }
     }
 
-    const paymentStatus = "PENDING";
+    const paymentStatus = (isKLStudent || isInternational) ? "APPROVED" : "PENDING";
 
-    const registrationResult = await withTransactionRetry(() => prisma.$transaction(
+    const registrationResult = await prisma.$transaction(
       async (tx) => {
         const event = await tx.event.findUnique({
           where: { id: eventId },
@@ -1040,9 +740,8 @@ export async function registerGroupEvent(
         }
 
         const currentParticipants = event._count.individualRegistrations + event._count.groupRegistrations;
-        const participantLimit = getEffectiveParticipantLimit(event);
 
-        if (currentParticipants >= participantLimit) {
+        if (currentParticipants >= event.participantLimit) {
           throw new Error(EVENT_FULL_ERROR);
         }
 
@@ -1076,7 +775,7 @@ export async function registerGroupEvent(
             mentorName,
             mentorPhone,
             members: members as unknown as Prisma.InputJsonValue, // Storing manual details
-            isVirtual: effectiveIsVirtual,
+            isVirtual: isVirtual || false,
             registrationDetails: registrationDetails || undefined,
             paymentScreenshot: paymentDetails?.paymentScreenshot || null,
             utrId: paymentDetails?.utrId || null,
@@ -1089,11 +788,38 @@ export async function registerGroupEvent(
         return { success: true, teamLead: null, event, groupName, members, paymentStatus }; // teamLead null here to fetch outside tx if needed, but we used tx above.
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
-    ));
+    );
 
 
     revalidatePath("/events");
     revalidatePath("/profile");
+
+    // International: send virtual participation email (no PDF) - Zoom link sent 2 days before
+    if (registrationResult.success && registrationResult.paymentStatus === "APPROVED" && isInternational && registrationResult.event) {
+      (async () => {
+        try {
+          const userFull = await prisma.user.findUnique({
+            where: { id: session.user!.id },
+            select: { id: true, name: true, email: true },
+          });
+          if (!userFull) return;
+          const ev = registrationResult.event!;
+          const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
+          await sendEventConfirmationEmail(
+            { name: userFull.name || "Team Lead", email: userFull.email },
+            { name: ev.name, date: ev.date, venue: "Virtual", startTime: ev.startTime ?? undefined, endTime: ev.endTime ?? undefined },
+            null,
+            "GROUP",
+            { groupName: registrationResult.groupName || "Team", members: registrationResult.members || [] },
+            { termsAndConditions: ev.termsandconditions, virtualTermsAndConditions: ev.virtualTermsAndConditions, whatsappLink: ev.whatsappLink },
+            true,
+            true
+          );
+        } catch (e) {
+          console.error("Failed to send international group registration email", e);
+        }
+      })();
+    }
 
     // Special message for pending users
     if (registrationResult.success && registrationResult.paymentStatus === "PENDING") {
@@ -1186,46 +912,43 @@ export async function registerForEvent(
       return { success: false, error: "Please login to register for events" };
     }
 
-    const userWithState = await prisma.user.findUnique({
+    const isKLStudent = session.user.email.endsWith("@kluniversity.in");
+    const isInternational = !!(session.user as { isInternational?: boolean }).isInternational;
+
+    if (!isKLStudent && !isInternational && !paymentDetails) {
+      return { success: false, error: "Payment details are required for non-KL and non-international students." };
+    }
+
+    const paymentStatus = (isKLStudent || isInternational) ? "APPROVED" : "PENDING";
+
+    // Check approval status
+    const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { state: true, email: true, isInternational: true, collage: true },
-    });
-    const isInternationalStudent = !!userWithState?.isInternational;
-    const effectiveIsVirtual = isInternationalStudent ? true : !!isVirtual;
-
-    if (!paymentDetails && !isInternationalStudent) {
-      return { success: false, error: "Payment details are required." };
-    }
-    const eventMeta = await prisma.event.findUnique({
-      where: { id: eventId },
-      select: { name: true, Category: { select: { name: true } } },
-    });
-    const isRaaga2 = isRaagaCategory(eventMeta?.Category?.name);
-    if (!isInternationalStudent && !isEsportsCategory(eventMeta?.Category?.name) && !isRaaga2) {
-      return { success: false, error: "Registrations are currently open only for eSports competitions." };
-    }
-    const kurukshetraEvent2 = isKurukshetraEvent(eventMeta?.Category?.name);
-    if (!isInternationalStudent && isOnlineRegistrationClosed() && !kurukshetraEvent2 && !isRaaga2) {
-      return { success: false, error: ONLINE_REG_CLOSED_MESSAGE };
-    }
-    const isKLStudent = isKLStudentProfile({
-      email: userWithState?.email ?? session.user.email,
-      collage: userWithState?.collage ?? null,
+      select: { isApproved: true }
     });
 
-    if (!isInternationalStudent && kurukshetraEvent2) {
-      if (isKLStudent && effectiveIsVirtual) {
-        return { success: false, error: "Kurukshetra: KL students must register in physical mode only (₹350 per member)." };
-      }
-      if (!isKLStudent && !effectiveIsVirtual) {
-        return { success: false, error: "Kurukshetra: Other college/international participants must register in virtual mode only (₹150 per member)." };
+    if (!user?.isApproved) {
+      return { success: false, error: "Please wait till admin approves your registration." };
+    }
+
+    // Validate virtual eligibility for AP/Telangana - must be physical
+    if (isVirtual && !isKLStudent && !isInternational) {
+      const userWithState = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { state: true, email: true, isInternational: true },
+      });
+      const eligibility = checkVirtualEligibility({
+        email: userWithState?.email,
+        state: userWithState?.state ?? undefined,
+        isInternational: userWithState?.isInternational ?? false,
+      });
+      if (!eligibility.isEligible) {
+        return { success: false, error: eligibility.reason ?? "You are not eligible for virtual participation." };
       }
     }
-
-    const paymentStatus = "PENDING";
 
     // Use transaction with serializable isolation to prevent race conditions
-    const registrationResult = await withTransactionRetry(() => prisma.$transaction(
+    const registrationResult = await prisma.$transaction(
       async (tx) => {
         const event = await tx.event.findUnique({
           where: { id: eventId },
@@ -1244,9 +967,8 @@ export async function registerForEvent(
         }
 
         const currentParticipants = event._count.individualRegistrations + event._count.groupRegistrations;
-        const participantLimit = getEffectiveParticipantLimit(event);
 
-        if (currentParticipants >= participantLimit) {
+        if (currentParticipants >= event.participantLimit) {
           return { success: false, error: "Event is full" };
         }
 
@@ -1278,7 +1000,7 @@ export async function registerForEvent(
           data: {
             userId: session.user.id,
             eventId: eventId,
-            isVirtual: effectiveIsVirtual,
+            isVirtual: isVirtual || false,
             registrationDetails: registrationDetails || undefined,
             paymentScreenshot: paymentDetails?.paymentScreenshot || null,
             utrId: paymentDetails?.utrId || null,
@@ -1291,7 +1013,6 @@ export async function registerForEvent(
         const updated = await tx.event.findUnique({
           where: { id: eventId },
           select: {
-            name: true,
             participantLimit: true,
             _count: {
               select: {
@@ -1302,12 +1023,7 @@ export async function registerForEvent(
           },
         });
 
-        if (!updated) {
-          throw new Error(EVENT_FULL_ERROR);
-        }
-
-        const updatedParticipantLimit = getEffectiveParticipantLimit(updated);
-        if ((updated._count.individualRegistrations + updated._count.groupRegistrations) > updatedParticipantLimit) {
+        if (!updated || (updated._count.individualRegistrations + updated._count.groupRegistrations) > updated.participantLimit) {
           throw new Error(EVENT_FULL_ERROR);
         }
 
@@ -1337,7 +1053,7 @@ export async function registerForEvent(
         return { success: true, user: session.user, event, paymentStatus };
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
-    ));
+    );
 
     if (!registrationResult.success) {
       return registrationResult;
@@ -1346,6 +1062,33 @@ export async function registerForEvent(
     // Special message for pending users
     if (registrationResult.success && registrationResult.paymentStatus === "PENDING") {
       return { success: true, message: "Registration submitted! Please wait for admin to review and approve your registration. You'll receive an email when confirmed." };
+    }
+
+    // International: send virtual participation email (no PDF) - Zoom link sent 2 days before
+    if (registrationResult.success && registrationResult.paymentStatus === "APPROVED" && isInternational && registrationResult.event) {
+      (async () => {
+        try {
+          const userFull = await prisma.user.findUnique({
+            where: { id: session.user!.id },
+            select: { id: true, name: true, email: true },
+          });
+          if (!userFull) return;
+          const ev = registrationResult.event!;
+          const { sendEventConfirmationEmail } = await import("@/lib/zeptomail");
+          await sendEventConfirmationEmail(
+            { name: userFull.name || "Participant", email: userFull.email },
+            { name: ev.name, date: ev.date, venue: "Virtual", startTime: ev.startTime ?? undefined, endTime: ev.endTime ?? undefined },
+            null,
+            "INDIVIDUAL",
+            undefined,
+            { termsAndConditions: ev.termsandconditions, virtualTermsAndConditions: ev.virtualTermsAndConditions, whatsappLink: ev.whatsappLink },
+            true,
+            true
+          );
+        } catch (e) {
+          console.error("Failed to send international registration email", e);
+        }
+      })();
     }
 
     // For approved registrations (KL students), just return success
@@ -1505,13 +1248,6 @@ export async function unregisterFromEvent(eventId: string) {
       return { success: false, error: "Please login to unregister from events" };
     }
 
-    // Only International students can unregister
-    // KL students and other college students cannot unregister once registered/paid
-    const isInternational = !!(session.user as { isInternational?: boolean }).isInternational;
-    if (!isInternational) {
-      return { success: false, error: "Unregistration is disabled. Please contact support if you have issues." };
-    }
-
     // Delete individual registration
     await prisma.individualRegistration.deleteMany({
       where: {
@@ -1547,27 +1283,6 @@ export async function registerUserByAdmin(
     paymentScreenshot: string;
     utrId: string;
     payeeName: string;
-  },
-  groupDetails?: {
-    groupName: string;
-    members: GroupMember[];
-    mentorName?: string;
-    mentorPhone?: string;
-    teamLeadInGameName?: string;
-    teamLeadInGameId?: string;
-    teamLeadRiotId?: string;
-  },
-  adminOptions?: {
-    isVirtual?: boolean;
-    createUserIfNotFound?: boolean;
-    newUserGender?: "MALE" | "FEMALE";
-    allowSameEmailMultipleRegistrations?: boolean;
-    communicationOnlyEmail?: boolean;
-    manualLeadName?: string;
-    manualLeadPhone?: string;
-    manualLeadGender?: "MALE" | "FEMALE" | "OTHER";
-    manualCollegeName?: string;
-    allowManager?: boolean;
   }
 ) {
   try {
@@ -1576,101 +1291,27 @@ export async function registerUserByAdmin(
       headers: headersList,
     });
 
-    const allowManager = (adminOptions as { allowManager?: boolean } | undefined)?.allowManager;
-    const allowedRoles = ["ADMIN", "MASTER", "RNC", ...(allowManager ? ["MANAGER"] : [])];
-    if (!session || !allowedRoles.includes(session.user.role)) {
-      return { success: false, error: "Unauthorized: Only admins, masters, and R&C can manually register users." };
+    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "MASTER")) {
+      return { success: false, error: "Unauthorized: Only admins and masters can manually register users." };
     }
 
-    const normalizedEmail = targetEmail.trim().toLowerCase();
-    if (!normalizedEmail) {
-      return { success: false, error: "Email is required." };
-    }
-
-    const leadNameInput = adminOptions?.manualLeadName?.trim();
-    const leadPhoneInput = adminOptions?.manualLeadPhone?.trim();
-    const leadGenderInput = adminOptions?.manualLeadGender;
-    const manualCollegeName = adminOptions?.manualCollegeName?.trim() || "Manual Registration";
-
-    // 1. Find target user (or create placeholder when enabled by admin)
-    let targetUser = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        isApproved: true,
-        state: true,
-        collage: true,
-        isInternational: true,
-      }
+    // 1. Find Target User
+    const targetUser = await prisma.user.findUnique({
+      where: { email: targetEmail },
+      select: { id: true, email: true, name: true, isApproved: true }
     });
 
-    const communicationOnlyEmail = !!adminOptions?.communicationOnlyEmail;
-    const shouldCreateIfMissing = adminOptions?.createUserIfNotFound ?? true;
-    if (!targetUser && shouldCreateIfMissing && !communicationOnlyEmail) {
-      if (!leadGenderInput && !adminOptions?.newUserGender) {
-        return { success: false, error: "Please choose lead gender for new user creation." };
-      }
-      const seed = Math.floor(100000 + Math.random() * 900000).toString();
-      const phone = leadPhoneInput || `9${Math.floor(100000000 + Math.random() * 900000000)}`;
-      const mappedGender =
-        leadGenderInput === "FEMALE" || adminOptions?.newUserGender === "FEMALE"
-          ? "Female"
-          : leadGenderInput === "OTHER"
-            ? "Other"
-            : "Male";
-      const created = await prisma.user.create({
-        data: {
-          id: crypto.randomUUID(),
-          email: normalizedEmail,
-          name: leadNameInput || `Manual User ${seed}`,
-          collage: manualCollegeName,
-          collageId: `MANUAL-${seed}`,
-          phone,
-          gender: mappedGender,
-          city: "Bangalore",
-          state: "Karnataka",
-          country: "India",
-          isApproved: true,
-        },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          isApproved: true,
-          state: true,
-          collage: true,
-          isInternational: true,
-        },
-      });
-      targetUser = created;
-    }
-
-    if (!targetUser && !communicationOnlyEmail) {
-      return { success: false, error: `User with email ${normalizedEmail} not found.` };
+    if (!targetUser) {
+      return { success: false, error: `User with email ${targetEmail} not found.` };
     }
 
     // 2. Transaction for Registration
     // Use transaction with serializable isolation to prevent race conditions
     const registrationResult = await prisma.$transaction(
       async (tx) => {
-        const makeShadowEmail = (email: string) => {
-          const [local, domain] = email.split("@");
-          const safeLocal = (local || "manual").replace(/[^a-zA-Z0-9._+-]/g, "");
-          const safeDomain = (domain || "manual.local").replace(/[^a-zA-Z0-9.-]/g, "");
-          const stamp = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
-          return `${safeLocal}+manual-${stamp}@${safeDomain}`;
-        };
-
         const event = await tx.event.findUnique({
             where: { id: eventId },
             include: {
-            Category: {
-              select: {
-                name: true,
-              },
-            },
             _count: {
                 select: {
                 individualRegistrations: true,
@@ -1684,236 +1325,47 @@ export async function registerUserByAdmin(
             throw new Error("Event not found");
         }
 
-        const isVirtual = !!adminOptions?.isVirtual;
-        const profileForPolicy = {
-          email: targetUser?.email ?? normalizedEmail,
-          collage: targetUser?.collage ?? manualCollegeName,
-          state: targetUser?.state ?? "Karnataka",
-          isInternational: targetUser?.isInternational ?? false,
-        };
-        const kurukshetraEvent = isKurukshetraEvent(event.Category?.name);
-        const isKLStudent = isKLStudentProfile({
-          email: profileForPolicy.email,
-          collage: profileForPolicy.collage ?? null,
-        });
-
-        if (kurukshetraEvent) {
-          if (isKLStudent && isVirtual) {
-            throw new Error("Kurukshetra: KL students must register in physical mode only.");
-          }
-          if (!isKLStudent && !isVirtual) {
-            throw new Error("Kurukshetra: Other college students must register in virtual mode only.");
-          }
-        }
-
-        if (isVirtual && !event.virtualEnabled) {
-            throw new Error("Virtual mode is not enabled for this event.");
-        }
-        if (isVirtual && !(kurukshetraEvent && !isKLStudent)) {
-          const eligibility = checkVirtualEligibility({
-            email: profileForPolicy.email,
-            state: profileForPolicy.state ?? undefined,
-            isInternational: profileForPolicy.isInternational ?? false,
-            collage: profileForPolicy.collage ?? undefined,
-          });
-          if (!eligibility.isEligible) {
-            throw new Error(eligibility.reason ?? "This user is not eligible for virtual participation.");
-          }
-        }
-
         const currentParticipants = event._count.individualRegistrations + event._count.groupRegistrations;
-        const participantLimit = getEffectiveParticipantLimit(event);
 
-        if (currentParticipants >= participantLimit) {
+        if (currentParticipants >= event.participantLimit) {
             throw new Error("Event is full");
         }
 
-        // Check existing registrations for this user+event
-        let existingIndividualReg = targetUser
-          ? await tx.individualRegistration.findUnique({
-              where: {
-                userId_eventId: {
-                  userId: targetUser.id,
-                  eventId: eventId,
-                },
-              },
-            })
-          : null;
-        let existingGroupReg = targetUser
-          ? await tx.groupRegistration.findUnique({
-              where: {
-                userId_eventId: {
-                  userId: targetUser.id,
-                  eventId: eventId,
-                },
-              },
-            })
-          : null;
-        let effectiveUser = targetUser;
-
-        const hasActiveExistingReg =
-          (existingIndividualReg && existingIndividualReg.paymentStatus !== "REJECTED") ||
-          (existingGroupReg && existingGroupReg.paymentStatus !== "REJECTED");
-        const allowSameEmailMultiple = communicationOnlyEmail || !!adminOptions?.allowSameEmailMultipleRegistrations;
-
-        if (communicationOnlyEmail || (hasActiveExistingReg && allowSameEmailMultiple)) {
-          const seed = Math.floor(100000 + Math.random() * 900000).toString();
-          const mappedGender =
-            leadGenderInput === "FEMALE"
-              ? "Female"
-              : leadGenderInput === "OTHER"
-                ? "Other"
-                : "Male";
-          const shadow = await tx.user.create({
-            data: {
-              id: crypto.randomUUID(),
-              email: makeShadowEmail(normalizedEmail),
-              name: leadNameInput || targetUser?.name || `Manual User ${seed}`,
-              collage: manualCollegeName,
-              collageId: `MANUAL-${seed}`,
-              phone: leadPhoneInput || `9${Math.floor(100000000 + Math.random() * 900000000)}`,
-              gender: mappedGender,
-              city: "Bangalore",
-              state: "Karnataka",
-              country: "India",
-              isApproved: true,
-            },
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              isApproved: true,
-              state: true,
-              collage: true,
-              isInternational: true,
-            },
-          });
-          effectiveUser = shadow;
-          existingIndividualReg = null;
-          existingGroupReg = null;
-        }
-
-        if (!effectiveUser) {
-          throw new Error("Failed to resolve a user for manual registration.");
-        }
-
-        if (event.isGroupEvent) {
-            if (!groupDetails?.groupName?.trim()) {
-              throw new Error("Group name is required for group events.");
+        // Check if user already has an Individual Registration
+        const existingIndividualReg = await tx.individualRegistration.findUnique({
+            where: {
+            userId_eventId: {
+                userId: targetUser.id,
+                eventId: eventId
             }
-            const members = groupDetails.members ?? [];
-            const totalTeamSize = members.length + 1; // Team leader + additional members
-            if (totalTeamSize < event.minTeamSize || totalTeamSize > event.maxTeamSize) {
-              throw new Error(`Team size must be between ${event.minTeamSize} and ${event.maxTeamSize} (including leader).`);
             }
-            for (const member of members) {
-              if (!member.name?.trim() || !member.gender?.trim()) {
-                throw new Error("Each team member must include name and gender.");
-              }
-            }
+        });
 
-            if (existingGroupReg) {
-              if (existingGroupReg.paymentStatus === "REJECTED") {
-                await tx.groupRegistration.delete({
-                  where: { id: existingGroupReg.id },
-                });
-              } else {
-                throw new Error("User is already registered for this event.");
-              }
-            }
-            if (existingIndividualReg && existingIndividualReg.paymentStatus !== "REJECTED") {
-              throw new Error("User is already registered for this event.");
-            }
-            if (existingIndividualReg && existingIndividualReg.paymentStatus === "REJECTED") {
-              await tx.individualRegistration.delete({
-                where: { id: existingIndividualReg.id },
-              });
-            }
-
-            const newGroupReg = await tx.groupRegistration.create({
-              data: {
-                eventId,
-                userId: effectiveUser.id,
-                groupName: groupDetails.groupName.trim(),
-                members: members as unknown as Prisma.InputJsonValue,
-                mentorName: groupDetails.mentorName?.trim() || null,
-                mentorPhone: groupDetails.mentorPhone?.trim() || null,
-                registrationDetails: (() => {
-                  const details: Record<string, string> = {};
-                  details.manualContactEmail = normalizedEmail;
-                  if (leadNameInput) details.manualLeadName = leadNameInput;
-                  if (leadPhoneInput) details.manualLeadPhone = leadPhoneInput;
-                  if (leadGenderInput) details.manualLeadGender = leadGenderInput;
-                  details.manualCollegeName = manualCollegeName;
-                  if (groupDetails.teamLeadInGameName?.trim()) {
-                    details.teamLeadInGameName = groupDetails.teamLeadInGameName.trim();
-                  }
-                  if (groupDetails.teamLeadInGameId?.trim()) {
-                    details.teamLeadInGameId = groupDetails.teamLeadInGameId.trim();
-                  }
-                  if (groupDetails.teamLeadRiotId?.trim()) {
-                    details.teamLeadRiotId = groupDetails.teamLeadRiotId.trim();
-                  }
-                  return Object.keys(details).length
-                    ? (details as unknown as Prisma.InputJsonValue)
-                    : undefined;
-                })(),
-                paymentScreenshot: paymentDetails.paymentScreenshot,
-                utrId: paymentDetails.utrId,
-                payeeName: paymentDetails.payeeName,
-                paymentStatus: "PENDING",
-                isVirtual: isVirtual,
-              },
-            });
-
-            return {
-              success: true,
-              eventName: event.name,
-              userName: effectiveUser.name,
-              regId: newGroupReg.id,
-              regType: "GROUP" as const,
-            };
-        } else {
-            if (existingIndividualReg) {
-              if (existingIndividualReg.paymentStatus === "REJECTED") {
+        if (existingIndividualReg) {
+            if (existingIndividualReg.paymentStatus === "REJECTED") {
                 await tx.individualRegistration.delete({
-                  where: { id: existingIndividualReg.id },
+                where: { id: existingIndividualReg.id }
                 });
-              } else {
+            } else {
                 throw new Error("User is already registered for this event.");
-              }
             }
-            if (existingGroupReg && existingGroupReg.paymentStatus !== "REJECTED") {
-              throw new Error("User is already registered for this event.");
-            }
-            if (existingGroupReg && existingGroupReg.paymentStatus === "REJECTED") {
-              await tx.groupRegistration.delete({
-                where: { id: existingGroupReg.id },
-              });
-            }
-
-            // Create Individual Registration Record
-            const newReg = await tx.individualRegistration.create({
-                data: {
-                userId: effectiveUser.id,
-                eventId: eventId,
-                registrationDetails: {
-                  manualContactEmail: normalizedEmail,
-                  ...(leadNameInput ? { manualLeadName: leadNameInput } : {}),
-                  ...(leadPhoneInput ? { manualLeadPhone: leadPhoneInput } : {}),
-                  ...(leadGenderInput ? { manualLeadGender: leadGenderInput } : {}),
-                  manualCollegeName,
-                } as Prisma.InputJsonValue,
-                paymentScreenshot: paymentDetails.paymentScreenshot,
-                utrId: paymentDetails.utrId,
-                payeeName: paymentDetails.payeeName,
-                paymentStatus: "PENDING", 
-                isVirtual: isVirtual
-                },
-            });
-            
-            return { success: true, eventName: event.name, userName: effectiveUser.name, regId: newReg.id, regType: "INDIVIDUAL" as const };
         }
+
+        // Create Individual Registration Record
+        // Set paymentStatus = PENDING initially, then auto-approve to trigger email
+        const newReg = await tx.individualRegistration.create({
+            data: {
+            userId: targetUser.id,
+            eventId: eventId,
+            paymentScreenshot: paymentDetails.paymentScreenshot,
+            utrId: paymentDetails.utrId,
+            payeeName: paymentDetails.payeeName,
+            paymentStatus: "PENDING", 
+            isVirtual: false
+            },
+        });
+        
+        return { success: true, eventName: event.name, userName: targetUser.name, regId: newReg.id };
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
     );
@@ -1923,21 +1375,8 @@ export async function registerUserByAdmin(
 
     revalidatePath("/admin/events");
     revalidatePath("/admin/registrations");
-    revalidatePath("/admin/spot-register");
-
-    if (adminOptions?.allowManager) {
-      await logAdminActivity(session.user as { id: string; email?: string | null; name?: string | null; role: string }, {
-        action: registrationResult.regType === "GROUP" ? "SPOT_REGISTER_GROUP" : "SPOT_REGISTER_INDIVIDUAL",
-        entityType: registrationResult.regType === "GROUP" ? "GROUP_REGISTRATION" : "INDIVIDUAL_REGISTRATION",
-        entityId: registrationResult.regId,
-        entityName: `${registrationResult.userName} → ${registrationResult.eventName}`,
-        details: { participant: registrationResult.userName, event: registrationResult.eventName },
-      });
-    }
-
-    const registrationLabel = registrationResult.regType === "GROUP" ? "group" : "individual";
-    const modeLabel = adminOptions?.isVirtual ? "virtual" : "physical";
-    return { success: true, message: `Successfully registered ${registrationResult.userName} for ${registrationResult.eventName} (${registrationLabel}, ${modeLabel}). Status set to PENDING.` };
+    
+    return { success: true, message: `Successfully registered ${registrationResult.userName} for ${registrationResult.eventName}. Status set to PENDING.` };
 
   } catch (error) {
     console.error("Error in registerUserByAdmin:", error);
@@ -1956,16 +1395,15 @@ export async function searchUsers(query: string) {
       return { success: false, error: "Unauthorized" };
     }
 
-    if (!query || query.trim().length < 1) {
+    if (!query || query.length < 2) {
       return { success: true, data: [] };
     }
 
-    const searchTerm = query.trim();
     const users = await prisma.user.findMany({
       where: {
         OR: [
-          { email: { contains: searchTerm, mode: "insensitive" } },
-          { name: { contains: searchTerm, mode: "insensitive" } }
+          { email: { contains: query, mode: "insensitive" } },
+          { name: { contains: query, mode: "insensitive" } }
         ]
       },
       select: {
@@ -1975,7 +1413,7 @@ export async function searchUsers(query: string) {
         collage: true,
         collageId: true
       },
-      take: 20
+      take: 10
     });
 
     return { success: true, data: users };

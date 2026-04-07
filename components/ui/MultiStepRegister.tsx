@@ -19,7 +19,6 @@ import SignInOAuthButton from "./signInOAuthButton";
 import { BRANCHES, INDIAN_STATES } from "@/lib/constants";
 import SearchableSelect from "./SearchableSelect";
 import { COUNTRIES_WITH_DIAL, PROGRAMS_OF_STUDY, getCountryFlag } from "@/lib/registration-data";
-import { withRetry } from "@/lib/retry";
 
 type College = "KL_UNIVERSITY" | "OTHER" | "INTERNATIONAL" | "";
 
@@ -41,36 +40,6 @@ interface RegistrationData {
   phoneCountryCode?: string;
   /** International: rest of phone number without country code */
   phoneNumber?: string;
-}
-
-const STALE_CLIENT_RELOAD_KEY = "surabhi_profile_registration_reload_once";
-
-function isLikelyStaleClientError(message: string): boolean {
-  const msg = message.toLowerCase();
-  return (
-    msg.includes("failed to fetch") ||
-    msg.includes("load failed") ||
-    msg.includes("fetch failed") ||
-    msg.includes("loading chunk") ||
-    msg.includes("chunkloaderror") ||
-    msg.includes("unexpected response was received from the server") ||
-    msg.includes("failed to execute 'json' on 'response'")
-  );
-}
-
-function reloadToLatestBuild() {
-  if (typeof window === "undefined") return;
-
-  try {
-    if (sessionStorage.getItem(STALE_CLIENT_RELOAD_KEY) === "1") return;
-    sessionStorage.setItem(STALE_CLIENT_RELOAD_KEY, "1");
-  } catch {
-    // Ignore storage failures; continue with reload fallback.
-  }
-
-  const url = new URL(window.location.href);
-  url.searchParams.set("refresh", Date.now().toString());
-  window.location.replace(url.toString());
 }
 
 const COLLEGES = [
@@ -113,7 +82,6 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasAutoAdvanced, setHasAutoAdvanced] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
-  const [isRefreshingForUpdate, setIsRefreshingForUpdate] = useState(false);
   const stateCitySectionRef = useRef<HTMLDivElement>(null);
 
   // If user has existing data and is authenticated, start on step 3 so they can complete missing fields
@@ -650,17 +618,18 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
         }
       });
 
-      const result = await withRetry(async () => {
-        const response = await fetch("/api/register", {
-          method: "POST",
-          body: submitData,
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Registration failed");
-        }
-        return response.json();
-      }, { retries: 2, delayMs: 2000 });
+      // TODO: Replace with your actual API endpoint
+      const response = await fetch("/api/register", {
+        method: "POST",
+        body: submitData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Registration failed");
+      }
+
+      const result = await response.json();
 
       // Clear localStorage after successful registration
       localStorage.removeItem("selectedCollege");
@@ -678,14 +647,8 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
         window.location.href = "/"; // Use window.location to force a full page reload
       }, 1000); // Increased delay to show success message
     } catch (error) {
-      const msg = error instanceof Error ? error.message : "";
-      if (isLikelyStaleClientError(msg)) {
-        setIsRefreshingForUpdate(true);
-        toast.error("Website was just updated. Reloading to latest version... Please submit the same details again after refresh.", { duration: 6000 });
-        setTimeout(() => reloadToLatestBuild(), 500);
-      } else {
-        toast.error(msg || "Registration failed. Please try again.");
-      }
+      const errorMessage = error instanceof Error ? error.message : "Registration failed. Please try again.";
+      toast.error(errorMessage);
       setIsSubmitting(false);
     }
   };
@@ -738,11 +701,6 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
 
   return (
     <div className="w-full min-h-screen py-12 bg-linear-to-br from-zinc-950 via-zinc-900 to-black flex flex-col">
-      {isRefreshingForUpdate && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-md bg-amber-500/15 border border-amber-500/40 text-amber-200 text-sm shadow-lg">
-          We updated the site, reloading...
-        </div>
-      )}
       {/* Header */}
       <div className="w-full px-6 py-10">
         <div className="max-w-4xl mx-auto">
@@ -878,14 +836,9 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
                           </p>
                         )}
                         {college.value === "International Student" && (
-                          <>
-                            <p className="text-base text-zinc-400 mt-3">
-                              Free registration · Google sign-in · Virtual participation
-                            </p>
-                            <p className="text-xs text-amber-400 mt-2">
-                              Only for students currently residing outside India. If you are in India, please register under &quot;KL University&quot; or &quot;Other College (India)&quot;.
-                            </p>
-                          </>
+                          <p className="text-base text-zinc-400 mt-3">
+                            Free registration · Google sign-in · Virtual participation
+                          </p>
                         )}
                       </motion.button>
                     ))}
@@ -936,33 +889,8 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
 
                       {formData.college === "INTERNATIONAL" && (
                         <>
-                          <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/30 space-y-3">
-                            <h3 className="text-amber-200 text-base font-semibold">
-                              International Student Registration Notice
-                            </h3>
-                            <p className="text-amber-100 text-sm">
-                              Before creating an account, please read the following instructions carefully:
-                            </p>
-                            <ul className="list-disc pl-5 space-y-2 text-amber-100 text-sm">
-                              <li>
-                                The International Student category is strictly for students who are currently residing and studying outside India.
-                              </li>
-                              <li>
-                                Students who are international by origin (for example, NRI/Foreign nationals) but are currently studying in India must register under:
-                              </li>
-                              <li>
-                                Other College Student (Non-KL University Student) - if studying at any Indian institution other than KL University.
-                              </li>
-                              <li>
-                                KL University Student - if currently enrolled at KL University (must register using your official KL University email ID).
-                              </li>
-                            </ul>
-                            <p className="text-amber-100 text-sm">
-                              Please ensure you select the correct category during registration to avoid disqualification or account issues.
-                            </p>
-                          </div>
                           <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
-                            <p className="text-green-300 text-sm font-medium">
+                            <p className="text-green-300 text-base font-medium">
                               Free registration for international students. Sign in with Google to continue. All competitions are virtual with virtual evaluation by judges.
                             </p>
                           </div>
@@ -1064,18 +992,11 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
                 <div className="space-y-8 pr-2">
                   {/* International Student: Free registration, virtual participation */}
                   {formData.college === "INTERNATIONAL" && (
-                    <>
-                      <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
-                        <p className="text-green-300 text-sm font-medium">
-                          ✓ Free registration. All competitions are virtual for international students; evaluations will be conducted virtually by judges.
-                        </p>
-                      </div>
-                      <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
-                        <p className="text-amber-300 text-sm font-medium">
-                          ⚠️ Only international students who are currently residing outside India should register here. If you are currently in India, please register under &quot;KL University&quot; or &quot;Other College (India)&quot; instead.
-                        </p>
-                      </div>
-                    </>
+                    <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+                      <p className="text-green-300 text-sm font-medium">
+                        ✓ Free registration. All competitions are virtual for international students; evaluations will be conducted virtually by judges.
+                      </p>
+                    </div>
                   )}
 
                   {/* College Name - Only for Other College */}
@@ -1336,11 +1257,11 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
                     </div>
                   )}
 
-                  {/* Institution / University / College Name - International: mandatory, manual text input */}
+                  {/* Institution / University - International: mandatory, manual text input */}
                   {formData.college === "INTERNATIONAL" && (
                     <div>
                       <label className="block text-sm font-medium text-zinc-300 mb-2">
-                        College / Institution / University Name *
+                        Institution / University *
                       </label>
                       <div className="relative">
                         <FiBook className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-lg" />
@@ -1519,6 +1440,14 @@ const MultiStepRegister = ({ existingUserData, missingFields = [] }: MultiStepRe
                     </div>
                   </div>
 
+                  {/* Info message for KL students */}
+                  {formData.college === "KL_UNIVERSITY" && (
+                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                      <p className="text-green-300 text-sm font-medium">
+                        ✓ No payment required for KL University students
+                      </p>
+                    </div>
+                  )}
 
 
                 </div>

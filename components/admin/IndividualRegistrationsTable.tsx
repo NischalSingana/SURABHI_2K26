@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 
 interface Registration {
@@ -48,30 +48,25 @@ export default function IndividualRegistrationsTable() {
             });
     }, []);
 
-    const byFilter = useMemo(() => registrations.filter((reg) => {
+    const byFilter = registrations.filter((reg) => {
         if (filterTab === "INTERNATIONAL") return !!reg.user?.isInternational;
         if (filterTab === "DOMESTIC") return !reg.user?.isInternational;
         if (filterTab === "VIRTUAL") return !!reg.isVirtual;
         if (filterTab === "PHYSICAL") return !reg.isVirtual;
         return true;
-    }), [registrations, filterTab]);
+    });
 
-    const filtered = useMemo(() => {
-        const term = search.toLowerCase();
-        return byFilter.filter((reg) =>
-            reg.user.name?.toLowerCase().includes(term) ||
-            reg.user.collageId?.toLowerCase().includes(term) ||
-            reg.user.country?.toLowerCase().includes(term) ||
-            reg.event.name.toLowerCase().includes(term)
-        );
-    }, [byFilter, search]);
+    const filtered = byFilter.filter((reg) =>
+        reg.user.name?.toLowerCase().includes(search.toLowerCase()) ||
+        reg.user.collageId?.toLowerCase().includes(search.toLowerCase()) ||
+        reg.user.country?.toLowerCase().includes(search.toLowerCase()) ||
+        reg.event.name.toLowerCase().includes(search.toLowerCase())
+    );
 
-    const counts = useMemo(() => ({
-        internationalCount: registrations.filter((r) => r.user?.isInternational).length,
-        domesticCount: registrations.filter((r) => !r.user?.isInternational).length,
-        virtualCount: registrations.filter((r) => r.isVirtual).length,
-        physicalCount: registrations.filter((r) => !r.isVirtual).length,
-    }), [registrations]);
+    const internationalCount = registrations.filter((r) => r.user?.isInternational).length;
+    const domesticCount = registrations.filter((r) => !r.user?.isInternational).length;
+    const virtualCount = registrations.filter((r) => r.isVirtual).length;
+    const physicalCount = registrations.filter((r) => !r.isVirtual).length;
 
     if (loading) return <div className="text-white">Loading...</div>;
 
@@ -91,27 +86,27 @@ export default function IndividualRegistrationsTable() {
                             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${filterTab === "PHYSICAL" ? "bg-blue-900/40 text-blue-400 border border-blue-700/50" : "text-zinc-400 hover:text-white"}`}
                         >
                             <span className="w-2 h-2 rounded-full bg-blue-500" />
-                            Physical ({counts.physicalCount})
+                            Physical ({physicalCount})
                         </button>
                         <button
                             onClick={() => setFilterTab("VIRTUAL")}
                             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${filterTab === "VIRTUAL" ? "bg-emerald-900/40 text-emerald-400 border border-emerald-700/50" : "text-zinc-400 hover:text-white"}`}
                         >
                             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                            Virtual ({counts.virtualCount})
+                            Virtual ({virtualCount})
                         </button>
                         <button
                             onClick={() => setFilterTab("INTERNATIONAL")}
                             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${filterTab === "INTERNATIONAL" ? "bg-amber-900/40 text-amber-400 border border-amber-700/50" : "text-zinc-400 hover:text-white"}`}
                         >
                             <span className="w-2 h-2 rounded-full bg-amber-500" />
-                            International ({counts.internationalCount})
+                            International ({internationalCount})
                         </button>
                         <button
                             onClick={() => setFilterTab("DOMESTIC")}
                             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${filterTab === "DOMESTIC" ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white"}`}
                         >
-                            Domestic ({counts.domesticCount})
+                            Domestic ({domesticCount})
                         </button>
                     </div>
                     <input

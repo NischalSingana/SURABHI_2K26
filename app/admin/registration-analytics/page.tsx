@@ -8,9 +8,8 @@ export default async function RegistrationAnalyticsPage() {
     const session = await auth.api.getSession({
         headers: await headers(),
     });
-    const userRole = session?.user?.role as string | undefined;
 
-    if (userRole !== Role.GOD && userRole !== "RNC") {
+    if (session?.user.role !== Role.GOD) {
         return redirect("/admin/dashboard");
     }
 

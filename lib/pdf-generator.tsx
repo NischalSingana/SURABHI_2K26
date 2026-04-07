@@ -29,11 +29,6 @@ export interface EventTicketData {
     teamMembers?: MemberData[];
     /** When true, venue shows Virtual, no time, and Virtual Participation Guidelines on page 2 */
     isInternational?: boolean;
-    /** Venue from event (DB) - when provided, used instead of default */
-    venue?: string | null;
-    /** Event start/end time from DB */
-    startTime?: string | null;
-    endTime?: string | null;
 }
 
 // Register fonts if needed, for now standard Helvetica is fine for speed/compatibility
@@ -94,9 +89,11 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     surabhiTextLogo: {
-        width: 120,
-        height: 120,
-        marginTop: 5,
+        width: 280,
+        height: 100,
+        objectFit: 'contain',
+        marginTop: 10, // Push a bit down
+        marginRight: -130, // Move more right side
     },
     title: {
         color: '#dc2626', // Red-600
@@ -283,15 +280,13 @@ function getBase64FromPath(p: string) {
 }
 
 function loadAssets() {
-    if (!logoCache.surabhiWhite) {
-        logoCache.surabhiWhite = getBase64FromPath(path.join(process.cwd(), 'public', 'images', 'surabhi_white_logo.png'));
-    }
-    if (!logoCache.klWhite) {
-        logoCache.klWhite = getBase64FromPath(path.join(process.cwd(), 'public', 'images', 'kl_logo_white_text.png'));
-    }
-    if (!logoCache.surabhiText) {
-        logoCache.surabhiText = getBase64FromPath(path.join(process.cwd(), 'public', 'images', 'surabhi1.png'));
-    }
+    // If we have data, logic assumes all are loaded or attempted.
+    // Checking one key is enough for this simple case.
+    if (logoCache.klWhite) return;
+
+    logoCache.surabhiWhite = getBase64FromPath(path.join(process.cwd(), 'public', 'images', 'surabhi_white_logo.png'));
+    logoCache.klWhite = getBase64FromPath(path.join(process.cwd(), 'public', 'images', 'kl_logo_white_text.png'));
+    logoCache.surabhiText = getBase64FromPath(path.join(process.cwd(), 'public', 'images', 'surabhi.png'));
 }
 
 export async function generateTicketPDF(ticketData: EventTicketData): Promise<Buffer> {
@@ -409,7 +404,7 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                                 {ticketData.teamMembers.map((member, idx) => (
                                     <View key={idx} style={styles.tableRow}>
                                         <Text style={[styles.tableText, styles.col1]}>{member.name}</Text>
-                                        <Text style={[styles.tableText, styles.col2]}>{member.phone || ticketData.phone || '-'}</Text>
+                                        <Text style={[styles.tableText, styles.col2]}>{member.phone}</Text>
                                         <Text style={[styles.tableText, styles.col3]}>{member.gender}</Text>
                                     </View>
                                 ))}
@@ -419,18 +414,13 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                         {/* Event Details Footer */}
                         <View style={{ borderTop: '1px solid #27272a', paddingTop: 15, marginTop: 'auto' }}>
                             <Text style={styles.label}>VENUE</Text>
-                            <Text style={styles.valueSmall}>{ticketData.isInternational ? 'VIRTUAL' : (ticketData.venue?.trim() || 'KL UNIVERSITY, VIJAYAWADA')}</Text>
-                            {ticketData.isInternational ? (
+                            <Text style={styles.valueSmall}>{ticketData.isInternational ? 'VIRTUAL' : 'KL UNIVERSITY, VIJAYAWADA'}</Text>
+                            {ticketData.isInternational && (
                                 <>
                                     <Text style={[styles.label, { marginTop: 10 }]}>TIME</Text>
                                     <Text style={styles.valueSmall}>Will be announced later to your convenient timezone.</Text>
                                 </>
-                            ) : (ticketData.startTime || ticketData.endTime) ? (
-                                <>
-                                    <Text style={[styles.label, { marginTop: 10 }]}>TIME</Text>
-                                    <Text style={styles.valueSmall}>{[ticketData.startTime, ticketData.endTime].filter(Boolean).join(' – ')}</Text>
-                                </>
-                            ) : null}
+                            )}
                         </View>
                     </View>
 
@@ -500,7 +490,7 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                             </View>
                             <View style={styles.bulletRow}>
                                 <View style={styles.bullet} />
-                                <Text style={styles.ruleText}>Attendees must carry their Physical College ID Card. It is mandatory for identity verification.</Text>
+                                <Text style={styles.ruleText}>Attendees must carry a valid College ID / Govt ID proving their identity.</Text>
                             </View>
                             <View style={styles.bulletRow}>
                                 <View style={styles.bullet} />
@@ -546,9 +536,9 @@ export async function generateTicketPDF(ticketData: EventTicketData): Promise<Bu
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 1, gap: 5 }}>
                             {sacLogoBase64 && <Image src={sacLogoBase64} style={{ width: 100, height: 35 }} />}
                             {/* Add Surabhi Logo to Footer */}
-                            {surabhiTextLogoBase64 && <Image src={surabhiTextLogoBase64} style={{ width: 80, height: 80 }} />}
+                            {surabhiTextLogoBase64 && <Image src={surabhiTextLogoBase64} style={{ width: 150, height: 170, objectFit: 'contain' }} />}
                         </View>
-                        <Text style={{ color: '#71717a', fontSize: 14, fontWeight: 'bold', marginTop: 5 }}>Surabhi 2026 • KL University</Text>
+                        <Text style={{ color: '#71717a', fontSize: 14, fontWeight: 'bold', marginTop: -30 }}>Surabhi 2026 • KL University</Text>
                     </View>
                 </View>
                 <View style={styles.bottomLine} />
@@ -575,7 +565,7 @@ export interface AccommodationPassData {
 
 const ACCOMMODATION_RULES = [
     "This accommodation pass is mandatory for entry to the accommodation facility during Surabhi 2026.",
-    "All guests must carry their Physical College ID Card. It is mandatory for identity verification.",
+    "All guests must carry a valid College ID / Govt ID for identity verification.",
     "Strict discipline must be maintained within the accommodation premises at all times.",
     "Possession or consumption of alcohol, drugs, or smoking is strictly prohibited.",
     "Any form of misbehavior or damage to property will result in immediate eviction and penalties.",

@@ -64,31 +64,25 @@ Print, electronic, and social media coverage is fully arranged.
 /** Category descriptions with dates and prize money (RAAGA, NRITHYA, CINE CARNIVAL, etc.) */
 export const CATEGORY_PRIZES_KNOWLEDGE = `
 RAAGA (Music) – March 4th
-Raaga celebrates melody, rhythm, and harmony. Voice of Raaga: 1st ₹6,000, 2nd ₹4,000, 3rd ₹3,000. Solo Instrumental: 1st ₹6,000, 2nd ₹4,000, 3rd ₹3,000. Battle of Bands: 1st ₹15,000, 2nd ₹10,000, 3rd ₹8,000.
+Raaga is the music category of SURABHI, celebrating melody, rhythm, and harmony. It includes Voice of Raaga, Instrumental solo and Battle of bands. Voice of Raaga: 1st Prize ₹8,000, 2nd ₹5,000, 3rd ₹3,000 (Total ₹16,000). Instrumental Solo: 1st ₹10,000, 2nd ₹6,000, 3rd ₹4,000 (Total ₹20,000). Battle of Bands: 1st ₹10,000, 2nd ₹6,000, 3rd ₹4,000 (Total ₹20,000).
 
 NRITHYA (Dance) – March 5th
-Nrithya celebrates rhythm, expression, and movement. Solo (Classical, Western, Folk): 1st ₹8,000, 2nd ₹6,000, 3rd ₹4,000. Group (Classical, Western, Folk): 1st ₹10,000, 2nd ₹8,000, 3rd ₹5,000.
+Nrithya is the dance category, celebrating rhythm, expression, and movement. Solo (Classical, Western, Folk): 1st ₹8,000, 2nd ₹6,000, 3rd ₹4,000 (Total ₹18,000). Group (Classical, Western, Folk): 1st ₹10,000, 2nd ₹8,000, 3rd ₹5,000 (Total ₹23,000).
 
 CINE CARNIVAL (Media & Visual Arts) – March 3rd
-Cine Carnival celebrates storytelling through visuals and sound. Short Film: 1st ₹15,000, 2nd ₹10,000, 3rd ₹5,000. Cover Songs: 1st ₹6,000, 2nd ₹4,000, 3rd ₹3,000. Photography: 1st ₹4,000, 2nd ₹3,000, 3rd ₹2,000.
+Chitramela / Cine Carnival celebrates storytelling through visuals and sound. Short Film: 1st ₹10,000, 2nd ₹6,000, 3rd ₹4,000 (Total ₹20,000). Cover Songs: 1st ₹8,000, 2nd ₹5,000, 3rd ₹3,000 (Total ₹16,000). Photography: 1st ₹5,000, 2nd ₹3,000, 3rd ₹2,000 (Total ₹10,000).
 
 VASTRANAUT (Fashion) – March 6th
-Vastranaut celebrates creativity, style, and cultural expression through attire and presentation. Fashion Runaway/Rampwalk: 1st ₹12,000, 2nd ₹10,000, 3rd ₹8,000.
+Vastranaut is the fashion segment, celebrating creativity, style, and cultural expression through attire and presentation. Rampwalk: 1st ₹10,000, 2nd ₹8,000, 3rd ₹5,000 (Total ₹23,000).
 
 CHITRAKALA (Art) – March 2nd
-Chitrakala showcases creativity and visual expression. LandScape: 1st ₹6,000, 2nd ₹4,000, 3rd ₹3,000. Bhavishya Bharat: 1st ₹6,000, 2nd ₹4,000, 3rd ₹3,000.
+Chitrakala is the art category, showcasing creativity and visual expression. Arts Marathon: 1st ₹10,000, 2nd ₹8,000, 3rd ₹5,000 (Total ₹23,000). Bhavishya Bharath: 1st ₹10,000, 2nd ₹8,000, 3rd ₹5,000 (Total ₹23,000).
 
 NATYAKA (Drama) – March 3rd
-Natyaka features drama and mono action. Skit: 1st ₹10,000, 2nd ₹8,000, 3rd ₹5,000. Mono Action: 1st ₹5,000, 2nd ₹3,000, 3rd ₹2,000.
+Natyaka is the drama category, featuring Drama and Mono Action. Mono Action: 1st ₹8,000, 2nd ₹5,000, 3rd ₹3,000 (Total ₹16,000). Skit: 1st ₹10,000, 2nd ₹6,000, 3rd ₹4,000 (Total ₹20,000).
 
 SAHITHYA (Literature) – March 2nd
-Sahithya celebrates the power of words and ideas. Short Story Writing: 1st ₹5,000, 2nd ₹3,000, 3rd ₹2,000. Elocution: 1st ₹5,000, 2nd ₹3,000, 3rd ₹2,000.
-
-NATIONAL PARLIAMENTARY SIMULATION – March 5th
-National Mock Parliament: 1st ₹8,000, Runner-up ₹5,000, Best Speaker Award ₹3,000.
-
-KURUKSHETRA (eSports)
-Kurukshetra is the eSports category. BGMI Tournament: 1st ₹15,000, 2nd ₹10,000, 3rd ₹5,000. Free Fire Tournament: 1st ₹20,000, 2nd ₹15,000, 3rd ₹10,000, 4th ₹5,000. Valorant Tournament: 1st ₹5,000, 2nd ₹3,000, 3rd ₹2,000.
+Sahithya is the literature category, celebrating the power of words and ideas. Short story writing: 1st ₹10,000, 2nd ₹8,000, 3rd ₹5,000 (Total ₹23,000). Elocution: 1st ₹8,000, 2nd ₹5,000, 3rd ₹3,000 (Total ₹16,000).
 `.trim();
 
 /** Major benefits for sponsors (for sponsorship inquiries) */
@@ -126,14 +120,13 @@ export const LIBERAL_ARTS_CLUBS = [
   "Esports (Gaming)",
   "Vastraa (Fashion)",
   "Abhinaya (Dramatics)",
-  "Chitrakala (Painting)",
 ];
 
 export const ACCOMMODATION_KNOWLEDGE = `
 Accommodation for Surabhi 2026:
-- All competition participants (including KL University dayscholar students) can book accommodation. 100% free stay, zero cost.
-- Complimentary special lunch provided for all participants.
-- Complimentary food: lunch is provided for all physical participants.
+- Only competition participants can book accommodation. Visitor pass holders are NOT eligible.
+- Free accommodation for out-station participants registered for Surabhi competitions (not visitor pass). 100% free stay, zero cost.
+- Complimentary food: lunch is provided.
 - Key guidelines: Separate hostels for Boys and Girls; strictly no mixed-gender groups; carry valid college ID card.
 - Book at: ${WEBSITE_URL}/accommodation
 `.trim();
@@ -165,8 +158,8 @@ export const VIRTUAL_EXCLUDED_STATES = ["Andhra Pradesh", "Telangana"];
 
 export const VIRTUAL_PARTICIPATION_KNOWLEDGE = `
 Virtual participation at Surabhi 2026:
-- Available for participants from states OTHER than Andhra Pradesh (AP) and Telangana. Students from AP and Telangana must participate physically at KL University, Vaddeswaram Campus.
-- KL University students: NO virtual participation option. Must participate physically. Same fees as other colleges (₹350 per member). Free special lunch and accommodation provided.
+- Available for participants from states OTHER than Andhra Pradesh (AP) and Telangana. Students from AP and Telangana must participate physically at KL University.
+- KL University students must participate physically; they are not eligible for virtual mode.
 - Registration fee for virtual participation (eligible Indian students from other states): ₹150 only.
 - All virtual events are conducted in an online meeting. Student coordinators are present during the session, and judges evaluate your performance online.
 - Virtual participants are eligible to win cash prizes—same opportunity as physical participants.
@@ -180,23 +173,14 @@ International students:
 `.trim();
 
 export const PHYSICAL_OUTSTATION_KNOWLEDGE = `
-Physical participants (KL University and other colleges):
-- All domestic physical participants (KL University and other colleges) pay ₹350 per member.
+Physical participants from other colleges (outside KL University):
 - Free one-day accommodation is provided for out-station physical participants.
-- Free special lunch is provided for all physical participants including KL University students.
-- KL University students: same fees (₹350), no virtual option, free lunch and accommodation.
-- Must be registered for at least one competition (not visitor pass only) to avail accommodation.
+- Free lunch is provided.
+- They must be registered for at least one competition (not visitor pass only) to avail accommodation.
 `.trim();
 
 export const CHIEF_GUEST_KNOWLEDGE = `
 Chief guests / chief guest for Surabhi 2026: Not yet decided. When asked about chief guests, say they are not yet decided and will be announced later.
-`.trim();
-
-export const REGISTRATION_NOTICE_KNOWLEDGE = `
-Registration Notice (current during event week):
-- Online Registrations have been closed.
-- Spot registrations are available every day from 8:00 AM to 10:00 AM at the venue. Participants can visit the campus on the respective competition day to complete their spot registration within the given time slot. Please ensure you carry your physical college ID card for verification.
-- Important Note: On 7th March, only virtual competitions will be conducted. Students from other colleges will not be permitted to enter the campus on that day.
 `.trim();
 
 export const REGISTRATION_WORKFLOW_KNOWLEDGE = `
@@ -208,18 +192,18 @@ How to register for Surabhi 2026:
    - International students: name, email, phone (with country code), country, state/region, institution, program of study, gender.
 4. Submit registration; wait for admin approval (you may receive an email when approved).
 5. After approval, go to Competitions, browse categories, and open the event you want. Click "Register Now".
-6. Read and accept the event terms and conditions (scroll through fully if required). For virtual-eligible events (not KL) you may see an option to register as virtual (₹150) or physical (₹350). KL students must register physically only. International students get free virtual registration.
-7. If payment is required: pay the required amount (₹350 physical for KL and other colleges / ₹150 virtual for eligible Indian students from other states), upload payment screenshot, enter UTR number and payee name. Submit.
+6. Read and accept the event terms and conditions (scroll through fully if required). For virtual-eligible events you may see an option to register as virtual (₹150) or physical (₹350). International students get free virtual registration.
+7. If payment is required: pay the required amount (₹350 physical / ₹150 virtual for eligible Indian students), upload payment screenshot, enter UTR number and payee name. Submit.
 8. Wait for registration approval. Once approved, you can see your ticket/event in Profile. For virtual events you will receive meeting link and time (scheduled to your timezone for international).
 Competition dates: Fest dates are ${SURABHI_DATES}. Exact date and time for each competition are listed on the event page (from schedule).
 `.trim();
 
 export const REGISTRATION_FEES_KNOWLEDGE = `
 Registration fees (mention clearly when asked):
-- KL University students and other college students: ₹350 per member (same fee for all domestic physical participants).
+- KL University students: FREE competition fees (no registration fee).
+- Physical participation (other colleges, at KL University): ₹350 per registration.
 - Virtual participation (eligible Indian students from states other than AP and Telangana): ₹150 per registration.
 - International students (virtual participation): FREE.
-- KL University students: No virtual participation option; must participate physically. Free special lunch and accommodation provided.
 `.trim();
 
 /** Build static knowledge block for the system prompt (no competition list). */
@@ -256,9 +240,6 @@ ${CHIEF_GUEST_KNOWLEDGE}
 
 ## Registration fees
 ${REGISTRATION_FEES_KNOWLEDGE}
-
-## Registration Notice (deadlines, spot registration, March 7)
-${REGISTRATION_NOTICE_KNOWLEDGE}
 
 ## Virtual participation
 ${VIRTUAL_PARTICIPATION_KNOWLEDGE}

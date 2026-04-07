@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiUser,
+  FiMail,
+  FiPhone,
   FiBook,
   FiCalendar,
   FiCreditCard,
@@ -19,17 +21,12 @@ import {
   FiZap,
   FiAward,
   FiVideo,
-  FiMessageSquare,
 } from "react-icons/fi";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { signOut, useSession } from "@/lib/auth-client";
 import { updateProfile } from "@/actions/profile.action";
 import { unregisterFromEvent } from "@/actions/events.action";
-import { getFeedbackReleasesForUser, getFeedbackStatusForUser } from "@/actions/feedback.action";
-import FeedbackModal from "@/components/ui/FeedbackModal";
-import ViewFeedbackModal from "@/components/ui/ViewFeedbackModal";
 import Image from "next/image";
 import { BRANCHES, INDIAN_STATES } from "@/lib/constants";
 
@@ -86,19 +83,13 @@ interface ProfileClientProps {
   hasMicrosoftAccount: boolean;
 }
 
-function isPhotographyEvaluationEvent(event: Pick<Event, "name" | "Category">): boolean {
-  const categoryName = event.Category?.name?.toLowerCase() || "";
-  const eventName = event.name?.toLowerCase() || "";
-  return categoryName.includes("photography") || eventName.includes("photography");
-}
-
 export default function ProfileClient({
   user,
   registeredEvents,
   ipAddress,
   userAgent,
   hasGoogleAccount,
-  // hasMicrosoftAccount, // eslint-disable-line @typescript-eslint/no-unused-vars
+  hasMicrosoftAccount,
 }: ProfileClientProps) {
   const router = useRouter();
   const { refetch: refetchSession } = useSession();
@@ -120,27 +111,6 @@ export default function ProfileClient({
   }>({ screenshot: null, utrId: "", payeeName: "" });
   const [passToken, setPassToken] = useState<string | null>(null);
   const [passPaymentStatus, setPassPaymentStatus] = useState<string | null>(null);
-  const [feedbackReleasedIds, setFeedbackReleasedIds] = useState<Set<string>>(new Set());
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState<Record<string, boolean>>({});
-  const [feedbackEvent, setFeedbackEvent] = useState<Event | null>(null);
-  const [viewFeedbackEvent, setViewFeedbackEvent] = useState<Event | null>(null);
-
-  useEffect(() => {
-    if (registeredEvents.length > 0) {
-      const eventIds = registeredEvents.map((e) => e.id);
-      Promise.all([
-        getFeedbackReleasesForUser(),
-        getFeedbackStatusForUser(eventIds),
-      ]).then(([releasesRes, statusRes]) => {
-        if (releasesRes.success && releasesRes.eventIds) {
-          setFeedbackReleasedIds(new Set(releasesRes.eventIds));
-        }
-        if (statusRes.success && statusRes.submitted) {
-          setFeedbackSubmitted(statusRes.submitted);
-        }
-      });
-    }
-  }, [registeredEvents]);
 
   useEffect(() => {
     // Check if user already has a visitor pass
@@ -241,7 +211,10 @@ export default function ProfileClient({
   };
 
   const handleGeneratePass = async () => {
-    if (showPaymentModal) {
+    const isKLStudent = user.email.endsWith("@kluniversity.in");
+
+    // For non-KL students, validate payment details
+    if (!isKLStudent && showPaymentModal) {
       if (!paymentDetails.screenshot || !paymentDetails.utrId || !paymentDetails.payeeName) {
         toast.error("Please fill all payment details");
         return;
@@ -254,7 +227,8 @@ export default function ProfileClient({
     try {
       let paymentData = undefined;
 
-      if (paymentDetails.screenshot) {
+      // Upload screenshot if non-KL student
+      if (!isKLStudent && paymentDetails.screenshot) {
         const formData = new FormData();
         formData.append("file", paymentDetails.screenshot);
 
@@ -283,21 +257,27 @@ export default function ProfileClient({
         setHasPass(true);
         
         if (result.passToken) {
+          // KL students get auto-approved with passToken
           setPassToken(result.passToken);
           setPassPaymentStatus("APPROVED");
-          const response = await fetch(`/api/pass/download/${result.passToken}`);
-          if (response.ok) {
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `surabhi-2026-visitor-pass.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+
+          // Only download for KL students (auto-approved)
+          if (isKLStudent) {
+            const response = await fetch(`/api/pass/download/${result.passToken}`);
+            if (response.ok) {
+              const blob = await response.blob();
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `surabhi-2026-visitor-pass.pdf`;
+              document.body.appendChild(a);
+              a.click();
+              window.URL.revokeObjectURL(url);
+              document.body.removeChild(a);
+            }
           }
         } else {
+          // Non-KL students submit proofs and get PENDING status
           setPassPaymentStatus("PENDING");
           setPassToken(null);
           
@@ -322,6 +302,31 @@ export default function ProfileClient({
     }
   };
 
+  const getStatusBadge = () => {
+    if (user.isApproved) {
+      return (
+        <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/30 rounded-lg">
+          <FiCheckCircle className="text-green-400" />
+          <span className="text-green-300 font-medium">Approved</span>
+        </div>
+      );
+    } else if (user.paymentStatus === "PENDING") {
+      return (
+        <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+          <FiClock className="text-yellow-400" />
+          <span className="text-yellow-300 font-medium">Pending Approval</span>
+        </div>
+      );
+    } else if (user.paymentStatus === "REJECTED") {
+      return (
+        <div className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg">
+          <FiXCircle className="text-red-400" />
+          <span className="text-red-300 font-medium">Rejected</span>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="max-w-6xl mx-auto w-full min-w-0">
@@ -329,6 +334,7 @@ export default function ProfileClient({
       <div className="mb-6 sm:mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 md:gap-0">
         <div className="min-w-0">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">My Profile</h1>
+          <div className="flex items-center gap-4">{getStatusBadge()}</div>
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 w-full md:w-auto">
@@ -856,15 +862,10 @@ export default function ProfileClient({
                     }`}
                 >
                   {hasPass && passPaymentStatus === "PENDING" ? (
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="flex items-center gap-2">
-                        <FiClock className="text-lg" />
-                        Pending Approval
-                      </div>
-                      <span className="text-xs text-amber-400/70 font-normal text-center">
-                        It may take up to 24 hours to verify your payment. You will receive an email once approved.
-                      </span>
-                    </div>
+                    <>
+                      <FiClock className="text-lg" />
+                      Pending Approval
+                    </>
                   ) : registeredEvents.length > 0 || (hasPass && passPaymentStatus === "APPROVED") ? (
                     <>
                       <FiBook className="text-lg" />
@@ -943,15 +944,15 @@ export default function ProfileClient({
                     {/* Input Fields */}
                     <div className="flex-1 space-y-4 w-full">
                       <div>
-                        <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Payment Screenshot (Max 4MB) *</label>
+                        <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Proof (Max 5MB) *</label>
                         <input
                           type="file"
                           accept="image/*"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              if (file.size > 4 * 1024 * 1024) {
-                                toast.error("File size exceeds 4MB limit");
+                              if (file.size > 5 * 1024 * 1024) {
+                                toast.error("File size exceeds 5MB limit");
                                 e.target.value = "";
                                 return;
                               }
@@ -962,7 +963,7 @@ export default function ProfileClient({
                         />
                       </div>
                       <div>
-                        <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">UTR ID</label>
+                        <label className="block text-xs md:text-sm font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Transaction ID</label>
                         <input
                           type="text"
                           placeholder="UTR / UPI Ref ID"
@@ -1041,14 +1042,14 @@ export default function ProfileClient({
                   No Events Registered
                 </h3>
                 <p className="text-zinc-400 mb-6">
-                  You have not registered for any events yet
+                  You haven't registered for any events yet
                 </p>
-                <Link
+                <a
                   href="/competitions"
                   className="inline-block px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
                 >
                   Browse Events
-                </Link>
+                </a>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1060,13 +1061,14 @@ export default function ProfileClient({
                     className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden hover:border-red-600/50 transition-all flex flex-col"
                   >
                     <div className="relative h-40 md:h-48 shrink-0">
-                      <Image
+                      <img
                         src={event.image}
                         alt={event.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        quality={80}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src =
+                            "https://via.placeholder.com/400x300?text=Event";
+                        }}
                       />
                       <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-medium">
                         {event.Category.name}
@@ -1148,7 +1150,7 @@ export default function ProfileClient({
                                 window.URL.revokeObjectURL(url);
                                 document.body.removeChild(a);
                                 toast.success('Ticket downloaded successfully!');
-                              } catch {
+                              } catch (error) {
                                 toast.error('Failed to download ticket');
                               }
                             }}
@@ -1172,38 +1174,24 @@ export default function ProfileClient({
                         )}
 
                         {/* View Results Button */}
-                        {!isPhotographyEvaluationEvent(event) && event.isResultPublished && (
-                          <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => {
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            if (event.isResultPublished) {
                               router.push(`/results?category=${event.Category.id}&event=${event.slug}`);
-                            }}
-                            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                          >
-                            <FiAward size={16} />
-                            Results
-                          </motion.button>
-                        )}
+                            } else {
+                              toast.info("Evaluations not released yet");
+                            }
+                          }}
+                          className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        >
+                          <FiAward size={16} />
+                          Results
+                        </motion.button>
 
-                        {/* Submit Feedback / View Feedback - shown when feedback is released */}
-                        {event.registrationStatus !== "REJECTED" && feedbackReleasedIds.has(event.id) && (
-                          <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => (feedbackSubmitted[event.id] ? setViewFeedbackEvent(event) : setFeedbackEvent(event))}
-                            className={`w-full px-4 py-2.5 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${feedbackSubmitted[event.id]
-                              ? "bg-zinc-800 text-emerald-400 border border-emerald-500/30 hover:bg-zinc-700"
-                              : "bg-amber-600 hover:bg-amber-500 text-white"
-                            }`}
-                          >
-                            <FiMessageSquare size={16} />
-                            {feedbackSubmitted[event.id] ? "View your Feedback" : "Submit Feedback"}
-                          </motion.button>
-                        )}
-
-                        {/* Hide unregister for other college & KL; show only for International */}
-                        {user.isInternational && (
+                        {/* Hide unregister for other college; show only for KL and International */}
+                        {(user.email?.endsWith("@kluniversity.in") || user.isInternational) && (
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -1227,28 +1215,6 @@ export default function ProfileClient({
         )
       }
 
-      {feedbackEvent && (
-        <FeedbackModal
-          isOpen={!!feedbackEvent}
-          onClose={() => setFeedbackEvent(null)}
-          eventId={feedbackEvent.id}
-          eventName={feedbackEvent.name}
-          onSuccess={() => {
-            setFeedbackSubmitted((p) => ({ ...p, [feedbackEvent.id]: true }));
-            setFeedbackEvent(null);
-          }}
-        />
-      )}
-
-      {viewFeedbackEvent && (
-        <ViewFeedbackModal
-          isOpen={!!viewFeedbackEvent}
-          onClose={() => setViewFeedbackEvent(null)}
-          eventId={viewFeedbackEvent.id}
-          eventName={viewFeedbackEvent.name}
-        />
-      )}
-
       {/* Unregister Confirmation Modal */}
       <AnimatePresence>
         {showUnregisterModal && eventToUnregister && (
@@ -1271,7 +1237,7 @@ export default function ProfileClient({
                 <p className="text-zinc-300 mb-4">
                   Are you sure you want to unregister from{" "}
                   <span className="font-semibold text-white">
-                    &quot;{eventToUnregister.name}&quot;
+                    "{eventToUnregister.name}"
                   </span>
                   ?
                 </p>

@@ -1,19 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAllBookings, approveBooking, rejectBooking, getAccommodationExcelData, getAccommodationExcelDataByDays } from "@/actions/admin/accommodation.action";
+import { getAllBookings, approveBooking, rejectBooking } from "@/actions/admin/accommodation.action";
 import { BookingType, Gender, PaymentStatus, BookingStatus } from "@prisma/client";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
 
 export default function AccommodationPage() {
     const [bookings, setBookings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
-    const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
-    const [excelLoading, setExcelLoading] = useState<"boys" | "girls" | null>(null);
-    const [dayWiseLoading, setDayWiseLoading] = useState(false);
-    const [selectedDays, setSelectedDays] = useState<number[]>([2, 3, 4, 5, 6, 7]);
     const [filter, setFilter] = useState<{
         bookingType?: BookingType;
         gender?: Gender;
@@ -37,52 +32,22 @@ export default function AccommodationPage() {
     }, [filter]);
 
     const handleApprove = async (bookingId: string) => {
-        setProcessingIds((prev) => new Set(prev).add(bookingId));
-        setBookings((prev) =>
-            prev.map((b) => (b.id === bookingId ? { ...b, status: "CONFIRMED", paymentStatus: "APPROVED" } : b))
-        );
-        try {
-            const result = await approveBooking(bookingId);
-            if (result.success) {
-                toast.success(result.message);
-            } else {
-                setBookings((prev) =>
-                    prev.map((b) => (b.id === bookingId ? { ...b, status: "PENDING", paymentStatus: "PENDING" } : b))
-                );
-                toast.error(result.error);
-            }
-        } catch {
-            setBookings((prev) =>
-                prev.map((b) => (b.id === bookingId ? { ...b, status: "PENDING", paymentStatus: "PENDING" } : b))
-            );
-            toast.error("Failed to approve booking");
-        } finally {
-            setProcessingIds((prev) => { const s = new Set(prev); s.delete(bookingId); return s; });
+        const result = await approveBooking(bookingId);
+        if (result.success) {
+            toast.success(result.message);
+            loadBookings();
+        } else {
+            toast.error(result.error);
         }
     };
 
     const handleReject = async (bookingId: string) => {
-        setProcessingIds((prev) => new Set(prev).add(bookingId));
-        setBookings((prev) =>
-            prev.map((b) => (b.id === bookingId ? { ...b, status: "CANCELLED", paymentStatus: "REJECTED" } : b))
-        );
-        try {
-            const result = await rejectBooking(bookingId);
-            if (result.success) {
-                toast.success(result.message);
-            } else {
-                setBookings((prev) =>
-                    prev.map((b) => (b.id === bookingId ? { ...b, status: "PENDING", paymentStatus: "PENDING" } : b))
-                );
-                toast.error(result.error);
-            }
-        } catch {
-            setBookings((prev) =>
-                prev.map((b) => (b.id === bookingId ? { ...b, status: "PENDING", paymentStatus: "PENDING" } : b))
-            );
-            toast.error("Failed to reject booking");
-        } finally {
-            setProcessingIds((prev) => { const s = new Set(prev); s.delete(bookingId); return s; });
+        const result = await rejectBooking(bookingId);
+        if (result.success) {
+            toast.success(result.message);
+            loadBookings();
+        } else {
+            toast.error(result.error);
         }
     };
 
@@ -90,187 +55,10 @@ export default function AccommodationPage() {
         setSelectedBooking(booking);
     };
 
-    const handleDownloadExcel = async (gender: "boys" | "girls") => {
-        setExcelLoading(gender);
-        try {
-            const result = await getAccommodationExcelData();
-            if (!result.success || !result.boys || !result.girls) {
-                toast.error(result.error || "Failed to load accommodation data");
-                return;
-            }
-            const data = gender === "boys" ? result.boys : result.girls;
-            if (data.length === 0) {
-                toast.info(`No ${gender} accommodation data to export`);
-                return;
-            }
-            const ws = XLSX.utils.json_to_sheet(
-                data.map((r) => ({
-                    "S.No": r.sNo,
-                    Name: r.name,
-                    College: r.college,
-                    Competitions: r.competitions,
-                    "Group Name(s)": (r as { groupNames?: string }).groupNames ?? "—",
-                    "Phone Number": r.phone,
-                    Gender: r.gender,
-                    Email: r.email,
-                    "Booking Type": r.bookingType,
-                }))
-            );
-            const colWidths = [
-                { wch: 6 },
-                { wch: 22 },
-                { wch: 28 },
-                { wch: 50 },
-                { wch: 22 },
-                { wch: 14 },
-                { wch: 8 },
-                { wch: 28 },
-                { wch: 12 },
-            ];
-            ws["!cols"] = colWidths;
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, gender === "boys" ? "Boys" : "Girls");
-            XLSX.writeFile(wb, `Accommodation_${gender === "boys" ? "Boys" : "Girls"}_${new Date().toISOString().split("T")[0]}.xlsx`);
-            toast.success(`${gender === "boys" ? "Boys" : "Girls"} Excel downloaded`);
-        } catch (err) {
-            console.error(err);
-            toast.error(`Failed to download ${gender} Excel`);
-        } finally {
-            setExcelLoading(null);
-        }
-    };
-
-    const handleDownloadDayWise = async () => {
-        if (selectedDays.length === 0) {
-            toast.error("Select at least one day");
-            return;
-        }
-        setDayWiseLoading(true);
-        try {
-            const result = await getAccommodationExcelDataByDays(selectedDays);
-            if (!result.success) {
-                toast.error(result.error || "Failed to load data");
-                return;
-            }
-            const boys = result.boys || [];
-            const girls = result.girls || [];
-            if (boys.length === 0 && girls.length === 0) {
-                toast.info("No accommodation data for selected days");
-                return;
-            }
-            const dayStr = selectedDays.sort((a, b) => a - b).join("-");
-            const wb = XLSX.utils.book_new();
-            if (boys.length > 0) {
-                const ws = XLSX.utils.json_to_sheet(
-                    boys.map((r) => ({
-                        "S.No": r.sNo,
-                        Name: r.name,
-                        College: r.college,
-                        State: r.state,
-                        "City/Place": r.city,
-                        "Category (e.g. Chitrakala, Sahitya)": r.categoryNames,
-                        "Team Name": r.teamName,
-                        Competitions: r.competitions,
-                        "Phone Number": r.phone,
-                        Email: r.email,
-                        Gender: r.gender,
-                        "Booking Type": r.bookingType,
-                    }))
-                );
-                ws["!cols"] = [{ wch: 5 }, { wch: 22 }, { wch: 28 }, { wch: 18 }, { wch: 18 }, { wch: 35 }, { wch: 22 }, { wch: 45 }, { wch: 14 }, { wch: 28 }, { wch: 8 }, { wch: 12 }];
-                XLSX.utils.book_append_sheet(wb, ws, "Boys");
-            }
-            if (girls.length > 0) {
-                const ws = XLSX.utils.json_to_sheet(
-                    girls.map((r) => ({
-                        "S.No": r.sNo,
-                        Name: r.name,
-                        College: r.college,
-                        State: r.state,
-                        "City/Place": r.city,
-                        "Category (e.g. Chitrakala, Sahitya)": r.categoryNames,
-                        "Team Name": r.teamName,
-                        Competitions: r.competitions,
-                        "Phone Number": r.phone,
-                        Email: r.email,
-                        Gender: r.gender,
-                        "Booking Type": r.bookingType,
-                    }))
-                );
-                ws["!cols"] = [{ wch: 5 }, { wch: 22 }, { wch: 28 }, { wch: 18 }, { wch: 18 }, { wch: 35 }, { wch: 22 }, { wch: 45 }, { wch: 14 }, { wch: 28 }, { wch: 8 }, { wch: 12 }];
-                XLSX.utils.book_append_sheet(wb, ws, "Girls");
-            }
-            XLSX.writeFile(wb, `Accommodation_DayWise_Mar${dayStr}_${new Date().toISOString().split("T")[0]}.xlsx`);
-            toast.success(`Day-wise accommodation data downloaded (Mar ${dayStr})`);
-        } catch (err) {
-            console.error(err);
-            toast.error("Failed to download day-wise data");
-        } finally {
-            setDayWiseLoading(false);
-        }
-    };
-
-    const toggleDay = (day: number) => {
-        setSelectedDays((prev) =>
-            prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort((a, b) => a - b)
-        );
-    };
-
     return (
         <div className="px-4 py-6">
-            <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
+            <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold text-white">Accommodation Management</h1>
-                <div className="flex gap-2 flex-wrap">
-                    <button
-                        onClick={() => handleDownloadExcel("boys")}
-                        disabled={!!excelLoading}
-                        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-wait text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                    >
-                        {excelLoading === "boys" ? "Preparing..." : "Download Boys Excel"}
-                    </button>
-                    <button
-                        onClick={() => handleDownloadExcel("girls")}
-                        disabled={!!excelLoading}
-                        className="bg-pink-600 hover:bg-pink-700 disabled:opacity-50 disabled:cursor-wait text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                    >
-                        {excelLoading === "girls" ? "Preparing..." : "Download Girls Excel"}
-                    </button>
-                </div>
-            </div>
-
-            {/* Day-wise export */}
-            <div className="bg-gray-800 rounded-lg p-4 mb-6 border border-gray-700">
-                <h3 className="text-lg font-semibold text-white mb-3">Day-wise Accommodation Export (March 2026)</h3>
-                <p className="text-gray-400 text-sm mb-3">Select days to filter accommodation by competition dates. Downloads Excel with Boys and Girls in separate sheets. Includes State, City, College, Category (Chitrakala, Sahitya, etc.), Team Name for groups.</p>
-                <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex flex-wrap gap-2">
-                        {[2, 3, 4, 5, 6, 7].map((day) => (
-                            <label
-                                key={day}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors ${
-                                    selectedDays.includes(day)
-                                        ? "bg-amber-600/20 border-amber-500 text-amber-200"
-                                        : "bg-gray-700 border-gray-600 text-gray-400 hover:border-gray-500"
-                                }`}
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={selectedDays.includes(day)}
-                                    onChange={() => toggleDay(day)}
-                                    className="rounded border-gray-500"
-                                />
-                                <span className="text-sm font-medium">Mar {day}</span>
-                            </label>
-                        ))}
-                    </div>
-                    <button
-                        onClick={handleDownloadDayWise}
-                        disabled={dayWiseLoading}
-                        className="bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-wait text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                    >
-                        {dayWiseLoading ? "Preparing..." : "Download Data"}
-                    </button>
-                </div>
             </div>
 
             {/* Filters */}
@@ -469,15 +257,13 @@ export default function AccommodationPage() {
                                                     <>
                                                         <button
                                                             onClick={() => handleApprove(booking.id)}
-                                                            disabled={processingIds.has(booking.id)}
-                                                            className="bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-wait text-white px-3 py-1 rounded text-xs transition-colors"
+                                                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition-colors"
                                                         >
-                                                            {processingIds.has(booking.id) ? "Approving..." : "Approve"}
+                                                            Approve
                                                         </button>
                                                         <button
                                                             onClick={() => handleReject(booking.id)}
-                                                            disabled={processingIds.has(booking.id)}
-                                                            className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-wait text-white px-3 py-1 rounded text-xs transition-colors"
+                                                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors"
                                                         >
                                                             Reject
                                                         </button>

@@ -12,8 +12,7 @@ export default async function AccommodationAnalyticsPage() {
   if (
     session?.user.role !== Role.GOD &&
     session?.user.role !== Role.ADMIN &&
-    session?.user.role !== Role.MASTER &&
-    session?.user.role !== Role.RNC
+    session?.user.role !== Role.MASTER
   ) {
     return redirect("/admin/dashboard");
   }

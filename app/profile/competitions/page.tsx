@@ -1,20 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { getUserRegisteredEvents } from "@/actions/submissions.action";
 import { unregisterFromEvent } from "@/actions/events.action";
-import { getFeedbackReleasesForUser, getFeedbackStatusForUser } from "@/actions/feedback.action";
 import SubmissionModal from "@/components/ui/SubmissionModal";
-import FeedbackModal from "@/components/ui/FeedbackModal";
-import ViewFeedbackModal from "@/components/ui/ViewFeedbackModal";
-import { FiCalendar, FiMapPin, FiClock, FiUsers, FiUpload, FiCheckCircle, FiX, FiCreditCard, FiAward, FiTrash2, FiVideo, FiMessageSquare } from "react-icons/fi";
+import { FiCalendar, FiMapPin, FiClock, FiUsers, FiUpload, FiCheckCircle, FiX, FiCreditCard, FiAward, FiTrash2, FiVideo } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Loader from "@/components/ui/Loader";
 import { useSession } from "@/lib/auth-client";
-import { withRetry } from "@/lib/retry";
 
 interface Event {
     id: string;
@@ -53,12 +49,6 @@ interface Submission {
     updatedAt: Date;
 }
 
-interface Member {
-    name?: string | null;
-    email: string;
-    userId?: string;
-}
-
 interface GroupRegistration {
     id: string;
     eventId: string;
@@ -66,13 +56,7 @@ interface GroupRegistration {
     groupName: string | null;
     mentorName: string | null;
     mentorPhone: string | null;
-    members: Member[];
-}
-
-function isPhotographyEvaluationEvent(event: Pick<Event, "name" | "Category">): boolean {
-    const categoryName = event.Category?.name?.toLowerCase() || "";
-    const eventName = event.name?.toLowerCase() || "";
-    return categoryName.includes("photography") || eventName.includes("photography");
+    members: any;
 }
 
 
@@ -87,65 +71,41 @@ export default function MyEventsPage() {
     const [showSubmissionModal, setShowSubmissionModal] = useState(false);
     const [unregistering, setUnregistering] = useState<string | null>(null);
     const [showUnregisterConfirm, setShowUnregisterConfirm] = useState<string | null>(null);
-    const [fetchError, setFetchError] = useState<string | null>(null);
-    const [feedbackReleasedIds, setFeedbackReleasedIds] = useState<Set<string>>(new Set());
-    const [feedbackSubmitted, setFeedbackSubmitted] = useState<Record<string, boolean>>({});
-    const [feedbackEvent, setFeedbackEvent] = useState<Event | null>(null);
-    const [viewFeedbackEvent, setViewFeedbackEvent] = useState<Event | null>(null);
-    // const [hasGoogleAccount, setHasGoogleAccount] = useState(false); // Unused
-    // const isKL = !!session?.user?.email?.endsWith("@kluniversity.in"); // Unused
+    const [hasGoogleAccount, setHasGoogleAccount] = useState(false);
+    const isKL = !!session?.user?.email?.endsWith("@kluniversity.in");
     const isInternational = !!(session?.user as { isInternational?: boolean } | undefined)?.isInternational;
 
-    const fetchMyEvents = useCallback(async () => {
-        setFetchError(null);
-        try {
-            const result = await withRetry(async () => {
-                const res = await getUserRegisteredEvents();
-                if (!res.success) {
-                    throw new Error(res.error || "Unable to load your competition registrations right now.");
-                }
-                return res;
-            }, { retries: 2, delayMs: 1200 });
-
-            if (result.data) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const eventsData = result.data.map((e: any) => ({
-                    ...e,
-                    slug: e.slug || "", // Ensure slug exists
-                }));
-                setEvents(eventsData);
-                setSubmissions(result.submissions || []);
-                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                setGroupRegistrations((result.groupRegistrations || []).map((g: any) => ({
-                    ...g,
-                    members: g.members as Member[]
-                })));
-                const eventIds = (result.data as { id: string }[]).map((e) => e.id);
-                const [releasesRes, statusRes] = await Promise.all([
-                    getFeedbackReleasesForUser(),
-                    getFeedbackStatusForUser(eventIds),
-                ]);
-                if (releasesRes.success && releasesRes.eventIds) {
-                    setFeedbackReleasedIds(new Set(releasesRes.eventIds));
-                }
-                if (statusRes.success && statusRes.submitted) {
-                    setFeedbackSubmitted(statusRes.submitted);
-                }
-            }
-        } catch (error) {
-            const message = error instanceof Error ? error.message : "Unable to load your competition registrations right now.";
-            setFetchError(message);
-            setEvents([]);
-            setSubmissions([]);
-            setGroupRegistrations([]);
-        } finally {
-            setLoading(false);
-        }
+    useEffect(() => {
+        fetchMyEvents();
     }, []);
 
+    // Check if user has Google account
     useEffect(() => {
-        void fetchMyEvents();
-    }, [fetchMyEvents]);
+        const checkGoogleAccount = async () => {
+            if (session?.user?.id) {
+                try {
+                    const response = await fetch(`/api/check-user-accounts?userId=${session.user.id}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setHasGoogleAccount(data.hasGoogleAccount || false);
+                    }
+                } catch (error) {
+                    console.error("Error checking Google account:", error);
+                }
+            }
+        };
+        checkGoogleAccount();
+    }, [session]);
+
+    const fetchMyEvents = async () => {
+        const result = await getUserRegisteredEvents();
+        if (result.success && result.data) {
+            setEvents(result.data);
+            setSubmissions(result.submissions || []);
+            setGroupRegistrations(result.groupRegistrations || []);
+        }
+        setLoading(false);
+    };
 
     const getSubmissionForEvent = (eventId: string) => {
         return submissions.find((sub) => sub.eventId === eventId);
@@ -203,28 +163,7 @@ export default function MyEventsPage() {
                 </div>
 
                 {/* Events List */}
-                {fetchError ? (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-center py-16"
-                    >
-                        <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <FiX size={40} className="text-zinc-500" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-white mb-2">Could not load registrations</h3>
-                        <p className="text-zinc-400 mb-6">{fetchError}</p>
-                        <button
-                            onClick={() => {
-                                setLoading(true);
-                                fetchMyEvents();
-                            }}
-                            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
-                        >
-                            Retry
-                        </button>
-                    </motion.div>
-                ) : events.length === 0 ? (
+                {events.length === 0 ? (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -234,7 +173,7 @@ export default function MyEventsPage() {
                             <FiCalendar size={40} className="text-zinc-600" />
                         </div>
                         <h3 className="text-2xl font-bold text-white mb-2">No Competitions Yet</h3>
-                        <p className="text-zinc-400 mb-6">You have not registered for any competitions</p>
+                        <p className="text-zinc-400 mb-6">You haven't registered for any competitions</p>
                         <button
                             onClick={() => router.push("/competitions")}
                             className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
@@ -300,7 +239,7 @@ export default function MyEventsPage() {
                                         {(() => {
                                             const group = groupRegistrations.find(g => g.eventId === event.id);
                                             if (!group) return null;
-                                            const members = group.members;
+                                            const members = group.members as any[];
                                             return (
                                                 <div className="mb-4 p-3 bg-zinc-800/50 rounded-lg border border-zinc-700">
                                                     <div className="flex items-center gap-2 mb-2">
@@ -308,7 +247,7 @@ export default function MyEventsPage() {
                                                         <span className="font-semibold text-white text-sm">{group.groupName || "Team"}</span>
                                                     </div>
                                                     <div className="space-y-1">
-                                                        {members && members.map((m, idx) => (
+                                                        {members && members.map((m: any, idx: number) => (
                                                             <div key={idx} className="text-xs text-zinc-400 flex justify-between">
                                                                 <span>{m.name || m.email}</span>
                                                                 {m.userId === group.userId && <span className="text-red-500 text-[10px] ml-2">LEAD</span>}
@@ -348,15 +287,13 @@ export default function MyEventsPage() {
                                         {/* Action Buttons */}
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                             {event.registrationStatus === 'PENDING' && (
-                                                <div className="sm:col-span-2 w-full px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-lg text-sm flex flex-col items-center gap-1.5">
-                                                    <div className="flex items-center gap-2 font-medium">
-                                                        <FiClock size={16} />
-                                                        Pending Approval
-                                                    </div>
-                                                    <p className="text-yellow-400/70 text-xs text-center">
-                                                        It may take up to 24 hours to verify your payment and approve your registration. Once approved, you will receive a confirmation email.
-                                                    </p>
-                                                </div>
+                                                <button
+                                                    onClick={() => toast.info("Please wait for admin to review and approve your registration. You'll receive an email when confirmed.")}
+                                                    className="sm:col-span-2 w-full px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-lg text-sm font-medium flex items-center justify-center gap-2 hover:bg-yellow-500/20 transition-colors cursor-pointer"
+                                                >
+                                                    <FiClock size={16} />
+                                                    Pending Approval
+                                                </button>
                                             )}
 
                                             {event.registrationStatus === 'REJECTED' && (
@@ -365,20 +302,6 @@ export default function MyEventsPage() {
                                                     Registration Rejected
                                                 </div>
                                             )}
-
-                                            {/* Submit Work — available for PENDING and APPROVED (not REJECTED) */}
-                                            {event.registrationStatus !== 'REJECTED' && event.allowSubmissions ? (
-                                                <button
-                                                    onClick={() => handleSubmitClick(event)}
-                                                    className={`sm:col-span-2 w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${hasSubmission
-                                                        ? "bg-zinc-800 text-red-400 border border-red-500/30 hover:bg-zinc-700"
-                                                        : "bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/40"
-                                                        }`}
-                                                >
-                                                    <FiUpload size={16} />
-                                                    {hasSubmission ? "Update Submission" : "Submit Work"}
-                                                </button>
-                                            ) : null}
 
                                             {(event.registrationStatus === 'APPROVED' || !event.registrationStatus) && (
                                                 <>
@@ -421,7 +344,7 @@ export default function MyEventsPage() {
                                                                     window.URL.revokeObjectURL(url);
                                                                     document.body.removeChild(a);
                                                                     toast.success('Ticket downloaded successfully!');
-                                                                } catch {
+                                                                } catch (error) {
                                                                     toast.error('Failed to download ticket');
                                                                 }
                                                             }}
@@ -431,35 +354,39 @@ export default function MyEventsPage() {
                                                             Download Ticket
                                                         </button>
                                                     )}
-                                                    {!isPhotographyEvaluationEvent(event) && event.isResultPublished && (
+                                                    {event.allowSubmissions ? (
                                                         <button
-                                                            onClick={() => {
-                                                                router.push(`/results?category=${event.Category.id}&event=${event.slug}`);
-                                                            }}
-                                                            className="w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 bg-emerald-900/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-900/40 hover:shadow-lg hover:shadow-emerald-900/20"
+                                                            onClick={() => handleSubmitClick(event)}
+                                                            className={`w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${hasSubmission
+                                                                ? "bg-zinc-800 text-red-400 border border-red-500/30 hover:bg-zinc-700"
+                                                                : "bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/40"
+                                                                }`}
                                                         >
-                                                            <FiAward size={16} />
-                                                            View Results
+                                                            <FiUpload size={16} />
+                                                            {hasSubmission ? "Update Submission" : "Submit Work"}
                                                         </button>
-                                                    )}
+                                                    ) : null}
+                                                    <button
+                                                        onClick={() => {
+                                                            if (!event.isResultPublished) {
+                                                                toast.info("Results not released yet");
+                                                                return;
+                                                            }
+                                                            router.push(`/results?category=${event.Category.id}&event=${event.slug}`);
+                                                        }}
+                                                        className={`w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${event.isResultPublished
+                                                            ? "bg-emerald-900/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-900/40 hover:shadow-lg hover:shadow-emerald-900/20"
+                                                            : "bg-zinc-800/60 text-zinc-400 border border-zinc-700 cursor-not-allowed"
+                                                            }`}
+                                                    >
+                                                        <FiAward size={16} />
+                                                        View Results
+                                                    </button>
                                                 </>
                                             )}
 
-                                            {event.registrationStatus !== "REJECTED" && feedbackReleasedIds.has(event.id) && (
-                                                <button
-                                                    onClick={() => (feedbackSubmitted[event.id] ? setViewFeedbackEvent(event) : setFeedbackEvent(event))}
-                                                    className={`sm:col-span-2 w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${feedbackSubmitted[event.id]
-                                                        ? "bg-zinc-800 text-emerald-400 border border-emerald-500/30 hover:bg-zinc-700"
-                                                        : "bg-amber-600/90 text-white hover:bg-amber-600 hover:shadow-lg hover:shadow-amber-600/30"
-                                                        }`}
-                                                >
-                                                    <FiMessageSquare size={16} />
-                                                    {feedbackSubmitted[event.id] ? "View your Feedback" : "Submit Feedback"}
-                                                </button>
-                                            )}
-
-                                            {/* Hide unregister for other college & KL; show only for International */}
-                                            {isInternational && (
+                                            {/* Hide unregister for other college; show only for KL and International */}
+                                            {(isKL || isInternational) && (
                                                 <button
                                                     onClick={() => setShowUnregisterConfirm(event.id)}
                                                     disabled={unregistering === event.id}
@@ -521,29 +448,6 @@ export default function MyEventsPage() {
                     />
                 )
             }
-
-            {feedbackEvent && (
-                <FeedbackModal
-                    isOpen={!!feedbackEvent}
-                    onClose={() => setFeedbackEvent(null)}
-                    eventId={feedbackEvent.id}
-                    eventName={feedbackEvent.name}
-                    onSuccess={() => {
-                        setFeedbackSubmitted((p) => ({ ...p, [feedbackEvent.id]: true }));
-                        setFeedbackEvent(null);
-                        fetchMyEvents();
-                    }}
-                />
-            )}
-
-            {viewFeedbackEvent && (
-                <ViewFeedbackModal
-                    isOpen={!!viewFeedbackEvent}
-                    onClose={() => setViewFeedbackEvent(null)}
-                    eventId={viewFeedbackEvent.id}
-                    eventName={viewFeedbackEvent.name}
-                />
-            )}
 
             {/* Unregister Confirmation Modal */}
             <AnimatePresence>
